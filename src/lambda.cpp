@@ -106,12 +106,19 @@ void maddsuahttp::lambda::handler() {
 
 	//	download http request
 	auto rqData = _getData(&ClientSocket);
-	auto targetURL = (rqData.startLineArgs.size() >= 2) ? rqData.startLineArgs[1] : "/";
+
+	//	drop connection if the request is invalid
+	if (rqData.startLineArgs.size() < 3) {
+		closesocket(ClientSocket);
+		return;
+	}
+
+	auto targetURL = rqData.startLineArgs[1];
 
 	//	pass the data to lambda function
 	lambdaEvent rqEvent;
-		rqEvent.method = rqData.startLineArgs.size() >= 1 ? rqData.startLineArgs[0] : "GET";
-		rqEvent.httpversion = rqData.startLineArgs.size() >= 3 ? rqData.startLineArgs[2] : "HTTP/1.1";
+		rqEvent.method = rqData.startLineArgs[0];
+		rqEvent.httpversion = rqData.startLineArgs[2];
 		rqEvent.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
 		rqEvent.searchQuery = searchQueryParams(&targetURL);
 		rqEvent.headers = rqData.headers;
@@ -120,12 +127,9 @@ void maddsuahttp::lambda::handler() {
 	auto lambdaResult = callback(rqEvent);
 
 	//	reset header case
-	//	add configuration options
-	//if (true) {
-		for (size_t i = 0; i < lambdaResult.headers.size(); i++) {
-			toTitleCase(&lambdaResult.headers[i].name);
-		}
-	//}
+	for (size_t i = 0; i < lambdaResult.headers.size(); i++) {
+		toTitleCase(&lambdaResult.headers[i].name);
+	}
 
 	//	inject additional headers
 	if (!findHeader("X-Powered-By", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"X-Powered-By", "maddsua/lambda"});
