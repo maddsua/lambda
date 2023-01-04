@@ -1,8 +1,8 @@
 #include "../include/maddsua/fs.hpp"
 
-bool maddsuaFS::writeBinary(std::string path, std::vector<uint8_t>* data) {
+bool maddsuaFS::writeBinary(const std::string path, const std::vector<uint8_t>* data) {
 
-	if (path.find('/') || path.find('\\')) {
+	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
 		auto dirpath = std::regex_replace(path, std::regex("\\+"), "/");
 		dirpath = dirpath.substr(0, dirpath.find_last_of('/'));
 

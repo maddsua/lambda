@@ -3,7 +3,7 @@ APP      = lambda.exe
 MAIN     = main
 OBJECTS  = main.o src/lambda.o src/http.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o
 FLAGS    = -std=c++20
-LIBS     = -lmswsock -lwinmm -lws2_32 -lz
+LIBS     = -lws2_32 -lz
 
 .PHONY: all all-before all-after clean clean-custom run-custom
 
