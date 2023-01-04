@@ -41,6 +41,3 @@ src/compress.o: src/compress.cpp
 
 src/filesystem.o: src/filesystem.cpp
 	g++ -c src/filesystem.cpp -o src/filesystem.o $(FLAGS)
-
-
-
