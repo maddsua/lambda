@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string>
-#include <iostream>
 
 #include "include/lambda.hpp"
 
@@ -37,8 +36,15 @@ int main(int argc, char** argv) {
 	puts("Waiting for connections at http://localhost:27015/");
 
 	while (true) {
-		//	just chill while server is working
-		Sleep(1000);
+
+		if (server.logsAvail()) {
+			auto logs = server.logs();
+			for (auto entry : logs) {
+				puts(entry.text.c_str());
+			}
+		}
+
+		Sleep(250);
 	}
 
 	return 0;
