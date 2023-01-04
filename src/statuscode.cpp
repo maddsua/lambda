@@ -65,7 +65,7 @@ const std::vector <_httpcode> httpCodeList = {
 	{ 511, "Network Authentication Required" }
 };
 
-std::string maddsuaHTTP::_findHttpCode(const uint16_t statusCode) {
+std::string maddsua::_findHttpCode(const uint16_t statusCode) {
 	for (auto status : httpCodeList) {
 		if (status.code == statusCode) {
 			return status.textCode;

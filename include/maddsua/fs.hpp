@@ -13,7 +13,7 @@
 
 #define MADDSUA_FS_READ_CHUNK	(1048576)
 
-namespace maddsuaFS {
+namespace maddsua {
 
 	bool writeBinary(const std::string path, const std::vector<uint8_t>* data);
 	bool readBinary(const std::string path, std::vector<uint8_t>* dest);

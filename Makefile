@@ -1,7 +1,7 @@
 
 APP      = lambda.exe
 MAIN     = main
-OBJECTS  = main.o src/lambda.o src/http.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o
+OBJECTS  = main.o src/lambda.o src/http.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
 FLAGS    = -std=c++20
 LIBS     = -lws2_32 -lz
 
@@ -41,3 +41,6 @@ src/compress.o: src/compress.cpp
 
 src/filesystem.o: src/filesystem.cpp
 	g++ -c src/filesystem.cpp -o src/filesystem.o $(FLAGS)
+
+src/base64.o: src/base64.cpp
+	g++ -c src/base64.cpp -o src/base64.o $(FLAGS)

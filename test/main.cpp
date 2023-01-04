@@ -5,17 +5,17 @@
 #include "../include/maddsua/compress.hpp"
 #include "../include/maddsua/fs.hpp"
 
-maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
+maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
 	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsuaHTTP::findHeader("User-Agent", &event.headers);
+		body += "Your user agent is: " + maddsua::findHeader("User-Agent", &event.headers);
 
-	if (maddsuaHTTP::findSearchQuery("user", &event.searchQuery) == "maddsua") {
+	if (maddsua::findSearchQuery("user", &event.searchQuery) == "maddsua") {
 		body = "<h2>Good night, my Dark Lord</h2>\r\n";
 
 		//	connect to google.com
 		{
-			auto googeResp = maddsuaHTTP::fetch("google.com", "GET", {}, "");
+			auto googeResp = maddsua::fetch("google.com", "GET", {}, "");
 			printf("Connecting to google.com... %i %s", googeResp.statusCode, googeResp.statusText.c_str());
 				if (googeResp.errors.size()) puts(googeResp.errors.c_str());
 			body += "<p>This is what google says: Page " + googeResp.statusText + "</p>";
@@ -33,7 +33,7 @@ maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
 int main(int argc, char** argv) {
 
-	auto server = maddsuaHTTP::lambda();
+	auto server = maddsua::lambda();
 	auto startresult = server.init("27015", &requesthandeler);
 
 	printf("%s\r\n", startresult.cause.c_str());

@@ -23,7 +23,7 @@
 #define ZLIB_MEXP_MEMORY		(9)
 #define ZLIB_MEXP_CHUNK			(262144)	//	256k
 
-namespace maddsuaCompress {
+namespace maddsua {
 
 	bool gzCompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool gzipHeader);
 	bool gzDecompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result);
