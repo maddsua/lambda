@@ -120,6 +120,7 @@ Check out the `test` directory, a lot of cool stuff there
 1. MS Windows as your OS. Gonna add Linux support later, but now all the networking relies on windosk2 and other windows-specific stuff
 2. GCC 10+ (probably older versions will do too)
 3. Make. Old good one, don't confuse with CMake
+4. zlib aka libz (deflate "compressor")
 
 ### Type in literally two commands:
 
