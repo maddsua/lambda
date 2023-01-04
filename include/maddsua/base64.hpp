@@ -10,6 +10,7 @@ namespace maddsua {
 
 	std::vector <uint8_t> b64Decode(std::string encoded);
 	std::string b64Encode(std::vector <uint8_t> source);
+	bool b64Validate(std::string* encoded);
 
 }
 
