@@ -1,15 +1,16 @@
-#include "../include/maddsua/bufferCompress.hpp"
+#include "../include/maddsua/compress.hpp"
 
 /*
 	zlib "wrapper" for de/compressing binary data
 */
-bool maddsuaCompress::compressVector(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool gzipHeader) {
+bool maddsuaCompress::gzCompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool gzipHeader) {
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;
 		zlibStream.zfree = Z_NULL;
 		zlibStream.opaque = Z_NULL;
 
-	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, gzipHeader ? ZLIB_MEXP_HEADER_GZ : ZLIB_MEXP_HEADER_Z, ZLIB_MEXP_MEM_MAX, Z_DEFAULT_STRATEGY);
+	auto writeHeader = (gzipHeader ? ZLIB_MEXP_HEADER_GZ : ZLIB_MEXP_HEADER_Z);
+	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, writeHeader, ZLIB_MEXP_MEMORY, Z_DEFAULT_STRATEGY);
 		if (zlibResult != Z_OK) return false;
 
 	result->reserve(source->size()/3);
@@ -44,10 +45,12 @@ bool maddsuaCompress::compressVector(const std::vector <uint8_t>* source, std::v
 	} while (zlibFlush != Z_FINISH);
 		if(zlibResult != Z_STREAM_END) return false;
 
-	return deflateEnd(&zlibStream) == Z_OK;
+	(void)deflateEnd(&zlibStream);
+
+	return true;
 }
 
-bool maddsuaCompress::decompressVector(const std::vector <uint8_t>* source, std::vector <uint8_t>* result) {
+bool maddsuaCompress::gzDecompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result) {
 
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;
@@ -57,7 +60,7 @@ bool maddsuaCompress::decompressVector(const std::vector <uint8_t>* source, std:
 		zlibStream.next_in = Z_NULL;
 
 	auto zlibResult = inflateInit2(&zlibStream, ZLIB_MEXP_DECOM_AUTO);
-		if (zlibResult != Z_OK) return zlibResult;
+		if (zlibResult != Z_OK) return false;
 
 	result->reserve(source->size()*3);
 
@@ -80,7 +83,7 @@ bool maddsuaCompress::decompressVector(const std::vector <uint8_t>* source, std:
 			zlibStream.avail_out = ZLIB_MEXP_CHUNK;
 			zlibStream.next_out = chunkOut;
 			zlibResult = inflate(&zlibStream, Z_NO_FLUSH);
-				if(zlibResult == Z_STREAM_ERROR || zlibResult == Z_NEED_DICT || zlibResult == Z_MEM_ERROR|| zlibResult == Z_DATA_ERROR) return zlibResult;
+				if(zlibResult == Z_STREAM_ERROR || zlibResult == Z_NEED_DICT || zlibResult == Z_MEM_ERROR|| zlibResult == Z_DATA_ERROR) return false;
 
 			result->insert(result->end(), chunkOut, chunkOut + (ZLIB_MEXP_CHUNK - zlibStream.avail_out));
 
@@ -89,5 +92,6 @@ bool maddsuaCompress::decompressVector(const std::vector <uint8_t>* source, std:
 	} while (zlibResult != Z_STREAM_END);
 
 	(void)inflateEnd(&zlibStream);
-	return zlibResult == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
+
+	return zlibResult == Z_STREAM_END ? true : false;
 }

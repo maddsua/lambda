@@ -1,7 +1,7 @@
 
 APP      = lambda.exe
 MAIN     = main
-OBJECTS  = main.o src/lambda.o src/http.o src/statuscode.o src/mimetypes.o src/fetch.o src/bufferCompress.o
+OBJECTS  = main.o src/lambda.o src/http.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o
 FLAGS    = -std=c++20
 LIBS     = -lmswsock -lwinmm -lws2_32 -lz
 
@@ -36,6 +36,11 @@ src/mimetypes.o: src/mimetypes.cpp
 src/fetch.o: src/fetch.cpp
 	g++ -c src/fetch.cpp -o src/fetch.o $(FLAGS)
 
-src/bufferCompress.o: src/bufferCompress.cpp
-	g++ -c src/bufferCompress.cpp -o src/bufferCompress.o $(FLAGS)
+src/compress.o: src/compress.cpp
+	g++ -c src/compress.cpp -o src/compress.o $(FLAGS)
+
+src/filesystem.o: src/filesystem.cpp
+	g++ -c src/filesystem.cpp -o src/filesystem.o $(FLAGS)
+
+
 
