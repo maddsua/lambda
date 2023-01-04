@@ -1,4 +1,4 @@
-#include "../include/lambda.hpp"
+#include "../include/maddsua/http.hpp"
 
 struct _mimetypeitem {
 	const char* extension;
@@ -1184,7 +1184,7 @@ const std::vector <_mimetypeitem> mimeTypeTable = {
 	{ "zmm", "application/vnd.handheld-entertainment+xml" }
 };
 
-std::string maddsuahttp::findMimeType(const char* extension) {
+std::string maddsuaHTTP::findMimeType(const char* extension) {
 	for (auto ftype : mimeTypeTable) {
 		if (!strcmp(ftype.extension, extension)) {
 			return ftype.mimetype;
