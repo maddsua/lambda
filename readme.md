@@ -132,4 +132,6 @@ make
 ```
 Now grab the `libmaddsualambda.a` from `lib` directory and link it to your project.
 
-Don't forget to include `lambda.hpp` from the `include` directory.
+Don't forget to include `lambda.hpp` from the `include` directory and to also link `-lmswsock -lwinmm -lws2_32`.
+
+That's it.
