@@ -9,8 +9,7 @@ bool maddsua::gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_
 		zlibStream.zfree = Z_NULL;
 		zlibStream.opaque = Z_NULL;
 
-	auto writeHeader = (gzipHeader ? ZLIB_MEXP_HEADER_GZ : ZLIB_MEXP_HEADER_Z);
-	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, writeHeader, ZLIB_MEXP_MEMORY, Z_DEFAULT_STRATEGY);
+	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (gzipHeader ? ZLIB_MEXP_HEADER_GZ : ZLIB_MEXP_HEADER_Z), ZLIB_MEXP_MEMORY, Z_DEFAULT_STRATEGY);
 		if (zlibResult != Z_OK) return false;
 
 	compressed->resize(0);
@@ -23,7 +22,7 @@ bool maddsua::gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_
 
 	do {
 		size_t partSize = ZLIB_MEXP_CHUNK;
-			if((ZLIB_MEXP_CHUNK + carrierShift) > plain->size()) partSize = (plain->size() - carrierShift);
+		if ((ZLIB_MEXP_CHUNK + carrierShift) > plain->size()) partSize = (plain->size() - carrierShift);
 
 		std::copy(plain->begin() + carrierShift, plain->begin() + carrierShift + partSize, chunkIn);
 
@@ -36,7 +35,8 @@ bool maddsua::gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_
 			zlibStream.avail_out = ZLIB_MEXP_CHUNK;
 			zlibStream.next_out = chunkOut;
 			zlibResult = deflate(&zlibStream, zlibFlush);
-				if (zlibResult == Z_STREAM_ERROR) return false;
+
+			if (zlibResult == Z_STREAM_ERROR) return false;
 
 			compressed->insert(compressed->end(), chunkOut, chunkOut + (ZLIB_MEXP_CHUNK - zlibStream.avail_out));
 
@@ -72,7 +72,7 @@ bool maddsua::gzDecompress(const std::vector <uint8_t>* compressed, std::vector 
 
 	do {
 		size_t partSize = ZLIB_MEXP_CHUNK;
-		if((ZLIB_MEXP_CHUNK + carrierShift) > compressed->size()) partSize = (compressed->size() - carrierShift);
+		if ((ZLIB_MEXP_CHUNK + carrierShift) > compressed->size()) partSize = (compressed->size() - carrierShift);
 
 		std::copy(compressed->begin() + carrierShift, compressed->begin() + carrierShift + partSize, chunkIn);
 
