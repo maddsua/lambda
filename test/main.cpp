@@ -10,7 +10,7 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 	std::string body = "<h1>hello darkness my old friend</h1>";
 		body += "Your user agent is: " + maddsua::findHeader("User-Agent", &event.headers);
 
-	if (maddsua::findSearchQuery("user", &event.searchQuery) == "maddsua") {
+	/*if (maddsua::findSearchQuery("user", &event.searchQuery) == "maddsua") {
 		body = "<h2>Good night, my Dark Lord</h2>\r\n";
 
 		//	connect to google.com
@@ -20,12 +20,15 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 				if (googeResp.errors.size()) puts(googeResp.errors.c_str());
 			body += "<p>This is what google says: Page " + googeResp.statusText + "</p>";
 		}
-	}
+	}*/
+
+	std::string htmlpage;
+	if (maddsua::readBinary("index.html", &htmlpage)) body = htmlpage;
 
 	return {
 		200,
 		{
-			{"test", "maddsua"}
+			{"x-test", "maddsua"}
 		},
 		body
 	};
@@ -43,6 +46,11 @@ int main(int argc, char** argv) {
 	puts("Waiting for connections at http://localhost:27015/");
 
 	while (true) {
+
+		for (auto log : server.logs()) {
+			puts(log.text.c_str());
+		}
+		
 		//	just chill while server is working
 		Sleep(1000);
 	}
