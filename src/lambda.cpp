@@ -1,4 +1,5 @@
 #include "../include/maddsua/lambda.hpp"
+#include "../include/maddsua/compress.hpp"
 
 
 maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lambdaResponse(lambdaEvent)> lambda) {
@@ -143,8 +144,34 @@ void maddsua::lambda::handler() {
 	auto statText = _findHttpCode(lambdaResult.statusCode);
 	startLine += (statText.size() ? (std::to_string(lambdaResult.statusCode) + " " + statText) : "200 OK");
 
+	//	apply compression
+	auto acceptEncodings = findHeader("Accept-Encoding", &rqData.headers);
+	std::string compressedBody;
+	if (config_useCompression) {
+
+		if (acceptEncodings.find("br") != std::string::npos) {
+
+			if (!maddsua::brCompress(&lambdaResult.body, &compressedBody)) {
+				compressedBody.erase(compressedBody.begin(), compressedBody.end());
+			} else lambdaResult.headers.push_back({"Content-Encoding", "br"});
+			
+		} else if (acceptEncodings.find("gzip") != std::string::npos) {
+
+			if (!maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) {
+				compressedBody.erase(compressedBody.begin(), compressedBody.end());
+			} else lambdaResult.headers.push_back({"Content-Encoding", "gzip"});
+
+		} else if (acceptEncodings.find("deflate") != std::string::npos) {
+			
+			if (!maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) {
+				compressedBody.erase(compressedBody.begin(), compressedBody.end());
+			} else lambdaResult.headers.push_back({"Content-Encoding", "deflate"});
+		}
+	}
+
+
 	//	send response and close socket
-	auto sent = _sendData(&ClientSocket, startLine, &lambdaResult.headers, &lambdaResult.body);
+	auto sent = _sendData(&ClientSocket, startLine, &lambdaResult.headers, compressedBody.size() ? &compressedBody : &lambdaResult.body);
 	closesocket(ClientSocket);
 
 	if (sent.success) serverlog.push_back({ "Handler", "Now", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"" });

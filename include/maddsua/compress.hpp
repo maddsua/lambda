@@ -8,7 +8,7 @@
 */
 
 #include <stdint.h>
-#include <vector>
+#include <string>
 
 #ifndef _maddsua_compression_wrapper
 #define _maddsua_compression_wrapper
@@ -28,11 +28,11 @@
 
 namespace maddsua {
 
-	bool gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* compressed, bool gzipHeader);
-	bool gzDecompress(const std::vector <uint8_t>* compressed, std::vector <uint8_t>* plain);
+	bool gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader);
+	bool gzDecompress(const std::string* compressed, std::string* plain);
 
-	bool brCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* encoded);
-	bool brDecompress(const std::vector <uint8_t>* encoded, std::vector <uint8_t>* plain);
+	bool brCompress(const std::string* plain, std::string* encoded);
+	bool brDecompress(const std::string* encoded, std::string* plain);
 
 }
 
