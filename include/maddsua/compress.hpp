@@ -22,11 +22,12 @@
 #define ZLIB_MEXP_RAW			(-15)
 #define ZLIB_MEXP_MEMORY		(9)
 #define ZLIB_MEXP_CHUNK			(262144)	//	256k
+#define ZLIB_MEXP_EXPECT_RATIO	(3)
 
 namespace maddsua {
 
-	bool gzCompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool gzipHeader);
-	bool gzDecompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result);
+	bool gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* compressed, bool gzipHeader);
+	bool gzDecompress(const std::vector <uint8_t>* compressed, std::vector <uint8_t>* plain);
 
 }
 
