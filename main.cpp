@@ -13,6 +13,10 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 	if (maddsua::findSearchQuery("user", &event.searchQuery) == "maddsua") {
 		body = "Good night, my Dark Lord";
 	}
+
+	body += "<br><br>Some text to test network mechanistms";
+
+	body += "<br><br>Even more text content here to test network compression functionality";
 	
 	return {
 		200,
