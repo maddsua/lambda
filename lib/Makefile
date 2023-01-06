@@ -1,7 +1,7 @@
 
 APP      = libmaddsualambda
 MAIN     = main
-OBJECTS  = ../src/lambda.o ../src/http.o ../src/statuscode.o ../src/mimetypes.o ../src/fetch.o ../src/compress.o ../src/filesystem.o ../src/base64.o
+OBJECTS  = ../src/sockets.o ../src/lambda.o ../src/http.o ../src/statuscode.o ../src/mimetypes.o ../src/fetch.o ../src/compress.o ../src/filesystem.o ../src/base64.o
 FLAGS    = -std=c++20
 LIBS     = -lmswsock -lwinmm -lws2_32
 
@@ -18,11 +18,14 @@ run: run-custom
 $(APP): $(OBJECTS)
 	ar rvs $(APP).a $(OBJECTS)
 
-../src/lambda.o: ../src/lambda.cpp
-	g++ -c ../src/lambda.cpp -o ../src/lambda.o $(FLAGS)
+../src/sockets.o: ../src/sockets.cpp
+	g++ -c ../src/sockets.cpp -o ../src/sockets.o $(FLAGS)
 
 ../src/http.o: ../src/http.cpp
 	g++ -c ../src/http.cpp -o ../src/http.o $(FLAGS)
+
+../src/lambda.o: ../src/lambda.cpp
+	g++ -c ../src/lambda.cpp -o ../src/lambda.o $(FLAGS)
 
 ../src/statuscode.o: ../src/statuscode.cpp
 	g++ -c ../src/statuscode.cpp -o ../src/statuscode.o $(FLAGS)

@@ -10,7 +10,7 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 	std::string body = "<h1>hello darkness my old friend</h1>";
 		body += "Your user agent is: " + maddsua::findHeader("User-Agent", &event.headers);
 
-	if (maddsua::findSearchQuery("user", &event.searchQuery) == "maddsua") {
+	if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
 		body = "Good night, my Dark Lord";
 	}
 
