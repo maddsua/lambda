@@ -13,10 +13,21 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: install_zlib
+      run: .\vcpkg install zlib
+
+    - name: install_brotli
+      run: .\vcpkg install brotli
           
     - name: cd_lib
       run: cd lib
       
-    - name: make
+    - name: make_lib
       run: make
+
+    - name: cd_test
+      run: cd ../test
       
+    - name: make_cd_test
+      run: make
