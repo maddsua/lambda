@@ -1,7 +1,7 @@
 
 APP      = lambda.exe
-MAIN     = main
-OBJECTS  = main.o src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
+dev     = dev
+OBJECTS  = dev.o src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
 FLAGS    = -std=c++20
 LIBS     = -lws2_32 -lz -lbrotli_static
 
@@ -18,8 +18,8 @@ run: run-custom
 $(APP): $(OBJECTS)
 	g++ $(OBJECTS) -o $(APP) $(LIBS)
 
-$(MAIN).o: $(MAIN).cpp
-	g++ -c $(MAIN).cpp -o $(MAIN).o $(FLAGS)
+$(dev).o: $(dev).cpp
+	g++ -c $(dev).cpp -o $(dev).o $(FLAGS)
 
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)

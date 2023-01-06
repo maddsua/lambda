@@ -67,7 +67,8 @@ bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool
 	} while (zlibFlush != Z_FINISH && opresult);
 
 	(void)deflateEnd(&zlibStream);
-	delete chunkIn, chunkOut;
+	delete chunkIn;
+	delete chunkOut;
 
 	return (zlibResult == Z_STREAM_END && opresult);
 }
@@ -128,7 +129,8 @@ bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
 	} while (zlibResult != Z_STREAM_END && opresult);
 
 	(void)inflateEnd(&zlibStream);
-	delete chunkIn, chunkOut;
+	delete chunkIn;
+	delete chunkOut;
 
 	return (zlibResult == Z_STREAM_END && opresult);
 }

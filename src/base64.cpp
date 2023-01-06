@@ -1,6 +1,6 @@
 #include "../include/maddsua/base64.hpp"
 
-std::string maddsua::b64Encode(std::vector <uint8_t> source) {
+std::string maddsua::b64Encode(std::string source) {
 	
 	//	yes. this table is here too
 	const char b64et[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -46,7 +46,7 @@ std::string maddsua::b64Encode(std::vector <uint8_t> source) {
 }
 
 
-std::vector<uint8_t> maddsua::b64Decode(std::string encoded) {
+std::string maddsua::b64Decode(std::string encoded) {
 	
 	//	full decode table does brrrrrr. high-speed tricks here
 	const uint8_t b64dt[256] = {
@@ -64,7 +64,7 @@ std::vector<uint8_t> maddsua::b64Decode(std::string encoded) {
 	};
 
 	size_t contentLength = ((encoded.size() * 3) / 4);
-	std::vector <uint8_t> decoded;
+	std::string decoded;
 		decoded.resize(contentLength + 3);
 		
 		if(encoded[encoded.size() - 1] == '=') contentLength--;
