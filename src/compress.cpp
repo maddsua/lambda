@@ -7,6 +7,12 @@
 /*
 	zlib "wrapper" for de/compressing binary data
 */
+
+/**
+ * Compress data inside std::string using gzip. The return value "true" indicatess success
+ * @param plain pointer to a string with original data
+ * @param compressed pointer to a destination string, where the compressed data will be saved
+*/
 bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader) {
 
 	if (!plain->size()) return false;
@@ -58,6 +64,11 @@ bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool
 	return (zlibResult == Z_STREAM_END);
 }
 
+/**
+ * Decompresses gzip-encoded data from std::string. The return value "true" indicatess success
+ * @param compressed pointer to a string with compressed data
+ * @param plain pointer to a destination string, original data will get here
+*/
 bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
 
 	if (!compressed->size()) return false;
@@ -121,6 +132,11 @@ bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
 	 them usable.
 */
 
+/**
+ * Decompresses brotli-encoded data from std::string. The return value "true" indicatess success
+ * @param compressed pointer to a string with compressed data
+ * @param plain pointer to a destination string, original data will get here
+*/
 bool maddsua::brDecompress(const std::string* compressed, std::string* plain) {
 
 	if (!compressed->size()) return false;
@@ -153,6 +169,11 @@ bool maddsua::brDecompress(const std::string* compressed, std::string* plain) {
 	return true;
 }
 
+/**
+ * Compress data inside std::string using brotli. The return value "true" indicatess success
+ * @param plain pointer to a string with original data
+ * @param compressed pointer to a destination string, where the compressed data will be saved
+*/
 bool maddsua::brCompress(const std::string* plain, std::string* compressed) {
 
 	if (!plain->size()) return false;
