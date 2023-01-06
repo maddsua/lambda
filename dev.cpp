@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 	auto server = maddsua::lambda();
 	auto startresult = server.init("27015", &requesthandeler);
 
-	printf("%s\r\n", startresult.cause.c_str());
+	printf("Server: %s\r\n", startresult.cause.c_str());
 
 	if (!startresult.success) return 1;
 
