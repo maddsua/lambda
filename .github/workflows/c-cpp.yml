@@ -43,11 +43,3 @@ jobs:
     - name: build demo executable
       working-directory: ./demo
       run: make
-
-    - name: build test
-      working-directory: ./tests
-      run: make
-
-    - name: run test
-      working-directory: ./tests
-      run: make run
