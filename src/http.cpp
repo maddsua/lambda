@@ -118,7 +118,7 @@ std::vector <std::string> maddsua::splitBy(std::string source, std::string token
 	return temp;
 }
 
-std::string maddsua::findHeader(std::string headerName, std::vector <maddsua::datapair>* headers) {
+std::string maddsua::headerFind(std::string headerName, std::vector <maddsua::datapair>* headers) {
 	for (auto headerObject : *headers) {
 		if (toLowerCase(headerObject.name) == toLowerCase(headerName)) {
 			return headerObject.value;
@@ -147,4 +147,17 @@ std::vector <maddsua::datapair> maddsua::searchQueryParams(std::string* url) {
 	}
 
 	return params;
+}
+
+void maddsua::headerInsert(std::string header, std::string value, std::vector <maddsua::datapair>* headers) {
+
+	for (auto& h : *headers) {
+		if (toLowerCase(h.name) == toLowerCase(header)) {
+			toTitleCase(&h.name);
+			h.value = value;
+			return;
+		}
+	}
+	
+	headers->push_back({toTitleCase(header), value});
 }

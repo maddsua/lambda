@@ -8,7 +8,7 @@
 maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
 	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsua::findHeader("User-Agent", &event.headers);
+		body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
 
 	if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
 		body = "Good night, my Dark Lord";
@@ -21,7 +21,7 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 	return {
 		200,
 		{
-			{"test", "maddsua"}
+			{ "test", "maddsua" }
 		},
 		body
 	};
@@ -40,27 +40,26 @@ int main(int argc, char** argv) {
 
 	//	connect to google.com
 	/*{
-		auto googeResp = maddsua::fetch("google.com", "GET", {}, "");
+		auto googeResp = maddsua::fetch("www.google.com", "GET", {}, "");
 
 		printf("Connecting to google.com... %i %s", googeResp.statusCode, googeResp.statusText);
 		if (googeResp.errors.size()) puts(googeResp.errors.c_str());
 		puts(googeResp.body.c_str());
 
-		auto uncompressed = std::vector<uint8_t>(googeResp.body.begin(), googeResp.body.end());
-		std::vector<uint8_t> compressed;
-		auto result = maddsua::gzCompress(&uncompressed, &compressed, true);
-		std::cout << "Compression result: " << result << std::endl;
-		std::cout << "Raw: " << uncompressed.size() << " / compressed: " << compressed.size() << std::endl;
+		for (auto header : googeResp.headers) {
+			std::cout << header.name << " " << header.value << std::endl;
+		}
 
-		std::cout << "Writing to googlecom.html.gz result: " << maddsua::writeBinary("googlecom.html.gz", &compressed) << std::endl;
+
+		std::cout << "Writing to googlecom.bin result: " << maddsua::writeBinary("googlecom.bin", &googeResp.body) << std::endl;
 	}*/
 
 	while (true) {
 
 		for (auto log : server.logs()) {
-			puts(log.text.c_str());
+			std::cout << log << std::endl;
 		}
-		//	just chill while server is working
+		//	just chill while server is running
 		Sleep(1000);
 	}
 

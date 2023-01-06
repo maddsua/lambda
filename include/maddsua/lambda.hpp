@@ -18,12 +18,6 @@ namespace maddsua {
 		std::vector <datapair> headers;
 		std::string body;
 	};
-	struct lambdalog {
-		std::string type;
-		std::string time;
-		std::string text;
-	};
-
 
 	class lambda {
 
@@ -52,7 +46,7 @@ namespace maddsua {
 			void close();
 
 			inline bool logsAvail() { return serverlog.size(); }
-			inline std::vector <lambdalog> logs() {
+			inline std::vector <std::string> logs() {
 				auto temp = serverlog;
 				serverlog.erase(serverlog.begin(), serverlog.end());
 				return temp;
@@ -69,7 +63,8 @@ namespace maddsua {
 			std::function<lambdaResponse(lambdaEvent)> callback;
 			bool handlerDispatched;
 			void handler();
-			std::vector <lambdalog> serverlog;
+			std::vector <std::string> serverlog;
+			void addLogEntry(std::string module, std::string type, std::string text);
 
 			bool config_useCompression;
 	};
