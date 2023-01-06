@@ -17,6 +17,10 @@ jobs:
         repository: microsoft/vcpkg
         path: vcpkg
 
+    - uses: lukka/get-vcpkg/.github/workflows/cache-vcpkg.yml@main
+      with:
+        vcpkg_root_path: ${{ github.workspace }}/
+
     - name: install_zlib
       run: .\vcpkg install zlib
 
