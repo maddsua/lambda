@@ -1,25 +1,42 @@
 
-APP      = lambda.exe
-dev     = dev
-OBJECTS  = dev.o src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
-FLAGS    = -std=c++20
-LIBS     = -lws2_32 -lz -lbrotli_static
+DEV_APP   = lambda.exe
+DEV_MAIN  = dev
+LIBNAME   = libmaddsualambda
+LIBDIR    = lib
+FLAGS     = -std=c++20
+OBJECTS   = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
+LINK_LIBS = -lws2_32 -lz -lbrotli_static
 
 .PHONY: all all-before all-after clean clean-custom run-custom
 
-all: all-before $(APP) all-after
+all: all-before $(DEV_APP) all-after
 
 clean: clean-custom
 	del /S *.o *.exe
 
 run: run-custom
-	$(APP)
+	$(DEV_APP)
 
-$(APP): $(OBJECTS)
-	g++ $(OBJECTS) -o $(APP) $(LIBS)
 
-$(dev).o: $(dev).cpp
-	g++ -c $(dev).cpp -o $(dev).o $(FLAGS)
+
+## Dev executable
+
+$(DEV_APP): $(DEV_MAIN).o $(OBJECTS)
+	g++ $(DEV_MAIN).o $(OBJECTS) -o $(DEV_APP) $(LINK_LIBS)
+
+$(DEV_MAIN).o: $(DEV_MAIN).cpp
+	g++ -c $(DEV_MAIN).cpp -o $(DEV_MAIN).o $(FLAGS)
+
+
+
+## Static Library
+
+lib: $(OBJECTS)
+	ar rvs $(LIBDIR)/$(LIBNAME).a $(OBJECTS)
+
+
+
+## Library objects
 
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
