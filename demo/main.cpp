@@ -1,39 +1,52 @@
 #include <iostream>
 #include <string>
 
+#include <nlohmann/json.hpp>
+using JSON = nlohmann::json;
+
 #include "../include/maddsua/lambda.hpp"
 #include "../include/maddsua/compress.hpp"
 #include "../include/maddsua/fs.hpp"
 
 maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
-	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
+	//	api calls, like real functions in AWS Lambda
+	if (maddsua::startsWith(event.path, "/api")) {
 
-	if (maddsua::searchQueryFind("ask", &event.searchQuery) == "google") {
+		JSON data = {
+			{"success", true},
+			{"api-response", "succeded"},
+			{"api-data", "test data"}
+		};
 
-		body = "<h2>Good night, my Dark Lord</h2>\r\n";
-
-		//	connect to google.com
-		{
-			auto googeResp = maddsua::fetch("google.com", "GET", {}, "");
-			printf("Connecting to google.com... %i %s", googeResp.statusCode, googeResp.statusText.c_str());
-				if (googeResp.errors.size()) puts(googeResp.errors.c_str());
-			body += "<p>This is what google says: Page " + googeResp.statusText + "</p>";
+		if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
+			data["secret-message"] = "Buy some milk this time, come on Daniel =)";
 		}
+		
+		return {
+			200,
+			{
+				{ "content-type", maddsua::findMimeType("json") }
+			},
+			data.dump()
+		};
 	}
 
-	std::string htmlpage;
-	if (maddsua::readBinary("index.html", &htmlpage)) body = htmlpage;
-		else body += "\r\nHave tried to load index.html, but didn't fount it =((\r\n";
+	//	fileserver part
+	if (event.path[event.path.size() - 1] == '/') event.path += "index.html";
+	event.path = std::regex_replace(("./" + event.path), std::regex("/+"), "/");
 
-	return {
-		200,
-		{
-			{"x-test", "maddsua"}
-		},
-		body
-	};
+	std::string filecontents;
+
+	if (!maddsua::readBinary(event.path, &filecontents)) {
+		return { 404, {}, "File not found"};
+	}
+
+	auto fileext = event.path.find_last_of('.');
+
+	return { 200, {
+		{ "Content-Type", maddsua::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")}
+	}, filecontents};
 }
 
 int main(int argc, char** argv) {

@@ -1,7 +1,7 @@
 #include "../include/maddsua/lambda.hpp"
 #include "../include/maddsua/compress.hpp"
 
-void maddsua::lambda::addLogEntry(std::string module, std::string type, std::string text) {
+void maddsua::lambda::addLogEntry(std::string type, std::string text) {
 	
 	auto servertime = []() {
 		char timebuff[16];
@@ -11,7 +11,7 @@ void maddsua::lambda::addLogEntry(std::string module, std::string type, std::str
 		return std::string(timebuff);
 	} ();
 
-	serverlog.push_back(std::string(module) + ": " + toUpperCase(type) + " [" + servertime + "] " + text);
+	serverlog.push_back(toUpperCase(type) + " [" + servertime + "] " + text);
 }
 
 
@@ -125,7 +125,7 @@ void maddsua::lambda::handler() {
 
 	//	drop connection if the request is invalid
 	if (!rqData.success) {
-		addLogEntry("Lambda", "Error", "Invalid request or connection problem");
+		addLogEntry("Error", "Invalid request or connection problem");
 		closesocket(ClientSocket);
 		return;
 	}
@@ -173,17 +173,17 @@ void maddsua::lambda::handler() {
 		if (includes(&acceptEncodings, "br")) {
 
 			if (maddsua::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
-				else addLogEntry("Lambda", "Error", "brotli compression failed");
+				else addLogEntry("Error", "brotli compression failed");
 			
 		} else if (includes(&acceptEncodings, "gzip")) {
 
 			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
-				else addLogEntry("Lambda", "Error", "gzip compression failed");
+				else addLogEntry("Error", "gzip compression failed");
 
 		} else if (includes(&acceptEncodings, "deflate")) {
 			
 			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
-				else addLogEntry("Lambda", "Error", "deflate compression failed");
+				else addLogEntry("Error", "deflate compression failed");
 		}
 
 		if (appliedCompression.size()) headerInsert("Content-Encoding", appliedCompression, &lambdaResult.headers);
@@ -196,10 +196,10 @@ void maddsua::lambda::handler() {
 	closesocket(ClientSocket);
 
 	if (sent.success) {
-		addLogEntry("Lambda", "Info", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"");
+		addLogEntry("Info", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"");
 
 	} else {
-		addLogEntry("Lambda", "Info", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause);
+		addLogEntry("Info", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause);
 	}
 
 	//	done!
