@@ -19,14 +19,18 @@ namespace maddsua {
 		std::string body;
 	};
 	struct lambdaConfig {
-		bool useCompression = true;
-		bool compressAll = false;
+		bool compression_enabled = true;
+		bool compression_allFileTypes = false;
+		bool compression_preferBr = false;
 		bool mutlipeInstances = false;
 	};
 
 	class lambda {
 
 		public:
+			/**
+			 * Create a lambda server
+			*/
 			lambda() {
 				wsaData = {0};
 				ListenSocket = INVALID_SOCKET;
@@ -46,10 +50,32 @@ namespace maddsua {
 				close();
 			}
 
+
+			/**
+			 * Start the lambda server
+			 * @param port for lambda to listen to
+			 * @param lambda handler function
+			 * @param cfg server config (optional)
+			*/
 			actionResult init(const char* port, std::function <lambdaResponse(lambdaEvent)> lambda);
+			inline actionResult init(const char* port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
+				config = cfg;
+				return init(port, lambda);
+			}
+
+			/**
+			 * Stop this lambda server
+			*/
 			void close();
 
+			/**
+			 * Ture, if there are log entries available
+			*/
 			inline bool logsAvail() { return serverlog.size(); }
+
+			/**
+			 * Get last log entries
+			*/
 			inline std::vector <std::string> logs() {
 				auto temp = serverlog;
 				serverlog.erase(serverlog.begin(), serverlog.end());
@@ -71,6 +97,11 @@ namespace maddsua {
 			void addLogEntry(std::string type, std::string text);
 
 			lambdaConfig config;
+
+			const std::vector<std::string> compressableTypes = {
+				"text",
+				"application"
+			};
 	};
 
 }
