@@ -157,30 +157,39 @@ void maddsua::lambda::handler() {
 	std::string startLine = "HTTP/1.1 " + httpStatusString(lambdaResult.statusCode);
 
 	//	apply compression
-	auto acceptEncodings = headerFind("Accept-Encoding", &rqData.headers);
-	auto compressableTypes = std::vector<std::string>({
-		"text",
-		"application"
-	});
+	auto acceptEncodings = splitBy(headerFind("Accept-Encoding", &rqData.headers), ",");
 
 	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressableTypes);
 	std::string compressedBody;
 	
-	if (config.useCompression && (isCompressable || config.compressAll)) {
+	if (acceptEncodings.size() && config.compression_enabled && (isCompressable || config.compression_allFileTypes)) {
+
+		for (auto &&encoding : acceptEncodings) {
+			trim(&encoding);
+		}
+
+		if (config.compression_preferBr) {
+			for (auto encoding : acceptEncodings) {
+				if (encoding == "br") {
+					acceptEncodings[0] = encoding;
+					break;
+				}
+			}
+		}
 
 		std::string appliedCompression;
 
-		if (includes(&acceptEncodings, "br")) {
+		if (acceptEncodings[0] == "br") {
 
 			if (maddsua::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
 				else addLogEntry("Error", "brotli compression failed");
 			
-		} else if (includes(&acceptEncodings, "gzip")) {
+		} else if (acceptEncodings[0] == "gzip") {
 
 			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
 				else addLogEntry("Error", "gzip compression failed");
 
-		} else if (includes(&acceptEncodings, "deflate")) {
+		} else if (acceptEncodings[0] == "deflate") {
 			
 			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
 				else addLogEntry("Error", "deflate compression failed");
