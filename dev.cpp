@@ -1,36 +1,66 @@
 #include <iostream>
 #include <string>
+#include <regex>
+
+#include <nlohmann/json.hpp>
+using JSON = nlohmann::json;
 
 #include "include/maddsua/lambda.hpp"
 #include "include/maddsua/compress.hpp"
 #include "include/maddsua/fs.hpp"
 
+
 maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
-	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
 
-	if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
-		body = "Good night, my Dark Lord";
+	//	api calls, like real functions in AWS Lambda
+	if (maddsua::startsWith(event.path, "/api")) {
+
+		JSON data = {
+			{"success", true},
+			{"api-response", "succeded"},
+			{"api-data", "test data"}
+		};
+
+		if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
+			data["secret-message"] = "Buy some milk this time, come on Daniel =)";
+		}
+		
+		return {
+			200,
+			{
+				{ "content-type", maddsua::findMimeType("json") }
+			},
+			data.dump()
+		};
 	}
 
-	body += "<br><br>Some text to test network mechanistms";
+	//	fileserver part
+	if (event.path[event.path.size() - 1] == '/') event.path += "index.html";
+	event.path = std::regex_replace(("demo/" + event.path), std::regex("/+"), "/");
 
-	body += "<br><br>Even more text content here to test network compression functionality";
-	
-	return {
-		200,
-		{
-			{ "test", "maddsua" }
-		},
-		body
-	};
+	std::string filecontents;
+
+	if (!maddsua::readBinary(event.path, &filecontents)) {
+		return { 404, {}, "File not found"};
+	}
+
+	auto fileext = event.path.find_last_of('.');
+
+	return { 200, {
+		{ "Content-Type", maddsua::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")}
+	}, filecontents};
+
 }
 
 int main(int argc, char** argv) {
 
 	auto server = maddsua::lambda();
-	auto startresult = server.init("27015", &requesthandeler);
+	
+	maddsua::lambdaConfig servercfg;
+		servercfg.compression_preferBr = true;
+
+	auto startresult = server.init("27015", &requesthandeler, servercfg);
 
 	printf("Server: %s\r\n", startresult.cause.c_str());
 

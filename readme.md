@@ -1,4 +1,4 @@
-# A request-isolating multi thread HTTP/1.1 Web Server
+# A request-isolating multi threaded HTTP/1.1 Web Server
 
 My idea was to replicate overall feeling of Netlify Functions but in C++, so I could use all the good Windows API like serial ports. Need that for the other project, nevermind.
 
@@ -151,3 +151,5 @@ Seriously, it would be a better idea to use curl or something similar for the ht
  - <https://github.com/google/brotli>
 
  - <https://github.com/madler/zlib>
+
+ - <https://github.com/nlohmann/json>

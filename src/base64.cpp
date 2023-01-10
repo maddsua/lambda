@@ -1,53 +1,7 @@
 #include "../include/maddsua/base64.hpp"
 
-std::string maddsua::b64Encode(std::string source) {
-	
-	//	yes. this table is here too
-	const char b64et[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+void maddsua::b64Decode(std::string* encoded, std::string* plain) {
 
-	const auto contentLength = source.size();
-
-	std::string encoded;
-		encoded.resize(((contentLength * 4) / 3) + 4);
-		//	+4 just adds 4 more index steps for the cycle to slide
-		//	this allows us to not to make any checks inside the loop, increasing the performance
-		source.resize(source.size() + 3);
-		//	the same story as with "encoded.resize"
-				
-	//	main encode loop that doe's not do any calculations but converting 8-bits to 6-bits. thats why it's so fast
-	for (size_t ibin = 0, ibase = 0; ibin < contentLength; ibin += 3, ibase += 4) {
-		//	byte 1/0.75
-		encoded[ibase] = b64et[(source[ibin] >> 2)];
-		//	byte 2/1.5
-		encoded[ibase + 1] = b64et[((((source[ibin] << 4) ^ (source[ibin + 1] >> 4))) & 0x3F)];
-		//	byte 3/2.25
-		encoded[ibase + 2] = b64et[((((source[ibin + 1] << 2) ^ (source[ibin + 2] >> 6))) & 0x3F)];
-		//	byte 4/3
-		encoded[ibase + 3] = b64et[(source[ibin + 2] & 0x3F)];
-	}
-	
-	//	very "clever" calculations
-	const size_t lastBlock = (contentLength / 3) * 3;
-	const short bytesRemain = (contentLength - lastBlock);
-	const size_t tailBlock = (lastBlock * 4) / 3;
-
-	if (bytesRemain > 0) {
-
-		if (bytesRemain < 2)
-			encoded[tailBlock + 2] = '=';
-
-		if (bytesRemain < 3)
-			encoded[tailBlock + 3] = '=';
-	}
-
-	encoded.resize(tailBlock + (bytesRemain ? 4 : 0));
-
-	return encoded;
-}
-
-
-std::string maddsua::b64Decode(std::string encoded) {
-	
 	//	full decode table does brrrrrr. high-speed tricks here
 	const uint8_t b64dt[256] = {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -63,36 +17,64 @@ std::string maddsua::b64Decode(std::string encoded) {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 	};
 
-	size_t contentLength = ((encoded.size() * 3) / 4);
-	std::string decoded;
-		decoded.resize(contentLength + 3);
+	size_t contentLength = ((encoded->size() * 3) / 4);
+		plain->resize(contentLength + 3);
 		
-		if(encoded[encoded.size() - 1] == '=') contentLength--;
-		if(encoded[encoded.size() - 2] == '=') contentLength--;
+		if((*encoded)[encoded->size() - 1] == '=') contentLength--;
+		if((*encoded)[encoded->size() - 2] == '=') contentLength--;
 
-	encoded.resize(encoded.size() + 4);
+	encoded->resize(encoded->size() + 4);
 	
 	//	even more high-speed loop than one in encoding function
-	for (size_t ibase = 0, ibin = 0; ibase < encoded.size(); ibase += 4, ibin += 3){
+	for (size_t ibase = 0, ibin = 0; ibase < encoded->size(); ibase += 4, ibin += 3){
 		//	byte 1/1.33
-		decoded[ibin] = b64dt[encoded[ibase]] ^ (b64dt[encoded[ibase+1]] >> 6);
+		(*plain)[ibin] = b64dt[(*encoded)[ibase]] ^ (b64dt[(*encoded)[ibase+1]] >> 6);
 		//	byte 2/2.66
-		decoded[ibin + 1] = (b64dt[encoded[ibase+1]] << 2) ^ (b64dt[encoded[ibase+2]] >> 4);
+		(*plain)[ibin + 1] = (b64dt[(*encoded)[ibase+1]] << 2) ^ (b64dt[(*encoded)[ibase+2]] >> 4);
 		//	byte 3/4
-		decoded[ibin + 2] = (b64dt[encoded[ibase+2]] << 4) ^ (b64dt[encoded[ibase+3]] >> 2);
+		(*plain)[ibin + 2] = (b64dt[(*encoded)[ibase+2]] << 4) ^ (b64dt[(*encoded)[ibase+3]] >> 2);
 	}
 
-	decoded.resize(contentLength);
-	
-	return decoded;
+	plain->resize(contentLength);
 }
 
-bool maddsua::b64Validate(std::string* encoded) {
+void maddsua::b64Encode(std::string* plain, std::string* encoded) {
 
-	for (auto bcr : *encoded) {
-		if (!isalnum(bcr) && !((bcr == '+') || (bcr == '/') || (bcr == '=')))
-			return false;
+	//	yes. this table is here too
+	const char b64et[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+	const auto contentLength = plain->size();
+
+		encoded->resize(((contentLength * 4) / 3) + 4);
+		//	+4 just adds 4 more index steps for the cycle to slide
+		//	this allows us to not to make any checks inside the loop, increasing the performance
+		plain->resize(plain->size() + 3);
+		//	the same story as with "encoded.resize"
+				
+	//	main encode loop that doe's not do any calculations but converting 8-bits to 6-bits. thats why it's so fast
+	for (size_t ibin = 0, ibase = 0; ibin < contentLength; ibin += 3, ibase += 4) {
+		//	byte 1/0.75
+		(*encoded)[ibase] = b64et[((*plain)[ibin] >> 2)];
+		//	byte 2/1.5
+		(*encoded)[ibase + 1] = b64et[(((((*plain)[ibin] << 4) ^ ((*plain)[ibin + 1] >> 4))) & 0x3F)];
+		//	byte 3/2.25
+		(*encoded)[ibase + 2] = b64et[(((((*plain)[ibin + 1] << 2) ^ ((*plain)[ibin + 2] >> 6))) & 0x3F)];
+		//	byte 4/3
+		(*encoded)[ibase + 3] = b64et[((*plain)[ibin + 2] & 0x3F)];
 	}
-		
-	return true;
+	
+	//	very "clever" calculations
+	const size_t lastBlock = (contentLength / 3) * 3;
+	const short bytesRemain = (contentLength - lastBlock);
+	const size_t tailBlock = (lastBlock * 4) / 3;
+
+	if (bytesRemain > 0) {
+		if (bytesRemain < 2)
+			(*encoded)[tailBlock + 2] = '=';
+
+		if (bytesRemain < 3)
+			(*encoded)[tailBlock + 3] = '=';
+	}
+
+	encoded->resize(tailBlock + (bytesRemain ? 4 : 0));
 }

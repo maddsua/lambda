@@ -1,7 +1,7 @@
 #include "../include/maddsua/lambda.hpp"
 #include "../include/maddsua/compress.hpp"
 
-void maddsua::lambda::addLogEntry(std::string module, std::string type, std::string text) {
+void maddsua::lambda::addLogEntry(std::string type, std::string text) {
 	
 	auto servertime = []() {
 		char timebuff[16];
@@ -11,7 +11,7 @@ void maddsua::lambda::addLogEntry(std::string module, std::string type, std::str
 		return std::string(timebuff);
 	} ();
 
-	serverlog.push_back(std::string(module) + ": " + toUpperCase(type) + " [" + servertime + "] " + text);
+	serverlog.push_back(toUpperCase(type) + " [" + servertime + "] " + text);
 }
 
 
@@ -22,11 +22,13 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 		"Already running"
 	};
 
-	if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) return {
-		false,
-		"Startup failed",
-		"WINAPI:" + std::to_string(GetLastError())
-	};
+	if (!config.mutlipeInstances || (config.mutlipeInstances && !socketsReady())) {
+		if (WSAStartup(MAKEWORD(2,2), &wsaData)) return {
+			false,
+			"Startup failed",
+			"WINAPI:" + std::to_string(GetLastError())
+		};
+	}
 
 	//	resolve server address
 	struct addrinfo *servAddr = NULL;
@@ -37,7 +39,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
 	if (getaddrinfo(NULL, port, &hints, &servAddr) != 0) {
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Localhost didn't resolve",
@@ -49,7 +51,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 	ListenSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
 	if (ListenSocket == INVALID_SOCKET) {
 		freeaddrinfo(servAddr);
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to create listening socket",
@@ -59,7 +61,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 	if (bind(ListenSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 		freeaddrinfo(servAddr);
 		closesocket(ListenSocket);
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to bind a TCP socket",
@@ -71,7 +73,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 
 	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
 		closesocket(ListenSocket);
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Socket error",
@@ -94,7 +96,7 @@ void maddsua::lambda::close() {
 	running = false;
 	if (worker.joinable()) worker.join();
 	closesocket(ListenSocket);
-	WSACleanup();
+	if (!config.mutlipeInstances) WSACleanup();
 }
 
 void maddsua::lambda::connectManager() {
@@ -123,7 +125,7 @@ void maddsua::lambda::handler() {
 
 	//	drop connection if the request is invalid
 	if (!rqData.success) {
-		addLogEntry("Lambda", "Error", "Invalid request or connection problem");
+		addLogEntry("Error", "Invalid request or connection problem");
 		closesocket(ClientSocket);
 		return;
 	}
@@ -147,36 +149,50 @@ void maddsua::lambda::handler() {
 	}
 
 	//	inject additional headers
-	if (!headerExists("X-Powered-By", &lambdaResult.headers)) lambdaResult.headers.push_back({"X-Powered-By", MADDSUAHTTP_USERAGENT});
-	if (!headerExists("Date", &lambdaResult.headers)) lambdaResult.headers.push_back({"Date", httpTimeNow()});
-	if (!headerExists("Content-Type", &lambdaResult.headers)) lambdaResult.headers.push_back({"Content-Type", findMimeType("html")});
+	headerAdd({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
+	headerAdd({"Date", httpTimeNow()}, &lambdaResult.headers);
+	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
 
 	//	generate response title
 	std::string startLine = "HTTP/1.1 " + httpStatusString(lambdaResult.statusCode);
-	/*auto statText = _findHttpCode(lambdaResult.statusCode);
-	startLine += (statText.size() ? (std::to_string(lambdaResult.statusCode) + " " + statText) : "200 OK");*/
 
 	//	apply compression
-	auto acceptEncodings = headerFind("Accept-Encoding", &rqData.headers);
+	auto acceptEncodings = splitBy(headerFind("Accept-Encoding", &rqData.headers), ",");
+
+	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressableTypes);
 	std::string compressedBody;
-	if (config_useCompression) {
+	
+	if (config.compression_enabled && acceptEncodings.size() && (isCompressable || config.compression_allFileTypes)) {
+
+		for (auto &&encoding : acceptEncodings) {
+			trim(&encoding);
+		}
+
+		if (config.compression_preferBr) {
+			for (auto encoding : acceptEncodings) {
+				if (encoding == "br") {
+					acceptEncodings[0] = encoding;
+					break;
+				}
+			}
+		}
 
 		std::string appliedCompression;
 
-		if (!includes(&acceptEncodings, "br")) {
+		if (acceptEncodings[0] == "br") {
 
 			if (maddsua::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
-				else addLogEntry("Lambda", "Error", "brotli compression failed");
+				else addLogEntry("Error", "brotli compression failed");
 			
-		} else if (!includes(&acceptEncodings, "gzip")) {
+		} else if (acceptEncodings[0] == "gzip") {
 
 			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
-				else addLogEntry("Lambda", "Error", "gzip compression failed");
+				else addLogEntry("Error", "gzip compression failed");
 
-		} else if (!includes(&acceptEncodings, "deflate")) {
+		} else if (acceptEncodings[0] == "deflate") {
 			
 			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
-				else addLogEntry("Lambda", "Error", "deflate compression failed");
+				else addLogEntry("Error", "deflate compression failed");
 		}
 
 		if (appliedCompression.size()) headerInsert("Content-Encoding", appliedCompression, &lambdaResult.headers);
@@ -189,10 +205,10 @@ void maddsua::lambda::handler() {
 	closesocket(ClientSocket);
 
 	if (sent.success) {
-		addLogEntry("Lambda", "Info", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"");
+		addLogEntry("Info", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"");
 
 	} else {
-		addLogEntry("Lambda", "Info", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause);
+		addLogEntry("Info", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause);
 	}
 
 	//	done!
