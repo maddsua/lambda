@@ -162,7 +162,7 @@ void maddsua::lambda::handler() {
 	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressableTypes);
 	std::string compressedBody;
 	
-	if (acceptEncodings.size() && config.compression_enabled && (isCompressable || config.compression_allFileTypes)) {
+	if (config.compression_enabled && acceptEncodings.size() && (isCompressable || config.compression_allFileTypes)) {
 
 		for (auto &&encoding : acceptEncodings) {
 			trim(&encoding);
