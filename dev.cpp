@@ -56,7 +56,11 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 int main(int argc, char** argv) {
 
 	auto server = maddsua::lambda();
-	auto startresult = server.init("27015", &requesthandeler);
+	
+	maddsua::lambdaConfig servercfg;
+		servercfg.compression_preferBr = true;
+
+	auto startresult = server.init("27015", &requesthandeler, servercfg);
 
 	printf("Server: %s\r\n", startresult.cause.c_str());
 
