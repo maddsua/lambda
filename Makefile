@@ -39,6 +39,9 @@ $(DEV_MAIN).o: $(DEV_MAIN).cpp
 demo: $(OBJECTS) $(DEMO_MAIN).o
 	g++ $(OBJECTS) $(DEMO_MAIN).o -o $(APP_DEMO) $(LIBS) $(LIB).a -L"../lib/"
 
+$(DEMO_MAIN).o: $(DEMO_MAIN).cpp
+	g++ -c $(DEMO_MAIN).cpp -o $(DEMO_MAIN).o $(FLAGS)
+
 
 # ----
 #	lib
