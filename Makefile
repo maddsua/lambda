@@ -1,26 +1,55 @@
 
-APP      = lambda.exe
-dev      = dev
-OBJECTS  = dev.o src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
-FLAGS    = -std=c++20
-LIBS     = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+APP_DEV    = lambda.exe
+APP_DEMO   = demo/lambda.exe
+LIB        = lib/libmda
 
-.PHONY: all all-before all-after clean clean-custom run-custom
+DEV_MAIN   = main
+DEMO_MAIN  = demo/main
 
-all: all-before $(APP) all-after
+OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
+FLAGS      = -std=c++20
+LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+
+
+.PHONY: all all-before all-after clean-custom run-custom lib demo
+all: all-before $(APP_DEV) all-after
+
 
 clean: clean-custom
-	del /S *.o *.exe
+	del /S *.o *.exe *.a
+#	rm -rf *.o *.exe *.a
 
 run: run-custom
-	$(APP)
+	$(APP_DEV)
 
-$(APP): $(OBJECTS)
-	g++ $(OBJECTS) -o $(APP) $(LIBS)
 
-$(dev).o: $(dev).cpp
-	g++ -c $(dev).cpp -o $(dev).o $(FLAGS)
+# ----
+#	dev app
+# ----
+$(APP_DEV): $(OBJECTS) $(DEV_MAIN).o
+	g++ $(OBJECTS) $(DEV_MAIN).o -o $(APP_DEV) $(LIBS)
 
+$(DEV_MAIN).o: $(DEV_MAIN).cpp
+	g++ -c $(DEV_MAIN).cpp -o $(DEV_MAIN).o $(FLAGS)
+
+
+# ----
+#	demo app
+# ----
+demo: $(OBJECTS) $(DEMO_MAIN).o
+	g++ $(OBJECTS) $(DEMO_MAIN).o -o $(APP_DEMO) $(LIBS) $(LIB).a -L"../lib/"
+
+
+# ----
+#	lib
+# ----
+lib: $(OBJECTS)
+	ar rvs $(LIB).a $(OBJECTS)
+
+
+# ----
+#	lib objects
+# ----
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
 
