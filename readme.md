@@ -148,6 +148,8 @@ Seriously, it would be a better idea to use curl or something similar for the ht
 
 # Dependencies
 
- - <https://github.com/google/brotli>
+ - libbrotli <https://github.com/google/brotli>
 
- - <https://github.com/madler/zlib>
+ - zlib <https://github.com/madler/zlib>
+
+ - Windows Sockets 2 API
