@@ -35,7 +35,6 @@ And here goes maddsua lambda (C/C++):
 #include "include/lambda.hpp"
 
 maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
-
     return {
         200,    //    status code
         {},     //    no headers in this example
