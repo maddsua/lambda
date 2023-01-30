@@ -22,9 +22,9 @@
 #define MCOMP_Z_RAW				(-15)
 #define MCOMP_Z_MEMORY			(9)
 #define MCOMP_Z_EXPECT_RATIO	(3)
-#define MCOMP_Z_CHUNK			(262144)	//	256k
+#define MCOMP_Z_CHUNK			(131072)	//	128k
 
-#define MCOMP_BR_CHUNK			(262144)	//	256k
+#define MCOMP_BR_CHUNK			(131072)	//	128k
 #define MCOMP_BR_EXPECT_RATIO	(3)
 
 
