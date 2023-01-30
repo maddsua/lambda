@@ -1,10 +1,11 @@
+#ifndef _maddsua_base64
+#define _maddsua_base64
+
 
 #include <stdint.h>
 #include <string>
 #include <vector>
 
-#ifndef _maddsua_base64
-#define _maddsua_base64
 
 namespace maddsua {
 

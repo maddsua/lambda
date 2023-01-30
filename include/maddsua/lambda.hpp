@@ -1,7 +1,9 @@
-#include "http.hpp"
-
 #ifndef _maddsua_http_lambda
 #define _maddsua_http_lambda
+
+
+#include "http.hpp"
+
 
 namespace maddsua {
 
