@@ -30,8 +30,8 @@ jobs:
     - name: install make
       run: pacman -S make --noconfirm
 
-    - name: install zlib
-      run: pacman -S zlib --noconfirm
+    - name: install json
+      run: pacman -S mingw-w64-x86_64-nlohmann-json --noconfirm
 
     - name: install brotli
       run: pacman -S mingw-w64-x86_64-brotli --noconfirm
