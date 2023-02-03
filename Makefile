@@ -45,10 +45,10 @@ demo/main.o: demo/main.cpp
 # ----
 #	lib
 # ----
-libstatic: $(OBJECTS)
+lib: $(OBJECTS)
+#	make static lib
 	ar rvs lib$(LIBNAME).a $(OBJECTS)
-
-libshared: $(OBJECTS)
+#	make dll
 	g++ $(OBJECTS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a $(LIBS) $(FLAGS)
 
 # ----
