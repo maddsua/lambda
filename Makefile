@@ -1,10 +1,7 @@
 
 APP_DEV    = lambda.exe
 APP_DEMO   = demo/lambda.exe
-LIB        = lib/libmda
-
-DEV_MAIN   = main
-DEMO_MAIN  = demo/main
+LIBNAME    = mdslambda
 
 OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
 FLAGS      = -std=c++20
@@ -26,29 +23,31 @@ run: run-custom
 # ----
 #	dev app
 # ----
-$(APP_DEV): $(OBJECTS) $(DEV_MAIN).o
-	g++ $(OBJECTS) $(DEV_MAIN).o -o $(APP_DEV) $(LIBS)
+$(APP_DEV): $(OBJECTS) main.o
+	g++ $(OBJECTS) main.o -o $(APP_DEV) $(LIBS)
 
-$(DEV_MAIN).o: $(DEV_MAIN).cpp
-	g++ -c $(DEV_MAIN).cpp -o $(DEV_MAIN).o $(FLAGS)
+main.o: main.cpp
+	g++ -c main.cpp -o main.o $(FLAGS)
 
 
 # ----
 #	demo app
 # ----
-demo: $(OBJECTS) $(DEMO_MAIN).o
-	g++ $(OBJECTS) $(DEMO_MAIN).o -o $(APP_DEMO) $(LIBS) $(LIB).a -L"../lib/"
+demo: $(OBJECTS) demo/main.o
+	g++ $(OBJECTS) demo/main.o -o $(APP_DEMO) $(LIBS) $(LIB).a -L"../lib/"
 
-$(DEMO_MAIN).o: $(DEMO_MAIN).cpp
-	g++ -c $(DEMO_MAIN).cpp -o $(DEMO_MAIN).o $(FLAGS)
+demo/main.o: demo/main.cpp
+	g++ -c demo/main.cpp -o demo/main.o $(FLAGS)
 
 
 # ----
 #	lib
 # ----
-lib: $(OBJECTS)
-	ar rvs $(LIB).a $(OBJECTS)
+libstatic: $(OBJECTS)
+	ar rvs lib$(LIBNAME).a $(OBJECTS)
 
+libshared: $(OBJECTS)
+	g++ $(OBJECTS) -s -shared -o $(LIBNAME).dll -Wl,-s,--out-implib,lib$(LIBNAME).dll.a $(LIBS) $(FLAGS)
 
 # ----
 #	lib objects
