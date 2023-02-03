@@ -33,8 +33,8 @@ main.o: main.cpp
 # ----
 #	demo app
 # ----
-demo: $(OBJECTS) demo/main.o
-	g++ $(OBJECTS) demo/main.o -o $(APP_DEMO) $(LIBS) $(LIB).a -L"../lib/"
+demo: demo/main.o
+	g++ demo/main.o -o $(APP_DEMO) -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS)
 
 demo/main.o: demo/main.cpp
 	g++ -c demo/main.cpp -o demo/main.o $(FLAGS)
@@ -47,7 +47,7 @@ libstatic: $(OBJECTS)
 	ar rvs lib$(LIBNAME).a $(OBJECTS)
 
 libshared: $(OBJECTS)
-	g++ $(OBJECTS) -s -shared -o $(LIBNAME).dll -Wl,-s,--out-implib,lib$(LIBNAME).dll.a $(LIBS) $(FLAGS)
+	g++ $(OBJECTS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a $(LIBS) $(FLAGS)
 
 # ----
 #	lib objects
