@@ -33,7 +33,10 @@ main.o: main.cpp
 #	demo app
 # ----
 demo: demo/main.o
+#	static link
 	g++ demo/main.o -o $(APP_DEMO) -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS)
+#	dynamic link
+#	g++ demo/main.o -o $(APP_DEMO) -L. -l$(LIBNAME) $(LIBS) $(FLAGS)
 
 demo/main.o: demo/main.cpp
 	g++ -c demo/main.cpp -o demo/main.o $(FLAGS)
