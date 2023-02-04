@@ -1,21 +1,8 @@
 #include "../include/maddsua/crypto.hpp"
 
-
-
-inline void print_hex(const uint8_t str[], size_t size) {
-	for(size_t i = 0; i < size; i++)
-		printf("%02x", str[i]);
-	printf("\r\n");
-}
-
-
-
-
 #include <memory.h>
 
 #define HASH_ROUNDS			(128)		//	128 hashing rounds
-
-std::vector<size_t> hashSizes = {64, 128, 256, 512, 1024};
 
 const uint8_t hash_iv[128] = {
 	//	0-512 bits
@@ -83,7 +70,7 @@ void hashBlock(uint8_t* data, const size_t blockSize) {
 	}
 }
 
-std::vector <uint8_t> maddsua::roundHash(std::vector <uint8_t> data, size_t blockSize) {
+std::vector <uint8_t> maddsua::_roundHash(std::vector <uint8_t> data, size_t blockSize) {
 	
 	//	set the actual size and not that bs in bits
 	blockSize /= 8;
