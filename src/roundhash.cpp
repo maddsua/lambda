@@ -26,9 +26,8 @@ const uint8_t hash_iv[128] = {
 };
 
 void xorTo(uint8_t* data_A, const uint8_t* data_B, const size_t blockSize) {
-	for (size_t i = 0; i < blockSize; i++) {
+	for (size_t i = 0; i < blockSize; i++)
 		data_A[i] ^= data_B[i];
-	}
 }
 
 void hashBlock(uint8_t* data, const size_t blockSize) {
@@ -37,9 +36,8 @@ void hashBlock(uint8_t* data, const size_t blockSize) {
 
 		//	xor data to itself
 		for (size_t m = 0; m < blockSize; m++) {
-			for (size_t n = 0; n < blockSize; n++) {
+			for (size_t n = 0; n < blockSize; n++)
 				data[m] ^= data[n];
-			}
 		}
 
 		//	adaptive shift
@@ -56,9 +54,8 @@ void hashBlock(uint8_t* data, const size_t blockSize) {
 		}
 
 		for (size_t m = 0; m < blockSize; m++) {
-			for (size_t n = 0; n < blockSize; n++) {
+			for (size_t n = 0; n < blockSize; n++)
 				data[m] ^= swapLayers[m][n];
-			}
 		}
 
 		//	shift bits in this round while xoring them to the next bit and to iv value
