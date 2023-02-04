@@ -73,7 +73,7 @@ std::string maddsua::binToHex(const uint8_t* data, const size_t length) {
 	return result;
 }
 
-std::vector <uint8_t> maddsua::hexToBin(const std::string& data) {
+std::vector <uint8_t> maddsua::hexToBin(std::string& data) {
 	std::vector <uint8_t> result;
 		result.resize(data.size() / 2, 0);
 
