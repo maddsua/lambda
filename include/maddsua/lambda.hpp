@@ -12,9 +12,16 @@
 #ifndef _maddsua_http_lambda
 #define _maddsua_http_lambda
 
+//#include <mutex>
 
 #include "http.hpp"
+#include "crypto.hpp"
+#include "hex.hpp"
+#include "base64.hpp"
 
+#define LAMBDALOG_INFO	(1)
+#define LAMBDALOG_WARN	(0)
+#define LAMBDALOG_ERR	(-1)
 
 namespace lambda {
 
@@ -47,8 +54,17 @@ namespace lambda {
 	};
 
 	struct lambdaRequestContext {
-		std::string id;
+		std::string uid;
 		size_t activeThreads;
+		time_t started;
+		bool signalDone = false;
+		bool signalStop = false;
+	};
+
+	struct lambdaLogEntry {
+		short code;
+		std::string requestId;
+		std::string text;
 	};
 
 	class lambda {
@@ -118,16 +134,14 @@ namespace lambda {
 
 			std::function<lambdaResponse(lambdaEvent)> callback;
 			bool handlerDispatched;
-			void handler();
+			void handler(lambdaRequestContext& context);
 			std::vector <std::string> serverlog;
 			void addLogEntry(std::string type, std::string text);
 
-			lambdaConfig config;
+			std::vector <lambdaRequestContext> activeThreads;
+			//std::mutex threadLock;
 
-			const std::vector<std::string> compressableTypes = {
-				"text",
-				"application"
-			};
+			lambdaConfig config;
 	};
 
 	namespace fs {

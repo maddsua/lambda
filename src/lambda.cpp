@@ -1,5 +1,9 @@
 #include "../include/maddsua/lambda.hpp"
 
+#include <iostream>
+
+const std::vector<std::string> compressableTypes = { "text", "application" };
+
 
 void lambda::lambda::addLogEntry(std::string type, std::string text) {
 	
@@ -105,7 +109,19 @@ void lambda::lambda::connectManager() {
 	while (running) {
 
 		if(handlerDispatched) {
-			auto invoked = std::thread(handler, this);
+
+			//	filter thread list
+			activeThreads.erase(std::remove_if(activeThreads.begin(), activeThreads.end(), 
+				[](const lambdaRequestContext& entry) { return entry.signalDone; }), activeThreads.end());
+
+
+			lambdaRequestContext worker;
+				worker.uid = maddsua::createUUID();
+				worker.started = time(nullptr);
+
+			activeThreads.push_back(worker);
+
+			auto invoked = std::thread(handler, this, std::ref(activeThreads.back()));
 			handlerDispatched = false;
 			invoked.detach();
 			
@@ -113,7 +129,7 @@ void lambda::lambda::connectManager() {
 	}
 }
 
-void lambda::lambda::handler() {
+void lambda::lambda::handler(lambdaRequestContext& context) {
 
 	//	accept socket and free the flag for next handler instance
 	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
@@ -126,6 +142,7 @@ void lambda::lambda::handler() {
 	if (!rqData.success) {
 		addLogEntry("Error", "Invalid request or connection problem");
 		closesocket(ClientSocket);
+		context.signalDone = true;
 		return;
 	}
 
@@ -149,8 +166,10 @@ void lambda::lambda::handler() {
 
 	//	inject additional headers
 	headerAdd({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
+	headerAdd({"X-Request-ID", context.uid}, &lambdaResult.headers);
 	headerAdd({"Date", httpTimeNow()}, &lambdaResult.headers);
 	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
+
 
 	//	generate response title
 	std::string startLine = "HTTP/1.1 " + httpStatusString(lambdaResult.statusCode);
@@ -211,4 +230,6 @@ void lambda::lambda::handler() {
 	}
 
 	//	done!
+	context.signalDone = true;
+	return;
 }
