@@ -4,7 +4,7 @@ APP_DEV    = lambda.exe
 APP_DEMO   = demo/lambda.exe
 LIBNAME    = mdslambda
 
-OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/hex.o roundhash.o
+OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/hex.o src/roundhash.o
 
 FLAGS      = -std=c++20
 LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc
