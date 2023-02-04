@@ -12,6 +12,10 @@ LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 all: all-before $(APP_DEV) all-after
 
 clean: clean-custom
+	del /S *.exe *.a *.dll
+#	rm -rf *.exe *.a *.dll
+
+clean-all: clean-custom
 	del /S *.o *.exe *.a *.dll
 #	rm -rf *.o *.exe *.a *.dll
 
