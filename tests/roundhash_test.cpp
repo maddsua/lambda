@@ -1,4 +1,5 @@
 #include <iostream>
+#include <time.h>
 
 #include "../include/maddsua/crypto.hpp"
 
@@ -12,11 +13,18 @@ inline void print_hex(const uint8_t str[], size_t size) {
 
 int main(int argc, char** argv) {
 
-	auto hash = maddsua::roundHash1024("sssssssssssssssssssssssssssssssy");
+	std::string data = "sample text here";
 
+	std::cout << "Hash of: \"" << data << "\"\r\n";
+	auto hash = maddsua::roundHash256(data);
 	print_hex(hash.data(), hash.size());
 
-	std::cout << hash.size();
+	auto timeNow = std::to_string(time(nullptr));
+
+	std::cout << "Hash of current time (" << timeNow << "):\r\n";
+	hash = maddsua::roundHash256(timeNow);
+	print_hex(hash.data(), hash.size());
+
 
 	return 0;
 }
