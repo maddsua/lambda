@@ -1,3 +1,14 @@
+/*
+	Required libs:
+		libwinmm
+		libws2_32
+		libbrotlicommon
+		libbrotlidec
+		libbrotlienc
+		libz
+*/
+
+
 #ifndef _maddsua_http_lambda
 #define _maddsua_http_lambda
 

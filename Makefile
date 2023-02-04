@@ -4,10 +4,10 @@ APP_DEV    = lambda.exe
 APP_DEMO   = demo/lambda.exe
 LIBNAME    = mdslambda
 
-OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/hex.o src/roundhash.o
+OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/hex.o src/roundhash.o src/generate.o
 
 FLAGS      = -std=c++20
-LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lwinmm
 
 .PHONY: all all-before all-after clean-custom run-custom lib demo
 all: all-before $(APP_DEV) all-after
@@ -91,3 +91,6 @@ src/hex.o: src/hex.cpp
 
 src/roundhash.o: src/roundhash.cpp
 	g++ -c src/roundhash.cpp -o src/roundhash.o $(FLAGS)
+
+src/generate.o: src/generate.cpp
+	g++ -c src/generate.cpp -o src/generate.o $(FLAGS)
