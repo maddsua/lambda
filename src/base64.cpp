@@ -17,16 +17,17 @@ void maddsua::b64Decode(std::string* encoded, std::string* plain) {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 	};
 
-	size_t contentLength = ((encoded->size() * 3) / 4);
-		plain->resize(contentLength + 3);
+	const size_t encodedLength = encoded->size();
+	size_t contentLength = ((encodedLength * 3) / 4);
+		plain->resize(contentLength + 3, 0);
 		
-		if((*encoded)[encoded->size() - 1] == '=') contentLength--;
-		if((*encoded)[encoded->size() - 2] == '=') contentLength--;
+		if ((*encoded)[encodedLength - 1] == '=') contentLength--;
+		if ((*encoded)[encodedLength - 2] == '=') contentLength--;
 
-	encoded->resize(encoded->size() + 4);
+	encoded->resize(encodedLength + 4, 0);
 	
 	//	even more high-speed loop than one in encoding function
-	for (size_t ibase = 0, ibin = 0; ibase < encoded->size(); ibase += 4, ibin += 3){
+	for (size_t ibase = 0, ibin = 0; ibase < encodedLength; ibase += 4, ibin += 3){
 		//	byte 1/1.33
 		(*plain)[ibin] = b64dt[(*encoded)[ibase]] ^ (b64dt[(*encoded)[ibase+1]] >> 6);
 		//	byte 2/2.66
@@ -36,6 +37,7 @@ void maddsua::b64Decode(std::string* encoded, std::string* plain) {
 	}
 
 	plain->resize(contentLength);
+	encoded->resize(encodedLength);
 }
 
 void maddsua::b64Encode(std::string* plain, std::string* encoded) {
@@ -43,12 +45,12 @@ void maddsua::b64Encode(std::string* plain, std::string* encoded) {
 	//	yes. this table is here too
 	const char b64et[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-	const auto contentLength = plain->size();
+	const size_t contentLength = plain->size();
 
-		encoded->resize(((contentLength * 4) / 3) + 4);
+		encoded->resize(((contentLength * 4) / 3) + 4, 0);
 		//	+4 just adds 4 more index steps for the cycle to slide
 		//	this allows us to not to make any checks inside the loop, increasing the performance
-		plain->resize(plain->size() + 3);
+		plain->resize(plain->size() + 3, 0);
 		//	the same story as with "encoded.resize"
 				
 	//	main encode loop that doe's not do any calculations but converting 8-bits to 6-bits. thats why it's so fast
@@ -77,4 +79,5 @@ void maddsua::b64Encode(std::string* plain, std::string* encoded) {
 	}
 
 	encoded->resize(tailBlock + (bytesRemain ? 4 : 0));
+	plain->resize(contentLength);
 }
