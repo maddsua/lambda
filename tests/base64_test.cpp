@@ -24,10 +24,14 @@ int main() {
 
 		if (decoded.size() != test.size()) {
 			std::cout << "Test case failed. Data size mismatch\r\n";
+			return 1;
 		} else if (decoded != test) {
 			std::cout << "Test case failed. Text mismatch\r\n";
+			return 2;
 		}
 	}
+
+	std::cout << "\r\nTest ok\r\n";
 
 	return 0;
 }
