@@ -19,8 +19,10 @@
 namespace lambda {
 
 	struct lambdaEvent {
-		std::string method;
 		std::string httpversion;
+		std::string requestID;
+
+		std::string method;
 		std::string path;
 		std::vector <datapair> searchQuery;
 		std::vector <datapair> headers;
@@ -42,6 +44,11 @@ namespace lambda {
 		bool compression_allFileTypes = false;
 		bool compression_preferBr = false;
 		bool mutlipeInstances = false;
+	};
+
+	struct lambdaRequestContext {
+		std::string id;
+		size_t activeThreads;
 	};
 
 	class lambda {

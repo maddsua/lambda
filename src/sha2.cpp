@@ -44,11 +44,15 @@ struct SHA256CTX {
 void sha256_Transform(SHA256CTX* ctx, const uint8_t* data) {
 
 	uint32_t block[64];
-	for (uint16_t i = 0, j = 0; i < 16; ++i, j += 4)
-		block[i] = (data[j] << 24) | (data[j + 1] << 16) | (data[j + 2] << 8) | (data[j + 3]);
-		
-	for (uint16_t i = 16; i < 64; ++i)
-		block[i] = SIG1(block[i - 2]) + block[i - 7] + SIG0(block[i - 15]) + block[i - 16];
+	for (uint16_t i = 0, j = 0; i < 64; ++i) {
+		if (i < 16) {
+			block[i] = (data[j] << 24) | (data[j + 1] << 16) | (data[j + 2] << 8) | (data[j + 3]);
+			j += 4;
+
+		} else {
+			block[i] = SIG1(block[i - 2]) + block[i - 7] + SIG0(block[i - 15]) + block[i - 16];
+		}
+	}
 
 	uint32_t shifts[8];
 	for (size_t i = 0; i < 8; i++)
@@ -114,14 +118,12 @@ std::array <uint8_t, SHA256_BLOCK_SIZE> maddsua::sha256Hash(std::vector<uint8_t>
 		if (ctx.datalen < 56) {
 			
 			ctx.data[i++] = 0x80;
-			while (i < 56)
-				ctx.data[i++] = 0x00;
+			while (i < 56) ctx.data[i++] = 0x00;
 
 		} else {
-			ctx.data[i++] = 0x80;
 
-			while (i < 64)
-				ctx.data[i++] = 0x00;
+			ctx.data[i++] = 0x80;
+			while (i < 64) ctx.data[i++] = 0x00;
 
 			sha256_Transform(&ctx, ctx.data);
 			memset(ctx.data, 0, 56);
@@ -137,6 +139,7 @@ std::array <uint8_t, SHA256_BLOCK_SIZE> maddsua::sha256Hash(std::vector<uint8_t>
 		ctx.data[58] = ctx.bitlen >> 40;
 		ctx.data[57] = ctx.bitlen >> 48;
 		ctx.data[56] = ctx.bitlen >> 56;
+		
 		sha256_Transform(&ctx, ctx.data);
 
 		// Since this implementation uses little endian byte ordering and SHA uses big endian,
@@ -251,7 +254,7 @@ const uint64_t sha512_k[80] = {
 struct SHA512CTX {
 	size_t length;
 	size_t blockLen;
-	uint8_t block[2 * SHA384_512_BLOCK_SIZE];
+	uint8_t block[2 * SHA512_BLOCK_SIZE];
 	size_t state[8];
 };
 
@@ -319,20 +322,20 @@ std::array <uint8_t, SHA512_HASH_SIZE> maddsua::sha512Hash(std::vector<uint8_t> 
 
 	// sha-512 message update stage
 	{
-		size_t tmp_len = SHA384_512_BLOCK_SIZE - ctx.blockLen;
+		size_t tmp_len = SHA512_BLOCK_SIZE - ctx.blockLen;
 		size_t rem_len = (data.size() < tmp_len) ? data.size() : tmp_len;
 		size_t new_len = data.size() - rem_len;
-		size_t block_nb = new_len / SHA384_512_BLOCK_SIZE;
+		size_t block_nb = new_len / SHA512_BLOCK_SIZE;
 
 		memcpy(&ctx.block[ctx.blockLen], data.data(), rem_len);
 
-		if ((ctx.blockLen + data.size() >= SHA384_512_BLOCK_SIZE)) {
+		if ((ctx.blockLen + data.size() >= SHA512_BLOCK_SIZE)) {
 			const uint8_t* shifted_message = data.data() + rem_len;
 
 			sha512_Transform(&ctx, ctx.block, 1);
 			sha512_Transform(&ctx, shifted_message, block_nb);
 
-			rem_len = new_len % SHA384_512_BLOCK_SIZE;
+			rem_len = new_len % SHA512_BLOCK_SIZE;
 
 			memcpy(ctx.block, &shifted_message[block_nb << 7], rem_len);
 
@@ -344,7 +347,7 @@ std::array <uint8_t, SHA512_HASH_SIZE> maddsua::sha512Hash(std::vector<uint8_t> 
 
 	//	sha-512 final stage
 	{
-		size_t block_nb = 1 + ((SHA384_512_BLOCK_SIZE - 17) < (ctx.blockLen % SHA384_512_BLOCK_SIZE));
+		size_t block_nb = 1 + ((SHA512_BLOCK_SIZE - 17) < (ctx.blockLen % SHA512_BLOCK_SIZE));
 		size_t len_b = (ctx.length + ctx.blockLen) << 3;
 		size_t pm_len = block_nb << 7;
 

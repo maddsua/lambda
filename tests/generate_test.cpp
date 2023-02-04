@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 	}
 	std::cout << std::endl;
 
-	std::cout << "\r\nCreating a random password: " << maddsua::createPassword(16, true);
+	std::cout << "\r\nCreating a random password: " << maddsua::createPassword(16, true) << std::endl;
 	
 
 	return 0;

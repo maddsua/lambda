@@ -109,9 +109,7 @@ void lambda::lambda::connectManager() {
 			handlerDispatched = false;
 			invoked.detach();
 			
-		} else {
-			Sleep(10);
-		}
+		} else Sleep(10);
 	}
 }
 

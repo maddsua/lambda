@@ -42,8 +42,11 @@ std::vector <uint8_t> maddsua::randomStream(size_t length) {
 
 std::string maddsua::createUUID() {
 
-	auto timestamp = std::to_string(timeGetTime()) + '_' + std::to_string(time(nullptr));
-	auto hash = binToHex(roundHash128(timestamp));
+	auto timestamp = std::to_string(timeGetTime()) + std::to_string(time(nullptr));
+
+	auto digest = sha1Hash(std::vector <uint8_t> (timestamp.begin(), timestamp.end()));
+
+	auto hash = binToHex(digest.data(), UUID_BSIZETR);
 
 	const std::array <int, 4> uuid_separators = {8,14,19,24};
 	for (auto pos : uuid_separators) {
