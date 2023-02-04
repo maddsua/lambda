@@ -8,10 +8,10 @@ using JSON = nlohmann::json;
 #include "../include/maddsua/compress.hpp"
 #include "../include/maddsua/fs.hpp"
 
-maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
+lambda::lambdaResponse requesthandeler(lambda::lambdaEvent event) {
 
 	//	api calls, like real functions in AWS Lambda
-	if (maddsua::startsWith(event.path, "/api")) {
+	if (lambda::startsWith(event.path, "/api")) {
 
 		JSON data = {
 			{"success", true},
@@ -19,14 +19,14 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 			{"api-data", "test data"}
 		};
 
-		if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
+		if (lambda::searchQueryFind("user", &event.searchQuery) == "maddsua") {
 			data["secret-message"] = "Buy some milk this time, come on Daniel =)";
 		}
 		
 		return {
 			200,
 			{
-				{ "content-type", maddsua::findMimeType("json") }
+				{ "content-type", lambda::findMimeType("json") }
 			},
 			data.dump()
 		};
@@ -38,20 +38,20 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
 	std::string filecontents;
 
-	if (!maddsua::readBinary(event.path, &filecontents)) {
+	if (!lambda::readBinary(event.path, &filecontents)) {
 		return { 404, {}, "File not found"};
 	}
 
 	auto fileext = event.path.find_last_of('.');
 
 	return { 200, {
-		{ "Content-Type", maddsua::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")}
+		{ "Content-Type", lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")}
 	}, filecontents};
 }
 
 int main(int argc, char** argv) {
 
-	auto server = maddsua::lambda();
+	auto server = lambda::lambda();
 	auto startresult = server.init("27015", &requesthandeler);
 
 	printf("%s\r\n", startresult.cause.c_str());

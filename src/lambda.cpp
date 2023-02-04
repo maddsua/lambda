@@ -1,7 +1,7 @@
 #include "../include/maddsua/lambda.hpp"
-#include "../include/maddsua/compress.hpp"
 
-void maddsua::lambda::addLogEntry(std::string type, std::string text) {
+
+void lambda::lambda::addLogEntry(std::string type, std::string text) {
 	
 	auto servertime = []() {
 		char timebuff[16];
@@ -15,7 +15,7 @@ void maddsua::lambda::addLogEntry(std::string type, std::string text) {
 }
 
 
-maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lambdaResponse(lambdaEvent)> lambda) {
+lambda::actionResult lambda::lambda::init(const uint32_t port, std::function<lambdaResponse(lambdaEvent)> lambda) {
 
 	if (running) return {
 		false,
@@ -38,7 +38,8 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
-	if (getaddrinfo(NULL, port, &hints, &servAddr) != 0) {
+
+	if (getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &servAddr) != 0) {
 		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
@@ -92,14 +93,14 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 	};
 }
 
-void maddsua::lambda::close() {
+void lambda::lambda::close() {
 	running = false;
 	if (worker.joinable()) worker.join();
 	closesocket(ListenSocket);
 	if (!config.mutlipeInstances) WSACleanup();
 }
 
-void maddsua::lambda::connectManager() {
+void lambda::lambda::connectManager() {
 
 	while (running) {
 
@@ -114,7 +115,7 @@ void maddsua::lambda::connectManager() {
 	}
 }
 
-void maddsua::lambda::handler() {
+void lambda::lambda::handler() {
 
 	//	accept socket and free the flag for next handler instance
 	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
@@ -181,17 +182,17 @@ void maddsua::lambda::handler() {
 
 		if (acceptEncodings[0] == "br") {
 
-			if (maddsua::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
+			if (compression::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
 				else addLogEntry("Error", "brotli compression failed");
 			
 		} else if (acceptEncodings[0] == "gzip") {
 
-			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
+			if (compression::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
 				else addLogEntry("Error", "gzip compression failed");
 
 		} else if (acceptEncodings[0] == "deflate") {
 			
-			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
+			if (compression::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
 				else addLogEntry("Error", "deflate compression failed");
 		}
 

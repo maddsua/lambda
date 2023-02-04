@@ -2,7 +2,19 @@
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
-#include "../include/maddsua/compress.hpp"
+#include "../include/maddsua/lambda.hpp"
+
+#define LAMBDA_ZLIB_HEADER_Z		(8)
+#define LAMBDA_ZLIB_HEADER_GZ		(26)
+#define LAMBDA_ZLIB_DECOMP_GZ		(16)
+#define LAMBDA_ZLIB_DECOM_AUTO		(32)
+#define LAMBDA_ZLIB_RAW				(-15)
+#define LAMBDA_ZLIB_MEMORY			(9)
+#define LAMBDA_ZLIB_EXPECT_RATIO	(3)
+#define LAMBDA_ZLIB_CHUNK			(131072)	//	128k
+
+#define LAMBDA_BROTLICHUNK			(131072)	//	128k
+#define LAMBDA_BROTLIEXPECT_RATIO	(3)
 
 /*
 	zlib "wrapper" for de/compressing binary data
@@ -13,7 +25,7 @@
  * @param plain pointer to a string with original data
  * @param compressed pointer to a destination string, where the compressed data will be saved
 */
-bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader) {
+bool lambda::compression::gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader) {
 
 	if (!plain->size()) return false;
 
@@ -22,31 +34,31 @@ bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool
 		zlibStream.zfree = Z_NULL;
 		zlibStream.opaque = Z_NULL;
 
-	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (gzipHeader ? MCOMP_Z_HEADER_GZ : MCOMP_Z_HEADER_Z), MCOMP_Z_MEMORY, Z_DEFAULT_STRATEGY);
+	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (gzipHeader ? LAMBDA_ZLIB_HEADER_GZ : LAMBDA_ZLIB_HEADER_Z), LAMBDA_ZLIB_MEMORY, Z_DEFAULT_STRATEGY);
 		if (zlibResult != Z_OK) return false;
 
 	compressed->resize(0);
-	compressed->reserve(plain->size() / MCOMP_Z_EXPECT_RATIO);
+	compressed->reserve(plain->size() / LAMBDA_ZLIB_EXPECT_RATIO);
 
 	int zlibFlush;
 	bool opresult = true;
 	size_t carrierShift = 0;
-	auto chunkIn = new uint8_t [MCOMP_Z_CHUNK];
-	auto chunkOut = new uint8_t [MCOMP_Z_CHUNK];
+	auto chunkIn = new uint8_t [LAMBDA_ZLIB_CHUNK];
+	auto chunkOut = new uint8_t [LAMBDA_ZLIB_CHUNK];
 
 	do {
-		size_t partSize = MCOMP_Z_CHUNK;
-		if ((MCOMP_Z_CHUNK + carrierShift) > plain->size()) partSize = (plain->size() - carrierShift);
+		size_t partSize = LAMBDA_ZLIB_CHUNK;
+		if ((LAMBDA_ZLIB_CHUNK + carrierShift) > plain->size()) partSize = (plain->size() - carrierShift);
 
 		std::copy(plain->begin() + carrierShift, plain->begin() + carrierShift + partSize, chunkIn);
 
-		carrierShift += MCOMP_Z_CHUNK;
-		zlibFlush = (partSize < MCOMP_Z_CHUNK) ? Z_FINISH : Z_NO_FLUSH;
+		carrierShift += LAMBDA_ZLIB_CHUNK;
+		zlibFlush = (partSize < LAMBDA_ZLIB_CHUNK) ? Z_FINISH : Z_NO_FLUSH;
 		zlibStream.avail_in = partSize;
 		zlibStream.next_in = chunkIn;
 
 		do {
-			zlibStream.avail_out = MCOMP_Z_CHUNK;
+			zlibStream.avail_out = LAMBDA_ZLIB_CHUNK;
 			zlibStream.next_out = chunkOut;
 			zlibResult = deflate(&zlibStream, zlibFlush);
 
@@ -55,7 +67,7 @@ bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool
 				break;
 			}
 
-			compressed->insert(compressed->end(), chunkOut, chunkOut + (MCOMP_Z_CHUNK - zlibStream.avail_out));
+			compressed->insert(compressed->end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
 
 		} while (zlibStream.avail_out == 0 && opresult);
 
@@ -78,7 +90,7 @@ bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool
  * @param compressed pointer to a string with compressed data
  * @param plain pointer to a destination string, original data will get here
 */
-bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
+bool lambda::compression::gzDecompress(const std::string* compressed, std::string* plain) {
 
 	if (!compressed->size()) return false;
 
@@ -89,30 +101,30 @@ bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
 		zlibStream.avail_in = 0;
 		zlibStream.next_in = Z_NULL;
 
-	auto zlibResult = inflateInit2(&zlibStream, MCOMP_Z_DECOM_AUTO);
+	auto zlibResult = inflateInit2(&zlibStream, LAMBDA_ZLIB_DECOM_AUTO);
 		if (zlibResult != Z_OK) return false;
 
 	plain->resize(0);
-	plain->reserve(compressed->size() * MCOMP_Z_EXPECT_RATIO);
+	plain->reserve(compressed->size() * LAMBDA_ZLIB_EXPECT_RATIO);
 
 	size_t carrierShift = 0;
 	bool opresult = true;
-	auto chunkIn = new uint8_t [MCOMP_Z_CHUNK];
-	auto chunkOut = new uint8_t [MCOMP_Z_CHUNK];
+	auto chunkIn = new uint8_t [LAMBDA_ZLIB_CHUNK];
+	auto chunkOut = new uint8_t [LAMBDA_ZLIB_CHUNK];
 
 	do {
-		size_t partSize = MCOMP_Z_CHUNK;
-		if ((MCOMP_Z_CHUNK + carrierShift) > compressed->size()) partSize = (compressed->size() - carrierShift);
+		size_t partSize = LAMBDA_ZLIB_CHUNK;
+		if ((LAMBDA_ZLIB_CHUNK + carrierShift) > compressed->size()) partSize = (compressed->size() - carrierShift);
 
 		std::copy(compressed->begin() + carrierShift, compressed->begin() + carrierShift + partSize, chunkIn);
 
-		carrierShift += MCOMP_Z_CHUNK;
+		carrierShift += LAMBDA_ZLIB_CHUNK;
 		zlibStream.avail_in = partSize;
 
 		zlibStream.next_in = chunkIn;
 
 		do {
-			zlibStream.avail_out = MCOMP_Z_CHUNK;
+			zlibStream.avail_out = LAMBDA_ZLIB_CHUNK;
 			zlibStream.next_out = chunkOut;
 			zlibResult = inflate(&zlibStream, Z_NO_FLUSH);
 
@@ -122,7 +134,7 @@ bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
 				break;
 			}
 
-			plain->insert(plain->end(), chunkOut, chunkOut + (MCOMP_Z_CHUNK - zlibStream.avail_out));
+			plain->insert(plain->end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
 
 		} while (zlibStream.avail_out == 0 && opresult);
 
@@ -152,7 +164,7 @@ bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
  * @param compressed pointer to a string with compressed data
  * @param plain pointer to a destination string, original data will get here
 */
-bool maddsua::brDecompress(const std::string* compressed, std::string* plain) {
+bool lambda::compression::brDecompress(const std::string* compressed, std::string* plain) {
 
 	if (!compressed->size()) return false;
 
@@ -161,19 +173,19 @@ bool maddsua::brDecompress(const std::string* compressed, std::string* plain) {
 	BrotliDecoderResult opresult;
 	auto chunkInSize = compressed->size();
 	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(compressed->data());
-	auto bufferOut = new uint8_t [MCOMP_BR_CHUNK];
+	auto bufferOut = new uint8_t [LAMBDA_BROTLICHUNK];
 
 	plain->resize(0);
-	plain->reserve(plain->size() * MCOMP_BR_EXPECT_RATIO);
+	plain->reserve(plain->size() * LAMBDA_BROTLIEXPECT_RATIO);
 
 	do {
 		uint8_t* chunkOut = bufferOut;
-		size_t chunkOutSize = MCOMP_BR_CHUNK;
+		size_t chunkOutSize = LAMBDA_BROTLICHUNK;
 
 		opresult = BrotliDecoderDecompressStream(instance, &chunkInSize, &bufferIn, &chunkOutSize, &chunkOut, nullptr);
 		if (opresult == BROTLI_DECODER_RESULT_ERROR) break;
 			
-		plain->insert(plain->end(), bufferOut, bufferOut + (MCOMP_BR_CHUNK - chunkOutSize));
+		plain->insert(plain->end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
 
 	} while (chunkInSize != 0 || opresult != BROTLI_DECODER_RESULT_SUCCESS);
 
@@ -190,7 +202,7 @@ bool maddsua::brDecompress(const std::string* compressed, std::string* plain) {
  * @param plain pointer to a string with original data
  * @param compressed pointer to a destination string, where the compressed data will be saved
 */
-bool maddsua::brCompress(const std::string* plain, std::string* compressed) {
+bool lambda::compression::brCompress(const std::string* plain, std::string* compressed) {
 
 	if (!plain->size()) return false;
 
@@ -199,19 +211,19 @@ bool maddsua::brCompress(const std::string* plain, std::string* compressed) {
 	bool opresult;
 	auto chunkInSize = plain->size();
 	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(plain->data());
-	auto bufferOut = new uint8_t [MCOMP_BR_CHUNK];
+	auto bufferOut = new uint8_t [LAMBDA_BROTLICHUNK];
 
 	compressed->resize(0);
-	compressed->reserve(plain->size() / MCOMP_BR_EXPECT_RATIO);
+	compressed->reserve(plain->size() / LAMBDA_BROTLIEXPECT_RATIO);
 
 	do {
 		uint8_t* chunkOut = bufferOut;
-		size_t chunkOutSize = MCOMP_BR_CHUNK;
+		size_t chunkOutSize = LAMBDA_BROTLICHUNK;
 
 		opresult = BrotliEncoderCompressStream(instance, BROTLI_OPERATION_FINISH, &chunkInSize, &bufferIn, &chunkOutSize, &chunkOut, nullptr);
 		if (!opresult) break;
 
-		compressed->insert(compressed->end(), bufferOut, bufferOut + (MCOMP_BR_CHUNK - chunkOutSize));
+		compressed->insert(compressed->end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
 
 	} while (chunkInSize != 0 || !BrotliEncoderIsFinished(instance));
 

@@ -5,7 +5,7 @@
 #include "http.hpp"
 
 
-namespace maddsua {
+namespace lambda {
 
 	struct lambdaEvent {
 		std::string method;
@@ -65,8 +65,8 @@ namespace maddsua {
 			 * @param lambda handler function
 			 * @param cfg server config (optional)
 			*/
-			actionResult init(const char* port, std::function <lambdaResponse(lambdaEvent)> lambda);
-			inline actionResult init(const char* port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
+			actionResult init(const uint32_t port, std::function <lambdaResponse(lambdaEvent)> lambda);
+			inline actionResult init(const uint32_t port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
 				config = cfg;
 				return init(port, lambda);
 			}
@@ -112,6 +112,12 @@ namespace maddsua {
 			};
 	};
 
+	namespace fs {
+		bool writeBinary(const std::string path, const std::string* data);
+		bool readBinary(const std::string path, std::string* dest);
+	}
+
 }
+
 
 #endif

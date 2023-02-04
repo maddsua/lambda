@@ -4,7 +4,7 @@ APP_DEV    = lambda.exe
 APP_DEMO   = demo/lambda.exe
 LIBNAME    = mdslambda
 
-OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
+OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o
 FLAGS      = -std=c++20
 LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
@@ -72,8 +72,8 @@ src/mimetypes.o: src/mimetypes.cpp
 src/fetch.o: src/fetch.cpp
 	g++ -c src/fetch.cpp -o src/fetch.o $(FLAGS)
 
-src/compress.o: src/compress.cpp
-	g++ -c src/compress.cpp -o src/compress.o $(FLAGS)
+src/compression.o: src/compression.cpp
+	g++ -c src/compression.cpp -o src/compression.o $(FLAGS)
 
 src/filesystem.o: src/filesystem.cpp
 	g++ -c src/filesystem.cpp -o src/filesystem.o $(FLAGS)

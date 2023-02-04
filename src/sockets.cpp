@@ -1,6 +1,6 @@
 #include "../include/maddsua/http.hpp"
 
-maddsua::httpRequest maddsua::socketGetHTTP(SOCKET* client) {
+lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 
 	//	receive http header first
 	std::string rawData;
@@ -38,7 +38,7 @@ maddsua::httpRequest maddsua::socketGetHTTP(SOCKET* client) {
 	if (startArgs.size() < 3) return { false };
 
 	//	parse headers
-	std::vector <maddsua::datapair> headers;
+	std::vector <lambda::datapair> headers;
 	for (size_t i = 1; i < headerLines.size(); i++) {
 		auto hLine = headerLines[i];
 		auto delim = hLine.find_first_of(':');
@@ -93,7 +93,7 @@ maddsua::httpRequest maddsua::socketGetHTTP(SOCKET* client) {
 	};
 }
 
-maddsua::actionResult maddsua::socketSendHTTP(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body) {
+lambda::actionResult lambda::socketSendHTTP(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body) {
 
 	//	create reaponse message
 	auto temp = startline + "\r\n";

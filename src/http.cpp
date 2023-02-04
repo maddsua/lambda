@@ -1,6 +1,6 @@
 #include "../include/maddsua/http.hpp"
 
-bool maddsua::socketsReady() {
+bool lambda::socketsReady() {
 	bool result = true;
 
     SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -12,43 +12,43 @@ bool maddsua::socketsReady() {
 	return result;
 }
 
-void maddsua::toLowerCase(std::string* text) {
+void lambda::toLowerCase(std::string* text) {
 	for (size_t i = 0; i < text->size(); i++) {
 		if (text->at(i) >= 'A' && text->at(i) <= 'Z') {
 			text->at(i) += 0x20;
 		}
 	}
 }
-std::string maddsua::toLowerCase(std::string text) {
+std::string lambda::toLowerCase(std::string text) {
 	std::string temp = text;
 	toLowerCase(&temp);
 	return temp;
 }
 
-void maddsua::toUpperCase(std::string* text) {
+void lambda::toUpperCase(std::string* text) {
 	for (size_t c = 0; c < text->size(); c++) {
 		if (text->at(c) >= 'a' && text->at(c) <= 'z') text->at(c) -= 0x20;
 	}
 }
-std::string maddsua::toUpperCase(std::string text) {
+std::string lambda::toUpperCase(std::string text) {
 	std::string temp = text;
 	toUpperCase(&temp);
 	return temp;
 }
 
-void maddsua::toTitleCase(std::string* text) {
+void lambda::toTitleCase(std::string* text) {
 	for (size_t i = 0; i < text->size(); i++) {
 		auto prev = ((i >= 1) ? text->at(i - 1) : '-');
 		if ((prev == '-' || prev == ' ') && (text->at(i) >= 'a' && text->at(i) <= 'z')) text->at(i) -= 0x20;
 	}
 }
-std::string maddsua::toTitleCase(std::string text) {
+std::string lambda::toTitleCase(std::string text) {
 	std::string temp = text;
 	toTitleCase(&temp);
 	return temp;
 }
 
-void maddsua::trim(std::string* text) {
+void lambda::trim(std::string* text) {
 	//	list of characters to remove
 	const std::string wsc = "\r\n\t ";
 
@@ -84,7 +84,7 @@ void maddsua::trim(std::string* text) {
 	
 	*text = temp;
 }
-std::string maddsua::trim(std::string text) {
+std::string lambda::trim(std::string text) {
 	std::string temp = text;
 	trim(&temp);
 	return temp;
@@ -93,7 +93,7 @@ std::string maddsua::trim(std::string text) {
 //	I thought that was a good idea to code this part in C, for speed.
 //	But here we go again, it probably contains a ton of explosive bugs.
 //	Tested several times, looks ok, but still, be aware of
-std::vector <std::string> maddsua::splitBy(std::string source, std::string token) {
+std::vector <std::string> lambda::splitBy(std::string source, std::string token) {
 	std::vector <std::string> temp;
 
 	//	abort if source is empty
@@ -118,7 +118,7 @@ std::vector <std::string> maddsua::splitBy(std::string source, std::string token
 	return temp;
 }
 
-std::string maddsua::headerFind(std::string headerName, std::vector <maddsua::datapair>* headers) {
+std::string lambda::headerFind(std::string headerName, std::vector <lambda::datapair>* headers) {
 	for (auto headerObject : *headers) {
 		if (toLowerCase(headerObject.name) == toLowerCase(headerName)) {
 			return headerObject.value;
@@ -127,15 +127,15 @@ std::string maddsua::headerFind(std::string headerName, std::vector <maddsua::da
 	return "";
 }
 
-std::string maddsua::httpTime(time_t epoch_time) {
+std::string lambda::httpTime(time_t epoch_time) {
 	char timebuff[128];
 	tm tms = *gmtime(&epoch_time);
 	strftime(timebuff, sizeof(timebuff), "%a, %d %b %Y %H:%M:%S GMT", &tms);
 	return timebuff;
 }
 
-std::vector <maddsua::datapair> maddsua::searchQueryParams(std::string* url) {
-	std::vector <maddsua::datapair> params;
+std::vector <lambda::datapair> lambda::searchQueryParams(std::string* url) {
+	std::vector <lambda::datapair> params;
 
 	auto startpoint = url->find_last_of('?');
 		if (startpoint == std::string::npos || startpoint >= (url->size() - 1)) return params;
@@ -149,7 +149,7 @@ std::vector <maddsua::datapair> maddsua::searchQueryParams(std::string* url) {
 	return params;
 }
 
-void maddsua::headerInsert(std::string header, std::string value, std::vector <maddsua::datapair>* headers) {
+void lambda::headerInsert(std::string header, std::string value, std::vector <lambda::datapair>* headers) {
 
 	for (auto& h : *headers) {
 		if (toLowerCase(h.name) == toLowerCase(header)) {
