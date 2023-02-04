@@ -1,6 +1,5 @@
 #include "../include/maddsua/lambda.hpp"
 
-#include <iostream>
 
 const std::vector<std::string> compressableTypes = { "text", "application" };
 
@@ -43,7 +42,9 @@ std::vector <std::string> lambda::lambda::showLogs() {
 			break;
 		}
 
-		textEntry += std::string(entry.requestId.begin(), entry.requestId.begin() + entry.requestId.find_first_of('-'));
+		//	cut request id to first 8 characters
+		textEntry += std::string(entry.requestId.begin(), entry.requestId.begin() + 8);
+
 		textEntry += " : " + entry.message;
 
 		printout.push_back(textEntry);
@@ -69,6 +70,8 @@ lambda::actionResult lambda::lambda::init(const uint32_t port, std::function<lam
 			"WINAPI:" + std::to_string(GetLastError())
 		};
 	}
+
+	if (config.maxThreads < LAMBDA_MIN_THREADS) config.maxThreads = LAMBDA_MIN_THREADS;
 
 	//	resolve server address
 	struct addrinfo *servAddr = NULL;
@@ -150,12 +153,12 @@ void lambda::lambda::connectManager() {
 			activeThreads.erase(std::remove_if(activeThreads.begin(), activeThreads.end(), 
 				[](const lambdaRequestContext& entry) { return entry.signalDone; }), activeThreads.end());
 
+			lambdaRequestContext context;
+				context.uid = maddsua::createUUID();
+				context.started = time(nullptr);
+				context.requestType = LAMBDAREQ_LAMBDA;
 
-			lambdaRequestContext worker;
-				worker.uid = maddsua::createUUID();
-				worker.started = time(nullptr);
-
-			activeThreads.push_back(worker);
+			activeThreads.push_back(context);
 
 			auto invoked = std::thread(handler, this, std::ref(activeThreads.back()));
 			handlerDispatched = false;

@@ -19,9 +19,14 @@
 #include "hex.hpp"
 #include "base64.hpp"
 
-#define LAMBDALOG_INFO	(1)
-#define LAMBDALOG_WARN	(0)
-#define LAMBDALOG_ERR	(-1)
+#define LAMBDALOG_INFO		(1)
+#define LAMBDALOG_WARN		(0)
+#define LAMBDALOG_ERR		(-1)
+
+#define LAMBDAREQ_LAMBDA	(1)
+#define LAMBDAREQ_WEBSOCK	(2)
+
+#define LAMBDA_MIN_THREADS	(8)
 
 namespace lambda {
 
@@ -51,14 +56,15 @@ namespace lambda {
 		bool compression_allFileTypes = false;
 		bool compression_preferBr = false;
 		bool mutlipeInstances = false;
+		size_t maxThreads = std::thread::hardware_concurrency();
 	};
 
 	struct lambdaRequestContext {
 		std::string uid;
-		size_t activeThreads;
-		time_t started;
+		time_t started = 0;
 		bool signalDone = false;
 		bool signalStop = false;
+		short requestType = 0;
 	};
 
 	struct lambdaLogEntry {
