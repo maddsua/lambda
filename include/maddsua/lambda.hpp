@@ -62,9 +62,10 @@ namespace lambda {
 	};
 
 	struct lambdaLogEntry {
-		short code;
+		short type;
 		std::string requestId;
-		std::string text;
+		std::string message;
+		time_t timestamp;
 	};
 
 	class lambda {
@@ -118,11 +119,7 @@ namespace lambda {
 			/**
 			 * Get last log entries
 			*/
-			inline std::vector <std::string> logs() {
-				auto temp = serverlog;
-				serverlog.erase(serverlog.begin(), serverlog.end());
-				return temp;
-			}
+			std::vector <std::string> showLogs();
 
 		private:
 			WSADATA wsaData;
@@ -135,8 +132,9 @@ namespace lambda {
 			std::function<lambdaResponse(lambdaEvent)> callback;
 			bool handlerDispatched;
 			void handler(lambdaRequestContext& context);
-			std::vector <std::string> serverlog;
-			void addLogEntry(std::string type, std::string text);
+
+			void addLogEntry(std::string requestID, short type, std::string message);
+			std::vector <lambdaLogEntry> serverlog;
 
 			std::vector <lambdaRequestContext> activeThreads;
 			//std::mutex threadLock;

@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 
 	while (true) {
 
-		for (auto log : server.logs()) {
+		for (auto log : server.showLogs()) {
 			std::cout << log << std::endl;
 		}
 		//	just chill while server is running

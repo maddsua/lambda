@@ -11,8 +11,8 @@ base64:
 hex:
 	g++ -g hex_test.cpp ../src/hex.cpp -o hex_test.exe $(FLAGS)
 
-generate:
-	g++ -g generate_test.cpp ../src/generate.cpp ../src/hex.cpp ../src/sha1.cpp -o generate_test.exe $(FLAGS) -lwinmm
+gen:
+	g++ -g gen_test.cpp ../src/gen.cpp ../src/hex.cpp ../src/sha1.cpp -o gen_test.exe $(FLAGS) -lwinmm
 
 sha2:
 	g++ -g sha2_test.cpp ../src/sha2.cpp -o sha2_test.exe $(FLAGS)
