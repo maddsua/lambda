@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 
 	std::string data = "sample text here";
 
-	std::cout << "Hash of: \"" << data << "\"\r\n";
+	std::cout << "Hash of \"" << data << "\":\r\n";
 	auto hash = maddsua::roundHash256(data);
 	print_hex(hash.data(), hash.size());
 
