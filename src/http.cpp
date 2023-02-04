@@ -14,9 +14,7 @@ bool lambda::socketsReady() {
 
 void lambda::toLowerCase(std::string* text) {
 	for (size_t i = 0; i < text->size(); i++) {
-		if (text->at(i) >= 'A' && text->at(i) <= 'Z') {
-			text->at(i) += 0x20;
-		}
+		if (text->at(i) >= 'A' && text->at(i) <= 'Z') text->at(i) += 0x20;
 	}
 }
 std::string lambda::toLowerCase(std::string text) {

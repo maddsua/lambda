@@ -1,8 +1,6 @@
 #include "../include/maddsua/crypto.hpp"
 
-#include <memory.h>
-
-#define HASH_ROUNDS			(128)		//	128 hashing rounds
+#define ROUNDHASH_ROUNDS		(128)	//	128 hashing rounds
 
 const uint8_t hash_iv[128] = {
 	//	0-512 bits
@@ -32,7 +30,7 @@ void xorTo(uint8_t* data_A, const uint8_t* data_B, const size_t blockSize) {
 
 void hashBlock(uint8_t* data, const size_t blockSize) {
 
-	for (size_t i = 0; i < HASH_ROUNDS; i++) {
+	for (size_t i = 0; i < ROUNDHASH_ROUNDS; i++) {
 
 		//	xor data to itself
 		for (size_t m = 0; m < blockSize; m++) {

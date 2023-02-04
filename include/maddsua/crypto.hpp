@@ -10,16 +10,22 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <memory.h>
 
 #define ROUNDHASH128_SIZE	(128)
 #define ROUNDHASH256_SIZE	(256)
 #define ROUNDHASH512_SIZE	(512)
 #define ROUNDHASH1024_SIZE	(1024)
 
+#define SHA256_HASH_SIZE		(32)
+#define SHA256_BLOCK_SIZE		(32)
+#define SHA512_HASH_SIZE		(64)
+#define SHA384_512_BLOCK_SIZE	(128)
+
 
 	namespace maddsua {
 		
-		//	the mighty algorithm!
+		//	the "mighty" © algorithm!
 		std::vector <uint8_t> _roundHash(std::vector <uint8_t> data, size_t blockSize);
 
 		//	roundhash-128
@@ -56,8 +62,11 @@
 		std::vector <uint8_t> randomStream(const size_t length);
 
 		std::string createUUID();
-
 		std::string createPassword(size_t length, bool randomCase);
+
+		//	real hash functions
+		std::array <uint8_t, SHA256_BLOCK_SIZE> sha256Hash(std::vector<uint8_t> data);
+		std::array <uint8_t, SHA512_HASH_SIZE> sha512Hash(std::vector<uint8_t> data);
 	}
 
 #endif

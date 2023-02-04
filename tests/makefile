@@ -16,3 +16,6 @@ hash:
 
 generate:
 	g++ -g generate_test.cpp ../src/generate.cpp ../src/hex.cpp ../src/roundhash.cpp -o generate_test.exe $(FLAGS) -lwinmm
+
+sha2:
+	g++ -g sha2_test.cpp ../src/sha2.cpp -o sha2_test.exe $(FLAGS)
