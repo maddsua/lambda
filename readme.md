@@ -58,7 +58,7 @@ So basically you init the server providing a callback function that gets called 
 
 ```
 auto server = maddsuaHTTP::lambda();
-auto startresult = server.init("27015", &requesthandeler);
+auto startresult = server.init(27015, &requesthandeler);
 ```
 
 There are two requirements for callback function (`requesthandeler` in this snippet):
