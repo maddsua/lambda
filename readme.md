@@ -105,8 +105,10 @@ std::string body;
 ### lambdaEvent
 
 ```
-std::string method;
 std::string httpversion;
+std::string requestID;
+
+std::string method;
 std::string path;
 std::vector < std::string name, std::string value > searchQuery;
 std::vector < std::string name, std::string value > headers;
