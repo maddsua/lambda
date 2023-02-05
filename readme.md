@@ -117,8 +117,6 @@ std::string body;
 
 If you still don't have a clue what is this library, take a look at [Netlify Docs](https://docs.netlify.com/functions/overview/) about their functions. This lib tries to be as close to them as possible.
 
-Check out the `test` directory, a lot of cool stuff there
-
 # How to build
 
 ## Requirements:
@@ -128,15 +126,10 @@ Check out the `test` directory, a lot of cool stuff there
 3. Make. Old good one, don't confuse with CMake
 4. zlib aka libz (deflate "compressor")
 
-### Type in literally two commands:
+### Type in `make` to compile. Link the libmdslambda to your project.
 
-```
-cd lib
-make
-```
-Now grab the `libmaddsualambda.a` from `lib` directory and link it to your project.
 
-Don't forget to include `lambda.hpp` from the `include` directory and to also link `-lmswsock -lwinmm -lws2_32`.
+Don't forget to include `lambda.hpp` from the `include` directory, and to also link `-lmswsock -lwinmm -lws2_32`.
 
 ### Note:
 If you are experiencing weird errors during compilation, try putting `#include <winsock2.h>` at the top of the main source file (let's say, main.cpp). That's just winapi being a Microsoft creature in all it's beauty.
