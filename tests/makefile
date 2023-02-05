@@ -8,11 +8,8 @@ all: all-before all-after
 base64:
 	g++ -g base64_test.cpp ../src/base64.cpp -o base64_test.exe $(FLAGS)
 
-hex:
-	g++ -g hex_test.cpp ../src/hex.cpp -o hex_test.exe $(FLAGS)
-
-gen:
-	g++ -g gen_test.cpp ../src/gen.cpp ../src/hex.cpp ../src/sha1.cpp -o gen_test.exe $(FLAGS) -lwinmm
+util:
+	g++ -g util_test.cpp ../src/util.cpp ../src/sha.cpp -o util_test.exe $(FLAGS) -lwinmm
 
 sha:
 	g++ -g sha_test.cpp ../src/sha.cpp -o sha_test.exe $(FLAGS)
