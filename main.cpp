@@ -60,11 +60,12 @@ int main(int argc, char** argv) {
 
 	auto startresult = server.init(27015, &requesthandeler, servercfg);
 
-	printf("Server: %s\r\n", startresult.cause.c_str());
+	std::cout << "Server: " << startresult.cause << std::endl;
 
 	if (!startresult.success) return 1;
 
-	puts("Waiting for connections at http://localhost:27015/");
+	std::cout << "Waiting for connections at http://localhost:27015/" << std::endl;
+
 
 	//	connect to google.com
 	/*{
@@ -78,15 +79,13 @@ int main(int argc, char** argv) {
 			std::cout << header.name << " " << header.value << std::endl;
 		}
 
-
 		std::cout << "Writing to googlecom.bin result: " << maddsua::writeBinary("googlecom.bin", &googeResp.body) << std::endl;
 	}*/
 
 	while (true) {
 
-		for (auto log : server.showLogs()) {
-			std::cout << log << std::endl;
-		}
+		for (auto log : server.showLogs()) std::cout << log << std::endl;
+
 		//	just chill while server is running
 		Sleep(1000);
 	}
