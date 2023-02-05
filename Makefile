@@ -1,13 +1,15 @@
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
 APP_DEV    = lambda.exe
-APP_DEMO   = demo/lambda.exe
+APP_DEMO   = lambda-server.exe
 LIBNAME    = mdslambda
 
 OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o
 
 FLAGS      = -std=c++20
-LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lwinmm
+LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+LIB_STC    = -l:libz.a -l:libbrotli.a
+LIBS_SYS   = -lws2_32 -lwinmm
 
 .PHONY: all all-before all-after clean-custom run-custom lib demo
 all: all-before $(APP_DEV) all-after
@@ -28,7 +30,7 @@ run: run-custom
 #	dev app
 # ----
 $(APP_DEV): $(OBJECTS) main.o
-	g++ $(OBJECTS) main.o -o $(APP_DEV) $(LIBS) $(FLAGS)
+	g++ $(OBJECTS) main.o $(LIBS_SYS) $(LIBS) $(FLAGS) -o $(APP_DEV)
 
 main.o: main.cpp
 	g++ -c main.cpp -o main.o $(FLAGS)
@@ -37,24 +39,23 @@ main.o: main.cpp
 # ----
 #	demo app
 # ----
-demo: demo/main.o
+demo: main.o
 #	static link
-	g++ demo/main.o -o $(APP_DEMO) -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS)
+#	g++ demo/main.o -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS) -o $(APP_DEMO)
 #	dynamic link
-#	g++ demo/main.o -o $(APP_DEMO) -L. -l$(LIBNAME) $(LIBS) $(FLAGS)
-
-demo/main.o: demo/main.cpp
-	g++ -c demo/main.cpp -o demo/main.o $(FLAGS)
+	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEMO)
 
 
 # ----
 #	lib
 # ----
-lib: $(OBJECTS)
 #	make static lib
+libstatic: $(OBJECTS)
 	ar rvs lib$(LIBNAME).a $(OBJECTS)
+
 #	make dll
-	g++ $(OBJECTS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a $(LIBS) $(FLAGS)
+libshared: $(OBJECTS)
+	g++ -static-libgcc -static-libstdc++ $(OBJECTS) $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
 
 # ----
 #	lib objects
