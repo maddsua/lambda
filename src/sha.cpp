@@ -12,15 +12,15 @@
 
 */
 
-#define ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
-#define ROTRIGHT(a,b) (((a) >> (b)) | ((a) << (32-(b))))
+#define SHA256_ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
+#define SHA256_ROTRIGHT(a,b) (((a) >> (b)) | ((a) << (32-(b))))
 
-#define CH(x,y,z) (((x) & (y)) ^ (~(x) & (z)))
-#define MAJ(x,y,z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
-#define EP0(x) (ROTRIGHT(x,2) ^ ROTRIGHT(x,13) ^ ROTRIGHT(x,22))
-#define EP1(x) (ROTRIGHT(x,6) ^ ROTRIGHT(x,11) ^ ROTRIGHT(x,25))
-#define SIG0(x) (ROTRIGHT(x,7) ^ ROTRIGHT(x,18) ^ ((x) >> 3))
-#define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
+#define SHA256_CH(x,y,z) (((x) & (y)) ^ (~(x) & (z)))
+#define SHA256_MAJ(x,y,z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
+#define SHA256_EP0(x) (SHA256_ROTRIGHT(x,2) ^ SHA256_ROTRIGHT(x,13) ^ SHA256_ROTRIGHT(x,22))
+#define SHA256_EP1(x) (SHA256_ROTRIGHT(x,6) ^ SHA256_ROTRIGHT(x,11) ^ SHA256_ROTRIGHT(x,25))
+#define SHA256_SIG0(x) (SHA256_ROTRIGHT(x,7) ^ SHA256_ROTRIGHT(x,18) ^ ((x) >> 3))
+#define SHA256_SIG1(x) (SHA256_ROTRIGHT(x,17) ^ SHA256_ROTRIGHT(x,19) ^ ((x) >> 10))
 
 
 static const uint32_t sha256_k[64] = {
@@ -50,7 +50,7 @@ void sha256_Transform(SHA256CTX* ctx, const uint8_t* data) {
 			j += 4;
 
 		} else {
-			block[i] = SIG1(block[i - 2]) + block[i - 7] + SIG0(block[i - 15]) + block[i - 16];
+			block[i] = SHA256_SIG1(block[i - 2]) + block[i - 7] + SHA256_SIG0(block[i - 15]) + block[i - 16];
 		}
 	}
 
@@ -60,8 +60,8 @@ void sha256_Transform(SHA256CTX* ctx, const uint8_t* data) {
 	
 	uint32_t t1, t2;
 	for (uint16_t i = 0; i < 64; ++i) {
-		t1 = shifts[7] + EP1(shifts[4]) + CH(shifts[4], shifts[5], shifts[6]) + sha256_k[i] + block[i];
-		t2 = EP0(shifts[0]) + MAJ(shifts[0], shifts[1], shifts[2]);
+		t1 = shifts[7] + SHA256_EP1(shifts[4]) + SHA256_CH(shifts[4], shifts[5], shifts[6]) + sha256_k[i] + block[i];
+		t2 = SHA256_EP0(shifts[0]) + SHA256_MAJ(shifts[0], shifts[1], shifts[2]);
 		shifts[7] = shifts[6];
 		shifts[6] = shifts[5];
 		shifts[5] = shifts[4];
@@ -169,23 +169,23 @@ std::array <uint8_t, SHA256_BLOCK_SIZE> maddsua::sha256Hash(std::vector<uint8_t>
 	
 */
 
-#define SHA2_SHFR(x, n)    (x >> n)
-#define SHA2_ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
-#define SHA2_ROTL(x, n)   ((x << n) | (x >> ((sizeof(x) << 3) - n)))
-#define SHA2_CH(x, y, z)  ((x & y) ^ (~x & z))
-#define SHA2_MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
-#define SHA512_F1(x) (SHA2_ROTR(x, 28) ^ SHA2_ROTR(x, 34) ^ SHA2_ROTR(x, 39))
-#define SHA512_F2(x) (SHA2_ROTR(x, 14) ^ SHA2_ROTR(x, 18) ^ SHA2_ROTR(x, 41))
-#define SHA512_F3(x) (SHA2_ROTR(x,  1) ^ SHA2_ROTR(x,  8) ^ SHA2_SHFR(x,  7))
-#define SHA512_F4(x) (SHA2_ROTR(x, 19) ^ SHA2_ROTR(x, 61) ^ SHA2_SHFR(x,  6))
-#define SHA2_UNPACK32(x, str)                 \
+#define SHA512_SHFR(x, n)    (x >> n)
+#define SHA512_ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
+#define SHA512_ROTL(x, n)   ((x << n) | (x >> ((sizeof(x) << 3) - n)))
+#define SHA512_CH(x, y, z)  ((x & y) ^ (~x & z))
+#define SHA512_MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
+#define SHA512_F1(x) (SHA512_ROTR(x, 28) ^ SHA512_ROTR(x, 34) ^ SHA512_ROTR(x, 39))
+#define SHA512_F2(x) (SHA512_ROTR(x, 14) ^ SHA512_ROTR(x, 18) ^ SHA512_ROTR(x, 41))
+#define SHA512_F3(x) (SHA512_ROTR(x,  1) ^ SHA512_ROTR(x,  8) ^ SHA512_SHFR(x,  7))
+#define SHA512_F4(x) (SHA512_ROTR(x, 19) ^ SHA512_ROTR(x, 61) ^ SHA512_SHFR(x,  6))
+#define SHA512_UNPACK32(x, str)                 \
 {                                             \
     *((str) + 3) = (uint8_t) ((x)      );       \
     *((str) + 2) = (uint8_t) ((x) >>  8);       \
     *((str) + 1) = (uint8_t) ((x) >> 16);       \
     *((str) + 0) = (uint8_t) ((x) >> 24);       \
 }
-#define SHA2_UNPACK64(x, str)                 \
+#define SHA512_UNPACK64(x, str)                 \
 {                                             \
     *((str) + 7) = (uint8_t) ((x)      );       \
     *((str) + 6) = (uint8_t) ((x) >>  8);       \
@@ -196,7 +196,7 @@ std::array <uint8_t, SHA256_BLOCK_SIZE> maddsua::sha256Hash(std::vector<uint8_t>
     *((str) + 1) = (uint8_t) ((x) >> 48);       \
     *((str) + 0) = (uint8_t) ((x) >> 56);       \
 }
-#define SHA2_PACK64(str, x)                   \
+#define SHA512_PACK64(str, x)                   \
 {                                             \
     *(x) =   ((uint64_t) *((str) + 7)      )    \
            | ((uint64_t) *((str) + 6) <<  8)    \
@@ -270,7 +270,7 @@ void sha512_Transform(SHA512CTX* ctx, const uint8_t* message, size_t block_nb) {
 		sub_block = message + (i << 7);
 
 		for (j = 0; j < 16; j++)
-			SHA2_PACK64(&sub_block[j << 3], &block[j]);
+			SHA512_PACK64(&sub_block[j << 3], &block[j]);
 
 		for (j = 16; j < 80; j++)
 			block[j] = SHA512_F4(block[j - 2]) + block[j - 7] + SHA512_F3(block[j - 15]) + block[j - 16];
@@ -280,8 +280,8 @@ void sha512_Transform(SHA512CTX* ctx, const uint8_t* message, size_t block_nb) {
 
 		for (j = 0; j < 80; j++) {
 			
-			uint64_t t1 = shift[7] + SHA512_F2(shift[4]) + SHA2_CH(shift[4], shift[5], shift[6]) + sha512_k[j] + block[j];
-			uint64_t t2 = SHA512_F1(shift[0]) + SHA2_MAJ(shift[0], shift[1], shift[2]);
+			uint64_t t1 = shift[7] + SHA512_F2(shift[4]) + SHA512_CH(shift[4], shift[5], shift[6]) + sha512_k[j] + block[j];
+			uint64_t t2 = SHA512_F1(shift[0]) + SHA512_MAJ(shift[0], shift[1], shift[2]);
 
 			shift[7] = shift[6];
 			shift[6] = shift[5];
@@ -354,13 +354,149 @@ std::array <uint8_t, SHA512_HASH_SIZE> maddsua::sha512Hash(std::vector<uint8_t> 
 		memset(ctx.block + ctx.blockLen, 0, pm_len - ctx.blockLen);
 		ctx.block[ctx.blockLen] = 128;
 
-		SHA2_UNPACK32(len_b, ctx.block + pm_len - 4);
+		SHA512_UNPACK32(len_b, ctx.block + pm_len - 4);
 		sha512_Transform(&ctx, ctx.block, block_nb);
 
 		for (size_t i = 0 ; i < 8; i++) {
-			SHA2_UNPACK64(ctx.state[i], &hash[i << 3]);
+			SHA512_UNPACK64(ctx.state[i], &hash[i << 3]);
 		}
 	}
 
 	return hash;
+}
+
+
+
+
+/*
+
+	SHA-1
+
+	Original code by Brad Conte (brad AT bradconte.com) from https://github.com/B-Con/crypto-algorithms
+	No license provided, assuming as a public domain
+
+*/
+
+#define SHA1_ROTLEFT(a, b) ((a << b) | (a >> (32 - b)))
+
+struct SHA1_CTX {
+	uint8_t data[64];
+	uint32_t datalen;
+	size_t bitlen;
+	uint32_t state[5];
+	uint32_t k[4];
+};
+
+void sha1_transform(SHA1_CTX *ctx, const uint8_t* data) {
+
+	uint32_t block[80];
+	for (uint16_t i = 0, j = 0; i < 80; ++i) {
+		if (i < 16) {
+			block[i] = (data[j] << 24) + (data[j + 1] << 16) + (data[j + 2] << 8) + (data[j + 3]);
+			j += 4;
+
+		} else {
+			block[i] = (block[i - 3] ^ block[i - 8] ^ block[i - 14] ^ block[i - 16]);
+			block[i] = (block[i] << 1) | (block[i] >> 31);
+		}
+	}
+
+	uint32_t shift[5], t0;
+	for (uint16_t i = 0; i < 5; i++)
+		shift[i] = ctx->state[i];
+
+	for (uint16_t i = 0; i < 80; ++i) {
+
+		if (i < 20) 
+			t0 = SHA1_ROTLEFT(shift[0], 5) + ((shift[1] & shift[2]) ^ (~shift[1] & shift[3])) + shift[4] + ctx->k[0] + block[i];
+		else if (i < 40) 
+			t0 = SHA1_ROTLEFT(shift[0], 5) + (shift[1] ^ shift[2] ^ shift[3]) + shift[4] + ctx->k[1] + block[i];
+		else if (i < 60) 
+			t0 = SHA1_ROTLEFT(shift[0], 5) + ((shift[1] & shift[2]) ^ (shift[1] & shift[3]) ^ (shift[2] & shift[3])) + shift[4] + ctx->k[2] + block[i];
+		else if (i < 80) 
+			t0 = SHA1_ROTLEFT(shift[0], 5) + (shift[1] ^ shift[2] ^ shift[3]) + shift[4] + ctx->k[3] + block[i];
+
+		shift[4] = shift[3];
+		shift[3] = shift[2];
+		shift[2] = SHA1_ROTLEFT(shift[1], 30);
+		shift[1] = shift[0];
+		shift[0] = t0;
+	}
+	
+	for (uint16_t i = 0; i < 5; i++)
+		ctx->state[i] += shift[i];
+}
+
+
+std::array <uint8_t, SHA1_BLOCK_SIZE> maddsua::sha1Hash(std::vector<uint8_t> data) {
+
+	std::array <uint8_t, SHA1_BLOCK_SIZE> result;
+
+	//	sha-1 init stage
+	SHA1_CTX ctx;
+	{
+		ctx.datalen = 0;
+		ctx.bitlen = 0;
+		ctx.state[0] = 0x67452301;
+		ctx.state[1] = 0xEFCDAB89;
+		ctx.state[2] = 0x98BADCFE;
+		ctx.state[3] = 0x10325476;
+		ctx.state[4] = 0xc3d2e1f0;
+		ctx.k[0] = 0x5a827999;
+		ctx.k[1] = 0x6ed9eba1;
+		ctx.k[2] = 0x8f1bbcdc;
+		ctx.k[3] = 0xca62c1d6;
+	}
+
+	//	sha-1 update stage
+	for (size_t i = 0; i < data.size(); ++i) {
+		ctx.data[ctx.datalen] = data[i];
+		ctx.datalen++;
+		if (ctx.datalen == 64) {
+			sha1_transform(&ctx, ctx.data);
+			ctx.bitlen += 512;
+			ctx.datalen = 0;
+		}
+	}
+
+	//	sha-1 final stage
+	{
+		uint32_t i = ctx.datalen;
+
+		// Pad whatever data is left in the buffer.
+		if (ctx.datalen < 56) {
+			ctx.data[i++] = 0x80;
+			while (i < 56) ctx.data[i++] = 0x00;
+
+		} else {
+			ctx.data[i++] = 0x80;
+			while (i < 64) ctx.data[i++] = 0x00;
+			sha1_transform(&ctx, ctx.data);
+			memset(ctx.data, 0, 56);
+		}
+
+		// Append to the padding the total message's length in bits and transform.
+		ctx.bitlen += ctx.datalen * 8;
+		ctx.data[63] = ctx.bitlen;
+		ctx.data[62] = ctx.bitlen >> 8;
+		ctx.data[61] = ctx.bitlen >> 16;
+		ctx.data[60] = ctx.bitlen >> 24;
+		ctx.data[59] = ctx.bitlen >> 32;
+		ctx.data[58] = ctx.bitlen >> 40;
+		ctx.data[57] = ctx.bitlen >> 48;
+		ctx.data[56] = ctx.bitlen >> 56;
+		sha1_transform(&ctx, ctx.data);
+
+		// Since this implementation uses little endian byte ordering and MD uses big endian,
+		// reverse all the bytes when copying the final state to the output hash.
+		for (i = 0; i < 4; ++i) {
+			result[i]      = (ctx.state[0] >> (24 - i * 8)) & 0x000000ff;
+			result[i + 4]  = (ctx.state[1] >> (24 - i * 8)) & 0x000000ff;
+			result[i + 8]  = (ctx.state[2] >> (24 - i * 8)) & 0x000000ff;
+			result[i + 12] = (ctx.state[3] >> (24 - i * 8)) & 0x000000ff;
+			result[i + 16] = (ctx.state[4] >> (24 - i * 8)) & 0x000000ff;
+		}
+	}
+
+	return result;
 }

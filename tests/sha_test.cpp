@@ -25,5 +25,9 @@ int main(int argc, char** argv) {
 	auto hash2 = maddsua::sha512Hash(std::vector<uint8_t>(data.begin(), data.end()));
 	print_hex(hash2.data(), hash2.size());
 
+	std::cout << "sha1: \r\n";
+	auto hash3 = maddsua::sha1Hash(std::vector<uint8_t>(data.begin(), data.end()));
+	print_hex(hash3.data(), hash3.size());
+
 	return 0;
 }
