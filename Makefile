@@ -55,7 +55,7 @@ libstatic: $(OBJECTS)
 
 #	make dll
 libshared: $(OBJECTS)
-	g++ -static-libgcc -static-libstdc++ $(OBJECTS) $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+	g++ $(OBJECTS) $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
 
 # ----
 #	lib objects
