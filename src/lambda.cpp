@@ -128,7 +128,7 @@ lambda::actionResult lambda::lambda::init(const uint32_t port, std::function<lam
 	//	start watchdog
 	callback = lambda;
 	running = true;
-	worker = std::thread(connectManager, this);
+	worker = std::thread(connectDispatch, this);
 
 	return {
 		true,
@@ -143,7 +143,7 @@ void lambda::lambda::close() {
 	if (!config.mutlipeInstances) WSACleanup();
 }
 
-void lambda::lambda::connectManager() {
+void lambda::lambda::connectDispatch() {
 
 	while (running) {
 
@@ -151,16 +151,11 @@ void lambda::lambda::connectManager() {
 
 			//	filter thread list
 			//activeThreads.erase(std::remove_if(activeThreads.begin(), activeThreads.end(), 
-			//	[](const lambdaRequestContext& entry) { return entry.signalDone; }), activeThreads.end());
-
-			lambdaRequestContext context;
-				context.uid = maddsua::createUUID();
-				context.started = time(nullptr);
-				context.requestType = LAMBDAREQ_LAMBDA;
+			//	[](const lambdaThreadContext& entry) { return entry.signalDone; }), activeThreads.end());
 
 			//activeThreads.push_back(context);
 
-			auto invoked = std::thread(handler, this, context);
+			auto invoked = std::thread(handler, this);
 			handlerDispatched = false;
 			invoked.detach();
 			
@@ -168,11 +163,17 @@ void lambda::lambda::connectManager() {
 	}
 }
 
-void lambda::lambda::handler(lambdaRequestContext context) {
+void lambda::lambda::handler() {
 
 	//	accept socket and free the flag for next handler instance
 	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
 	handlerDispatched = true;
+
+	lambdaThreadContext context;
+		context.uid = maddsua::createUUID();
+		context.started = time(nullptr);
+		context.requestType = LAMBDAREQ_LAMBDA;
+	//activeThreads.push_back(context);
 
 	//	download http request
 	auto rqData = socketGetHTTP(&ClientSocket);
