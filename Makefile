@@ -1,6 +1,7 @@
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
 APP_DEV    = lambda.exe
+
 APP_DEMO   = lambda-server.exe
 LIBNAME    = mdslambda
 
@@ -31,6 +32,7 @@ run: run-custom
 # ----
 $(APP_DEV): $(OBJECTS) main.o
 	g++ $(OBJECTS) main.o $(LIBS_SYS) $(LIBS) $(FLAGS) -o $(APP_DEV)
+
 
 main.o: main.cpp
 	g++ -c main.cpp -o main.o $(FLAGS)
