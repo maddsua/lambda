@@ -59,10 +59,11 @@ namespace lambda {
 		size_t maxThreads = std::thread::hardware_concurrency();
 	};
 
-	struct lambdaRequestContext {
+	struct lambdaThreadContext {
 		std::string uid;
 		time_t started = 0;
 		short requestType = 0;
+		bool signalStop = false;
 	};
 
 	struct lambdaLogEntry {
@@ -131,16 +132,16 @@ namespace lambda {
 
 			bool running;
 			std::thread worker;
-			void connectManager();
+			void connectDispatch();
 
 			std::function<lambdaResponse(lambdaEvent)> callback;
 			bool handlerDispatched;
-			void handler(lambdaRequestContext context);
+			void handler();
 
 			void addLogEntry(std::string requestID, short type, std::string message);
 			std::vector <lambdaLogEntry> serverlog;
 
-			//std::vector <lambdaRequestContext> activeThreads;
+			//std::vector <lambdaThreadContext> activeThreads;
 			//std::mutex threadLock;
 
 			lambdaConfig config;
