@@ -1,21 +1,62 @@
 #include "../include/maddsua/lambda.hpp"
-#include "../include/maddsua/compress.hpp"
 
-void maddsua::lambda::addLogEntry(std::string type, std::string text) {
+
+const std::vector<std::string> compressableTypes = { "text", "application" };
+
+
+void lambda::lambda::addLogEntry(std::string requestID, short typeCode, std::string message) {
 	
-	auto servertime = []() {
-		char timebuff[16];
-		auto now = time(nullptr);
-		tm timedata = *gmtime(&now);
-		strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &timedata);
-		return std::string(timebuff);
-	} ();
+	lambdaLogEntry entry;
+		entry.type = typeCode;
+		entry.requestId = requestID;
+		entry.message = message;
+		entry.timestamp = time(nullptr);
 
-	serverlog.push_back(toUpperCase(type) + " [" + servertime + "] " + text);
+	serverlog.push_back(entry);
+}
+
+std::vector <std::string> lambda::lambda::showLogs() {
+
+	std::vector <std::string> printout;
+
+	for (auto entry : serverlog) {
+
+		std::string textEntry= [entry]() {
+			char timebuff[16];
+			tm timedata = *gmtime(&entry.timestamp);
+			strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &timedata);
+			return std::string(timebuff);
+		} ();
+
+		switch (entry.type) {
+			case LAMBDALOG_WARN:
+				textEntry += " WARN ";
+			break;
+
+			case LAMBDALOG_ERR:
+				textEntry += " ERRR ";
+			break;
+			
+			default:
+				textEntry += " INFO ";
+			break;
+		}
+
+		//	cut request id to first 8 characters
+		textEntry += std::string(entry.requestId.begin(), entry.requestId.begin() + 8);
+
+		textEntry += " : " + entry.message;
+
+		printout.push_back(textEntry);
+	}
+
+	serverlog.erase(serverlog.begin(), serverlog.end());
+
+	return printout;
 }
 
 
-maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lambdaResponse(lambdaEvent)> lambda) {
+lambda::actionResult lambda::lambda::init(const uint32_t port, std::function<lambdaResponse(lambdaEvent)> lambda) {
 
 	if (running) return {
 		false,
@@ -30,6 +71,8 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 		};
 	}
 
+	if (config.maxThreads < LAMBDA_MIN_THREADS) config.maxThreads = LAMBDA_MIN_THREADS;
+
 	//	resolve server address
 	struct addrinfo *servAddr = NULL;
 	struct addrinfo hints;
@@ -38,7 +81,8 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
-	if (getaddrinfo(NULL, port, &hints, &servAddr) != 0) {
+
+	if (getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &servAddr) != 0) {
 		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
@@ -84,7 +128,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 	//	start watchdog
 	callback = lambda;
 	running = true;
-	worker = std::thread(connectManager, this);
+	worker = std::thread(connectDispatch, this);
 
 	return {
 		true,
@@ -92,40 +136,51 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 	};
 }
 
-void maddsua::lambda::close() {
+void lambda::lambda::close() {
 	running = false;
 	if (worker.joinable()) worker.join();
 	closesocket(ListenSocket);
 	if (!config.mutlipeInstances) WSACleanup();
 }
 
-void maddsua::lambda::connectManager() {
+void lambda::lambda::connectDispatch() {
 
 	while (running) {
 
 		if(handlerDispatched) {
+
+			//	filter thread list
+			//activeThreads.erase(std::remove_if(activeThreads.begin(), activeThreads.end(), 
+			//	[](const lambdaThreadContext& entry) { return entry.signalDone; }), activeThreads.end());
+
+			//activeThreads.push_back(context);
+
 			auto invoked = std::thread(handler, this);
 			handlerDispatched = false;
 			invoked.detach();
 			
-		} else {
-			Sleep(10);
-		}
+		} else Sleep(10);
 	}
 }
 
-void maddsua::lambda::handler() {
+void lambda::lambda::handler() {
 
 	//	accept socket and free the flag for next handler instance
 	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
 	handlerDispatched = true;
+
+	lambdaThreadContext context;
+		context.uid = maddsua::createUUID();
+		context.started = time(nullptr);
+		context.requestType = LAMBDAREQ_LAMBDA;
+	//activeThreads.push_back(context);
 
 	//	download http request
 	auto rqData = socketGetHTTP(&ClientSocket);
 
 	//	drop connection if the request is invalid
 	if (!rqData.success) {
-		addLogEntry("Error", "Invalid request or connection problem");
+		addLogEntry(context.uid, LAMBDALOG_ERR, "Invalid request or connection problem");
 		closesocket(ClientSocket);
 		return;
 	}
@@ -143,20 +198,18 @@ void maddsua::lambda::handler() {
 		
 	auto lambdaResult = callback(rqEvent);
 
+	//	inject additional headers
+	headerAdd({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
+	headerAdd({"X-Request-ID", context.uid}, &lambdaResult.headers);
+	headerAdd({"Date", httpTimeNow()}, &lambdaResult.headers);
+	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
+
 	//	reset header case
 	for (size_t i = 0; i < lambdaResult.headers.size(); i++) {
 		toTitleCase(&lambdaResult.headers[i].name);
 	}
 
-	//	inject additional headers
-	headerAdd({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
-	headerAdd({"Date", httpTimeNow()}, &lambdaResult.headers);
-	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
-
-	//	generate response title
-	std::string startLine = "HTTP/1.1 " + httpStatusString(lambdaResult.statusCode);
-
-	//	apply compression
+	//	apply request compression
 	auto acceptEncodings = splitBy(headerFind("Accept-Encoding", &rqData.headers), ",");
 
 	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressableTypes);
@@ -181,35 +234,37 @@ void maddsua::lambda::handler() {
 
 		if (acceptEncodings[0] == "br") {
 
-			if (maddsua::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
-				else addLogEntry("Error", "brotli compression failed");
+			if (compression::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
+				else addLogEntry(context.uid, LAMBDALOG_ERR, "brotli compression failed");
 			
 		} else if (acceptEncodings[0] == "gzip") {
 
-			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
-				else addLogEntry("Error", "gzip compression failed");
+			if (compression::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
+				else addLogEntry(context.uid, LAMBDALOG_ERR, "gzip compression failed");
 
 		} else if (acceptEncodings[0] == "deflate") {
 			
-			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
-				else addLogEntry("Error", "deflate compression failed");
+			if (compression::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
+				else addLogEntry(context.uid, LAMBDALOG_ERR, "deflate compression failed");
 		}
 
 		if (appliedCompression.size()) headerInsert("Content-Encoding", appliedCompression, &lambdaResult.headers);
 			else compressedBody.erase(compressedBody.begin(), compressedBody.end());
 	}
 
+	//	generate response title
+	std::string startLine = "HTTP/1.1 " + httpStatusString(lambdaResult.statusCode);
 
 	//	send response and close socket
 	auto sent = socketSendHTTP(&ClientSocket, startLine, &lambdaResult.headers, compressedBody.size() ? &compressedBody : &lambdaResult.body);
 	closesocket(ClientSocket);
 
 	if (sent.success) {
-		addLogEntry("Info", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"");
-
+		addLogEntry(context.uid, LAMBDALOG_INFO, "Resp. " + std::to_string(lambdaResult.statusCode) + " for " + rqEvent.path + "");
 	} else {
-		addLogEntry("Info", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause);
+		addLogEntry(context.uid, LAMBDALOG_INFO, "Request for " + rqEvent.path + " failed: " + sent.cause);
 	}
 
 	//	done!
+	return;
 }

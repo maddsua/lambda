@@ -20,7 +20,7 @@
 #define MADDSUAHTTP_USERAGENT		"maddsua/lambda"
 
 
-namespace maddsua {
+namespace lambda {
 
 	/**
 	 * @param name
@@ -236,6 +236,17 @@ namespace maddsua {
 	 * The same as javascript's fetch(). Sends request to a URL and returns server response
 	*/
 	fetchResult fetch(std::string url, std::string method, std::vector <datapair> headers, std::string body);
+
+	/**
+	 * HTTP compression
+	*/
+	namespace compression {
+		bool gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader);
+		bool gzDecompress(const std::string* compressed, std::string* plain);
+
+		bool brCompress(const std::string* plain, std::string* encoded);
+		bool brDecompress(const std::string* encoded, std::string* plain);
+	}
 
 }
 

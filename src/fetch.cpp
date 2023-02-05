@@ -3,10 +3,9 @@
 #include <algorithm>
 
 #include "../include/maddsua/http.hpp"
-#include "../include/maddsua/compress.hpp"
 
-maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::vector <maddsua::datapair> headers, std::string body) {
-	maddsua::fetchResult result;
+lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vector <lambda::datapair> headers, std::string body) {
+	lambda::fetchResult result;
 
 	std::string path;
 	std::string host;
@@ -122,7 +121,7 @@ maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::ve
 
 		if (enc == "br") {
 			
-			if (brDecompress(&serverResponse.body, &decompressed)) {
+			if (lambda::compression::brDecompress(&serverResponse.body, &decompressed)) {
 				serverResponse.body = decompressed;
 				continue;
 
@@ -133,7 +132,7 @@ maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::ve
 
 		} else if (enc == "gzip" || enc == "deflate") {
 
-			if (gzDecompress(&serverResponse.body, &decompressed)) {
+			if (lambda::compression::gzDecompress(&serverResponse.body, &decompressed)) {
 				serverResponse.body = decompressed;
 				continue;
 

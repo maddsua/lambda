@@ -26,8 +26,8 @@ namespace maddsua {
 
 	inline bool b64Validate(std::string* encoded) {
 		
-		for (auto bcr : *encoded) {
-			if (!isalnum(bcr) && !((bcr == '+') || (bcr == '/') || (bcr == '=')))
+		for (auto bchr : *encoded) {
+			if (!isalnum(bchr) && !((bchr == '+') || (bchr == '/') || (bchr == '=')))
 				return false;
 		}
 			

@@ -1,15 +1,40 @@
+/*
+	Required libs:
+		libwinmm
+		libws2_32
+		libbrotlicommon
+		libbrotlidec
+		libbrotlienc
+		libz
+*/
+
+
 #ifndef _maddsua_http_lambda
 #define _maddsua_http_lambda
 
+//#include <mutex>
 
 #include "http.hpp"
+#include "crypto.hpp"
+#include "hex.hpp"
+#include "base64.hpp"
 
+#define LAMBDALOG_INFO		(1)
+#define LAMBDALOG_WARN		(0)
+#define LAMBDALOG_ERR		(-1)
 
-namespace maddsua {
+#define LAMBDAREQ_LAMBDA	(1)
+#define LAMBDAREQ_WEBSOCK	(2)
+
+#define LAMBDA_MIN_THREADS	(8)
+
+namespace lambda {
 
 	struct lambdaEvent {
-		std::string method;
 		std::string httpversion;
+		std::string requestID;
+
+		std::string method;
 		std::string path;
 		std::vector <datapair> searchQuery;
 		std::vector <datapair> headers;
@@ -31,6 +56,21 @@ namespace maddsua {
 		bool compression_allFileTypes = false;
 		bool compression_preferBr = false;
 		bool mutlipeInstances = false;
+		size_t maxThreads = std::thread::hardware_concurrency();
+	};
+
+	struct lambdaThreadContext {
+		std::string uid;
+		time_t started = 0;
+		short requestType = 0;
+		bool signalStop = false;
+	};
+
+	struct lambdaLogEntry {
+		short type;
+		std::string requestId;
+		std::string message;
+		time_t timestamp;
 	};
 
 	class lambda {
@@ -65,8 +105,8 @@ namespace maddsua {
 			 * @param lambda handler function
 			 * @param cfg server config (optional)
 			*/
-			actionResult init(const char* port, std::function <lambdaResponse(lambdaEvent)> lambda);
-			inline actionResult init(const char* port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
+			actionResult init(const uint32_t port, std::function <lambdaResponse(lambdaEvent)> lambda);
+			inline actionResult init(const uint32_t port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
 				config = cfg;
 				return init(port, lambda);
 			}
@@ -84,11 +124,7 @@ namespace maddsua {
 			/**
 			 * Get last log entries
 			*/
-			inline std::vector <std::string> logs() {
-				auto temp = serverlog;
-				serverlog.erase(serverlog.begin(), serverlog.end());
-				return temp;
-			}
+			std::vector <std::string> showLogs();
 
 		private:
 			WSADATA wsaData;
@@ -96,22 +132,27 @@ namespace maddsua {
 
 			bool running;
 			std::thread worker;
-			void connectManager();
+			void connectDispatch();
 
 			std::function<lambdaResponse(lambdaEvent)> callback;
 			bool handlerDispatched;
 			void handler();
-			std::vector <std::string> serverlog;
-			void addLogEntry(std::string type, std::string text);
+
+			void addLogEntry(std::string requestID, short type, std::string message);
+			std::vector <lambdaLogEntry> serverlog;
+
+			//std::vector <lambdaThreadContext> activeThreads;
+			//std::mutex threadLock;
 
 			lambdaConfig config;
-
-			const std::vector<std::string> compressableTypes = {
-				"text",
-				"application"
-			};
 	};
 
+	namespace fs {
+		bool writeBinary(const std::string path, const std::string* data);
+		bool readBinary(const std::string path, std::string* dest);
+	}
+
 }
+
 
 #endif
