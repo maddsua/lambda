@@ -7,7 +7,8 @@ std::vector<std::string> tests = {
 	"short",
 	"longer",
 	"A bit longer",
-	"really long test string"
+	"really long test string",
+	"ok it's even longer test string"
 };
 
 
