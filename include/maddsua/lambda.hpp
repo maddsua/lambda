@@ -16,7 +16,7 @@
 
 #include "http.hpp"
 #include "crypto.hpp"
-#include "hex.hpp"
+#include "util.hpp"
 #include "base64.hpp"
 
 #define LAMBDALOG_INFO		(1)

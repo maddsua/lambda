@@ -1,5 +1,5 @@
-#ifndef _maddsua_hexconvert
-#define _maddsua_hexconvert
+#ifndef _lambdautils
+#define _lambdautils
 
 #include <stdint.h>
 #include <string>
