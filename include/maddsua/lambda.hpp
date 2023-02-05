@@ -62,8 +62,6 @@ namespace lambda {
 	struct lambdaRequestContext {
 		std::string uid;
 		time_t started = 0;
-		bool signalDone = false;
-		bool signalStop = false;
 		short requestType = 0;
 	};
 
@@ -137,12 +135,12 @@ namespace lambda {
 
 			std::function<lambdaResponse(lambdaEvent)> callback;
 			bool handlerDispatched;
-			void handler(lambdaRequestContext& context);
+			void handler(lambdaRequestContext context);
 
 			void addLogEntry(std::string requestID, short type, std::string message);
 			std::vector <lambdaLogEntry> serverlog;
 
-			std::vector <lambdaRequestContext> activeThreads;
+			//std::vector <lambdaRequestContext> activeThreads;
 			//std::mutex threadLock;
 
 			lambdaConfig config;

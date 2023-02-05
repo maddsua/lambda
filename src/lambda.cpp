@@ -150,17 +150,17 @@ void lambda::lambda::connectManager() {
 		if(handlerDispatched) {
 
 			//	filter thread list
-			activeThreads.erase(std::remove_if(activeThreads.begin(), activeThreads.end(), 
-				[](const lambdaRequestContext& entry) { return entry.signalDone; }), activeThreads.end());
+			//activeThreads.erase(std::remove_if(activeThreads.begin(), activeThreads.end(), 
+			//	[](const lambdaRequestContext& entry) { return entry.signalDone; }), activeThreads.end());
 
 			lambdaRequestContext context;
 				context.uid = maddsua::createUUID();
 				context.started = time(nullptr);
 				context.requestType = LAMBDAREQ_LAMBDA;
 
-			activeThreads.push_back(context);
+			//activeThreads.push_back(context);
 
-			auto invoked = std::thread(handler, this, std::ref(activeThreads.back()));
+			auto invoked = std::thread(handler, this, context);
 			handlerDispatched = false;
 			invoked.detach();
 			
@@ -168,7 +168,7 @@ void lambda::lambda::connectManager() {
 	}
 }
 
-void lambda::lambda::handler(lambdaRequestContext& context) {
+void lambda::lambda::handler(lambdaRequestContext context) {
 
 	//	accept socket and free the flag for next handler instance
 	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
@@ -181,7 +181,6 @@ void lambda::lambda::handler(lambdaRequestContext& context) {
 	if (!rqData.success) {
 		addLogEntry(context.uid, LAMBDALOG_ERR, "Invalid request or connection problem");
 		closesocket(ClientSocket);
-		context.signalDone = true;
 		return;
 	}
 
@@ -266,6 +265,5 @@ void lambda::lambda::handler(lambdaRequestContext& context) {
 	}
 
 	//	done!
-	context.signalDone = true;
 	return;
 }
