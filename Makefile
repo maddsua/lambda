@@ -40,10 +40,10 @@ main.o: main.cpp
 #	demo app
 # ----
 demo: main.o
-#	static link
-#	g++ demo/main.o -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS) -o $(APP_DEMO)
-#	dynamic link
+#	dynamic linking
 	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEMO)
+#	static linking
+#	g++ demo/main.o -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS) -o $(APP_DEMO)
 
 
 # ----
