@@ -149,9 +149,6 @@ namespace lambda {
 	 * Looks for specific header in a vector of headers and returns it's value, or an empty string, if it was not found
 	*/
 	std::string headerFind(std::string headerName, std::vector <datapair>* headers);
-	inline std::string headerFind(std::string headerName, std::vector <datapair> headers) {
-		return headerFind(headerName, &headers);
-	}
 
 	/**
 	 * Returns true if header exists in the provided vector of headers
