@@ -100,6 +100,16 @@ std::vector <uint8_t> lambda::randomStream(size_t length) {
 
 std::array <uint8_t, UUID_BYTES> lambda::createByteUUID() {
 
+	/*
+		Byte timestamp:
+		
+		[-- UTC time --] [-- System time --] [--   Salt  --]
+		[--  8 bytes --] [--   8 bytes   --] [-- 8 bytes --]
+		<----------------     24 bytes     ---------------->
+
+		Why not just random sequesnce of 16 bytes? Haha, that's too boring!
+	*/
+
 	std::array <uint8_t, UUID_BYTES> byteid;
 
 	time_t utctime = time(nullptr);
