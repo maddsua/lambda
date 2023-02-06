@@ -11,6 +11,7 @@ void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std
 		entry.message = message;
 		entry.timestamp = time(nullptr);
 		entry.requestId = context.uuid;
+		entry.clientIP = context.clientIP;
 
 	serverlog.push_back(entry);
 }
@@ -24,28 +25,25 @@ std::vector <std::string> lambda::lambda::showLogs() {
 		std::string textEntry= [entry]() {
 			char timebuff[16];
 			tm timedata = *gmtime(&entry.timestamp);
-			strftime(timebuff, sizeof(timebuff), "%H:%M:%S ", &timedata);
+			strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &timedata);
 			return std::string(timebuff);
 		} ();
 
-		//	cut request id to first 8 characters
-		textEntry += formatUUID(entry.requestId, false);
-
 		switch (entry.type) {
 			case LAMBDALOG_WARN:
-				textEntry += " [WARN]";
+				textEntry += " [WARN] ";
 			break;
 
 			case LAMBDALOG_ERR:
-				textEntry += " [ERRR]";
+				textEntry += " [ERRR] ";
 			break;
 			
 			default:
-				textEntry += " [INFO]";
+				textEntry += " [INFO] ";
 			break;
 		}
 
-		textEntry += " : " + entry.message;
+		textEntry += entry.clientIP + ' ' + formatUUID(entry.requestId, false) + " : " + entry.message;
 
 		printout.push_back(textEntry);
 	}
@@ -163,13 +161,21 @@ void lambda::lambda::connectDispatch() {
 void lambda::lambda::handler() {
 
 	//	accept socket and free the flag for next handler instance
-	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
+	SOCKADDR_IN clientAddr;
+	int clientAddrLen = sizeof(clientAddr);
+	SOCKET ClientSocket = accept(ListenSocket, (SOCKADDR*)&clientAddr, &clientAddrLen);
 	handlerDispatched = true;
 
+	//	create metadata
 	lambdaInvokContext context;
 		context.uuid = createByteUUID();
 		context.started = time(nullptr);
 		context.requestType = LAMBDAREQ_LAMBDA;
+
+	//	append client's ip to metadata
+	char clientIPBuff[50];
+	if (inet_ntop(AF_INET, &clientAddr.sin_addr, clientIPBuff, sizeof(clientIPBuff)))
+		context.clientIP = clientIPBuff;
 
 	//	download http request
 	auto rqData = socketGetHTTP(&ClientSocket);
@@ -181,9 +187,13 @@ void lambda::lambda::handler() {
 		return;
 	}
 
-	auto targetURL = rqData.startLineArgs[1];
+	//	add client's useragent to metadata
+	//auto clientUA = headerFind("User-Agent", &rqData.headers);
+	//if (clientUA.size()) context.userAgent = clientUA;
+
 
 	//	pass the data to lambda function
+	auto targetURL = rqData.startLineArgs[1];
 	lambdaEvent rqEvent;
 		rqEvent.method = rqData.startLineArgs[0];
 		rqEvent.httpversion = rqData.startLineArgs[2];
