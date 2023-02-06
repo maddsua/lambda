@@ -62,12 +62,14 @@ namespace lambda {
 	struct lambdaInvokContext {
 		std::array <uint8_t, UUID_BYTES> uuid;
 		time_t started = 0;
+		std::string clientIP;
 		short requestType = 0;
 	};
 
 	struct lambdaLogEntry {
 		time_t timestamp;
 		std::array <uint8_t, UUID_BYTES> requestId;
+		std::string clientIP;
 		std::string message;
 		short type;
 	};
