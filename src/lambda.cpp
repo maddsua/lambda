@@ -4,13 +4,13 @@
 const std::vector<std::string> compressableTypes = { "text", "application" };
 
 
-void lambda::lambda::addLogEntry(std::string requestID, short typeCode, std::string message) {
+void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std::string message) {
 	
 	lambdaLogEntry entry;
 		entry.type = typeCode;
-		entry.requestId = requestID;
 		entry.message = message;
 		entry.timestamp = time(nullptr);
+		entry.requestId = context.uuid;
 
 	serverlog.push_back(entry);
 }
@@ -24,33 +24,33 @@ std::vector <std::string> lambda::lambda::showLogs() {
 		std::string textEntry= [entry]() {
 			char timebuff[16];
 			tm timedata = *gmtime(&entry.timestamp);
-			strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &timedata);
+			strftime(timebuff, sizeof(timebuff), "%H:%M:%S ", &timedata);
 			return std::string(timebuff);
 		} ();
 
+		//	cut request id to first 8 characters
+		textEntry += formatUUID(entry.requestId, false);
+
 		switch (entry.type) {
 			case LAMBDALOG_WARN:
-				textEntry += " WARN ";
+				textEntry += " [WARN]";
 			break;
 
 			case LAMBDALOG_ERR:
-				textEntry += " ERRR ";
+				textEntry += " [ERRR]";
 			break;
 			
 			default:
-				textEntry += " INFO ";
+				textEntry += " [INFO]";
 			break;
 		}
-
-		//	cut request id to first 8 characters
-		textEntry += std::string(entry.requestId.begin(), entry.requestId.begin() + 8);
 
 		textEntry += " : " + entry.message;
 
 		printout.push_back(textEntry);
 	}
 
-	serverlog.erase(serverlog.begin(), serverlog.end());
+	serverlog.clear();
 
 	return printout;
 }
@@ -145,21 +145,18 @@ void lambda::lambda::close() {
 
 void lambda::lambda::connectDispatch() {
 
+	time_t lastDispatched = 0;
+
 	while (running) {
 
 		if(handlerDispatched) {
 
-			//	filter thread list
-			//activeThreads.erase(std::remove_if(activeThreads.begin(), activeThreads.end(), 
-			//	[](const lambdaThreadContext& entry) { return entry.signalDone; }), activeThreads.end());
-
-			//activeThreads.push_back(context);
-
 			auto invoked = std::thread(handler, this);
 			handlerDispatched = false;
+			lastDispatched = timeGetTime();
 			invoked.detach();
 			
-		} else Sleep(10);
+		} else if (timeGetTime() > (lastDispatched + LAMBDA_DSP_SLEEP)) Sleep(LAMBDA_DSP_SLEEP);
 	}
 }
 
@@ -169,18 +166,17 @@ void lambda::lambda::handler() {
 	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
 	handlerDispatched = true;
 
-	lambdaThreadContext context;
-		context.uid = maddsua::createUUID();
+	lambdaInvokContext context;
+		context.uuid = createByteUUID();
 		context.started = time(nullptr);
 		context.requestType = LAMBDAREQ_LAMBDA;
-	//activeThreads.push_back(context);
 
 	//	download http request
 	auto rqData = socketGetHTTP(&ClientSocket);
 
 	//	drop connection if the request is invalid
 	if (!rqData.success) {
-		addLogEntry(context.uid, LAMBDALOG_WARN, "Aborted");
+		addLogEntry(context, LAMBDALOG_WARN, "Aborted");
 		closesocket(ClientSocket);
 		return;
 	}
@@ -200,7 +196,7 @@ void lambda::lambda::handler() {
 
 	//	inject additional headers
 	headerAdd({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
-	headerAdd({"X-Request-ID", context.uid}, &lambdaResult.headers);
+	headerAdd({"X-Request-ID", formatUUID(context.uuid, true)}, &lambdaResult.headers);
 	headerAdd({"Date", httpTimeNow()}, &lambdaResult.headers);
 	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
 
@@ -235,17 +231,17 @@ void lambda::lambda::handler() {
 		if (acceptEncodings[0] == "br") {
 
 			if (compression::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
-				else addLogEntry(context.uid, LAMBDALOG_ERR, "brotli compression failed");
+				else addLogEntry(context, LAMBDALOG_ERR, "brotli compression failed");
 			
 		} else if (acceptEncodings[0] == "gzip") {
 
 			if (compression::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
-				else addLogEntry(context.uid, LAMBDALOG_ERR, "gzip compression failed");
+				else addLogEntry(context, LAMBDALOG_ERR, "gzip compression failed");
 
 		} else if (acceptEncodings[0] == "deflate") {
 			
 			if (compression::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
-				else addLogEntry(context.uid, LAMBDALOG_ERR, "deflate compression failed");
+				else addLogEntry(context, LAMBDALOG_ERR, "deflate compression failed");
 		}
 
 		if (appliedCompression.size()) headerInsert("Content-Encoding", appliedCompression, &lambdaResult.headers);
@@ -260,11 +256,12 @@ void lambda::lambda::handler() {
 	closesocket(ClientSocket);
 
 	if (sent.success) {
-		addLogEntry(context.uid, LAMBDALOG_INFO, "Resp. " + std::to_string(lambdaResult.statusCode) + " for " + rqEvent.path + "");
+		addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(lambdaResult.statusCode) + " for " + rqEvent.path + "");
 	} else {
-		addLogEntry(context.uid, LAMBDALOG_INFO, "Request for " + rqEvent.path + " failed: " + sent.cause);
+		addLogEntry(context, LAMBDALOG_INFO, "Request for " + rqEvent.path + " failed: " + sent.cause);
 	}
 
 	//	done!
 	return;
 }
+

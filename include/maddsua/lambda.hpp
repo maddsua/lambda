@@ -16,7 +16,6 @@
 
 #include "http.hpp"
 #include "crypto.hpp"
-#include "util.hpp"
 #include "base64.hpp"
 
 #define LAMBDALOG_INFO		(1)
@@ -27,6 +26,7 @@
 #define LAMBDAREQ_WEBSOCK	(2)
 
 #define LAMBDA_MIN_THREADS	(8)
+#define LAMBDA_DSP_SLEEP	(10)
 
 namespace lambda {
 
@@ -59,18 +59,17 @@ namespace lambda {
 		size_t maxThreads = std::thread::hardware_concurrency();
 	};
 
-	struct lambdaThreadContext {
-		std::string uid;
+	struct lambdaInvokContext {
+		std::array <uint8_t, UUID_BYTES> uuid;
 		time_t started = 0;
 		short requestType = 0;
-		bool signalStop = false;
 	};
 
 	struct lambdaLogEntry {
-		short type;
-		std::string requestId;
-		std::string message;
 		time_t timestamp;
+		std::array <uint8_t, UUID_BYTES> requestId;
+		std::string message;
+		short type;
 	};
 
 	class lambda {
@@ -138,7 +137,7 @@ namespace lambda {
 			bool handlerDispatched;
 			void handler();
 
-			void addLogEntry(std::string requestID, short type, std::string message);
+			void addLogEntry(lambdaInvokContext context, short type, std::string message);
 			std::vector <lambdaLogEntry> serverlog;
 
 			//std::vector <lambdaThreadContext> activeThreads;
@@ -150,6 +149,20 @@ namespace lambda {
 	namespace fs {
 		bool writeBinary(const std::string path, const std::string* data);
 		bool readBinary(const std::string path, std::string* dest);
+	}
+
+	namespace util {
+		
+		std::string binToHex(const uint8_t* data, const size_t length);
+
+		inline std::string binToHex(const std::string data) {
+			return binToHex((const uint8_t*)data.data(), data.size());
+		}
+		inline std::string binToHex(std::vector <uint8_t> data) {
+			return binToHex(data.data(), data.size());
+		}
+
+		std::vector <uint8_t> hexToBin(std::string& data);
 	}
 
 }

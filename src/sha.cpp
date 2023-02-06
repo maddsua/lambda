@@ -78,7 +78,7 @@ void sha256_Transform(SHA256CTX* ctx, const uint8_t* data) {
 	return;
 }
 
-std::array <uint8_t, SHA256_BLOCK_SIZE> maddsua::sha256Hash(std::vector<uint8_t> data) {
+std::array <uint8_t, SHA256_BLOCK_SIZE> lambda::sha256Hash(std::vector<uint8_t> data) {
 
 	std::array <uint8_t, SHA256_BLOCK_SIZE> result;
 
@@ -301,7 +301,7 @@ void sha512_Transform(SHA512CTX* ctx, const uint8_t* message, size_t block_nb) {
 }
 
 
-std::array <uint8_t, SHA512_HASH_SIZE> maddsua::sha512Hash(std::vector<uint8_t> data) {
+std::array <uint8_t, SHA512_HASH_SIZE> lambda::sha512Hash(std::vector<uint8_t> data) {
 
 	std::array <uint8_t, SHA512_HASH_SIZE> hash;
 
@@ -428,7 +428,7 @@ void sha1_transform(SHA1_CTX *ctx, const uint8_t* data) {
 }
 
 
-std::array <uint8_t, SHA1_BLOCK_SIZE> maddsua::sha1Hash(std::vector<uint8_t> data) {
+std::array <uint8_t, SHA1_BLOCK_SIZE> lambda::sha1Hash(std::vector<uint8_t> data) {
 
 	std::array <uint8_t, SHA1_BLOCK_SIZE> result;
 

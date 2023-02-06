@@ -1,13 +1,11 @@
 #ifndef _maddsua_http
 #define _maddsua_http
 
-
 #include <stdint.h>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <time.h>
-
 
 #include <string>
 #include <vector>

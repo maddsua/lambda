@@ -1,5 +1,4 @@
 #include "../include/maddsua/crypto.hpp"
-#include "../include/maddsua/util.hpp"
 
 #include <random>
 #include <array>
@@ -18,7 +17,7 @@ const uint8_t hex_table[16] = {
 	'8','9','a','b','c','d','e','f'
 };
 
-std::string maddsua::binToHex(const uint8_t* data, const size_t length) {
+std::string binToHex(const uint8_t* data, const size_t length) {
 	std::string result;
 		result.resize(length * 2);
 	
@@ -30,7 +29,7 @@ std::string maddsua::binToHex(const uint8_t* data, const size_t length) {
 	return result;
 }
 
-std::vector <uint8_t> maddsua::hexToBin(std::string& data) {
+std::vector <uint8_t> hexToBin(std::string& data) {
 	std::vector <uint8_t> result;
 		result.resize(data.size() / 2);
 
@@ -64,7 +63,7 @@ std::vector <uint8_t> maddsua::hexToBin(std::string& data) {
 
 */
 
-std::vector <uint64_t> maddsua::randomSequence(size_t cap, size_t length) {
+std::vector <uint64_t> lambda::randomSequence(size_t cap, size_t length) {
 
 	if (!length) return {};
 
@@ -81,7 +80,7 @@ std::vector <uint64_t> maddsua::randomSequence(size_t cap, size_t length) {
 	return randomIntList;
 }
 
-std::vector <uint8_t> maddsua::randomStream(size_t length) {
+std::vector <uint8_t> lambda::randomStream(size_t length) {
 
 	if (!length) return {};
 
@@ -98,7 +97,33 @@ std::vector <uint8_t> maddsua::randomStream(size_t length) {
 	return randomIntList;
 }
 
-std::string maddsua::createUUID() {
+std::array <uint8_t, UUID_BYTES> lambda::createByteUUID() {
+
+	std::array <uint8_t, UUID_BYTES> byteid;
+
+	auto timestamp = std::to_string(timeGetTime()) + std::to_string(time(nullptr));
+	auto hashbytes = sha1Hash(std::vector <uint8_t> (timestamp.begin(), timestamp.end()));
+
+	std::copy(hashbytes.begin(), hashbytes.begin() + UUID_BYTES, byteid.begin());
+
+	return byteid;
+}
+
+std::string lambda::formatUUID(std::array <uint8_t, UUID_BYTES>& byteid, bool showFull) {
+
+	auto uuid = binToHex(byteid.data(), showFull ? UUID_BYTES : 4);
+	if (!showFull) return uuid;
+
+	const std::array <int, 4> uuid_separators = {8,14,19,24};
+	for (auto pos : uuid_separators) {
+		uuid.insert(uuid.begin() + pos, '-');
+	}
+	
+	return uuid;
+
+}
+
+/*std::string lambda::createUUID() {
 
 	auto timestamp = std::to_string(timeGetTime()) + std::to_string(time(nullptr));
 
@@ -112,9 +137,9 @@ std::string maddsua::createUUID() {
 	}
 	
 	return hash;
-}
+}*/
 
-std::string maddsua::createPassword(size_t length, bool randomCase) {
+std::string lambda::createPassword(size_t length, bool randomCase) {
 
 	std::string alnum = "qwertyuiopasdfghjklzxcvbnm0123456789";
 
