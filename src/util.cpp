@@ -4,6 +4,7 @@
 #include <array>
 #include <time.h>
 #include <windows.h>
+#include <string.h>
 
 
 /*
@@ -101,9 +102,18 @@ std::array <uint8_t, UUID_BYTES> lambda::createByteUUID() {
 
 	std::array <uint8_t, UUID_BYTES> byteid;
 
-	auto timestamp = std::to_string(timeGetTime()) + std::to_string(time(nullptr));
-	auto hashbytes = sha1Hash(std::vector <uint8_t> (timestamp.begin(), timestamp.end()));
+	time_t utctime = time(nullptr);
+	time_t systime = GetTickCount64();
+	auto NaCl = randomStream(8);
 
+	std::vector <uint8_t> timestamp;
+		timestamp.resize((2 * sizeof(time_t)));
+	memcpy(timestamp.data(), &utctime, sizeof(utctime));
+	memcpy(timestamp.data() + sizeof(time_t), &systime, sizeof(utctime));
+
+	timestamp.insert(timestamp.end(), NaCl.begin(), NaCl.end());
+	
+	auto hashbytes = sha1Hash(std::vector <uint8_t> (timestamp.begin(), timestamp.end()));
 	std::copy(hashbytes.begin(), hashbytes.begin() + UUID_BYTES, byteid.begin());
 
 	return byteid;
@@ -123,21 +133,6 @@ std::string lambda::formatUUID(std::array <uint8_t, UUID_BYTES>& byteid, bool sh
 
 }
 
-/*std::string lambda::createUUID() {
-
-	auto timestamp = std::to_string(timeGetTime()) + std::to_string(time(nullptr));
-
-	auto digest = sha1Hash(std::vector <uint8_t> (timestamp.begin(), timestamp.end()));
-
-	auto hash = binToHex(digest.data(), UUID_BSIZETR);
-
-	const std::array <int, 4> uuid_separators = {8,14,19,24};
-	for (auto pos : uuid_separators) {
-		hash.insert(hash.begin() + pos, '-');
-	}
-	
-	return hash;
-}*/
 
 std::string lambda::createPassword(size_t length, bool randomCase) {
 

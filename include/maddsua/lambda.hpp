@@ -150,22 +150,23 @@ namespace lambda {
 		bool writeBinary(const std::string path, const std::string* data);
 		bool readBinary(const std::string path, std::string* dest);
 	}
+	
+}
 
-	namespace util {
-		
-		std::string binToHex(const uint8_t* data, const size_t length);
+#ifdef LAMBDADEBUG
 
-		inline std::string binToHex(const std::string data) {
-			return binToHex((const uint8_t*)data.data(), data.size());
-		}
-		inline std::string binToHex(std::vector <uint8_t> data) {
-			return binToHex(data.data(), data.size());
-		}
+	std::string binToHex(const uint8_t* data, const size_t length);
 
-		std::vector <uint8_t> hexToBin(std::string& data);
+	inline std::string binToHex(const std::string data) {
+		return binToHex((const uint8_t*)data.data(), data.size());
+	}
+	inline std::string binToHex(std::vector <uint8_t> data) {
+		return binToHex(data.data(), data.size());
 	}
 
-}
+	std::vector <uint8_t> hexToBin(std::string& data);
+
+#endif
 
 
 #endif
