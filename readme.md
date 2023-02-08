@@ -4,7 +4,7 @@ My idea was to replicate overall feeling of Netlify Functions but in C++, so I c
 
 I've tried half a dozen different libs and they all do everything the way I don't like.
 
-***Here, a Vue project is being server by lambda for no reason at all***
+**Here, a Vue project is being served by lambda for no reason at all**
 
 <img src="docs/what-have-i-done.png">
 
