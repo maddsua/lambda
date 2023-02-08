@@ -2,7 +2,11 @@
 
 My idea was to replicate overall feeling of Netlify Functions but in C++, so I could use all the good Windows API like serial ports. Need that for the other project, nevermind.
 
-I've tried half a dozen different libs and they are either require lib-boost, which I personally hate to use, or they do everything the hard way. Ok, there is a third case, where the library is just garbage.
+I've tried half a dozen different libs and they all do everything the way I don't like.
+
+***Here, a Vue project is being server by lambda for no reason at all***
+
+<img src="docs/what-have-i-done.png">
 
 This code is actually a refactoring of my old project that contained http server functionality.
 
