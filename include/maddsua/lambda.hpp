@@ -12,11 +12,12 @@
 #ifndef _maddsua_http_lambda
 #define _maddsua_http_lambda
 
-//#include <mutex>
+#include <mutex>
 
 #include "http.hpp"
 #include "crypto.hpp"
 #include "base64.hpp"
+#include "fs.hpp"
 
 #define LAMBDALOG_INFO		(1)
 #define LAMBDALOG_WARN		(0)
@@ -25,7 +26,6 @@
 #define LAMBDAREQ_LAMBDA	(1)
 #define LAMBDAREQ_WEBSOCK	(2)
 
-#define LAMBDA_MIN_THREADS	(8)
 #define LAMBDA_DSP_SLEEP	(10)
 
 namespace lambda {
@@ -56,7 +56,6 @@ namespace lambda {
 		bool compression_allFileTypes = false;
 		bool compression_preferBr = false;
 		bool mutlipeInstances = false;
-		size_t maxThreads = std::thread::hardware_concurrency();
 	};
 
 	struct lambdaInvokContext {
@@ -142,33 +141,15 @@ namespace lambda {
 			void addLogEntry(lambdaInvokContext context, short type, std::string message);
 			std::vector <lambdaLogEntry> serverlog;
 
-			//std::vector <lambdaThreadContext> activeThreads;
-			//std::mutex threadLock;
+			std::mutex threadLock;
 
 			lambdaConfig config;
+			std::string serverTime(time_t timestamp);
+			inline std::string serverTime() {
+				return serverTime(time(nullptr));
+			}
 	};
 
-	namespace fs {
-		bool writeBinary(const std::string path, const std::string* data);
-		bool readBinary(const std::string path, std::string* dest);
-	}
-	
 }
-
-#ifdef LAMBDADEBUG
-
-	std::string binToHex(const uint8_t* data, const size_t length);
-
-	inline std::string binToHex(const std::string data) {
-		return binToHex((const uint8_t*)data.data(), data.size());
-	}
-	inline std::string binToHex(std::vector <uint8_t> data) {
-		return binToHex(data.data(), data.size());
-	}
-
-	std::vector <uint8_t> hexToBin(std::string& data);
-
-#endif
-
 
 #endif

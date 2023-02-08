@@ -2,7 +2,7 @@
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
-#include "../include/maddsua/lambda.hpp"
+#include "../include/maddsua/compression.hpp"
 
 #define LAMBDA_ZLIB_HEADER_Z		(8)
 #define LAMBDA_ZLIB_HEADER_GZ		(26)

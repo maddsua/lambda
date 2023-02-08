@@ -3,6 +3,12 @@
 
 const std::vector<std::string> compressableTypes = { "text", "application" };
 
+std::string lambda::lambda::serverTime(time_t timestamp) {
+	char timebuff[16];
+	auto timedata = gmtime(&timestamp);
+	strftime(timebuff, sizeof(timebuff), "%H:%M:%S", timedata);
+	return std::string(timebuff);
+}
 
 void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std::string message) {
 	
@@ -13,6 +19,7 @@ void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std
 		entry.requestId = context.uuid;
 		entry.clientIP = context.clientIP;
 
+	std::lock_guard<std::mutex> lock (threadLock);
 	serverlog.push_back(entry);
 }
 
@@ -20,32 +27,27 @@ std::vector <std::string> lambda::lambda::showLogs() {
 
 	std::vector <std::string> printout;
 
-	for (auto entry : serverlog) {
+	std::lock_guard<std::mutex> lock (threadLock);
 
-		std::string textEntry= [entry]() {
-			char timebuff[16];
-			tm timedata = *gmtime(&entry.timestamp);
-			strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &timedata);
-			return std::string(timebuff);
-		} ();
+	for (auto& logEntry : serverlog) {
 
-		switch (entry.type) {
+		auto temp = serverTime();
+
+		switch (logEntry.type) {
 			case LAMBDALOG_WARN:
-				textEntry += " [WARN] ";
+				temp += " [WARN] ";
 			break;
 
 			case LAMBDALOG_ERR:
-				textEntry += " [ERRR] ";
+				temp += " [ERRR] ";
 			break;
 			
 			default:
-				textEntry += " [INFO] ";
+				temp += " [INFO] ";
 			break;
 		}
-
-		textEntry += entry.clientIP + ' ' + formatUUID(entry.requestId, false) + " : " + entry.message;
-
-		printout.push_back(textEntry);
+		
+		printout.push_back(temp + logEntry.clientIP + ' ' + formatUUID(logEntry.requestId, false) + " : " + logEntry.message);
 	}
 
 	serverlog.clear();
@@ -68,8 +70,6 @@ lambda::actionResult lambda::lambda::init(const uint32_t port, std::function<lam
 			"WINAPI:" + std::to_string(GetLastError())
 		};
 	}
-
-	if (config.maxThreads < LAMBDA_MIN_THREADS) config.maxThreads = LAMBDA_MIN_THREADS;
 
 	//	resolve server address
 	struct addrinfo *servAddr = NULL;

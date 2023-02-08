@@ -12,6 +12,8 @@
 #include <thread>
 #include <functional>
 
+#include "compression.hpp"
+
 #define HTTPLAMBDA_HEADER_CHUNK		(2048)
 #define HTTPLAMBDA_BODY_CHUNK		(131072)
 #define MADDSUAHTTP_ATTEMPTS		(3)
@@ -231,17 +233,6 @@ namespace lambda {
 	 * The same as javascript's fetch(). Sends request to a URL and returns server response
 	*/
 	fetchResult fetch(std::string url, std::string method, std::vector <datapair> headers, std::string body);
-
-	/**
-	 * HTTP compression
-	*/
-	namespace compression {
-		bool gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader);
-		bool gzDecompress(const std::string* compressed, std::string* plain);
-
-		bool brCompress(const std::string* plain, std::string* encoded);
-		bool brDecompress(const std::string* encoded, std::string* plain);
-	}
 
 }
 

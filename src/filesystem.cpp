@@ -3,13 +3,9 @@
 #include <dir.h>
 #include <dirent.h>
 
-#include "../include/maddsua/lambda.hpp"
+#include "../include/maddsua/fs.hpp"
 
-
-#define LAMBDA_FS_READ_CHUNK	(1048576)
-
-
-bool lambda::fs::writeBinary(const std::string path, const std::string* data) {
+bool lambda::fs::writeFileSync(const std::string path, const std::string* data) {
 
 	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
 		auto dirpath = std::regex_replace(path, std::regex("\\+"), "/");
@@ -32,11 +28,11 @@ bool lambda::fs::writeBinary(const std::string path, const std::string* data) {
 	return true;
 }
 
-bool lambda::fs::readBinary(std::string path, std::string* dest) {
+bool lambda::fs::readFileSync(std::string path, std::string* dest) {
 	FILE* binfile = fopen64(path.c_str(), "rb");
-	if(!binfile) return false;
+	if (!binfile) return false;
 
-	while(!feof(binfile)) {
+	while (!feof(binfile)) {
 		uint8_t fileChunk[LAMBDA_FS_READ_CHUNK];
 		size_t bytesRead = fread(fileChunk, 1, LAMBDA_FS_READ_CHUNK, binfile);
 		if (ferror(binfile)) return false;
