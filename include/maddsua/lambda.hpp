@@ -18,6 +18,7 @@
 #include "crypto.hpp"
 #include "base64.hpp"
 #include "fs.hpp"
+#include "radishdb.hpp"
 
 #define LAMBDALOG_INFO		(1)
 #define LAMBDALOG_WARN		(0)
