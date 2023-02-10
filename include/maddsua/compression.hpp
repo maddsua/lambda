@@ -5,11 +5,14 @@
 
 namespace lambda {
 	namespace compression {
-		bool gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader);
-		bool gzDecompress(const std::string* compressed, std::string* plain);
+		std::string gzCompress(const std::string* data, bool gzipHeader);
+		std::string gzDecompress(const std::string* data);
 
-		bool brCompress(const std::string* plain, std::string* encoded);
-		bool brDecompress(const std::string* encoded, std::string* plain);
+		std::string brCompress(const std::string* data);
+		std::string brDecompress(const std::string* data);
+
+		std::string zstdCompress(const std::string* data);
+		std::string zstdDecompress(const std::string* data);
 	}
 }
 

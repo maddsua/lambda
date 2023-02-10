@@ -114,14 +114,18 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	auto encodings = splitBy(headerFind("Content-Encoding", &serverResponse.headers), ",");
 	std::reverse(encodings.begin(), encodings.end());
 
+	//	account for possible multiple layers of encoding
+	//	idk why but http allows that
 	for (auto enc : encodings) {
 
 		trim(&enc);
 		std::string decompressed;
 
 		if (enc == "br") {
+
+			decompressed = lambda::compression::brDecompress(&serverResponse.body);
 			
-			if (lambda::compression::brDecompress(&serverResponse.body, &decompressed)) {
+			if (decompressed.size()) {
 				serverResponse.body = decompressed;
 				continue;
 
@@ -132,7 +136,9 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 
 		} else if (enc == "gzip" || enc == "deflate") {
 
-			if (lambda::compression::gzDecompress(&serverResponse.body, &decompressed)) {
+			decompressed = lambda::compression::gzDecompress(&serverResponse.body);
+
+			if (decompressed.size()) {
 				serverResponse.body = decompressed;
 				continue;
 

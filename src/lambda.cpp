@@ -56,7 +56,7 @@ std::vector <std::string> lambda::lambda::showLogs() {
 }
 
 
-lambda::actionResult lambda::lambda::init(const uint32_t port, std::function<lambdaResponse(lambdaEvent)> lambda) {
+lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaResponse(lambdaEvent)> lambda) {
 
 	if (running) return {
 		false,
@@ -239,18 +239,18 @@ void lambda::lambda::handler() {
 		std::string appliedCompression;
 
 		if (acceptEncodings[0] == "br") {
-
-			if (compression::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
+			compressedBody = compression::brCompress(&lambdaResult.body);
+			if (compressedBody.size()) appliedCompression = "br";
 				else addLogEntry(context, LAMBDALOG_ERR, "brotli compression failed");
 			
 		} else if (acceptEncodings[0] == "gzip") {
-
-			if (compression::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
+			compressedBody = compression::gzCompress(&lambdaResult.body, true);
+			if (compressedBody.size()) appliedCompression = "gzip";
 				else addLogEntry(context, LAMBDALOG_ERR, "gzip compression failed");
 
 		} else if (acceptEncodings[0] == "deflate") {
-			
-			if (compression::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
+			compressedBody = compression::gzCompress(&lambdaResult.body, false);
+			if (compressedBody.size()) appliedCompression = "deflate";
 				else addLogEntry(context, LAMBDALOG_ERR, "deflate compression failed");
 		}
 

@@ -5,11 +5,11 @@ APP_DEV    = lambda.exe
 APP_DEMO   = lambda-server.exe
 LIBNAME    = mdslambda
 
-OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o
+OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
 
 FLAGS      = -std=c++20
-LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc
-LIB_STC    = -l:libz.a -l:libbrotli.a
+LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lzstd
+LIB_STC    = -l:libz.a -l:libbrotli.a -l:libzstd.a
 LIBS_SYS   = -lws2_32 -lwinmm
 
 .PHONY: all all-before all-after clean-custom run-custom lib demo
@@ -94,3 +94,7 @@ src/util.o: src/util.cpp
 
 src/sha.o: src/sha.cpp
 	g++ -c src/sha.cpp -o src/sha.o $(FLAGS)
+
+
+src/radishdb.o: src/radishdb.cpp
+	g++ -c src/radishdb.cpp -o src/radishdb.o $(FLAGS)

@@ -1,6 +1,9 @@
+#include <memory>
+
 #include <zlib.h>
 #include <brotli/encode.h>
 #include <brotli/decode.h>
+#include <zstd.h>
 
 #include "../include/maddsua/compression.hpp"
 
@@ -16,6 +19,8 @@
 #define LAMBDA_BROTLICHUNK			(131072)	//	128k
 #define LAMBDA_BROTLIEXPECT_RATIO	(3)
 
+#define LAMBDA_ZSTD_COMPRESSION		(1)
+
 /*
 	zlib "wrapper" for de/compressing binary data
 */
@@ -25,9 +30,9 @@
  * @param plain pointer to a string with original data
  * @param compressed pointer to a destination string, where the compressed data will be saved
 */
-bool lambda::compression::gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader) {
+std::string lambda::compression::gzCompress(const std::string* plain, bool gzipHeader) {
 
-	if (!plain->size()) return false;
+	if (!plain->size()) return {};
 
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;
@@ -35,14 +40,18 @@ bool lambda::compression::gzCompress(const std::string* plain, std::string* comp
 		zlibStream.opaque = Z_NULL;
 
 	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (gzipHeader ? LAMBDA_ZLIB_HEADER_GZ : LAMBDA_ZLIB_HEADER_Z), LAMBDA_ZLIB_MEMORY, Z_DEFAULT_STRATEGY);
-		if (zlibResult != Z_OK) return false;
+		if (zlibResult != Z_OK) return {};
 
-	compressed->resize(0);
-	compressed->reserve(plain->size() / LAMBDA_ZLIB_EXPECT_RATIO);
+	std::string result;
+		result.reserve(plain->size() / LAMBDA_ZLIB_EXPECT_RATIO);
 
 	int zlibFlush;
 	bool opresult = true;
 	size_t carrierShift = 0;
+
+	//std::unique_ptr<uint8_t[]> chunkIn(new uint8_t[LAMBDA_ZLIB_CHUNK]);
+	//std::unique_ptr<uint8_t[]> chunkIn(new uint8_t[LAMBDA_ZLIB_CHUNK]);
+
 	auto chunkIn = new uint8_t [LAMBDA_ZLIB_CHUNK];
 	auto chunkOut = new uint8_t [LAMBDA_ZLIB_CHUNK];
 
@@ -67,7 +76,7 @@ bool lambda::compression::gzCompress(const std::string* plain, std::string* comp
 				break;
 			}
 
-			compressed->insert(compressed->end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
+			result.insert(result.end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
 
 		} while (zlibStream.avail_out == 0 && opresult);
 
@@ -82,7 +91,10 @@ bool lambda::compression::gzCompress(const std::string* plain, std::string* comp
 	delete chunkIn;
 	delete chunkOut;
 
-	return (zlibResult == Z_STREAM_END && opresult);
+	//	return empty string on error
+	if (zlibResult != Z_STREAM_END || !opresult) return {};
+
+	return result;
 }
 
 /**
@@ -90,9 +102,9 @@ bool lambda::compression::gzCompress(const std::string* plain, std::string* comp
  * @param compressed pointer to a string with compressed data
  * @param plain pointer to a destination string, original data will get here
 */
-bool lambda::compression::gzDecompress(const std::string* compressed, std::string* plain) {
+std::string lambda::compression::gzDecompress(const std::string* compressed) {
 
-	if (!compressed->size()) return false;
+	if (!compressed->size()) return {};
 
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;
@@ -102,10 +114,10 @@ bool lambda::compression::gzDecompress(const std::string* compressed, std::strin
 		zlibStream.next_in = Z_NULL;
 
 	auto zlibResult = inflateInit2(&zlibStream, LAMBDA_ZLIB_DECOM_AUTO);
-		if (zlibResult != Z_OK) return false;
+		if (zlibResult != Z_OK) return {};
 
-	plain->resize(0);
-	plain->reserve(compressed->size() * LAMBDA_ZLIB_EXPECT_RATIO);
+	std::string result;
+		result.reserve(compressed->size() * LAMBDA_ZLIB_EXPECT_RATIO);
 
 	size_t carrierShift = 0;
 	bool opresult = true;
@@ -134,7 +146,7 @@ bool lambda::compression::gzDecompress(const std::string* compressed, std::strin
 				break;
 			}
 
-			plain->insert(plain->end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
+			result.insert(result.end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
 
 		} while (zlibStream.avail_out == 0 && opresult);
 
@@ -144,7 +156,9 @@ bool lambda::compression::gzDecompress(const std::string* compressed, std::strin
 	delete chunkIn;
 	delete chunkOut;
 
-	return (zlibResult == Z_STREAM_END && opresult);
+	if (zlibResult != Z_STREAM_END || !opresult) return {};
+
+	return result;
 }
 
 /*
@@ -161,22 +175,20 @@ bool lambda::compression::gzDecompress(const std::string* compressed, std::strin
 
 /**
  * Decompresses brotli-encoded data from std::string. The return value "true" indicatess success
- * @param compressed pointer to a string with compressed data
- * @param plain pointer to a destination string, original data will get here
 */
-bool lambda::compression::brDecompress(const std::string* compressed, std::string* plain) {
+std::string lambda::compression::brDecompress(const std::string* data) {
 
-	if (!compressed->size()) return false;
+	if (!data->size()) return {};
 
 	auto instance = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
 	
 	BrotliDecoderResult opresult;
-	auto chunkInSize = compressed->size();
-	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(compressed->data());
+	auto chunkInSize = data->size();
+	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(data->data());
 	auto bufferOut = new uint8_t [LAMBDA_BROTLICHUNK];
 
-	plain->resize(0);
-	plain->reserve(plain->size() * LAMBDA_BROTLIEXPECT_RATIO);
+	std::string result;
+		result.reserve(data->size() * LAMBDA_BROTLIEXPECT_RATIO);
 
 	do {
 		uint8_t* chunkOut = bufferOut;
@@ -185,36 +197,34 @@ bool lambda::compression::brDecompress(const std::string* compressed, std::strin
 		opresult = BrotliDecoderDecompressStream(instance, &chunkInSize, &bufferIn, &chunkOutSize, &chunkOut, nullptr);
 		if (opresult == BROTLI_DECODER_RESULT_ERROR) break;
 			
-		plain->insert(plain->end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
+		result.insert(result.end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
 
 	} while (chunkInSize != 0 || opresult != BROTLI_DECODER_RESULT_SUCCESS);
 
 	BrotliDecoderDestroyInstance(instance);
 	delete bufferOut;
 
-	if (opresult != BROTLI_DECODER_RESULT_SUCCESS) return false;
+	if (opresult != BROTLI_DECODER_RESULT_SUCCESS) return {};
 
-	return true;
+	return result;
 }
 
 /**
- * Compress data inside std::string using brotli. The return value "true" indicatess success
- * @param plain pointer to a string with original data
- * @param compressed pointer to a destination string, where the compressed data will be saved
+ * Compress data from std::string using brotli. The return value "true" indicatess success
 */
-bool lambda::compression::brCompress(const std::string* plain, std::string* compressed) {
+std::string  lambda::compression::brCompress(const std::string* data) {
 
-	if (!plain->size()) return false;
+	if (!data->size()) return {};
 
 	auto instance = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
 
 	bool opresult;
-	auto chunkInSize = plain->size();
-	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(plain->data());
+	auto chunkInSize = data->size();
+	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(data->data());
 	auto bufferOut = new uint8_t [LAMBDA_BROTLICHUNK];
 
-	compressed->resize(0);
-	compressed->reserve(plain->size() / LAMBDA_BROTLIEXPECT_RATIO);
+	std::string result;
+		result.reserve(data->size() / LAMBDA_BROTLIEXPECT_RATIO);
 
 	do {
 		uint8_t* chunkOut = bufferOut;
@@ -223,14 +233,41 @@ bool lambda::compression::brCompress(const std::string* plain, std::string* comp
 		opresult = BrotliEncoderCompressStream(instance, BROTLI_OPERATION_FINISH, &chunkInSize, &bufferIn, &chunkOutSize, &chunkOut, nullptr);
 		if (!opresult) break;
 
-		compressed->insert(compressed->end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
+		result.insert(result.end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
 
 	} while (chunkInSize != 0 || !BrotliEncoderIsFinished(instance));
 
 	BrotliEncoderDestroyInstance(instance);
 	delete bufferOut;
 
-	if (!opresult) return false;
+	if (opresult != BROTLI_DECODER_RESULT_SUCCESS) return {};
 
-	return true;
+	return result;
+}
+
+
+std::string lambda::compression::zstdCompress(const std::string* data) {
+
+	std::string result;
+		result.resize(ZSTD_compressBound(data->size()));
+
+	auto opRes = ZSTD_compress(result.data(), result.size(), data->data(), data->size(), LAMBDA_ZSTD_COMPRESSION);
+	if (ZSTD_isError(opRes)) return {};
+
+	result.resize(opRes);
+	result.shrink_to_fit();
+	return result;
+}
+
+std::string lambda::compression::zstdDecompress(const std::string* data) {
+
+	std::string result;
+		result.resize(ZSTD_getFrameContentSize(data->data(), data->size()));
+
+	auto opRes = ZSTD_decompress(result.data(), result.size(), data->data(), data->size());
+	if (ZSTD_isError(opRes)) return {};
+
+	result.resize(opRes);
+	result.shrink_to_fit();
+	return result;
 }
