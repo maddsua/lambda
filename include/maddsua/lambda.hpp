@@ -12,12 +12,13 @@
 #ifndef _maddsua_http_lambda
 #define _maddsua_http_lambda
 
-//#include <mutex>
+#include <mutex>
 
 #include "http.hpp"
 #include "crypto.hpp"
-#include "util.hpp"
 #include "base64.hpp"
+#include "fs.hpp"
+#include "radishdb.hpp"
 
 #define LAMBDALOG_INFO		(1)
 #define LAMBDALOG_WARN		(0)
@@ -26,7 +27,7 @@
 #define LAMBDAREQ_LAMBDA	(1)
 #define LAMBDAREQ_WEBSOCK	(2)
 
-#define LAMBDA_MIN_THREADS	(8)
+#define LAMBDA_DSP_SLEEP	(10)
 
 namespace lambda {
 
@@ -56,21 +57,21 @@ namespace lambda {
 		bool compression_allFileTypes = false;
 		bool compression_preferBr = false;
 		bool mutlipeInstances = false;
-		size_t maxThreads = std::thread::hardware_concurrency();
 	};
 
-	struct lambdaThreadContext {
-		std::string uid;
+	struct lambdaInvokContext {
+		std::array <uint8_t, UUID_BYTES> uuid;
 		time_t started = 0;
+		std::string clientIP;
 		short requestType = 0;
-		bool signalStop = false;
 	};
 
 	struct lambdaLogEntry {
-		short type;
-		std::string requestId;
-		std::string message;
 		time_t timestamp;
+		std::array <uint8_t, UUID_BYTES> requestId;
+		std::string clientIP;
+		std::string message;
+		short type;
 	};
 
 	class lambda {
@@ -105,8 +106,8 @@ namespace lambda {
 			 * @param lambda handler function
 			 * @param cfg server config (optional)
 			*/
-			actionResult init(const uint32_t port, std::function <lambdaResponse(lambdaEvent)> lambda);
-			inline actionResult init(const uint32_t port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
+			actionResult init(const int port, std::function <lambdaResponse(lambdaEvent)> lambda);
+			inline actionResult init(const int port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
 				config = cfg;
 				return init(port, lambda);
 			}
@@ -138,21 +139,18 @@ namespace lambda {
 			bool handlerDispatched;
 			void handler();
 
-			void addLogEntry(std::string requestID, short type, std::string message);
+			void addLogEntry(lambdaInvokContext context, short type, std::string message);
 			std::vector <lambdaLogEntry> serverlog;
 
-			//std::vector <lambdaThreadContext> activeThreads;
-			//std::mutex threadLock;
+			std::mutex threadLock;
 
 			lambdaConfig config;
+			std::string serverTime(time_t timestamp);
+			inline std::string serverTime() {
+				return serverTime(time(nullptr));
+			}
 	};
 
-	namespace fs {
-		bool writeBinary(const std::string path, const std::string* data);
-		bool readBinary(const std::string path, std::string* dest);
-	}
-
 }
-
 
 #endif

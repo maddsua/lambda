@@ -1,6 +1,16 @@
 #include "../include/maddsua/base64.hpp"
 
-void maddsua::b64Decode(std::string* encoded, std::string* plain) {
+bool maddsua::b64Validate(const std::string* data) {
+	
+	for (auto symbol : *data) {
+		if (!isalnum(symbol) && !((symbol == '+') || (symbol == '/') || (symbol == '=')))
+			return false;
+	}
+		
+	return true;
+}
+
+std::string maddsua::b64Decode(std::string* data) {
 
 	//	full decode table does brrrrrr. high-speed tricks here
 	const uint8_t b64dt[256] = {
@@ -17,52 +27,56 @@ void maddsua::b64Decode(std::string* encoded, std::string* plain) {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 	};
 
-	const size_t encodedLength = encoded->size();
+	const size_t encodedLength = data->size();
 	size_t contentLength = ((encodedLength * 3) / 4);
-		plain->resize(contentLength + 3, 0);
-		
-		if ((*encoded)[encodedLength - 1] == '=') contentLength--;
-		if ((*encoded)[encodedLength - 2] == '=') contentLength--;
+	
+	std::string result;
+		result.resize(contentLength + 3, 0);
+		if (data->at(encodedLength - 1) == '=') contentLength--;
+		if (data->at(encodedLength - 2) == '=') contentLength--;
 
-	encoded->resize(encodedLength + 4, 0);
+	data->resize(encodedLength + 4, 0);
 	
 	//	even more high-speed loop than one in encoding function
 	for (size_t ibase = 0, ibin = 0; ibase < encodedLength; ibase += 4, ibin += 3){
 		//	byte 1/1.33
-		(*plain)[ibin] = b64dt[(*encoded)[ibase]] ^ (b64dt[(*encoded)[ibase+1]] >> 6);
+		result[ibin] = b64dt[(*data)[ibase]] ^ (b64dt[(*data)[ibase+1]] >> 6);
 		//	byte 2/2.66
-		(*plain)[ibin + 1] = (b64dt[(*encoded)[ibase+1]] << 2) ^ (b64dt[(*encoded)[ibase+2]] >> 4);
+		result[ibin + 1] = (b64dt[(*data)[ibase+1]] << 2) ^ (b64dt[(*data)[ibase+2]] >> 4);
 		//	byte 3/4
-		(*plain)[ibin + 2] = (b64dt[(*encoded)[ibase+2]] << 4) ^ (b64dt[(*encoded)[ibase+3]] >> 2);
+		result[ibin + 2] = (b64dt[(*data)[ibase+2]] << 4) ^ (b64dt[(*data)[ibase+3]] >> 2);
 	}
 
-	plain->resize(contentLength);
-	encoded->resize(encodedLength);
+	result.resize(contentLength);
+	data->resize(encodedLength);
+
+	return result;
 }
 
-void maddsua::b64Encode(std::string* plain, std::string* encoded) {
+std::string maddsua::b64Encode(std::string* data) {
 
 	//	yes. this table is here too
 	const char b64et[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-	const size_t contentLength = plain->size();
+	const size_t contentLength = data->size();
 
-		encoded->resize(((contentLength * 4) / 3) + 4, 0);
+	std::string result;
+		result.resize(((contentLength * 4) / 3) + 4, 0);
 		//	+4 just adds 4 more index steps for the cycle to slide
 		//	this allows us to not to make any checks inside the loop, increasing the performance
-		plain->resize(plain->size() + 3, 0);
+		data->resize(data->size() + 3, 0);
 		//	the same story as with "encoded.resize"
 				
 	//	main encode loop that doe's not do any calculations but converting 8-bits to 6-bits. thats why it's so fast
 	for (size_t ibin = 0, ibase = 0; ibin < contentLength; ibin += 3, ibase += 4) {
 		//	byte 1/0.75
-		(*encoded)[ibase] = b64et[((*plain)[ibin] >> 2)];
+		result[ibase] = b64et[((*data)[ibin] >> 2)];
 		//	byte 2/1.5
-		(*encoded)[ibase + 1] = b64et[(((((*plain)[ibin] << 4) ^ ((*plain)[ibin + 1] >> 4))) & 0x3F)];
+		result[ibase + 1] = b64et[(((((*data)[ibin] << 4) ^ ((*data)[ibin + 1] >> 4))) & 0x3F)];
 		//	byte 3/2.25
-		(*encoded)[ibase + 2] = b64et[(((((*plain)[ibin + 1] << 2) ^ ((*plain)[ibin + 2] >> 6))) & 0x3F)];
+		result[ibase + 2] = b64et[(((((*data)[ibin + 1] << 2) ^ ((*data)[ibin + 2] >> 6))) & 0x3F)];
 		//	byte 4/3
-		(*encoded)[ibase + 3] = b64et[((*plain)[ibin + 2] & 0x3F)];
+		result[ibase + 3] = b64et[((*data)[ibin + 2] & 0x3F)];
 	}
 	
 	//	very "clever" calculations
@@ -72,12 +86,14 @@ void maddsua::b64Encode(std::string* plain, std::string* encoded) {
 
 	if (bytesRemain > 0) {
 		if (bytesRemain < 2)
-			(*encoded)[tailBlock + 2] = '=';
+			result[tailBlock + 2] = '=';
 
 		if (bytesRemain < 3)
-			(*encoded)[tailBlock + 3] = '=';
+			result[tailBlock + 3] = '=';
 	}
 
-	encoded->resize(tailBlock + (bytesRemain ? 4 : 0));
-	plain->resize(contentLength);
+	result.resize(tailBlock + (bytesRemain ? 4 : 0));
+	data->resize(contentLength);
+
+	return result;
 }

@@ -3,13 +3,13 @@
 APP_DEV    = lambda.exe
 
 APP_DEMO   = lambda-server.exe
-LIBNAME    = mdslambda
+LIBNAME    = lambda
 
-OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o
+OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
 
 FLAGS      = -std=c++20
-LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc
-LIB_STC    = -l:libz.a -l:libbrotli.a
+LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lzstd
+LIB_STC    = -l:libz.a -l:libbrotli.a -l:libzstd.a
 LIBS_SYS   = -lws2_32 -lwinmm
 
 .PHONY: all all-before all-after clean-custom run-custom lib demo
@@ -60,7 +60,7 @@ libshared: $(OBJECTS)
 	g++ $(OBJECTS) $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
 
 # ----
-#	lib objects
+#	objects
 # ----
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
@@ -70,9 +70,6 @@ src/sockets.o: src/sockets.cpp
 
 src/http.o: src/http.cpp
 	g++ -c src/http.cpp -o src/http.o $(FLAGS)
-
-src/statuscode.o: src/statuscode.cpp
-	g++ -c src/statuscode.cpp -o src/statuscode.o $(FLAGS)
 
 src/mimetypes.o: src/mimetypes.cpp
 	g++ -c src/mimetypes.cpp -o src/mimetypes.o $(FLAGS)
@@ -94,3 +91,7 @@ src/util.o: src/util.cpp
 
 src/sha.o: src/sha.cpp
 	g++ -c src/sha.cpp -o src/sha.o $(FLAGS)
+
+
+src/radishdb.o: src/radishdb.cpp
+	g++ -c src/radishdb.cpp -o src/radishdb.o $(FLAGS)
