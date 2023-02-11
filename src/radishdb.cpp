@@ -6,7 +6,18 @@
 #include "../include/maddsua/base64.hpp"
 
 
+/*
+	About thread-safety. Now I'm just muting everything when writing or reading data.
+	There are better ways to do that, but this is what it is for now. Will fix it later
+
+	PS. Actually need to implement some kind of access management, so an item wouldn't be
+	deleted at the same time while being read by another thread
+*/
+
+
 bool maddsua::radishDB::set(std::string key, std::string value, bool replace) {
+
+	std::lock_guard<std::mutex> lock (threadLock);
 
 	for (auto& entry : dbdata) {
 		if (entry.key == key) {
@@ -33,7 +44,9 @@ bool maddsua::radishDB::check(std::string key) {
 	return false;
 }
 std::string maddsua::radishDB::get(std::string key) {
+
 	std::lock_guard<std::mutex> lock (threadLock);
+
 	for (auto& entry : dbdata) {
 		if (entry.key == key) {
 			entry.accessed = time(nullptr);
@@ -42,8 +55,29 @@ std::string maddsua::radishDB::get(std::string key) {
 	}
 	return {};
 }
+bool maddsua::radishDB::rename(std::string key, std::string newKey) {
+
+	std::lock_guard<std::mutex> lock (threadLock);
+
+	//	check if this name is occupied
+	for (auto entry : dbdata) {
+		if (entry.key == newKey) return false;
+	}
+
+	//	assign new name
+	for (auto& entry : dbdata) {
+		if (entry.key == key) {
+			entry.key = newKey;
+			return true;
+		}
+	}
+
+	return false;
+}
 bool maddsua::radishDB::remove(std::string key) {
 
+	std::lock_guard<std::mutex> lock (threadLock);
+	
 	for (auto itr = dbdata.begin(); itr != dbdata.end(); itr++) {
 		if ((*itr).key == key) {
 			dbdata.erase(itr);
@@ -56,6 +90,7 @@ bool maddsua::radishDB::remove(std::string key) {
 std::vector <maddsua::radishDB::listing> maddsua::radishDB::list() {
 
 	std::vector <radishDB::listing> result;
+
 	std::lock_guard<std::mutex> lock (threadLock);
 
 	for (auto& entry : dbdata) {
@@ -123,7 +158,7 @@ bool maddsua::radishDB::load(std::string path) {
 		try {
 
 			auto entryString = dbstring.substr(blit_begin, blit_end - blit_begin + 2);
-			dbitem tempentry;
+			dbitem tmpentry;
 
 			size_t row = 0;
 			size_t enit_begin = 0;
@@ -136,19 +171,19 @@ bool maddsua::radishDB::load(std::string path) {
 
 				switch (row) {
 					case 0:
-						tempentry.updated = std::stoull(entryRow);
+						tmpentry.updated = std::stoull(entryRow);
 					break;
 
 					case 1:
-						tempentry.accessed = std::stoull(entryRow);
+						tmpentry.accessed = std::stoull(entryRow);
 					break;
 
 					case 2:
-						tempentry.key = maddsua::b64Decode(&entryRow);
+						tmpentry.key = maddsua::b64Decode(&entryRow);
 					break;
 
 					case 3:
-						tempentry.value = maddsua::b64Decode(&entryRow);
+						tmpentry.value = maddsua::b64Decode(&entryRow);
 					break;
 					
 					default:
@@ -162,7 +197,8 @@ bool maddsua::radishDB::load(std::string path) {
 			}
 
 			std::lock_guard<std::mutex> lock (threadLock);
-			dbdata.push_back(tempentry);
+
+			dbdata.push_back(tmpentry);
 
 		} catch(const std::exception& e) {
 			//std::cerr << e.what() << '\n';
