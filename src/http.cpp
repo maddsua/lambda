@@ -178,25 +178,25 @@ std::vector <std::string> lambda::splitBy(std::string source, std::string token)
 		if (match == std::string::npos) return { source };
 
 	//	iterate trough the res of the string
+	size_t startpos = 0;
 	while (match != std::string::npos) {
-		if (match > 0) temp.push_back(source.substr(0, match));
-		source = source.substr(match + token.size());
-		match = source.find(token);
+		temp.push_back(source.substr(startpos, match - startpos));
+		startpos = match + token.size();
+		match = source.find(token, startpos);
 	}
 	
 	//	push the remaining part
-	if (source.size()) temp.push_back(source);
+	if (source.size() - startpos) temp.push_back(source.substr(startpos));
 	//	done
 	return temp;
 }
 
 std::string lambda::headerFind(std::string headerName, std::vector <lambda::datapair>* headers) {
 	for (auto headerObject : *headers) {
-		if (toLowerCase(headerObject.name) == toLowerCase(headerName)) {
+		if (toLowerCase(headerObject.name) == toLowerCase(headerName))
 			return headerObject.value;
-		}
 	}
-	return "";
+	return {};
 }
 
 std::string lambda::httpTime(time_t epoch_time) {
