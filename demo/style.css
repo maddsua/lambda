@@ -69,7 +69,6 @@ ul li {
 }
 
 .container {
-	max-width: 1440px;
 	min-height: 100vh;
 	margin: 0 auto;
 	display: flex;
@@ -78,6 +77,7 @@ ul li {
 
 .main__container {
 	display: flex;
+	flex-direction: row;
 	align-items: center;
 	justify-content: center;
 	margin: 0 auto;
@@ -87,6 +87,17 @@ ul li {
 	margin-right: 3em;
 	max-width: 22em;
 }
+
+@media (orientation: portrait) {
+	.main__container {
+		flex-direction: column-reverse;
+	}
+	.info__left {
+		margin: 1em;
+		margin-right: 2em;
+	}
+}
+
 
 .info__left p {
 	text-align: end;
