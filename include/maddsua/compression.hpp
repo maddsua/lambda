@@ -1,3 +1,7 @@
+//	2023 maddsua
+//	https://github.com/maddsua
+//	c++ wrappers for zlib, brotli and zstd for simple buffer compression
+
 #ifndef _maddsua_compression_wrapper
 #define _maddsua_compression_wrapper
 

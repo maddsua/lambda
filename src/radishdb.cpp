@@ -91,8 +91,6 @@ std::vector <maddsua::radishDB::listing> maddsua::radishDB::list() {
 
 	std::vector <radishDB::listing> result;
 
-	std::lock_guard<std::mutex> lock (threadLock);
-
 	for (auto& entry : dbdata) {
 		radishDB::listing temp;
 			temp.accessed = entry.accessed;

@@ -19,7 +19,6 @@ void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std
 		entry.requestId = context.uuid;
 		entry.clientIP = context.clientIP;
 
-	std::lock_guard<std::mutex> lock (threadLock);
 	serverlog.push_back(entry);
 }
 
