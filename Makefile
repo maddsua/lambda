@@ -3,7 +3,7 @@
 APP_DEV    = lambda.exe
 
 APP_DEMO   = lambda-server.exe
-LIBNAME    = mdslambda
+LIBNAME    = lambda
 
 OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
 
@@ -60,7 +60,7 @@ libshared: $(OBJECTS)
 	g++ $(OBJECTS) $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
 
 # ----
-#	lib objects
+#	objects
 # ----
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
