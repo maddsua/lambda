@@ -56,14 +56,14 @@ libstatic: $(OBJECTS)
 	ar rvs lib$(LIBNAME).a $(OBJECTS)
 
 #	make dll
-libshared: $(OBJECTS) lambda.res
-	g++ $(OBJECTS) lambda.res $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+libshared: $(OBJECTS) $(LIBNAME).res
+	g++ $(OBJECTS) $(LIBNAME).res $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
 
 # ----
 #	resources
 # ----
-lambda.res: lambda.rc
-	windres -i lambda.rc --input-format=rc -o lambda.res -O coff 
+$(LIBNAME).res: $(LIBNAME).rc
+	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
 
 
 # ----
