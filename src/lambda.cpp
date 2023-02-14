@@ -227,9 +227,8 @@ void lambda::lambda::handler() {
 	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
 
 	//	reset header case
-	for (size_t i = 0; i < lambdaResult.headers.size(); i++) {
+	for (size_t i = 0; i < lambdaResult.headers.size(); i++)
 		toTitleCase(&lambdaResult.headers[i].name);
-	}
 
 	//	apply request compression
 	auto acceptEncodings = splitBy(headerFind("Accept-Encoding", &rqData.headers), ",");
