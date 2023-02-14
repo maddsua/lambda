@@ -7,13 +7,149 @@ using JSON = nlohmann::json;
 
 #include "include/maddsua/lambda.hpp"
 
+//	Pls note:
+//
+//	while lambda privides the backbone for your server app,
+//	you still are responsible for routing and handling requests
+//	
+//	I'm thinking about adding some kind of simple rule based router,
+//	so it will be trivial to use lambda as regular http server,	
+//	but it's not the purpose lambda is built for
 
+
+//	A user-defined structure, is used to pass any kind of data
+//	to an isolated process
 struct passtrough {
-	std::string data;
+	maddsua::radishDB* db;
 };
 
+//	declare a request callback function
+lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event);
 
-lambda::lambdaResponse requesthandeler(lambda::lambdaEvent event) {
+
+int main(int argc, char** argv) {
+
+	//	create lambda server
+	lambda::lambda lambdaserver;
+	
+	//	tweak server settings
+	lambda::lambdaConfig lambdacfg;
+		lambdacfg.compression_preferBr = true;
+
+	//	apply server settings
+	lambdaserver.setConfig(lambdacfg);
+
+	//	actually start the server
+	auto startresult = lambdaserver.start(27015, &requestHandeler);
+
+	//	check if successful
+	std::cout << "Lambda instance: " << startresult.cause << std::endl;
+
+	//	and exit if not
+	if (!startresult.success) return 1;
+
+	//	report successful lambda start
+	std::cout << "Waiting for connections at http://localhost:27015/" << std::endl;
+
+	
+	//	now let's create a database instance
+	maddsua::radishDB database;
+
+	//	let's put a pointer to the database inside and object 
+	//	you don't really need to use a struct/object for this, but I do it anyway
+	//	and if you'd like to pass an object... you get it, just use a struct
+	passtrough interstellarData;
+		interstellarData.db = &database;
+
+	//	and make it accessable to the lambda
+	lambdaserver.openWormhole(&interstellarData);
+
+	//	now just chill in the log loop
+	while (true) {
+
+		for (auto log : lambdaserver.showLogs()) std::cout << log << std::endl;
+
+		//	just chill while server is running
+		Sleep(1000);
+	}
+
+	return 0;
+}
+
+
+lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
+
+
+	//	let' demonstrate a database access
+	//	we can access database by it's pointer, passed trough the wormhole
+	//	check if requested URL starts with something we consider the database API path
+	if (lambda::startsWith(event.path, "/api/db")) {
+
+		//	ok so user asks to get database access
+
+		//	let's check if we can access it now
+		if (!event.wormhole) {
+			return {
+				200,
+				{
+					{ "content-type", lambda::findMimeType("json") }
+				},
+				JSON({
+					{"Request", "Failed"},
+					{"Error", "Sorry, but the database is not accessable"}
+				}).dump()
+			};
+		}
+
+		//	let's see what he wants, get a record id
+		auto entryID = lambda::searchQueryFind("entry", &event.searchQuery);
+
+		//	return if not specified
+		if (!entryID.size()) {
+			return {
+				200,
+				{
+					{ "content-type", lambda::findMimeType("json") }
+				},
+				JSON({
+					{"Request", "Failed"},
+					{"Error", "Entry id is not specified"}
+				}).dump()
+			};
+		}
+
+		auto db = ((passtrough*)event.wormhole)->db;
+
+		//	try to get a record
+		if (event.method == "GET") {
+
+			auto recordData = db->get(entryID);
+
+			//	returen error if no data was returned
+			if (!recordData.size()) {
+				return {
+					200,
+					{
+						{ "content-type", lambda::findMimeType("json") }
+					},
+					JSON({
+						{"Request", "Partially succeeded"},
+						{"Error", "Requested entry is not found"}
+					}).dump()
+				};
+			}
+
+			//	return the data
+			return {
+				200,
+				{
+					//{ "content-type", lambda::findMimeType("json") }
+				},
+				recordData
+			};
+		}
+	}
+
 
 
 	//	api calls, like real functions in AWS Lambda
@@ -52,56 +188,7 @@ lambda::lambdaResponse requesthandeler(lambda::lambdaEvent event) {
 
 	return { 200, {
 		{ "Content-Type", lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")},
-		{ "X-Wormhole", event.wormhole ? ((passtrough*)event.wormhole)->data : "None"}
+		//{ "X-Wormhole", event.wormhole ? ((passtrough*)event.wormhole)->data : "None"}
 	}, filecontents};
 
-}
-
-int main(int argc, char** argv) {
-
-	auto lambdaserver = lambda::lambda();
-	
-	lambda::lambdaConfig lambdacfg;
-		lambdacfg.compression_preferBr = true;
-
-	lambdaserver.setConfig(lambdacfg);
-
-	auto startresult = lambdaserver.start(27015, &requesthandeler);
-
-	std::cout << "Lambda instance: " << startresult.cause << std::endl;
-
-	if (!startresult.success) return 1;
-
-	std::cout << "Waiting for connections at http://localhost:27015/" << std::endl;
-
-	passtrough ptdata;
-		ptdata.data = "Interstellar WooooHooo!";
-
-	lambdaserver.openWormhole(&ptdata);
-
-
-	//	connect to google.com
-	/*{
-		auto googeResp = maddsua::fetch("www.google.com", "GET", {}, "");
-
-		printf("Connecting to google.com... %i %s", googeResp.statusCode, googeResp.statusText);
-		if (googeResp.errors.size()) puts(googeResp.errors.c_str());
-		puts(googeResp.body.c_str());
-
-		for (auto header : googeResp.headers) {
-			std::cout << header.name << " " << header.value << std::endl;
-		}
-
-		std::cout << "Writing to googlecom.bin result: " << maddsua::writeFileSync("googlecom.bin", &googeResp.body) << std::endl;
-	}*/
-
-	while (true) {
-
-		for (auto log : lambdaserver.showLogs()) std::cout << log << std::endl;
-
-		//	just chill while server is running
-		Sleep(1000);
-	}
-
-	return 0;
 }
