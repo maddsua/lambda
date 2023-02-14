@@ -200,16 +200,11 @@ void lambda::lambda::handler() {
 		return;
 	}
 
-	//	add client's useragent to metadata
-	//auto clientUA = headerFind("User-Agent", &rqData.headers);
-	//if (clientUA.size()) context.userAgent = clientUA;
-
-
 	//	pass the data to lambda function
-	auto targetURL = rqData.startLineArgs[1];
+	auto targetURL = toLowerCase(rqData.startLineArgs[1]);
 	lambdaEvent rqEvent;
-		rqEvent.method = rqData.startLineArgs[0];
-		rqEvent.httpversion = rqData.startLineArgs[2];
+		rqEvent.method = toUpperCase(rqData.startLineArgs[0]);
+		rqEvent.httpversion = toUpperCase(rqData.startLineArgs[2]);
 		rqEvent.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
 		rqEvent.searchQuery = searchQueryParams(&targetURL);
 		rqEvent.headers = rqData.headers;
