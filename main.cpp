@@ -55,6 +55,10 @@ int main(int argc, char** argv) {
 	//	now let's create a database instance
 	maddsua::radishDB database;
 
+	//	set a test value to the database, so it can be easily accessed
+	//	request url will look like this: "http://localhost:27015/api/db?entry=test"
+	database.set("test", "test value", false);
+
 	//	let's put a pointer to the database inside and object 
 	//	you don't really need to use a struct/object for this, but I do it anyway
 	//	and if you'd like to pass an object... you get it, just use a struct
@@ -143,9 +147,42 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			return {
 				200,
 				{
-					//{ "content-type", lambda::findMimeType("json") }
+					{ "content-type", lambda::findMimeType("txt") }
 				},
 				recordData
+			};
+		}
+
+		//	OK, let's store some data
+		if (event.method == "POST") {
+
+			//	returen error if request body is empty
+			if (!event.body.size()) {
+				return {
+					200,
+					{
+						{ "content-type", lambda::findMimeType("json") }
+					},
+					JSON({
+						{"Request", "Partially succeeded"},
+						{"Error", "Empty request body; Use DELETE method to remove data"}
+					}).dump()
+				};
+			}
+
+			//	write to the database, overwrite if exists
+			db->set(entryID, event.body, true);
+
+			//	report success
+			return {
+				200,
+				{
+					{ "content-type", lambda::findMimeType("json") }
+				},
+				JSON({
+					{"Request", "Ok"},
+					{"Info", "Saved"}
+				}).dump()
 			};
 		}
 	}
