@@ -18,11 +18,11 @@ namespace maddsua {
 				std::string key;
 			};
 
-			bool set(std::string key, std::string value, bool replace);
-			std::string get(std::string key);
+			bool push(std::string key, std::string value, bool replace);
+			std::string pull(std::string key);
 			bool rename(std::string key, std::string newKey);
 			bool remove(std::string key);
-			bool check(std::string key);
+			bool present(std::string key);
 
 			std::vector <listing> list();
 			bool store(std::string path);

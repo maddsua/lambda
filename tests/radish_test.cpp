@@ -11,14 +11,14 @@ int main() {
 
 
 	/*for (size_t i = 0; i < 150; i++) {
-		db->set("item" + std::to_string(i), "value" + std::to_string(i), false);
+		db->push("item" + std::to_string(i), "value" + std::to_string(i), false);
 	}*/
 	
 
-	/*db->set("item1", "value0", false);
-	db->set("item2", "value1222", false);
-	db->set("item3", "value2747474", false);
-	db->set("toremove", "00000", false);*/
+	/*db->push("item1", "value0", false);
+	db->push("item2", "value1222", false);
+	db->push("item3", "value2747474", false);
+	db->push("toremove", "00000", false);*/
 
 	//std::cout << db->pull("item3") << std::endl;
 
@@ -35,7 +35,7 @@ int main() {
 	std::cout << "Entry #0: " << list[0].key << ", size: " << list[0].size << std::endl;
 
 	for (auto &&i : list) {
-		std::cout << i.key << ", updated: " << i.updated << " data: " << db->get(i.key) << std::endl;
+		std::cout << i.key << ", updated: " << i.updated << " data: " << db->pull(i.key) << std::endl;
 	}
 	
 

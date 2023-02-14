@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
 	//	set a test value to the database, so it can be easily accessed
 	//	request url will look like this: "http://localhost:27015/api/db?entry=test"
-	database.set("test", "test value", false);
+	database.push("test", "test value", false);
 
 	//	let's put a pointer to the database inside and object 
 	//	you don't really need to use a struct/object for this, but I do it anyway
@@ -127,7 +127,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 		//	try to get a record
 		if (event.method == "GET") {
 
-			auto recordData = db->get(entryID);
+			auto recordData = db->pull(entryID);
 
 			//	returen error if no data was returned
 			if (!recordData.size()) {
@@ -171,7 +171,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			}
 
 			//	write to the database, overwrite if exists
-			db->set(entryID, event.body, true);
+			db->push(entryID, event.body, true);
 
 			//	report success
 			return {
@@ -188,7 +188,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 
 		if (event.method == "DELETE") {
 
-			if (!db->check(entryID)) {
+			if (!db->present(entryID)) {
 				return {
 					200,
 					{

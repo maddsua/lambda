@@ -15,7 +15,7 @@
 */
 
 
-bool maddsua::radishDB::set(std::string key, std::string value, bool replace) {
+bool maddsua::radishDB::push(std::string key, std::string value, bool replace) {
 
 	std::lock_guard<std::mutex> lock (threadLock);
 
@@ -37,13 +37,13 @@ bool maddsua::radishDB::set(std::string key, std::string value, bool replace) {
 	dbdata.push_back(std::move(temp));
 	return true;
 }
-bool maddsua::radishDB::check(std::string key) {
+bool maddsua::radishDB::present(std::string key) {
 	for (auto entry : dbdata) {
 		if (entry.key == key) return true;
 	}
 	return false;
 }
-std::string maddsua::radishDB::get(std::string key) {
+std::string maddsua::radishDB::pull(std::string key) {
 
 	std::lock_guard<std::mutex> lock (threadLock);
 
