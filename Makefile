@@ -8,8 +8,8 @@ LIBNAME    = lambda
 OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
 
 FLAGS      = -std=c++20
-LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lzstd
-LIB_STC    = -l:libz.a -l:libbrotli.a -l:libzstd.a
+LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+LIB_STC    = -l:libz.a -l:libbrotli.a
 LIBS_SYS   = -lws2_32 -lwinmm
 
 .PHONY: all all-before all-after clean-custom run-custom lib demo

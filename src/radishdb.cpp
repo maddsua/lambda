@@ -131,7 +131,7 @@ bool maddsua::radishDB::store(std::string path) {
 	}
 
 
-	auto compressed = lambda::compression::zstdCompress(&dbstring);
+	auto compressed = lambda::compression::gzCompress(&dbstring, true);
 
 	if (!lambda::fs::writeFileSync(path, &compressed)) return false;
 	
@@ -145,7 +145,7 @@ bool maddsua::radishDB::load(std::string path) {
 	if (!lambda::fs::readFileSync(path, &rawBinData)) return false;
 
 	//	decompress
-	auto dbstring = lambda::compression::zstdDecompress(&rawBinData);
+	auto dbstring = lambda::compression::gzDecompress(&rawBinData);
 
 	size_t blit_begin = 0;
 	size_t blit_end = 0;
