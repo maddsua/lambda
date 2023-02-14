@@ -30,11 +30,12 @@ lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 	std::string requestHeaderText = rawData.substr(0, headerEnded);
 
 	//	split text by lines
-	auto headerLines = splitBy(requestHeaderText.c_str(), "\r\n");
+	auto headerLines = splitBy(requestHeaderText, "\r\n");
 	if (headerLines.size() < 1) return { false };
 
 	//	parse start-line
-	std::vector <std::string> startArgs = splitBy(headerLines[0].c_str(), " ");
+	std::vector <std::string> startArgs = splitBy(headerLines[0], " ");
+	//	drop it less than 3 args here
 	if (startArgs.size() < 3) return { false };
 
 	//	parse headers
