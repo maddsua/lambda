@@ -185,6 +185,35 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 				}).dump()
 			};
 		}
+
+		if (event.method == "DELETE") {
+
+			if (!db->check(entryID)) {
+				return {
+					200,
+					{
+						{ "content-type", lambda::findMimeType("json") }
+					},
+					JSON({
+						{"Request", "Partially succeeded"},
+						{"Error", "No such entry or already deleted"}
+					}).dump()
+				};
+			}
+
+			db->remove(entryID);
+
+			return {
+				200,
+				{
+					{ "content-type", lambda::findMimeType("json") }
+				},
+				JSON({
+					{"Request", "Ok"},
+					{"Info", "Deleted"}
+				}).dump()
+			};
+		}
 	}
 
 
