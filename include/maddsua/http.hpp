@@ -1,5 +1,23 @@
-#ifndef _maddsua_http
-#define _maddsua_http
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
+#ifndef H_MADDSUA_LAMBDA_HTTP
+#define H_MADDSUA_LAMBDA_HTTP
 
 #include <stdint.h>
 
@@ -162,7 +180,7 @@ namespace lambda {
 
 	/**
 	 * Add a header, if there is no other with such a name
-	 * Returns false if a header with such a name already exists
+	 * Returns false if such a header already exists
 	*/
 	inline bool addHeader(datapair header, std::vector <datapair>* headers) {
 		if (keyExists(header.name, headers)) return false;
@@ -171,7 +189,7 @@ namespace lambda {
 	}
 
 	/**
-	 * Add a header, replacing if already exists
+	 * Add a header, replacing if exists
 	*/
 	void insertHeader(std::string header, std::string value, std::vector <datapair>* headers);
 

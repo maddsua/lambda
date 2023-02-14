@@ -1,4 +1,22 @@
 /*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
+/*
 	Required libs:
 		libwinmm
 		libws2_32
@@ -9,8 +27,8 @@
 */
 
 
-#ifndef _maddsua_http_lambda
-#define _maddsua_http_lambda
+#ifndef H_MADDSUA_LAMBDA
+#define H_MADDSUA_LAMBDA
 
 	#include <mutex>
 
@@ -20,16 +38,14 @@
 	#include "fs.hpp"
 	#include "radishdb.hpp"
 
-	#define LAMBDALOG_INFO			(1)
-	#define LAMBDALOG_WARN			(0)
-	#define LAMBDALOG_ERR			(-1)
+	#define LAMBDALOG_INFO				(1)
+	#define LAMBDALOG_WARN				(0)
+	#define LAMBDALOG_ERR				(-1)
 
-	#define LAMBDAREQ_LAMBDA		(1)
-	#define LAMBDAREQ_WEBSOCK		(2)
+	#define LAMBDAREQ_LAMBDA			(1)
+	#define LAMBDAREQ_WEBSOCK			(2)
 
-	#define LAMBDA_DSP_SLEEP		(10)
-
-	#define LAMBDA_DEFAULT_MIMETYPE	"application/json"
+	#define LAMBDA_DSP_SLEEP			(10)
 
 	namespace lambda {
 

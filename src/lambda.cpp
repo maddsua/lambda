@@ -1,3 +1,21 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
 #include "../include/maddsua/lambda.hpp"
 
 
@@ -191,42 +209,47 @@ void lambda::lambda::handler() {
 		context.clientIP = clientIPBuff;
 
 	//	download http request
-	auto rqData = socketGetHTTP(&ClientSocket);
+	auto httprequest = socketGetHTTP(&ClientSocket);
 
 	//	drop connection if the request is invalid
-	if (!rqData.success) {
+	if (!httprequest.success) {
 		addLogEntry(context, LAMBDALOG_WARN, "Aborted");
 		closesocket(ClientSocket);
 		return;
 	}
 
 	//	pass the data to lambda function
-	auto targetURL = toLowerCase(rqData.startLineArgs[1]);
+	auto targetURL = toLowerCase(httprequest.startLineArgs[1]);
 	lambdaEvent rqEvent;
-		rqEvent.method = toUpperCase(rqData.startLineArgs[0]);
-		rqEvent.httpversion = toUpperCase(rqData.startLineArgs[2]);
+		rqEvent.method = toUpperCase(httprequest.startLineArgs[0]);
+		rqEvent.httpversion = toUpperCase(httprequest.startLineArgs[2]);
 		rqEvent.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
 		rqEvent.searchQuery = getSearchQuery(&targetURL);
-		rqEvent.headers = rqData.headers;
-		rqEvent.body = rqData.body;
+		rqEvent.headers = httprequest.headers;
+		rqEvent.body = httprequest.body;
 
 		//	neutron-star-explosive part
 		rqEvent.wormhole = instanceWormhole;
-		
+
+	//	get callback result
 	auto lambdaResult = callback(rqEvent);
 
 	//	inject additional headers
 	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &lambdaResult.headers);
 	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &lambdaResult.headers);
 	addHeader({ "Date", httpTimeNow() }, &lambdaResult.headers);
-	addHeader({ "Content-Type", LAMBDA_DEFAULT_MIMETYPE }, &lambdaResult.headers);
+	
+	if (lambdaResult.body.size()) {
+		auto isJson = (lambdaResult.body[0] == '{' || lambdaResult.body[0] == '[');
+		addHeader({ "Content-Type", mimetype(isJson ? "json" : "html") }, &lambdaResult.headers);
+	}
 
 	//	reset header case
 	for (size_t i = 0; i < lambdaResult.headers.size(); i++)
 		toTitleCase(&lambdaResult.headers[i].name);
 
 	//	apply request compression
-	auto acceptEncodings = splitBy(findHeader("Accept-Encoding", &rqData.headers), ",");
+	auto acceptEncodings = splitBy(findHeader("Accept-Encoding", &httprequest.headers), ",");
 
 	auto isCompressable = includes(findHeader("Content-Type",  &lambdaResult.headers), compressibleTypes);
 	std::string compressedBody;

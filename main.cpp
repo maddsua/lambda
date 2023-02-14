@@ -240,7 +240,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 	//	return if fails
 	std::string filecontents;
 	if (!lambda::fs::readSync(event.path, &filecontents)) {
-		return { 404, {}, "File not found"};
+		return { 404, { }, "File not found"};
 	}
 
 	//	determine the file extension
@@ -250,11 +250,9 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 
 	//	serve that kitty picture
 	return {
-		200,
-		{
+		200, {
 			{ "Content-Type", contentType },
-		},
-		filecontents
+		}, filecontents
 	};
 
 }
