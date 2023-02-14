@@ -12,11 +12,6 @@
 #include <array>
 #include <memory.h>
 
-#define ROUNDHASH128_SIZE	(128)
-#define ROUNDHASH256_SIZE	(256)
-#define ROUNDHASH512_SIZE	(512)
-#define ROUNDHASH1024_SIZE	(1024)
-
 #define SHA1_BLOCK_SIZE 	(20)
 #define SHA256_BLOCK_SIZE	(32)
 #define SHA512_HASH_SIZE	(64)

@@ -206,7 +206,7 @@ void lambda::lambda::handler() {
 		rqEvent.method = toUpperCase(rqData.startLineArgs[0]);
 		rqEvent.httpversion = toUpperCase(rqData.startLineArgs[2]);
 		rqEvent.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
-		rqEvent.searchQuery = searchQueryParams(&targetURL);
+		rqEvent.searchQuery = getSearchQuery(&targetURL);
 		rqEvent.headers = rqData.headers;
 		rqEvent.body = rqData.body;
 
@@ -216,19 +216,19 @@ void lambda::lambda::handler() {
 	auto lambdaResult = callback(rqEvent);
 
 	//	inject additional headers
-	headerAdd({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
-	headerAdd({"X-Request-ID", formatUUID(context.uuid, true)}, &lambdaResult.headers);
-	headerAdd({"Date", httpTimeNow()}, &lambdaResult.headers);
-	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
+	addHeader({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
+	addHeader({"X-Request-ID", formatUUID(context.uuid, true)}, &lambdaResult.headers);
+	addHeader({"Date", httpTimeNow()}, &lambdaResult.headers);
+	addHeader({"Content-Type", mimetype("html")}, &lambdaResult.headers);
 
 	//	reset header case
 	for (size_t i = 0; i < lambdaResult.headers.size(); i++)
 		toTitleCase(&lambdaResult.headers[i].name);
 
 	//	apply request compression
-	auto acceptEncodings = splitBy(headerFind("Accept-Encoding", &rqData.headers), ",");
+	auto acceptEncodings = splitBy(findHeader("Accept-Encoding", &rqData.headers), ",");
 
-	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressibleTypes);
+	auto isCompressable = includes(findHeader("Content-Type",  &lambdaResult.headers), compressibleTypes);
 	std::string compressedBody;
 	
 	if (instanceConfig.compression_enabled && acceptEncodings.size() && (isCompressable || instanceConfig.compression_allFileTypes)) {
@@ -264,7 +264,7 @@ void lambda::lambda::handler() {
 				else addLogEntry(context, LAMBDALOG_ERR, "deflate compression failed");
 		}
 
-		if (appliedCompression.size()) headerInsert("Content-Encoding", appliedCompression, &lambdaResult.headers);
+		if (appliedCompression.size()) insertHeader("Content-Encoding", appliedCompression, &lambdaResult.headers);
 			else compressedBody.erase(compressedBody.begin(), compressedBody.end());
 	}
 

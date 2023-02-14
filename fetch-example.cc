@@ -10,5 +10,5 @@
 			std::cout << header.name << " " << header.value << std::endl;
 		}
 
-		std::cout << "Writing to googlecom.bin result: " << maddsua::writeFileSync("googlecom.bin", &googeResp.body) << std::endl;
+		std::cout << "Writing to googlecom.bin result: " << maddsua::writeSync("googlecom.bin", &googeResp.body) << std::endl;
 	}*/

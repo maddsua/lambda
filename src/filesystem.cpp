@@ -5,7 +5,7 @@
 
 #include "../include/maddsua/fs.hpp"
 
-bool lambda::fs::createDirTree(std::string tree) {
+bool lambda::fs::createTree(std::string tree) {
 
 	tree = std::regex_replace(tree, std::regex("[\\\\\\/]+"), "\\");
 
@@ -32,7 +32,7 @@ bool lambda::fs::createDirTree(std::string tree) {
 	return true;
 }
 
-bool lambda::fs::writeFileSync(const std::string path, const std::string* data) {
+bool lambda::fs::writeSync(const std::string path, const std::string* data) {
 
 	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
 		auto dirpath = std::regex_replace(path, std::regex("\\+"), "/");
@@ -55,7 +55,7 @@ bool lambda::fs::writeFileSync(const std::string path, const std::string* data) 
 	return true;
 }
 
-bool lambda::fs::readFileSync(std::string path, std::string* dest) {
+bool lambda::fs::readSync(std::string path, std::string* dest) {
 	FILE* binfile = fopen64(path.c_str(), "rb");
 	if (!binfile) return false;
 

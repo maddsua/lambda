@@ -54,7 +54,7 @@ lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 
 	//	download body is exists
 	std::string requestBody;
-	auto contentLength = headerFind("Content-Length", &headers);
+	auto contentLength = findHeader("Content-Length", &headers);
 	if (contentLength.size()) {
 		size_t bodySize;
 
@@ -100,7 +100,7 @@ lambda::actionResult lambda::socketSendHTTP(SOCKET* client, std::string startlin
 	auto temp = startline + "\r\n";
 
 	//	add content length header
-	if (body->size()) headerInsert("Content-Length", std::to_string(body->size()), headers);
+	if (body->size()) insertHeader("Content-Length", std::to_string(body->size()), headers);
 
 	//	add headers
 	for (auto header : *headers) {

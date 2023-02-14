@@ -150,13 +150,13 @@ namespace lambda {
 	/**
 	 * Looks for specific header in a vector of headers and returns it's value, or an empty string, if it was not found
 	*/
-	std::string headerFind(std::string headerName, std::vector <datapair>* headers);
+	std::string findHeader(std::string headerName, std::vector <datapair>* headers);
 
 	/**
-	 * Returns true if header exists in the provided vector of headers
+	 * Returns true if a key exists in the provided vector of key-value pairs (headers or search query params)
 	*/
-	inline bool headerExists(std::string headerName, std::vector <datapair>* headers) {
-		return headerFind(headerName, headers).size();
+	inline bool keyExists(std::string headerName, std::vector <datapair>* headers) {
+		return findHeader(headerName, headers).size();
 	}
 
 
@@ -164,8 +164,8 @@ namespace lambda {
 	 * Add a header, if there is no other with such a name
 	 * Returns false if a header with such a name already exists
 	*/
-	inline bool headerAdd(datapair header, std::vector <datapair>* headers) {
-		if (headerExists(header.name, headers)) return false;
+	inline bool addHeader(datapair header, std::vector <datapair>* headers) {
+		if (keyExists(header.name, headers)) return false;
 		headers->push_back({header.name, header.value});
 		return true;
 	}
@@ -173,13 +173,13 @@ namespace lambda {
 	/**
 	 * Add a header, replacing if already exists
 	*/
-	void headerInsert(std::string header, std::string value, std::vector <datapair>* headers);
+	void insertHeader(std::string header, std::string value, std::vector <datapair>* headers);
 
 	/**
 	 * Returns mimetype for specified file extension.
 	 * Defaults to application/octet-stream
 	*/
-	std::string findMimeType(std::string extension);
+	std::string mimetype(std::string extension);
 
 	/**
 	 * Get time in the format: Wed, 06 Jan 2023 07:28:00 GMT
@@ -196,20 +196,13 @@ namespace lambda {
 	/**
 	 * Extracts search query params as name-value pairs
 	*/
-	std::vector <datapair> searchQueryParams(std::string* url);
+	std::vector <datapair> getSearchQuery(std::string* url);
 
 	/**
 	 * Looks for specific search query and returns it's value, or an empty string, if it was not found
 	*/
-	inline std::string searchQueryFind(std::string queryName, std::vector <datapair>* queries) {
-		return headerFind(queryName, queries);
-	}
-
-	/**
-	 * Returns true if search query exists in the provided vector of queries
-	*/
-	inline bool searchQueryExists(std::string queryName, std::vector <datapair>* queries) {
-		return headerExists(queryName, queries);
+	inline std::string findQuery(std::string queryName, std::vector <datapair>* queries) {
+		return findHeader(queryName, queries);
 	}
 
 	/**

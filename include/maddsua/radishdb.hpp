@@ -11,6 +11,7 @@ namespace maddsua {
 	
 	class radishDB {
 		public:
+			
 			struct listing {
 				time_t updated = 0;
 				time_t accessed = 0;
@@ -29,6 +30,7 @@ namespace maddsua {
 			bool load(std::string path);
 
 		private:
+
 			struct dbitem {
 				time_t updated = 0;
 				time_t accessed = 0;
@@ -36,6 +38,7 @@ namespace maddsua {
 				std::string value;
 				bool markedForDeletion = false;
 			};
+
 			std::mutex threadLock;
 			std::list <dbitem> dbdata;
 	};

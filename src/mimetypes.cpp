@@ -1184,7 +1184,7 @@ const std::vector <_mimetypeitem> mimeTypeTable = {
 	{ "zmm", "application/vnd.handheld-entertainment+xml" }
 };
 
-std::string lambda::findMimeType(std::string extension) {
+std::string lambda::mimetype(std::string extension) {
 	for (auto ftype : mimeTypeTable) {
 		if (ftype.extension == extension)
 			return ftype.mimetype;

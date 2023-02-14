@@ -89,14 +89,14 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 	//	check if requested URL starts with something we consider the database API path
 	if (lambda::startsWith(event.path, "/api/db")) {
 
-		//	ok so user asks to get database access
+		//	OK, so user asks to get database access
 
 		//	let's check if we can access it now
 		if (!event.wormhole) {
 			return {
 				200,
 				{
-					{ "content-type", lambda::findMimeType("json") }
+					{ "content-type", lambda::mimetype("json") }
 				},
 				JSON({
 					{"Request", "Failed"},
@@ -106,14 +106,14 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 		}
 
 		//	let's see what he wants, get a record id
-		auto entryID = lambda::searchQueryFind("entry", &event.searchQuery);
+		auto entryID = lambda::findQuery("entry", &event.searchQuery);
 
 		//	return if not specified
 		if (!entryID.size()) {
 			return {
 				200,
 				{
-					{ "content-type", lambda::findMimeType("json") }
+					{ "content-type", lambda::mimetype("json") }
 				},
 				JSON({
 					{"Request", "Failed"},
@@ -134,7 +134,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 				return {
 					200,
 					{
-						{ "content-type", lambda::findMimeType("json") }
+						{ "content-type", lambda::mimetype("json") }
 					},
 					JSON({
 						{"Request", "Partially succeeded"},
@@ -147,7 +147,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			return {
 				200,
 				{
-					{ "content-type", lambda::findMimeType("txt") }
+					{ "content-type", lambda::mimetype("txt") }
 				},
 				recordData
 			};
@@ -161,7 +161,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 				return {
 					200,
 					{
-						{ "content-type", lambda::findMimeType("json") }
+						{ "content-type", lambda::mimetype("json") }
 					},
 					JSON({
 						{"Request", "Partially succeeded"},
@@ -177,7 +177,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			return {
 				200,
 				{
-					{ "content-type", lambda::findMimeType("json") }
+					{ "content-type", lambda::mimetype("json") }
 				},
 				JSON({
 					{"Request", "Ok"},
@@ -195,7 +195,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 				return {
 					200,
 					{
-						{ "content-type", lambda::findMimeType("json") }
+						{ "content-type", lambda::mimetype("json") }
 					},
 					JSON({
 						{"Request", "Partially succeeded"},
@@ -208,7 +208,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			return {
 				200,
 				{
-					{ "content-type", lambda::findMimeType("json") }
+					{ "content-type", lambda::mimetype("json") }
 				},
 				JSON({
 					{"Request", "Ok"},
@@ -235,14 +235,14 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 	//	read file contents to this string
 	//	return if fails
 	std::string filecontents;
-	if (!lambda::fs::readFileSync(event.path, &filecontents)) {
+	if (!lambda::fs::readSync(event.path, &filecontents)) {
 		return { 404, {}, "File not found"};
 	}
 
 	//	determine the file extension
 	auto fileext = event.path.find_last_of('.');
 	//	determine content type based on file extension
-	auto contentType = lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin");
+	auto contentType = lambda::mimetype((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin");
 
 	//	serve that kitty picture
 	return {
