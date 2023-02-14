@@ -95,9 +95,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 		if (!event.wormhole) {
 			return {
 				200,
-				{
-					{ "content-type", lambda::mimetype("json") }
-				},
+				{/* no headers here, using default mimetype - json */},
 				JSON({
 					{"Request", "Failed"},
 					{"Error", "Sorry, but the database is not accessable"}
@@ -112,9 +110,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 		if (!entryID.size()) {
 			return {
 				200,
-				{
-					{ "content-type", lambda::mimetype("json") }
-				},
+				{ },
 				JSON({
 					{"Request", "Failed"},
 					{"Error", "Entry id is not specified"}
@@ -133,9 +129,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			if (!recordData.size()) {
 				return {
 					200,
-					{
-						{ "content-type", lambda::mimetype("json") }
-					},
+					{ },
 					JSON({
 						{"Request", "Partially succeeded"},
 						{"Error", "Requested entry is not found"}
@@ -144,13 +138,32 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			}
 
 			//	return the data
-			return {
-				200,
-				{
-					{ "content-type", lambda::mimetype("txt") }
-				},
-				recordData
-			};
+			try {
+				//	try as a plain text first
+				return {
+					200,
+					{ },
+					JSON({
+						{"Request", "Succeeded"},
+						{"Data", recordData}
+					}).dump()
+				};
+
+			} catch(...) {
+
+				//	if fails, encode base64 and return that
+				return {
+					200,
+					{ },
+					JSON({
+						{"Request", "Succeeded"},
+						{"Base64", true},
+						{"Data", maddsua::b64Encode(&recordData)}
+					}).dump()
+				};
+			}
+			
+
 		}
 
 		//	OK, let's store some data
@@ -160,9 +173,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			if (!event.body.size()) {
 				return {
 					200,
-					{
-						{ "content-type", lambda::mimetype("json") }
-					},
+					{ },
 					JSON({
 						{"Request", "Partially succeeded"},
 						{"Error", "Empty request body; Use DELETE method to remove data"}
@@ -176,9 +187,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			//	report success
 			return {
 				200,
-				{
-					{ "content-type", lambda::mimetype("json") }
-				},
+				{ },
 				JSON({
 					{"Request", "Ok"},
 					{"Info", "Saved"}
@@ -194,9 +203,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			if (!db->remove(entryID)) {
 				return {
 					200,
-					{
-						{ "content-type", lambda::mimetype("json") }
-					},
+					{ },
 					JSON({
 						{"Request", "Partially succeeded"},
 						{"Error", "No such entry or already deleted"}
@@ -207,9 +214,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			//	report successfull deletion
 			return {
 				200,
-				{
-					{ "content-type", lambda::mimetype("json") }
-				},
+				{ },
 				JSON({
 					{"Request", "Ok"},
 					{"Info", "Deleted"}
@@ -217,7 +222,6 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			};
 		}
 	}
-
 
 	//	OK, we're done with the database
 	//	let's serve some static files - html, css and whatever else

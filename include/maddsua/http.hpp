@@ -17,7 +17,7 @@
 #define HTTPLAMBDA_HEADER_CHUNK		(2048)
 #define HTTPLAMBDA_BODY_CHUNK		(131072)
 #define MADDSUAHTTP_ATTEMPTS		(3)
-#define MADDSUAHTTP_USERAGENT		"maddsua/lambda"
+#define HTTPLAMBDA_USERAGENT		"maddsua/lambda"
 
 
 namespace lambda {

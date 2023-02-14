@@ -76,7 +76,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	//	add service headers
 	if (!method.size()) method = "GET";
 	if (!keyExists("Host", &headers)) headers.push_back({"Host", fullhost});
-	if (!keyExists("User-Agent", &headers)) headers.push_back({"User-Agent", MADDSUAHTTP_USERAGENT});
+	if (!keyExists("User-Agent", &headers)) headers.push_back({"User-Agent", HTTPLAMBDA_USERAGENT});
 	
 	insertHeader("Accept-Encoding", "br, gzip, deflate", &headers);
 

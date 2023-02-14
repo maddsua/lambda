@@ -216,10 +216,10 @@ void lambda::lambda::handler() {
 	auto lambdaResult = callback(rqEvent);
 
 	//	inject additional headers
-	addHeader({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
-	addHeader({"X-Request-ID", formatUUID(context.uuid, true)}, &lambdaResult.headers);
-	addHeader({"Date", httpTimeNow()}, &lambdaResult.headers);
-	addHeader({"Content-Type", mimetype("html")}, &lambdaResult.headers);
+	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &lambdaResult.headers);
+	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &lambdaResult.headers);
+	addHeader({ "Date", httpTimeNow() }, &lambdaResult.headers);
+	addHeader({ "Content-Type", LAMBDA_DEFAULT_MIMETYPE }, &lambdaResult.headers);
 
 	//	reset header case
 	for (size_t i = 0; i < lambdaResult.headers.size(); i++)
