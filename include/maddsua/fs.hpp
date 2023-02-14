@@ -10,6 +10,9 @@ namespace lambda {
 
 		bool writeFileSync(const std::string path, const std::string* data);
 		bool readFileSync(const std::string path, std::string* dest);
+
+		//	Create directories recursively
+		bool createDirTree(std::string tree);
 		
 	}
 }

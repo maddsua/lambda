@@ -5,6 +5,33 @@
 
 #include "../include/maddsua/fs.hpp"
 
+bool lambda::fs::createDirTree(std::string tree) {
+
+	tree = std::regex_replace(tree, std::regex("[\\\\\\/]+"), "\\");
+
+	if (!tree.size()) {
+		return false;
+	}
+
+	auto createIfDontexist = [](std::string path) {
+		auto dir = opendir(path.c_str());
+		if (dir) {
+			closedir(dir);
+			return true;
+		}
+		if (mkdir(path.c_str())) return false;
+		return true;
+	};
+
+	auto hierrarchy = tree.find_first_of('\\');
+	while(hierrarchy != std::string::npos) {
+		if (!createIfDontexist(tree.substr(0, hierrarchy))) return false;
+		hierrarchy = tree.find_first_of('\\', hierrarchy + 1);
+	}
+
+	return true;
+}
+
 bool lambda::fs::writeFileSync(const std::string path, const std::string* data) {
 
 	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
