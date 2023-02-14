@@ -88,6 +88,7 @@ namespace lambda {
 				ListenSocket = INVALID_SOCKET;
 				handlerDispatched = true;
 				running = false;
+				instanceWormhole = nullptr;
 			}
 			lambda(const lambda & obj) {
 				//	a copy constructor so IntelliSense would shut the f up
