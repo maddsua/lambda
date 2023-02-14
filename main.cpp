@@ -186,9 +186,12 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			};
 		}
 
+		//	handle deletion
 		if (event.method == "DELETE") {
 
-			if (!db->present(entryID)) {
+			//	check if we can delete entry
+			//	this will fail only if entry is not present in database
+			if (!db->remove(entryID)) {
 				return {
 					200,
 					{
@@ -201,8 +204,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 				};
 			}
 
-			db->remove(entryID);
-
+			//	report successfull deletion
 			return {
 				200,
 				{
@@ -217,44 +219,38 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 	}
 
 
+	//	OK, we're done with the database
+	//	let's serve some static files - html, css and whatever else
 
-	//	api calls, like real functions in AWS Lambda
-	if (lambda::startsWith(event.path, "/api")) {
+	//	Fhis feature isn't really a selling point. I mean, lambda can be a
+	//	 file server, but it was designed to replace AWS Lambda
+	//	 on a local machine. Kinda like a cloud without a cloud.
+	//	So at the moment, there are not much tools to help with serving files
 
-		JSON data = {
-			{"success", true},
-			{"api-response", "succeded"},
-			{"api-data", "test data"}
-		};
-
-		if (lambda::searchQueryFind("user", &event.searchQuery) == "maddsua") {
-			data["secret-message"] = "Buy some milk this time, come on Daniel =)";
-		}
-		
-		return {
-			200,
-			{
-				{ "content-type", lambda::findMimeType("json") }
-			},
-			data.dump()
-		};
-	}
-
-	//	fileserver part
+	//	Format path, is up to you.
+	//	Probably will add some basic path transformation rules in the future
 	if (event.path[event.path.size() - 1] == '/') event.path += "index.html";
 	event.path = std::regex_replace(("demo/" + event.path), std::regex("/+"), "/");
 
+	//	read file contents to this string
+	//	return if fails
 	std::string filecontents;
-
 	if (!lambda::fs::readFileSync(event.path, &filecontents)) {
 		return { 404, {}, "File not found"};
 	}
 
+	//	determine the file extension
 	auto fileext = event.path.find_last_of('.');
+	//	determine content type based on file extension
+	auto contentType = lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin");
 
-	return { 200, {
-		{ "Content-Type", lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")},
-		//{ "X-Wormhole", event.wormhole ? ((passtrough*)event.wormhole)->data : "None"}
-	}, filecontents};
+	//	serve that kitty picture
+	return {
+		200,
+		{
+			{ "Content-Type", contentType },
+		},
+		filecontents
+	};
 
 }
