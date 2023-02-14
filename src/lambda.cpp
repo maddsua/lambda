@@ -1,7 +1,17 @@
 #include "../include/maddsua/lambda.hpp"
 
 
-const std::vector<std::string> compressableTypes = { "text", "application" };
+const std::vector<std::string> compressibleTypes = { "text", "application" };
+
+void lambda::lambda::setConfig(lambdaConfig config) {
+	instanceConfig = config;
+}
+void lambda::lambda::openWormhole(void* object) {
+	instanceWormhole = object;
+}
+void lambda::lambda::closeWormhole() {
+	instanceWormhole = nullptr;
+}
 
 std::string lambda::lambda::serverTime(time_t timestamp) {
 	char timebuff[16];
@@ -9,6 +19,10 @@ std::string lambda::lambda::serverTime(time_t timestamp) {
 	strftime(timebuff, sizeof(timebuff), "%H:%M:%S", timedata);
 	return std::string(timebuff);
 }
+std::string lambda::lambda::serverTime() {
+	return serverTime(time(nullptr));
+}
+
 
 void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std::string message) {
 	
@@ -19,7 +33,7 @@ void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std
 		entry.requestId = context.uuid;
 		entry.clientIP = context.clientIP;
 
-	serverlog.push_back(entry);
+	instanceLog.push_back(entry);
 }
 
 std::vector <std::string> lambda::lambda::showLogs() {
@@ -28,7 +42,7 @@ std::vector <std::string> lambda::lambda::showLogs() {
 
 	std::lock_guard<std::mutex> lock (threadLock);
 
-	for (auto& logEntry : serverlog) {
+	for (auto& logEntry : instanceLog) {
 
 		auto temp = serverTime();
 
@@ -49,20 +63,20 @@ std::vector <std::string> lambda::lambda::showLogs() {
 		printout.push_back(temp + logEntry.clientIP + ' ' + formatUUID(logEntry.requestId, false) + " : " + logEntry.message);
 	}
 
-	serverlog.clear();
+	instanceLog.clear();
 
 	return printout;
 }
 
 
-lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaResponse(lambdaEvent)> lambda) {
+lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaResponse(lambdaEvent)> lambda) {
 
 	if (running) return {
 		false,
 		"Already running"
 	};
 
-	if (!config.mutlipeInstances || (config.mutlipeInstances && !socketsReady())) {
+	if (!instanceConfig.mutlipeInstances || (instanceConfig.mutlipeInstances && !socketsReady())) {
 		if (WSAStartup(MAKEWORD(2,2), &wsaData)) return {
 			false,
 			"Startup failed",
@@ -80,7 +94,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 		hints.ai_flags = AI_PASSIVE;
 
 	if (getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &servAddr) != 0) {
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Localhost didn't resolve",
@@ -92,7 +106,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 	ListenSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
 	if (ListenSocket == INVALID_SOCKET) {
 		freeaddrinfo(servAddr);
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to create listening socket",
@@ -102,7 +116,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 	if (bind(ListenSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 		freeaddrinfo(servAddr);
 		closesocket(ListenSocket);
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to bind a TCP socket",
@@ -114,7 +128,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 
 	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
 		closesocket(ListenSocket);
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Socket error",
@@ -133,11 +147,11 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 	};
 }
 
-void lambda::lambda::close() {
+void lambda::lambda::stop() {
 	running = false;
 	if (worker.joinable()) worker.join();
 	closesocket(ListenSocket);
-	if (!config.mutlipeInstances) WSACleanup();
+	if (!instanceConfig.mutlipeInstances) WSACleanup();
 }
 
 void lambda::lambda::connectDispatch() {
@@ -200,6 +214,9 @@ void lambda::lambda::handler() {
 		rqEvent.searchQuery = searchQueryParams(&targetURL);
 		rqEvent.headers = rqData.headers;
 		rqEvent.body = rqData.body;
+
+		//	neutron-star-explosive part
+		rqEvent.wormhole = instanceWormhole;
 		
 	auto lambdaResult = callback(rqEvent);
 
@@ -217,16 +234,16 @@ void lambda::lambda::handler() {
 	//	apply request compression
 	auto acceptEncodings = splitBy(headerFind("Accept-Encoding", &rqData.headers), ",");
 
-	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressableTypes);
+	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressibleTypes);
 	std::string compressedBody;
 	
-	if (config.compression_enabled && acceptEncodings.size() && (isCompressable || config.compression_allFileTypes)) {
+	if (instanceConfig.compression_enabled && acceptEncodings.size() && (isCompressable || instanceConfig.compression_allFileTypes)) {
 
 		for (auto &&encoding : acceptEncodings) {
 			trim(&encoding);
 		}
 
-		if (config.compression_preferBr) {
+		if (instanceConfig.compression_preferBr) {
 			for (auto encoding : acceptEncodings) {
 				if (encoding == "br") {
 					acceptEncodings[0] = encoding;

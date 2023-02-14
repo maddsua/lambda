@@ -35,6 +35,9 @@ namespace lambda {
 		std::string httpversion;
 		std::string requestID;
 
+		//	A poiential foot-shooter, be extremely careful when using it
+		void* wormhole;
+
 		std::string method;
 		std::string path;
 		std::vector <datapair> searchQuery;
@@ -96,7 +99,7 @@ namespace lambda {
 				//	so I can't think of scenario wnen you need to copy it
 			}
 			~lambda() {
-				close();
+				stop();
 			}
 
 
@@ -106,21 +109,22 @@ namespace lambda {
 			 * @param lambda handler function
 			 * @param cfg server config (optional)
 			*/
-			actionResult init(const int port, std::function <lambdaResponse(lambdaEvent)> lambda);
-			inline actionResult init(const int port, std::function <lambdaResponse(lambdaEvent)> lambda, lambdaConfig cfg) {
-				config = cfg;
-				return init(port, lambda);
-			}
+			actionResult start(const int port, std::function <lambdaResponse(lambdaEvent)> lambda);
+
+			void setConfig(lambdaConfig config);
+
+			void openWormhole(void* object);
+			void closeWormhole();
 
 			/**
 			 * Stop this lambda server
 			*/
-			void close();
+			void stop();
 
 			/**
 			 * Ture, if there are log entries available
 			*/
-			inline bool logsAvail() { return serverlog.size(); }
+			inline bool logsAvail() { return instanceLog.size(); }
 
 			/**
 			 * Get last log entries
@@ -140,15 +144,15 @@ namespace lambda {
 			void handler();
 
 			void addLogEntry(lambdaInvokContext context, short type, std::string message);
-			std::vector <lambdaLogEntry> serverlog;
+			std::vector <lambdaLogEntry> instanceLog;
 
 			std::mutex threadLock;
 
-			lambdaConfig config;
+			lambdaConfig instanceConfig;
 			std::string serverTime(time_t timestamp);
-			inline std::string serverTime() {
-				return serverTime(time(nullptr));
-			}
+			std::string serverTime();
+
+			void* instanceWormhole;
 	};
 
 }

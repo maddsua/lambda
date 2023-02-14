@@ -8,6 +8,11 @@ using JSON = nlohmann::json;
 #include "include/maddsua/lambda.hpp"
 
 
+struct passtrough {
+	std::string data;
+};
+
+
 lambda::lambdaResponse requesthandeler(lambda::lambdaEvent event) {
 
 
@@ -46,25 +51,33 @@ lambda::lambdaResponse requesthandeler(lambda::lambdaEvent event) {
 	auto fileext = event.path.find_last_of('.');
 
 	return { 200, {
-		{ "Content-Type", lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")}
+		{ "Content-Type", lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")},
+		{ "X-Wormhole", event.wormhole ? ((passtrough*)event.wormhole)->data : "None"}
 	}, filecontents};
 
 }
 
 int main(int argc, char** argv) {
 
-	auto server = lambda::lambda();
+	auto lambdaserver = lambda::lambda();
 	
-	lambda::lambdaConfig servercfg;
-		servercfg.compression_preferBr = true;
+	lambda::lambdaConfig lambdacfg;
+		lambdacfg.compression_preferBr = true;
 
-	auto startresult = server.init(27015, &requesthandeler, servercfg);
+	lambdaserver.setConfig(lambdacfg);
 
-	std::cout << "Server: " << startresult.cause << std::endl;
+	auto startresult = lambdaserver.start(27015, &requesthandeler);
+
+	std::cout << "Lambda instance: " << startresult.cause << std::endl;
 
 	if (!startresult.success) return 1;
 
 	std::cout << "Waiting for connections at http://localhost:27015/" << std::endl;
+
+	passtrough ptdata;
+		ptdata.data = "Interstellar WooooHooo!";
+
+	lambdaserver.openWormhole(&ptdata);
 
 
 	//	connect to google.com
@@ -84,7 +97,7 @@ int main(int argc, char** argv) {
 
 	while (true) {
 
-		for (auto log : server.showLogs()) std::cout << log << std::endl;
+		for (auto log : lambdaserver.showLogs()) std::cout << log << std::endl;
 
 		//	just chill while server is running
 		Sleep(1000);
