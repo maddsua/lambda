@@ -234,27 +234,27 @@ void lambda::lambda::handler() {
 		event.wormhole = instanceWormhole;
 
 	//	get callback result
-	auto result = requestCallback(event);
+	auto lcbResult = requestCallback(event);
 
 	//	inject additional headers
-	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &result.headers);
-	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &result.headers);
-	addHeader({ "Date", httpTimeNow() }, &result.headers);
+	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &lcbResult.headers);
+	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &lcbResult.headers);
+	addHeader({ "Date", httpTimeNow() }, &lcbResult.headers);
 	
-	if (result.body.size()) {
-		auto jsJsonObject = (result.body[0] == '{' && result.body[result.body.size() - 1] == '}');
-		auto isJsonArray = (result.body[0] == '[' && result.body[result.body.size() - 1] == ']');
-		addHeader({ "Content-Type", mimetype((jsJsonObject || isJsonArray) ? "json" : "html") }, &result.headers);
+	if (lcbResult.body.size()) {
+		auto jsJsonObject = (lcbResult.body[0] == '{' && lcbResult.body[lcbResult.body.size() - 1] == '}');
+		auto isJsonArray = (lcbResult.body[0] == '[' && lcbResult.body[lcbResult.body.size() - 1] == ']');
+		addHeader({ "Content-Type", mimetype((jsJsonObject || isJsonArray) ? "json" : "html") }, &lcbResult.headers);
 	}
 
 	//	reset header case
-	for (size_t i = 0; i < result.headers.size(); i++)
-		toTitleCase(&result.headers[i].name);
+	for (size_t i = 0; i < lcbResult.headers.size(); i++)
+		toTitleCase(&lcbResult.headers[i].name);
 
 	//	apply request compression
 	auto acceptEncodings = splitBy(findHeader("Accept-Encoding", &httprequest.headers), ",");
 
-	auto isCompressable = includes(findHeader("Content-Type",  &result.headers), compressibleTypes);
+	auto isCompressable = includes(findHeader("Content-Type",  &lcbResult.headers), compressibleTypes);
 	std::string compressedBody;
 	
 	if (instanceConfig.compression_enabled && acceptEncodings.size() && (isCompressable || instanceConfig.compression_allFileTypes)) {
@@ -275,37 +275,34 @@ void lambda::lambda::handler() {
 		std::string appliedCompression;
 
 		if (acceptEncodings[0] == "br") {
-			compressedBody = compression::brCompress(&result.body);
+			compressedBody = compression::brCompress(&lcbResult.body);
 			if (compressedBody.size()) appliedCompression = "br";
 				else addLogEntry(context, LAMBDALOG_ERR, "brotli compression failed");
 			
 		} else if (acceptEncodings[0] == "gzip") {
-			compressedBody = compression::gzCompress(&result.body, true);
+			compressedBody = compression::gzCompress(&lcbResult.body, true);
 			if (compressedBody.size()) appliedCompression = "gzip";
 				else addLogEntry(context, LAMBDALOG_ERR, "gzip compression failed");
 
 		} else if (acceptEncodings[0] == "deflate") {
-			compressedBody = compression::gzCompress(&result.body, false);
+			compressedBody = compression::gzCompress(&lcbResult.body, false);
 			if (compressedBody.size()) appliedCompression = "deflate";
 				else addLogEntry(context, LAMBDALOG_ERR, "deflate compression failed");
 		}
 
-		if (appliedCompression.size()) insertHeader("Content-Encoding", appliedCompression, &result.headers);
+		if (appliedCompression.size()) insertHeader("Content-Encoding", appliedCompression, &lcbResult.headers);
 			else compressedBody.erase(compressedBody.begin(), compressedBody.end());
 	}
 
 	//	generate response title
-	std::string startLine = "HTTP/1.1 " + httpStatusString(result.statusCode);
+	std::string startLine = "HTTP/1.1 " + httpStatusString(lcbResult.statusCode);
 
 	//	send response and close socket
-	auto sent = socketSendHTTP(&ClientSocket, startLine, &result.headers, compressedBody.size() ? &compressedBody : &result.body);
+	auto responseSent = socketSendHTTP(&ClientSocket, startLine, &lcbResult.headers, compressedBody.size() ? &compressedBody : &lcbResult.body);
 	closesocket(ClientSocket);
 
-	if (sent.success) {
-		addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(result.statusCode) + " for " + targetURL + "");
-	} else {
-		addLogEntry(context, LAMBDALOG_INFO, "Request for " + targetURL + " failed: " + sent.cause);
-	}
+	if (responseSent.success) addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(lcbResult.statusCode) + " for " + targetURL + "");
+		else addLogEntry(context, LAMBDALOG_INFO, "Request for " + targetURL + " failed: " + responseSent.cause);
 
 	//	done!
 	return;
