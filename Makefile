@@ -1,14 +1,16 @@
 # 2023 maddsua's lambda
+# Demo/Test app
+# makefile for windows build
+# GCC-12.2-ucrt64 is in use
 
 APP_DEV    = lambda.exe
-APP_DEMO   = lambda-server.exe
 LIBNAME    = lambda
 
 OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
 
 FLAGS      = -std=c++20
-LIBS_SYS   = -lws2_32 -lwinmm
-LIBS       = $(LIBS_SYS) -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+SYSLIBS    = -lws2_32 -lwinmm
 
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
@@ -28,24 +30,13 @@ run: action-custom
 
 
 # ----
-#	dev app
+#	labmda demo/test app
 # ----
-$(APP_DEV): $(OBJECTS) main.o
-	g++ $(OBJECTS) main.o $(LIBS) $(FLAGS) -o $(APP_DEV)
-
+$(APP_DEV): libshared main.o
+	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEV)
 
 main.o: main.cpp
 	g++ -c main.cpp -o main.o $(FLAGS)
-
-
-# ----
-#	demo app
-# ----
-demo: main.o
-#	dynamic linking
-	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEMO)
-#	static linking
-#	g++ demo/main.o -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS) -o $(APP_DEMO)
 
 
 # ----
@@ -57,7 +48,8 @@ libstatic: $(OBJECTS)
 
 #	make dll
 libshared: $(OBJECTS) $(LIBNAME).res
-	g++ $(OBJECTS) $(LIBNAME).res $(LIBS) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+	g++ $(OBJECTS) $(LIBNAME).res $(LIBS) $(SYSLIBS) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+
 
 # ----
 #	resources
@@ -67,7 +59,7 @@ $(LIBNAME).res: $(LIBNAME).rc
 
 
 # ----
-#	objects
+#	main components
 # ----
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
@@ -100,5 +92,8 @@ src/sha.o: src/sha.cpp
 	g++ -c src/sha.cpp -o src/sha.o $(FLAGS)
 
 
+# ----
+#	kinda plugins
+# ----
 src/radishdb.o: src/radishdb.cpp
 	g++ -c src/radishdb.cpp -o src/radishdb.o $(FLAGS)
