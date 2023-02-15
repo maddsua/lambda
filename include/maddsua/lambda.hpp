@@ -54,8 +54,7 @@
 			std::string requestID;
 			std::string clientIP;
 
-			//	A poiential foot-shooter, be extremely careful when using it
-			void* wormhole;
+			void* wormhole;		//	A poiential foot-shooter, be extremely careful when using it
 
 			std::string method;
 			std::string path;
@@ -99,9 +98,8 @@
 		class lambda {
 
 			public:
-				/**
-				 * Create a lambda server
-				*/
+
+				//	Create a lambda server
 				lambda() {
 					wsaData = {0};
 					ListenSocket = INVALID_SOCKET;
@@ -109,20 +107,14 @@
 					running = false;
 					instanceWormhole = nullptr;
 				}
-				lambda(const lambda & obj) {
-					//	a copy constructor so IntelliSense would shut the f up
-				}
-				lambda(lambda && obj) {
-					//	a move constructor for the same purpose
-					//	you can't actually use them due to std::threads not being copyable
-					//	and copying ov moving the server does not make any sence to me,
-					//	bc it's a "running function" and not a data object,
-					//	so I can't think of scenario wnen you need to copy it
-				}
+				//	lambda server destructor
 				~lambda() {
 					stop();
 				}
 
+				//	disable class copying
+				lambda(const lambda&) = delete;
+				void operator=(const lambda&) = delete;
 
 				/**
 				 * Start the lambda server
@@ -132,27 +124,29 @@
 				*/
 				actionResult start(const int port, std::function <lambdaResponse(lambdaEvent)> lambda);
 
-				void setConfig(lambdaConfig config);
-
-				void openWormhole(void* object);
-				void closeWormhole();
-
-				/**
-				 * Stop this lambda server
-				*/
+				//	Stop this lambda server instance
 				void stop();
 
-				/**
-				 * Ture, if there are log entries available
-				*/
-				inline bool logsAvail() { return instanceLog.size(); }
+				//	Apply configuration for this lambda server instance
+				void setConfig(lambdaConfig config);
 
 				/**
-				 * Get last log entries
+				 * Set a pointer to user-defined data or object
+				 * @warning Don't mess up the type casting or else...
 				*/
+				void openWormhole(void* object);
+
+				//	Null the user-defined data pointer
+				void closeWormhole();
+
+				//	Ture, if there are log entries available
+				inline bool logsAvail() { return instanceLog.size(); }
+
+				//	Get latest log entries
 				std::vector <std::string> showLogs();
 
 			private:
+
 				WSADATA wsaData;
 				SOCKET ListenSocket;
 
