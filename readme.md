@@ -2,8 +2,6 @@
 
 \* At the moment lambda uses M$ Windows implementation of sockets, so in order to build it for Linux you will need to do some work replacing them. I'll probably do it myself in the future, but for not it is what it is.
 
-<br>
-
 ### What?
 
 The idea behind this project is to bring the simplicity of building serverless backends with AWS Lambda to your C++ projects. Define a callback function, start a server and watch things just work.
@@ -76,8 +74,6 @@ The main function is not included (obviously) as long as AWS'es backend stuff th
 
 See [demo code](./main.cpp) for more. It will make sence, I promise.
 
-<br>
-
 ## Building a server app with the lambda
 
 1. Include `lambda.hpp`
@@ -88,14 +84,10 @@ See [demo code](./main.cpp) for more. It will make sence, I promise.
 
 ### [See how to do that in detail](main.cpp)
 
-<br>
-
 ## Requirements for running the app that uses prebuild lambda.dll
 
 - Windows 7+
 - [Universal C Runtime (URCT)](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c)
-
-<br>
 
 ## Requirements for building the lib
 
@@ -106,9 +98,7 @@ See [demo code](./main.cpp) for more. It will make sence, I promise.
 - Zlib, the same as with Brotli
 - Sockets:
     - For Windows bois: don't forget to include `lambda.hpp` before the `windows.h` in your project's main, or winsock will freak out
-   - For Linux bois: replace Windows sockets with non-M$ ones. Sorry, but I still didn't do that =(
-
-<br>
+    - For Linux bois: replace Windows sockets with non-M$ ones. Sorry, but I still didn't do that =(
 
 ## Notes
 
