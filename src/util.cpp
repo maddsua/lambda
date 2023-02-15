@@ -1,3 +1,21 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/                                            
+
+
 #include "../include/maddsua/crypto.hpp"
 
 #include <random>
@@ -27,33 +45,6 @@ std::string binToHex(const uint8_t* data, const size_t length) {
 		result[n + 1] = hex_table[data[m] & 0x0F];
 	}
 
-	return result;
-}
-
-std::vector <uint8_t> hexToBin(std::string& data) {
-	std::vector <uint8_t> result;
-		result.resize(data.size() / 2);
-
-	for (size_t i = 0; i < data.size(); i++) {
-		if (data[i] >= 'A' && data[i] <= 'Z') data[i] += 0x20;
-	}
-
-	auto toint = [](uint8_t* dbyte) {
-		if (*dbyte >= '0' && *dbyte <= '9') *dbyte -= 0x30;
-		else if (*dbyte >= 'a' && *dbyte <= 'z') *dbyte -= 0x57;
-	};
-
-	for (size_t m = 0, n = 0; m < result.size(); m++, n += 2) {
-
-		uint8_t byte_high = data[n];
-		uint8_t byte_low = data[n + 1];
-
-		toint(&byte_high);
-		toint(&byte_low);
-
-		result[m] = ((byte_high & 0x0f) << 4) | (byte_low & 0x0f);
-	}
-	
 	return result;
 }
 
@@ -140,7 +131,6 @@ std::string lambda::formatUUID(std::array <uint8_t, UUID_BYTES>& byteid, bool sh
 	}
 	
 	return uuid;
-
 }
 
 

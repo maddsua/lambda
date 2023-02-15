@@ -7,88 +7,253 @@ using JSON = nlohmann::json;
 
 #include "include/maddsua/lambda.hpp"
 
+//	Pls note:
+//
+//	while lambda privides the backbone for your server app,
+//	you still are responsible for routing and handling requests
+//	
+//	I'm thinking about adding some kind of simple rule based router,
+//	so it will be trivial to use lambda as regular http server,	
+//	but it's not the purpose lambda is built for
 
-lambda::lambdaResponse requesthandeler(lambda::lambdaEvent event) {
 
+//	A user-defined structure, is used to pass any kind of data
+//	to an isolated process
+struct passtrough {
+	maddsua::radishDB* db;
+};
 
-	//	api calls, like real functions in AWS Lambda
-	if (lambda::startsWith(event.path, "/api")) {
+//	declare a request callback function
+lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event);
 
-		JSON data = {
-			{"success", true},
-			{"api-response", "succeded"},
-			{"api-data", "test data"}
-		};
-
-		if (lambda::searchQueryFind("user", &event.searchQuery) == "maddsua") {
-			data["secret-message"] = "Buy some milk this time, come on Daniel =)";
-		}
-		
-		return {
-			200,
-			{
-				{ "content-type", lambda::findMimeType("json") }
-			},
-			data.dump()
-		};
-	}
-
-	//	fileserver part
-	if (event.path[event.path.size() - 1] == '/') event.path += "index.html";
-	event.path = std::regex_replace(("demo/" + event.path), std::regex("/+"), "/");
-
-	std::string filecontents;
-
-	if (!lambda::fs::readFileSync(event.path, &filecontents)) {
-		return { 404, {}, "File not found"};
-	}
-
-	auto fileext = event.path.find_last_of('.');
-
-	return { 200, {
-		{ "Content-Type", lambda::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")}
-	}, filecontents};
-
-}
 
 int main(int argc, char** argv) {
 
-	auto server = lambda::lambda();
+	//	create lambda server
+	lambda::lambda lambdaserver;
 	
-	lambda::lambdaConfig servercfg;
-		servercfg.compression_preferBr = true;
+	//	tweak server settings
+	lambda::lambdaConfig lambdacfg;
+		lambdacfg.compression_preferBr = true;
 
-	auto startresult = server.init(27015, &requesthandeler, servercfg);
+	//	apply server settings
+	lambdaserver.setConfig(lambdacfg);
 
-	std::cout << "Server: " << startresult.cause << std::endl;
+	//	actually start the server
+	auto startresult = lambdaserver.start(27015, &requestHandeler);
 
+	//	check if successful
+	std::cout << "Lambda instance: " << startresult.cause << std::endl;
+
+	//	and exit if not
 	if (!startresult.success) return 1;
 
+	//	report successful lambda start
 	std::cout << "Waiting for connections at http://localhost:27015/" << std::endl;
 
+	
+	//	now let's create a database instance
+	maddsua::radishDB database;
 
-	//	connect to google.com
-	/*{
-		auto googeResp = maddsua::fetch("www.google.com", "GET", {}, "");
+	//	set a test value to the database, so it can be easily accessed
+	//	request url will look like this: "http://localhost:27015/api/db?entry=test"
+	database.push("test", "test value", false);
 
-		printf("Connecting to google.com... %i %s", googeResp.statusCode, googeResp.statusText);
-		if (googeResp.errors.size()) puts(googeResp.errors.c_str());
-		puts(googeResp.body.c_str());
+	//	let's put a pointer to the database inside and object 
+	//	you don't really need to use a struct/object for this, but I do it anyway
+	//	and if you'd like to pass an object... you get it, just use a struct
+	passtrough interstellarData;
+		interstellarData.db = &database;
 
-		for (auto header : googeResp.headers) {
-			std::cout << header.name << " " << header.value << std::endl;
-		}
+	//	and make it accessable to the lambda
+	lambdaserver.openWormhole(&interstellarData);
 
-		std::cout << "Writing to googlecom.bin result: " << maddsua::writeFileSync("googlecom.bin", &googeResp.body) << std::endl;
-	}*/
-
+	//	now just chill in the log loop
 	while (true) {
 
-		for (auto log : server.showLogs()) std::cout << log << std::endl;
+		for (auto log : lambdaserver.showLogs()) std::cout << log << std::endl;
 
 		//	just chill while server is running
 		Sleep(1000);
 	}
 
 	return 0;
+}
+
+
+lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
+
+
+	//	let' demonstrate a database access
+	//	we can access database by it's pointer, passed trough the wormhole
+	//	check if requested URL starts with something we consider the database API path
+	if (lambda::startsWith(event.path, "/api/db")) {
+
+		//	OK, so user asks to get database access
+
+		//	let's check if we can access it now
+		if (!event.wormhole) {
+			return {
+				200,
+				{/* no headers here, using default mimetype - json */},
+				JSON({
+					{"Request", "Failed"},
+					{"Error", "Sorry, but the database is not accessable"}
+				}).dump()
+			};
+		}
+
+		//	let's see what he wants, get a record id
+		auto entryID = lambda::findQuery("entry", &event.searchQuery);
+
+		//	return if not specified
+		if (!entryID.size()) {
+			return {
+				200,
+				{},
+				JSON({
+					{"Request", "Failed"},
+					{"Error", "Entry id is not specified"}
+				}).dump()
+			};
+		}
+
+		auto db = ((passtrough*)event.wormhole)->db;
+
+		//	try to get a record
+		if (event.method == "GET") {
+
+			auto recordData = db->pull(entryID);
+
+			//	returen error if no data was returned
+			if (!recordData.size()) {
+				return {
+					200,
+					{},
+					JSON({
+						{"Request", "Partially succeeded"},
+						{"Error", "Requested entry is not found"}
+					}).dump()
+				};
+			}
+
+			//	return the data
+			try {
+
+				//	try as a plain text first
+				return {
+					200,
+					{},
+					JSON({
+						{"Request", "Succeeded"},
+						{"Data", recordData}
+					}).dump()
+				};
+
+			} catch(...) {
+
+				//	if fails, encode base64 and return that
+				return {
+					200,
+					{},
+					JSON({
+						{"Request", "Succeeded"},
+						{"Base64", true},
+						{"Data", maddsua::b64Encode(&recordData)}
+					}).dump()
+				};
+			}
+			
+
+		}
+
+		//	OK, let's store some data
+		if (event.method == "POST") {
+
+			//	returen error if request body is empty
+			if (!event.body.size()) {
+				return {
+					200,
+					{},
+					JSON({
+						{"Request", "Partially succeeded"},
+						{"Error", "Empty request body; Use DELETE method to remove data"}
+					}).dump()
+				};
+			}
+
+			//	write to the database, overwrite if exists
+			db->push(entryID, event.body, true);
+
+			//	report success
+			return {
+				200,
+				{},
+				JSON({
+					{"Request", "Ok"},
+					{"Info", "Saved"}
+				}).dump()
+			};
+		}
+
+		//	handle deletion
+		if (event.method == "DELETE") {
+
+			//	check if we can delete entry
+			//	this will fail only if entry is not present in database
+			if (!db->remove(entryID)) {
+				return {
+					200,
+					{},
+					JSON({
+						{"Request", "Partially succeeded"},
+						{"Error", "No such entry or already deleted"}
+					}).dump()
+				};
+			}
+
+			//	report successfull deletion
+			return {
+				200,
+				{},
+				JSON({
+					{"Request", "Ok"},
+					{"Info", "Deleted"}
+				}).dump()
+			};
+		}
+	}
+
+	//	OK, we're done with the database
+	//	let's serve some static files - html, css and whatever else
+
+	//	Fhis feature isn't really a selling point. I mean, lambda can be a
+	//	 file server, but it was designed to replace AWS Lambda
+	//	 on a local machine. Kinda like a cloud without a cloud.
+	//	So at the moment, there are not much tools to help with serving files
+
+	//	Format path, is up to you.
+	//	Probably will add some basic path transformation rules in the future
+	if (event.path[event.path.size() - 1] == '/') event.path += "index.html";
+	event.path = std::regex_replace(("demo/" + event.path), std::regex("/+"), "/");
+
+	//	read file contents to this string
+	//	return if fails
+	std::string filecontents;
+	if (!lambda::fs::readSync(event.path, &filecontents)) {
+		return { 404, {}, "File not found"};
+	}
+
+	//	determine the file extension
+	auto fileext = event.path.find_last_of('.');
+	//	determine content type based on file extension
+	auto contentType = lambda::mimetype((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin");
+
+	//	serve that kitty picture
+	return {
+		200, {
+			{ "Content-Type", contentType },
+		}, filecontents
+	};
+
 }

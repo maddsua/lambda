@@ -1,29 +1,27 @@
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
 APP_DEV    = lambda.exe
-
 APP_DEMO   = lambda-server.exe
 LIBNAME    = lambda
 
 OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
 
 FLAGS      = -std=c++20
-LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lzstd
-LIB_STC    = -l:libz.a -l:libbrotli.a -l:libzstd.a
 LIBS_SYS   = -lws2_32 -lwinmm
+LIBS       = $(LIBS_SYS) -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
-.PHONY: all all-before all-after clean-custom run-custom lib demo
+.PHONY: all all-before all-after action-custom
 all: all-before $(APP_DEV) all-after
 
-clean: clean-custom
+clean: action-custom
 	del /S *.exe *.a *.dll
 #	rm -rf *.exe *.a *.dll
 
-purge: clean-custom
+purge: action-custom
 	del /S *.o *.exe *.a *.dll
 #	rm -rf *.o *.exe *.a *.dll
 
-run: run-custom
+run: action-custom
 	$(APP_DEV)
 
 
@@ -31,7 +29,7 @@ run: run-custom
 #	dev app
 # ----
 $(APP_DEV): $(OBJECTS) main.o
-	g++ $(OBJECTS) main.o $(LIBS_SYS) $(LIBS) $(FLAGS) -o $(APP_DEV)
+	g++ $(OBJECTS) main.o $(LIBS) $(FLAGS) -o $(APP_DEV)
 
 
 main.o: main.cpp
@@ -56,8 +54,15 @@ libstatic: $(OBJECTS)
 	ar rvs lib$(LIBNAME).a $(OBJECTS)
 
 #	make dll
-libshared: $(OBJECTS)
-	g++ $(OBJECTS) $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+libshared: $(OBJECTS) $(LIBNAME).res
+	g++ $(OBJECTS) $(LIBNAME).res $(LIBS) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+
+# ----
+#	resources
+# ----
+$(LIBNAME).res: $(LIBNAME).rc
+	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
+
 
 # ----
 #	objects

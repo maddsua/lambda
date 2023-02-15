@@ -1,4 +1,23 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
 #include "../include/maddsua/http.hpp"
+
 
 struct _httpcode {
 	uint16_t code;
@@ -191,7 +210,7 @@ std::vector <std::string> lambda::splitBy(std::string source, std::string token)
 	return temp;
 }
 
-std::string lambda::headerFind(std::string headerName, std::vector <lambda::datapair>* headers) {
+std::string lambda::findHeader(std::string headerName, std::vector <lambda::datapair>* headers) {
 	for (auto headerObject : *headers) {
 		if (toLowerCase(headerObject.name) == toLowerCase(headerName))
 			return headerObject.value;
@@ -206,7 +225,7 @@ std::string lambda::httpTime(time_t epoch_time) {
 	return timebuff;
 }
 
-std::vector <lambda::datapair> lambda::searchQueryParams(std::string* url) {
+std::vector <lambda::datapair> lambda::getSearchQuery(std::string* url) {
 	std::vector <lambda::datapair> params;
 
 	auto startpoint = url->find_last_of('?');
@@ -221,7 +240,7 @@ std::vector <lambda::datapair> lambda::searchQueryParams(std::string* url) {
 	return params;
 }
 
-void lambda::headerInsert(std::string header, std::string value, std::vector <lambda::datapair>* headers) {
+void lambda::insertHeader(std::string header, std::string value, std::vector <lambda::datapair>* headers) {
 
 	for (auto& h : *headers) {
 		if (toLowerCase(h.name) == toLowerCase(header)) {

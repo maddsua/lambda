@@ -1,9 +1,26 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
 #include <memory>
 
 #include <zlib.h>
 #include <brotli/encode.h>
 #include <brotli/decode.h>
-#include <zstd.h>
 
 #include "../include/maddsua/compression.hpp"
 
@@ -242,32 +259,5 @@ std::string  lambda::compression::brCompress(const std::string* data) {
 
 	if (opresult != BROTLI_DECODER_RESULT_SUCCESS) return {};
 
-	return result;
-}
-
-
-std::string lambda::compression::zstdCompress(const std::string* data) {
-
-	std::string result;
-		result.resize(ZSTD_compressBound(data->size()));
-
-	auto opRes = ZSTD_compress(result.data(), result.size(), data->data(), data->size(), LAMBDA_ZSTD_COMPRESSION);
-	if (ZSTD_isError(opRes)) return {};
-
-	result.resize(opRes);
-	result.shrink_to_fit();
-	return result;
-}
-
-std::string lambda::compression::zstdDecompress(const std::string* data) {
-
-	std::string result;
-		result.resize(ZSTD_getFrameContentSize(data->data(), data->size()));
-
-	auto opRes = ZSTD_decompress(result.data(), result.size(), data->data(), data->size());
-	if (ZSTD_isError(opRes)) return {};
-
-	result.resize(opRes);
-	result.shrink_to_fit();
 	return result;
 }

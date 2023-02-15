@@ -1,3 +1,21 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
 #include <regex>
 #include <stdio.h>
 #include <dir.h>
@@ -5,7 +23,34 @@
 
 #include "../include/maddsua/fs.hpp"
 
-bool lambda::fs::writeFileSync(const std::string path, const std::string* data) {
+bool lambda::fs::createTree(std::string tree) {
+
+	tree = std::regex_replace(tree, std::regex("[\\\\\\/]+"), "\\");
+
+	if (!tree.size()) {
+		return false;
+	}
+
+	auto createIfDontexist = [](std::string path) {
+		auto dir = opendir(path.c_str());
+		if (dir) {
+			closedir(dir);
+			return true;
+		}
+		if (mkdir(path.c_str())) return false;
+		return true;
+	};
+
+	auto hierrarchy = tree.find_first_of('\\');
+	while(hierrarchy != std::string::npos) {
+		if (!createIfDontexist(tree.substr(0, hierrarchy))) return false;
+		hierrarchy = tree.find_first_of('\\', hierrarchy + 1);
+	}
+
+	return true;
+}
+
+bool lambda::fs::writeSync(const std::string path, const std::string* data) {
 
 	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
 		auto dirpath = std::regex_replace(path, std::regex("\\+"), "/");
@@ -28,7 +73,7 @@ bool lambda::fs::writeFileSync(const std::string path, const std::string* data) 
 	return true;
 }
 
-bool lambda::fs::readFileSync(std::string path, std::string* dest) {
+bool lambda::fs::readSync(std::string path, std::string* dest) {
 	FILE* binfile = fopen64(path.c_str(), "rb");
 	if (!binfile) return false;
 

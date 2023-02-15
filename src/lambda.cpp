@@ -1,7 +1,35 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
 #include "../include/maddsua/lambda.hpp"
 
 
-const std::vector<std::string> compressableTypes = { "text", "application" };
+const std::vector<std::string> compressibleTypes = { "text", "application" };
+
+void lambda::lambda::setConfig(lambdaConfig config) {
+	instanceConfig = config;
+}
+void lambda::lambda::openWormhole(void* object) {
+	instanceWormhole = object;
+}
+void lambda::lambda::closeWormhole() {
+	instanceWormhole = nullptr;
+}
 
 std::string lambda::lambda::serverTime(time_t timestamp) {
 	char timebuff[16];
@@ -9,6 +37,10 @@ std::string lambda::lambda::serverTime(time_t timestamp) {
 	strftime(timebuff, sizeof(timebuff), "%H:%M:%S", timedata);
 	return std::string(timebuff);
 }
+std::string lambda::lambda::serverTime() {
+	return serverTime(time(nullptr));
+}
+
 
 void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std::string message) {
 	
@@ -19,7 +51,7 @@ void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std
 		entry.requestId = context.uuid;
 		entry.clientIP = context.clientIP;
 
-	serverlog.push_back(entry);
+	instanceLog.push_back(entry);
 }
 
 std::vector <std::string> lambda::lambda::showLogs() {
@@ -28,7 +60,7 @@ std::vector <std::string> lambda::lambda::showLogs() {
 
 	std::lock_guard<std::mutex> lock (threadLock);
 
-	for (auto& logEntry : serverlog) {
+	for (auto& logEntry : instanceLog) {
 
 		auto temp = serverTime();
 
@@ -49,20 +81,20 @@ std::vector <std::string> lambda::lambda::showLogs() {
 		printout.push_back(temp + logEntry.clientIP + ' ' + formatUUID(logEntry.requestId, false) + " : " + logEntry.message);
 	}
 
-	serverlog.clear();
+	instanceLog.clear();
 
 	return printout;
 }
 
 
-lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaResponse(lambdaEvent)> lambda) {
+lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaResponse(lambdaEvent)> lambda) {
 
 	if (running) return {
 		false,
 		"Already running"
 	};
 
-	if (!config.mutlipeInstances || (config.mutlipeInstances && !socketsReady())) {
+	if (!instanceConfig.mutlipeInstances || (instanceConfig.mutlipeInstances && !socketsReady())) {
 		if (WSAStartup(MAKEWORD(2,2), &wsaData)) return {
 			false,
 			"Startup failed",
@@ -80,7 +112,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 		hints.ai_flags = AI_PASSIVE;
 
 	if (getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &servAddr) != 0) {
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Localhost didn't resolve",
@@ -92,7 +124,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 	ListenSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
 	if (ListenSocket == INVALID_SOCKET) {
 		freeaddrinfo(servAddr);
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to create listening socket",
@@ -102,7 +134,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 	if (bind(ListenSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 		freeaddrinfo(servAddr);
 		closesocket(ListenSocket);
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to bind a TCP socket",
@@ -114,7 +146,7 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 
 	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
 		closesocket(ListenSocket);
-		if (!config.mutlipeInstances) WSACleanup();
+		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Socket error",
@@ -133,11 +165,11 @@ lambda::actionResult lambda::lambda::init(const int port, std::function<lambdaRe
 	};
 }
 
-void lambda::lambda::close() {
+void lambda::lambda::stop() {
 	running = false;
 	if (worker.joinable()) worker.join();
 	closesocket(ListenSocket);
-	if (!config.mutlipeInstances) WSACleanup();
+	if (!instanceConfig.mutlipeInstances) WSACleanup();
 }
 
 void lambda::lambda::connectDispatch() {
@@ -177,56 +209,58 @@ void lambda::lambda::handler() {
 		context.clientIP = clientIPBuff;
 
 	//	download http request
-	auto rqData = socketGetHTTP(&ClientSocket);
+	auto httprequest = socketGetHTTP(&ClientSocket);
 
 	//	drop connection if the request is invalid
-	if (!rqData.success) {
+	if (!httprequest.success) {
 		addLogEntry(context, LAMBDALOG_WARN, "Aborted");
 		closesocket(ClientSocket);
 		return;
 	}
 
-	//	add client's useragent to metadata
-	//auto clientUA = headerFind("User-Agent", &rqData.headers);
-	//if (clientUA.size()) context.userAgent = clientUA;
-
-
 	//	pass the data to lambda function
-	auto targetURL = rqData.startLineArgs[1];
+	auto targetURL = toLowerCase(httprequest.startLineArgs[1]);
 	lambdaEvent rqEvent;
-		rqEvent.method = rqData.startLineArgs[0];
-		rqEvent.httpversion = rqData.startLineArgs[2];
+		rqEvent.method = toUpperCase(httprequest.startLineArgs[0]);
+		rqEvent.httpversion = toUpperCase(httprequest.startLineArgs[2]);
 		rqEvent.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
-		rqEvent.searchQuery = searchQueryParams(&targetURL);
-		rqEvent.headers = rqData.headers;
-		rqEvent.body = rqData.body;
-		
+		rqEvent.searchQuery = getSearchQuery(&targetURL);
+		rqEvent.headers = httprequest.headers;
+		rqEvent.body = httprequest.body;
+
+		//	neutron-star-explosive part
+		rqEvent.wormhole = instanceWormhole;
+
+	//	get callback result
 	auto lambdaResult = callback(rqEvent);
 
 	//	inject additional headers
-	headerAdd({"X-Powered-By", MADDSUAHTTP_USERAGENT}, &lambdaResult.headers);
-	headerAdd({"X-Request-ID", formatUUID(context.uuid, true)}, &lambdaResult.headers);
-	headerAdd({"Date", httpTimeNow()}, &lambdaResult.headers);
-	headerAdd({"Content-Type", findMimeType("html")}, &lambdaResult.headers);
-
-	//	reset header case
-	for (size_t i = 0; i < lambdaResult.headers.size(); i++) {
-		toTitleCase(&lambdaResult.headers[i].name);
+	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &lambdaResult.headers);
+	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &lambdaResult.headers);
+	addHeader({ "Date", httpTimeNow() }, &lambdaResult.headers);
+	
+	if (lambdaResult.body.size()) {
+		auto isJson = (lambdaResult.body[0] == '{' || lambdaResult.body[0] == '[');
+		addHeader({ "Content-Type", mimetype(isJson ? "json" : "html") }, &lambdaResult.headers);
 	}
 
-	//	apply request compression
-	auto acceptEncodings = splitBy(headerFind("Accept-Encoding", &rqData.headers), ",");
+	//	reset header case
+	for (size_t i = 0; i < lambdaResult.headers.size(); i++)
+		toTitleCase(&lambdaResult.headers[i].name);
 
-	auto isCompressable = includes(headerFind("Content-Type",  &lambdaResult.headers), compressableTypes);
+	//	apply request compression
+	auto acceptEncodings = splitBy(findHeader("Accept-Encoding", &httprequest.headers), ",");
+
+	auto isCompressable = includes(findHeader("Content-Type",  &lambdaResult.headers), compressibleTypes);
 	std::string compressedBody;
 	
-	if (config.compression_enabled && acceptEncodings.size() && (isCompressable || config.compression_allFileTypes)) {
+	if (instanceConfig.compression_enabled && acceptEncodings.size() && (isCompressable || instanceConfig.compression_allFileTypes)) {
 
 		for (auto &&encoding : acceptEncodings) {
 			trim(&encoding);
 		}
 
-		if (config.compression_preferBr) {
+		if (instanceConfig.compression_preferBr) {
 			for (auto encoding : acceptEncodings) {
 				if (encoding == "br") {
 					acceptEncodings[0] = encoding;
@@ -253,7 +287,7 @@ void lambda::lambda::handler() {
 				else addLogEntry(context, LAMBDALOG_ERR, "deflate compression failed");
 		}
 
-		if (appliedCompression.size()) headerInsert("Content-Encoding", appliedCompression, &lambdaResult.headers);
+		if (appliedCompression.size()) insertHeader("Content-Encoding", appliedCompression, &lambdaResult.headers);
 			else compressedBody.erase(compressedBody.begin(), compressedBody.end());
 	}
 

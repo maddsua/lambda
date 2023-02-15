@@ -1,3 +1,20 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
 
 #include <regex>
 #include <algorithm>
@@ -75,10 +92,10 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 
 	//	add service headers
 	if (!method.size()) method = "GET";
-	if (!headerExists("Host", &headers)) headers.push_back({"Host", fullhost});
-	if (!headerExists("User-Agent", &headers)) headers.push_back({"User-Agent", MADDSUAHTTP_USERAGENT});
+	if (!keyExists("Host", &headers)) headers.push_back({"Host", fullhost});
+	if (!keyExists("User-Agent", &headers)) headers.push_back({"User-Agent", HTTPLAMBDA_USERAGENT});
 	
-	headerInsert("Accept-Encoding", "br, gzip, deflate", &headers);
+	insertHeader("Accept-Encoding", "br, gzip, deflate", &headers);
 
 	//	send request
 	auto sent = socketSendHTTP(&connection, (toUpperCase(method) + " " + path + " HTTP/1.1"), &headers, &body);
@@ -111,7 +128,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	}
 
 	//	decode body
-	auto encodings = splitBy(headerFind("Content-Encoding", &serverResponse.headers), ",");
+	auto encodings = splitBy(findHeader("Content-Encoding", &serverResponse.headers), ",");
 	std::reverse(encodings.begin(), encodings.end());
 
 	//	account for possible multiple layers of encoding

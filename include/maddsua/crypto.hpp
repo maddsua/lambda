@@ -1,21 +1,33 @@
 /*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+/*
 	Required libs:
 		libwinmm
 */
 
-#ifndef _maddsua_crypto
-#define _maddsua_crypto
+#ifndef H_MADDSUA_LAMBDA_CRYPTO
+#define H_MADDSUA_LAMBDA_CRYPTO
 
 #include <stdint.h>
 #include <string>
 #include <vector>
 #include <array>
 #include <memory.h>
-
-#define ROUNDHASH128_SIZE	(128)
-#define ROUNDHASH256_SIZE	(256)
-#define ROUNDHASH512_SIZE	(512)
-#define ROUNDHASH1024_SIZE	(1024)
 
 #define SHA1_BLOCK_SIZE 	(20)
 #define SHA256_BLOCK_SIZE	(32)

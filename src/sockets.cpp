@@ -1,4 +1,23 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
 #include "../include/maddsua/http.hpp"
+
 
 lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 
@@ -30,11 +49,12 @@ lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 	std::string requestHeaderText = rawData.substr(0, headerEnded);
 
 	//	split text by lines
-	auto headerLines = splitBy(requestHeaderText.c_str(), "\r\n");
+	auto headerLines = splitBy(requestHeaderText, "\r\n");
 	if (headerLines.size() < 1) return { false };
 
 	//	parse start-line
-	std::vector <std::string> startArgs = splitBy(headerLines[0].c_str(), " ");
+	std::vector <std::string> startArgs = splitBy(headerLines[0], " ");
+	//	drop it less than 3 args here
 	if (startArgs.size() < 3) return { false };
 
 	//	parse headers
@@ -53,7 +73,7 @@ lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 
 	//	download body is exists
 	std::string requestBody;
-	auto contentLength = headerFind("Content-Length", &headers);
+	auto contentLength = findHeader("Content-Length", &headers);
 	if (contentLength.size()) {
 		size_t bodySize;
 
@@ -99,7 +119,7 @@ lambda::actionResult lambda::socketSendHTTP(SOCKET* client, std::string startlin
 	auto temp = startline + "\r\n";
 
 	//	add content length header
-	if (body->size()) headerInsert("Content-Length", std::to_string(body->size()), headers);
+	if (body->size()) insertHeader("Content-Length", std::to_string(body->size()), headers);
 
 	//	add headers
 	for (auto header : *headers) {

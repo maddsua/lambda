@@ -1,6 +1,6 @@
 
 FLAGS      = -std=c++20
-LIBS       = -lz -lbrotli -lzstd
+LIBS       = -lz -lbrotli
 
 .PHONY: all all-before all-after base64
 all: all-before all-after
@@ -23,7 +23,7 @@ sha:
 
 # database test
 db: radish_test.o ../src/radishdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o
-	g++ radish_test.cpp ../src/radishdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o -o radish_test.exe $(LIBS) $(FLAGS)
+	g++ radish_test.cpp ../src/radishdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o $(LIBS) $(FLAGS) -o radish_test.exe
 
 radish_test.o: radish_test.cpp
 	g++ -c radish_test.cpp -o radish_test.o $(LIBS) $(FLAGS)

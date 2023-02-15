@@ -1,3 +1,21 @@
+/*
+
+	maddsua's
+     ___       ________  _____ ______   ________  ________  ________
+    |\  \     |\   __  \|\   _ \  _   \|\   __  \|\   ___ \|\   __  \
+    \ \  \    \ \  \|\  \ \  \\\__\ \  \ \  \|\ /\ \  \_|\ \ \  \|\  \
+     \ \  \    \ \   __  \ \  \\|__| \  \ \   __  \ \  \ \\ \ \   __  \
+      \ \  \____\ \  \ \  \ \  \    \ \  \ \  \|\  \ \  \_\\ \ \  \ \  \
+       \ \_______\ \__\ \__\ \__\    \ \__\ \_______\ \_______\ \__\ \__\
+        \|_______|\|__|\|__|\|__|     \|__|\|_______|\|_______|\|__|\|__|
+
+	A C++ HTTP server framework
+
+	2023 https://github.com/maddsua/lambda
+	
+*/
+
+
 #include <time.h>
 
 #include "../include/maddsua/radishdb.hpp"
@@ -15,7 +33,7 @@
 */
 
 
-bool maddsua::radishDB::set(std::string key, std::string value, bool replace) {
+bool maddsua::radishDB::push(std::string key, std::string value, bool replace) {
 
 	std::lock_guard<std::mutex> lock (threadLock);
 
@@ -37,13 +55,13 @@ bool maddsua::radishDB::set(std::string key, std::string value, bool replace) {
 	dbdata.push_back(std::move(temp));
 	return true;
 }
-bool maddsua::radishDB::check(std::string key) {
+bool maddsua::radishDB::present(std::string key) {
 	for (auto entry : dbdata) {
 		if (entry.key == key) return true;
 	}
 	return false;
 }
-std::string maddsua::radishDB::get(std::string key) {
+std::string maddsua::radishDB::pull(std::string key) {
 
 	std::lock_guard<std::mutex> lock (threadLock);
 
@@ -131,9 +149,9 @@ bool maddsua::radishDB::store(std::string path) {
 	}
 
 
-	auto compressed = lambda::compression::zstdCompress(&dbstring);
+	auto compressed = lambda::compression::gzCompress(&dbstring, true);
 
-	if (!lambda::fs::writeFileSync(path, &compressed)) return false;
+	if (!lambda::fs::writeSync(path, &compressed)) return false;
 	
 	return true;
 }
@@ -142,10 +160,10 @@ bool maddsua::radishDB::load(std::string path) {
 
 	std::string rawBinData;
 
-	if (!lambda::fs::readFileSync(path, &rawBinData)) return false;
+	if (!lambda::fs::readSync(path, &rawBinData)) return false;
 
 	//	decompress
-	auto dbstring = lambda::compression::zstdDecompress(&rawBinData);
+	auto dbstring = lambda::compression::gzDecompress(&rawBinData);
 
 	size_t blit_begin = 0;
 	size_t blit_end = 0;
