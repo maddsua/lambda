@@ -302,9 +302,9 @@ void lambda::lambda::handler() {
 	closesocket(ClientSocket);
 
 	if (sent.success) {
-		addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(result.statusCode) + " for " + event.path + "");
+		addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(result.statusCode) + " for " + targetURL + "");
 	} else {
-		addLogEntry(context, LAMBDALOG_INFO, "Request for " + event.path + " failed: " + sent.cause);
+		addLogEntry(context, LAMBDALOG_INFO, "Request for " + targetURL + " failed: " + sent.cause);
 	}
 
 	//	done!
