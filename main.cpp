@@ -110,7 +110,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 		if (!entryID.size()) {
 			return {
 				200,
-				{ },
+				{},
 				JSON({
 					{"Request", "Failed"},
 					{"Error", "Entry id is not specified"}
@@ -129,7 +129,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			if (!recordData.size()) {
 				return {
 					200,
-					{ },
+					{},
 					JSON({
 						{"Request", "Partially succeeded"},
 						{"Error", "Requested entry is not found"}
@@ -139,10 +139,11 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 
 			//	return the data
 			try {
+
 				//	try as a plain text first
 				return {
 					200,
-					{ },
+					{},
 					JSON({
 						{"Request", "Succeeded"},
 						{"Data", recordData}
@@ -154,7 +155,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 				//	if fails, encode base64 and return that
 				return {
 					200,
-					{ },
+					{},
 					JSON({
 						{"Request", "Succeeded"},
 						{"Base64", true},
@@ -173,7 +174,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			if (!event.body.size()) {
 				return {
 					200,
-					{ },
+					{},
 					JSON({
 						{"Request", "Partially succeeded"},
 						{"Error", "Empty request body; Use DELETE method to remove data"}
@@ -187,7 +188,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			//	report success
 			return {
 				200,
-				{ },
+				{},
 				JSON({
 					{"Request", "Ok"},
 					{"Info", "Saved"}
@@ -203,7 +204,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			if (!db->remove(entryID)) {
 				return {
 					200,
-					{ },
+					{},
 					JSON({
 						{"Request", "Partially succeeded"},
 						{"Error", "No such entry or already deleted"}
@@ -214,7 +215,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			//	report successfull deletion
 			return {
 				200,
-				{ },
+				{},
 				JSON({
 					{"Request", "Ok"},
 					{"Info", "Deleted"}
@@ -240,7 +241,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 	//	return if fails
 	std::string filecontents;
 	if (!lambda::fs::readSync(event.path, &filecontents)) {
-		return { 404, { }, "File not found"};
+		return { 404, {}, "File not found"};
 	}
 
 	//	determine the file extension
