@@ -1,4 +1,4 @@
-#	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
+# 2023 maddsua's lambda
 
 APP_DEV    = lambda.exe
 APP_DEMO   = lambda-server.exe
@@ -9,6 +9,8 @@ OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o s
 FLAGS      = -std=c++20
 LIBS_SYS   = -lws2_32 -lwinmm
 LIBS       = $(LIBS_SYS) -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+
+#	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
 .PHONY: all all-before all-after action-custom
 all: all-before $(APP_DEV) all-after

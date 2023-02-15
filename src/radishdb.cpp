@@ -35,7 +35,7 @@
 
 bool maddsua::radishDB::push(std::string key, std::string value, bool replace) {
 
-	std::lock_guard<std::mutex> lock (threadLock);
+	std::lock_guard <std::mutex> lock (threadLock);
 
 	for (auto& entry : dbdata) {
 		if (entry.key == key) {
@@ -63,7 +63,7 @@ bool maddsua::radishDB::present(std::string key) {
 }
 std::string maddsua::radishDB::pull(std::string key) {
 
-	std::lock_guard<std::mutex> lock (threadLock);
+	std::lock_guard <std::mutex> lock (threadLock);
 
 	for (auto& entry : dbdata) {
 		if (entry.key == key) {
@@ -75,7 +75,7 @@ std::string maddsua::radishDB::pull(std::string key) {
 }
 bool maddsua::radishDB::rename(std::string key, std::string newKey) {
 
-	std::lock_guard<std::mutex> lock (threadLock);
+	std::lock_guard <std::mutex> lock (threadLock);
 
 	//	check if this name is occupied
 	for (auto entry : dbdata) {
@@ -94,7 +94,7 @@ bool maddsua::radishDB::rename(std::string key, std::string newKey) {
 }
 bool maddsua::radishDB::remove(std::string key) {
 
-	std::lock_guard<std::mutex> lock (threadLock);
+	std::lock_guard <std::mutex> lock (threadLock);
 	
 	for (auto itr = dbdata.begin(); itr != dbdata.end(); itr++) {
 		if ((*itr).key == key) {
@@ -134,7 +134,7 @@ bool maddsua::radishDB::store(std::string path) {
 	std::string dbstring;
 
 	{
-		std::lock_guard<std::mutex> lock (threadLock);
+		std::lock_guard <std::mutex> lock (threadLock);
 
 		for (auto& entry : dbdata) {
 
@@ -212,12 +212,16 @@ bool maddsua::radishDB::load(std::string path) {
 				enit_begin += 2;
 			}
 
-			std::lock_guard<std::mutex> lock (threadLock);
+			std::lock_guard <std::mutex> lock (threadLock);
 
 			dbdata.push_back(tmpentry);
 
-		} catch(const std::exception& e) {
-			//std::cerr << e.what() << '\n';
+		} catch(...) {
+			//	db entry failed to load
+			//	but we don't really care at the moment
+			//	this should not happen in normal operation
+			//	the only way is if a file is damaged
+			//	need to add a way to notify that something is going on
 		}
 		
 		blit_begin = blit_end;
