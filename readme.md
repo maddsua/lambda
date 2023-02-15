@@ -26,21 +26,6 @@ Have you ever seen their code structure? It was easier for me to build a web ser
 
 <br>
 
-## Requirements and dependencies
-
-### Building
-
-- M$ Windows build of [GCC 4+](https://packages.msys2.org/base/mingw-w64-gcc) ( I use GCC 12.2 UCRT by the way )
-- [JSON for Modern C++](https://github.com/nlohmann/json)
-- `make` utility to make stuff. Get it?
-
-### Running
-
-- Windows 7+
-- [Universal C Runtime (URCT)](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c)
-
-<br>
-
 # How is it similar to AWS Lambda?
 
 Take a look at these two code snippets:
@@ -66,11 +51,12 @@ export { handler };
 ```
 <br>
 
-And here goes my lambda (C/C++):
+And here goes my lambda (C++):
 
 ```
-#include "include/lambda.hpp"
+#include "include/maddsua/lambda.hpp"
 #include <nlohmann/json.hpp>
+using JSON = nlohmann::json;
 
 maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
     return {
@@ -79,7 +65,7 @@ maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
           { "x-maddsua", "test" }
         },
                 //    body
-        json({ {"message", "Hello World"} }).dump()
+        JSON({ {"message", "Hello World"} }).dump()
     };
 }
 ```
@@ -92,103 +78,46 @@ See [demo code](./main.cpp) for more. It will make sence, I promise.
 
 <br>
 
-# How to use
+## Building a server app with the lambda
 
-So basically you init the server providing a callback function that gets called everytime the http request is coming:
+1. Include `lambda.hpp`
+2. Create a callback function, as in the [example](main.cpp)
+3. Create a lambda server
+4. Link to lambda.dll and compile project
+5. Run it. Everything should be fine
 
-```
-auto server = maddsuaHTTP::lambda();
-auto startresult = server.init(27015, &requesthandeler);
-```
+### [See how to do that in detail](main.cpp)
 
-There are two requirements for callback function (`requesthandeler` in this snippet):
+<br>
 
-1. Return type is `maddsuaHTTP::lambdaResponse`
-2. The function should have single `maddsuaHTTP::lambdaEvent event` argument.
+## Requirements for running the app that uses prebuild lambda.dll
 
-Apart from it, you are free to do anything.
+- Windows 7+
+- [Universal C Runtime (URCT)](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c)
 
-Create handler function:
+<br>
 
-```
-maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
+## Requirements for building the lib
 
-    std::string body = "<h1>hello darkness my old friend</h1>";
-        body += "Your user agent is: " + maddsuaHTTP::findHeader("User-Agent", &event.headers);
+- M$ Windows build of [GCC 4+](https://packages.msys2.org/base/mingw-w64-gcc) ( I use GCC 12.2 UCRT by the way )
+- [JSON for Modern C++](https://github.com/nlohmann/json)
+- `make` utility to make stuff. Get it?
+- Brotli compression library. A static library or a dll, header files are needed too
+- Zlib, the same as with Brotli
+- Sockets:
+    - For Windows bois: don't forget to include `lambda.hpp` before the `windows.h` in your project's main, or winsock will freak out
+   - For Linux bois: replace Windows sockets with non-M$ ones. Sorry, but I still didn't do that =(
 
-    if (maddsuaHTTP::findSearchQuery("user", &event.searchQuery) == "maddsua") {
-        body = "Good night, my Dark Lord";
-    }
-    
-    return {
-        200,
-        {
-            {"test", "maddsua"}
-        },
-        body
-    };
-}
-```
+<br>
 
-This example functions will return "hello darkness my old friend" with your user-agent below for any request that does not have `user=maddsua` search query. For requests that have, it will show different greeting.
+## Notes
 
-## Types:
-
-### lambdaResponse
-
-```
-uint16_t statusCode;
-std::vector < std::string name, std::string value > headers;
-std::string body;
-```
-
-### lambdaEvent
-
-```
-std::string httpversion;
-std::string requestID;
-
-std::string method;
-std::string path;
-std::vector < std::string name, std::string value > searchQuery;
-std::vector < std::string name, std::string value > headers;
-std::string body;
-```
-
-If you still don't have a clue what is this library, take a look at [Netlify Docs](https://docs.netlify.com/functions/overview/) about their functions. This lib tries to be as close to them as possible.
-
-# How to build
-
-## Requirements:
-
-1. MS Windows as your OS. Gonna add Linux support later, but now all the networking relies on windosk2 and other windows-specific stuff
-2. GCC 10+ (probably older versions will do too)
-3. Make. Old good one, don't confuse with CMake
-4. zlib aka libz (deflate "compressor")
-
-### Type in `make` to compile. Link the libmdslambda to your project.
-
-
-Don't forget to include `lambda.hpp` from the `include` directory, and to also link `-lmswsock -lwinmm -lws2_32`.
-
-### Note:
-If you are experiencing weird errors during compilation, try putting `#include <winsock2.h>` at the top of the main source file (let's say, main.cpp). That's just winapi being a Microsoft creature in all it's beauty.
-
-# Notes
-
-## WSA
-
-The idea is that you start only one lambda server per application, and handle diffirenet requests trough the handeler function.
+### WSA
 
 When not using lambda server, before calling `fetch()` make sure that windows sockets are initialized. Check that by invoking `socketsReady()` - true indicates that you are good to go. If not, call `WSAStartup()` yourself and hope for best 😈.
 
 Seriously, it would be a better idea to use curl or something similar for the http CLIENT things, in case you don't need the SERVER.
 
+### Mutlipe instances
 
-# Dependencies
-
- - libbrotli <https://github.com/google/brotli>
-
- - zlib <https://github.com/madler/zlib>
-
- - Windows Sockets 2 API
+If creating mutlipe instances of lambda be sure to init all of them with config property `mutlipeInstances` set to `true`.
