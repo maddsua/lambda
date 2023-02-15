@@ -28,8 +28,9 @@
 namespace maddsua {
 	
 	class radishDB {
+
 		public:
-			
+		
 			struct listing {
 				time_t updated = 0;
 				time_t accessed = 0;
