@@ -1,23 +1,24 @@
 
 FLAGS      = -std=c++20
 LIBS       = -lz -lbrotli
+# lbrotli is a static libbrotli.a
 
-.PHONY: all all-before all-after base64
+.PHONY: all all-before all-after action-custom
 all: all-before all-after
 
 
 # base64 test
-base64:
+base64: action-custom
 	g++ base64_test.cpp ../src/base64.cpp -o base64_test.exe $(FLAGS)
 
 
 # utils test
-util:
+util: action-custom
 	g++ util_test.cpp ../src/util.cpp ../src/sha.cpp -o util_test.exe $(FLAGS) -lwinmm
 
 
 # SHA test
-sha:
+sha: action-custom
 	g++ sha_test.cpp ../src/sha.cpp -o sha_test.exe $(FLAGS)
 
 
