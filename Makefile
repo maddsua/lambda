@@ -17,13 +17,9 @@ SYSLIBS    = -lws2_32 -lwinmm
 .PHONY: all all-before all-after action-custom
 all: all-before $(APP_DEV) all-after
 
-clean: action-custom
-	del /S *.exe *.a *.dll
-#	rm -rf *.exe *.a *.dll
-
 purge: action-custom
-	del /S *.o *.exe *.a *.dll
-#	rm -rf *.o *.exe *.a *.dll
+	del /S *.o *.exe *.a *.dll *.res
+#	rm -rf *.o *.exe *.a *.dll *.res
 
 run: action-custom
 	$(APP_DEV)
