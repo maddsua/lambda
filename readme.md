@@ -1,24 +1,53 @@
-# A request-isolating multi thread HTTP/1.1 Web Server
+# A request-isolating multi thread HTTP/1.1 web server framework
 
-My idea was to replicate overall feeling of Netlify Functions but in C++ so I could use all the good Windows APIs like serial ports. Needed that for the other project, nevermind.
+\* At the moment lambda uses M$ Windows implementation of sockets, so in order to build it for Linux you will need to do some work replacing them. I'll probably do it myself in the future, but for not it is what it is.
 
-I've tried half a dozen different libs and they all do everything the way I don't like.
+<br>
+
+### What?
+
+The idea behind this project is to bring the simplicity of building serverless backends with AWS Lambda to your C++ projects. Define a callback function, start a server and watch things just work.
+
+### Why?
+
+OK, I just needed to have http server functionality and serial port communications in the same app. I tried doing that with NodeJS with results that did not satisfy me. Unfortunally, Deno didn't have Web Serial API implemented just yet and all the libs that claim to bring it are, IMHO, garbage.
+
+But it does not end on COM ports. It's C++, do whatever you want to do 😎👍
+
+### Why not any other C++ server library?
+
+Have you ever seen their code structure? It was easier for me to build a web server from scratch, than to find out how their monstrosity works. Well, you can tell that I've done exactly that.
+
+<br>
 
 **Here, a Vue project is being served by lambda for no reason at all**
 
 <img src="docs/what-have-i-done.png">
 
-This code is actually a refactoring of my old project that contained http server functionality.
+<br>
 
-Well, if you just need to create fast and cool backend without all the stuff I need, just use Deno or NodeJS.
+## Requirements and dependencies
 
-But if you are as crazy as me, welcome bro, nice C 🤝
+### Building
+
+- M$ Windows build of [GCC 4+](https://packages.msys2.org/base/mingw-w64-gcc) ( I use GCC 12.2 UCRT by the way )
+- [JSON for Modern C++](https://github.com/nlohmann/json)
+- `make` utility to make stuff. Get it?
+
+### Running
+
+- Windows 7+
+- [Universal C Runtime (URCT)](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c)
+
+<br>
 
 # How is it similar to AWS Lambda?
 
-Take a look at the code side by side:
+Take a look at these two code snippets:
 
-Netlify Functions (AWS Lambda) goes first (TypeScript) :
+<br>
+
+Netlify Functions (AWS Lambda under the hood) goes first:
 
 ```
 import { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
@@ -35,8 +64,9 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
 export { handler };
 ```
+<br>
 
-And here goes maddsua lambda (C/C++):
+And here goes my lambda (C/C++):
 
 ```
 #include "include/lambda.hpp"
@@ -54,7 +84,13 @@ maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 }
 ```
 
-Find 10 differences...
+<br>
+
+The main function is not included (obviously) as long as AWS'es backend stuff that actually runs their Lambda.
+
+See [demo code](./main.cpp) for more. It will make sence, I promise.
+
+<br>
 
 # How to use
 
