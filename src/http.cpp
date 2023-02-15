@@ -20,7 +20,7 @@
 
 
 struct _httpcode {
-	uint16_t code;
+	unsigned int code;
 	const char* textCode;
 };
 
@@ -84,7 +84,7 @@ const std::vector <_httpcode> httpCodeList = {
 	{ 511, "Network Authentication Required" }
 };
 
-std::string lambda::httpStatusString(const uint16_t statusCode) {
+std::string lambda::httpStatusString(const unsigned int statusCode) {
 	for (auto status : httpCodeList) {
 		if (status.code == statusCode)
 			return (std::to_string(status.code) + " " + status.textCode);

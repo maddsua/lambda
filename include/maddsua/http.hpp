@@ -58,7 +58,7 @@ namespace lambda {
 	*/
 	struct fetchResult {
 		std::string errors;
-		uint16_t statusCode;
+		unsigned int statusCode;
 		std::string statusText;
 		std::vector <datapair> headers;
 		std::string body;
@@ -228,7 +228,7 @@ namespace lambda {
 	 * (403) => "403 Forbidden"
 	 * If not found, defaults to "200 OK"
 	*/
-	std::string httpStatusString(const uint16_t statusCode);
+	std::string httpStatusString(const unsigned int statusCode);
 
 	/**
 	 * Receive http data from a socket in one go

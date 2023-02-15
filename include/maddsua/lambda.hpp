@@ -63,7 +63,7 @@
 			std::string body;
 		};
 		struct lambdaResponse {
-			uint16_t statusCode;
+			unsigned int statusCode;
 			std::vector <datapair> headers;
 			std::string body;
 		};

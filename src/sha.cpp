@@ -63,7 +63,7 @@ struct SHA256CTX {
 void sha256_Transform(SHA256CTX* ctx, const uint8_t* data) {
 
 	uint32_t block[64];
-	for (uint16_t i = 0, j = 0; i < 64; ++i) {
+	for (unsigned int i = 0, j = 0; i < 64; ++i) {
 		if (i < 16) {
 			block[i] = (data[j] << 24) | (data[j + 1] << 16) | (data[j + 2] << 8) | (data[j + 3]);
 			j += 4;
@@ -78,7 +78,7 @@ void sha256_Transform(SHA256CTX* ctx, const uint8_t* data) {
 		shifts[i] = ctx->state[i];
 	
 	uint32_t t1, t2;
-	for (uint16_t i = 0; i < 64; ++i) {
+	for (unsigned int i = 0; i < 64; ++i) {
 		t1 = shifts[7] + SHA256_EP1(shifts[4]) + SHA256_CH(shifts[4], shifts[5], shifts[6]) + sha256_k[i] + block[i];
 		t2 = SHA256_EP0(shifts[0]) + SHA256_MAJ(shifts[0], shifts[1], shifts[2]);
 		shifts[7] = shifts[6];
@@ -409,7 +409,7 @@ struct SHA1_CTX {
 void sha1_transform(SHA1_CTX *ctx, const uint8_t* data) {
 
 	uint32_t block[80];
-	for (uint16_t i = 0, j = 0; i < 80; ++i) {
+	for (unsigned int i = 0, j = 0; i < 80; ++i) {
 		if (i < 16) {
 			block[i] = (data[j] << 24) + (data[j + 1] << 16) + (data[j + 2] << 8) + (data[j + 3]);
 			j += 4;
@@ -421,10 +421,10 @@ void sha1_transform(SHA1_CTX *ctx, const uint8_t* data) {
 	}
 
 	uint32_t shift[5], t0;
-	for (uint16_t i = 0; i < 5; i++)
+	for (unsigned int i = 0; i < 5; i++)
 		shift[i] = ctx->state[i];
 
-	for (uint16_t i = 0; i < 80; ++i) {
+	for (unsigned int i = 0; i < 80; ++i) {
 
 		if (i < 20) 
 			t0 = SHA1_ROTLEFT(shift[0], 5) + ((shift[1] & shift[2]) ^ (~shift[1] & shift[3])) + shift[4] + ctx->k[0] + block[i];
@@ -442,7 +442,7 @@ void sha1_transform(SHA1_CTX *ctx, const uint8_t* data) {
 		shift[0] = t0;
 	}
 	
-	for (uint16_t i = 0; i < 5; i++)
+	for (unsigned int i = 0; i < 5; i++)
 		ctx->state[i] += shift[i];
 }
 
