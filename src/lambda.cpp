@@ -223,6 +223,8 @@ void lambda::lambda::handler() {
 	lambdaEvent rqEvent;
 		rqEvent.method = toUpperCase(httprequest.startLineArgs[0]);
 		rqEvent.httpversion = toUpperCase(httprequest.startLineArgs[2]);
+		rqEvent.clientIP = context.clientIP;
+
 		rqEvent.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
 		rqEvent.searchQuery = getSearchQuery(&targetURL);
 		rqEvent.headers = httprequest.headers;

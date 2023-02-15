@@ -52,6 +52,7 @@
 		struct lambdaEvent {
 			std::string httpversion;
 			std::string requestID;
+			std::string clientIP;
 
 			//	A poiential foot-shooter, be extremely careful when using it
 			void* wormhole;
