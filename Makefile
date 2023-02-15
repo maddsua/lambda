@@ -10,18 +10,18 @@ FLAGS      = -std=c++20
 LIBS_SYS   = -lws2_32 -lwinmm
 LIBS       = $(LIBS_SYS) -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
-.PHONY: all all-before all-after clean-custom run-custom lib demo
+.PHONY: all all-before all-after action-custom
 all: all-before $(APP_DEV) all-after
 
-clean: clean-custom
+clean: action-custom
 	del /S *.exe *.a *.dll
 #	rm -rf *.exe *.a *.dll
 
-purge: clean-custom
+purge: action-custom
 	del /S *.o *.exe *.a *.dll
 #	rm -rf *.o *.exe *.a *.dll
 
-run: run-custom
+run: action-custom
 	$(APP_DEV)
 
 
