@@ -22,6 +22,7 @@
 #include "../include/maddsua/http.hpp"
 
 lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vector <lambda::datapair> headers, std::string body) {
+	
 	lambda::fetchResult result;
 
 	std::string path;

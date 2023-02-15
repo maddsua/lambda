@@ -87,7 +87,7 @@ std::vector <std::string> lambda::lambda::showLogs() {
 }
 
 
-lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaResponse(lambdaEvent)> lambda) {
+lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaResponse(lambdaEvent)> lambdaCallbackFunction) {
 
 	if (running) return {
 		false,
@@ -155,7 +155,7 @@ lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaR
 	}
 
 	//	start watchdog
-	callback = lambda;
+	requestCallback = lambdaCallbackFunction;
 	running = true;
 	worker = std::thread(connectDispatch, this);
 
@@ -220,40 +220,41 @@ void lambda::lambda::handler() {
 
 	//	pass the data to lambda function
 	auto targetURL = toLowerCase(httprequest.startLineArgs[1]);
-	lambdaEvent rqEvent;
-		rqEvent.method = toUpperCase(httprequest.startLineArgs[0]);
-		rqEvent.httpversion = toUpperCase(httprequest.startLineArgs[2]);
-		rqEvent.clientIP = context.clientIP;
+	lambdaEvent event;
+		event.method = toUpperCase(httprequest.startLineArgs[0]);
+		event.httpversion = toUpperCase(httprequest.startLineArgs[2]);
+		event.clientIP = context.clientIP;
 
-		rqEvent.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
-		rqEvent.searchQuery = getSearchQuery(&targetURL);
-		rqEvent.headers = httprequest.headers;
-		rqEvent.body = httprequest.body;
+		event.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
+		event.searchQuery = getSearchQuery(&targetURL);
+		event.headers = httprequest.headers;
+		event.body = httprequest.body;
 
 		//	neutron-star-explosive part
-		rqEvent.wormhole = instanceWormhole;
+		event.wormhole = instanceWormhole;
 
 	//	get callback result
-	auto lambdaResult = callback(rqEvent);
+	auto result = requestCallback(event);
 
 	//	inject additional headers
-	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &lambdaResult.headers);
-	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &lambdaResult.headers);
-	addHeader({ "Date", httpTimeNow() }, &lambdaResult.headers);
+	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &result.headers);
+	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &result.headers);
+	addHeader({ "Date", httpTimeNow() }, &result.headers);
 	
-	if (lambdaResult.body.size()) {
-		auto isJson = (lambdaResult.body[0] == '{' || lambdaResult.body[0] == '[');
-		addHeader({ "Content-Type", mimetype(isJson ? "json" : "html") }, &lambdaResult.headers);
+	if (result.body.size()) {
+		auto jsJsonObject = (result.body[0] == '{' && result.body[result.body.size() - 1] == '}');
+		auto isJsonArray = (result.body[0] == '[' && result.body[result.body.size() - 1] == ']');
+		addHeader({ "Content-Type", mimetype((jsJsonObject || isJsonArray) ? "json" : "html") }, &result.headers);
 	}
 
 	//	reset header case
-	for (size_t i = 0; i < lambdaResult.headers.size(); i++)
-		toTitleCase(&lambdaResult.headers[i].name);
+	for (size_t i = 0; i < result.headers.size(); i++)
+		toTitleCase(&result.headers[i].name);
 
 	//	apply request compression
 	auto acceptEncodings = splitBy(findHeader("Accept-Encoding", &httprequest.headers), ",");
 
-	auto isCompressable = includes(findHeader("Content-Type",  &lambdaResult.headers), compressibleTypes);
+	auto isCompressable = includes(findHeader("Content-Type",  &result.headers), compressibleTypes);
 	std::string compressedBody;
 	
 	if (instanceConfig.compression_enabled && acceptEncodings.size() && (isCompressable || instanceConfig.compression_allFileTypes)) {
@@ -274,36 +275,36 @@ void lambda::lambda::handler() {
 		std::string appliedCompression;
 
 		if (acceptEncodings[0] == "br") {
-			compressedBody = compression::brCompress(&lambdaResult.body);
+			compressedBody = compression::brCompress(&result.body);
 			if (compressedBody.size()) appliedCompression = "br";
 				else addLogEntry(context, LAMBDALOG_ERR, "brotli compression failed");
 			
 		} else if (acceptEncodings[0] == "gzip") {
-			compressedBody = compression::gzCompress(&lambdaResult.body, true);
+			compressedBody = compression::gzCompress(&result.body, true);
 			if (compressedBody.size()) appliedCompression = "gzip";
 				else addLogEntry(context, LAMBDALOG_ERR, "gzip compression failed");
 
 		} else if (acceptEncodings[0] == "deflate") {
-			compressedBody = compression::gzCompress(&lambdaResult.body, false);
+			compressedBody = compression::gzCompress(&result.body, false);
 			if (compressedBody.size()) appliedCompression = "deflate";
 				else addLogEntry(context, LAMBDALOG_ERR, "deflate compression failed");
 		}
 
-		if (appliedCompression.size()) insertHeader("Content-Encoding", appliedCompression, &lambdaResult.headers);
+		if (appliedCompression.size()) insertHeader("Content-Encoding", appliedCompression, &result.headers);
 			else compressedBody.erase(compressedBody.begin(), compressedBody.end());
 	}
 
 	//	generate response title
-	std::string startLine = "HTTP/1.1 " + httpStatusString(lambdaResult.statusCode);
+	std::string startLine = "HTTP/1.1 " + httpStatusString(result.statusCode);
 
 	//	send response and close socket
-	auto sent = socketSendHTTP(&ClientSocket, startLine, &lambdaResult.headers, compressedBody.size() ? &compressedBody : &lambdaResult.body);
+	auto sent = socketSendHTTP(&ClientSocket, startLine, &result.headers, compressedBody.size() ? &compressedBody : &result.body);
 	closesocket(ClientSocket);
 
 	if (sent.success) {
-		addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(lambdaResult.statusCode) + " for " + rqEvent.path + "");
+		addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(result.statusCode) + " for " + event.path + "");
 	} else {
-		addLogEntry(context, LAMBDALOG_INFO, "Request for " + rqEvent.path + " failed: " + sent.cause);
+		addLogEntry(context, LAMBDALOG_INFO, "Request for " + event.path + " failed: " + sent.cause);
 	}
 
 	//	done!

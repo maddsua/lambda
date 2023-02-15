@@ -38,14 +38,14 @@
 	#include "fs.hpp"
 	#include "radishdb.hpp"
 
-	#define LAMBDALOG_INFO				(1)
-	#define LAMBDALOG_WARN				(0)
-	#define LAMBDALOG_ERR				(-1)
+	#define LAMBDALOG_INFO		(1)
+	#define LAMBDALOG_WARN		(0)
+	#define LAMBDALOG_ERR		(-1)
 
-	#define LAMBDAREQ_LAMBDA			(1)
-	#define LAMBDAREQ_WEBSOCK			(2)
+	#define LAMBDAREQ_LAMBDA	(1)
+	#define LAMBDAREQ_WEBSOCK	(2)
 
-	#define LAMBDA_DSP_SLEEP			(10)
+	#define LAMBDA_DSP_SLEEP	(10)
 
 	namespace lambda {
 
@@ -101,7 +101,7 @@
 
 				//	Create a lambda server
 				lambda() {
-					wsaData = {0};
+					memset(&wsaData, 0, sizeof(wsaData));
 					ListenSocket = INVALID_SOCKET;
 					handlerDispatched = true;
 					running = false;
@@ -122,7 +122,7 @@
 				 * @param lambda handler function
 				 * @param cfg server config (optional)
 				*/
-				actionResult start(const int port, std::function <lambdaResponse(lambdaEvent)> lambda);
+				actionResult start(const int port, std::function <lambdaResponse(lambdaEvent)> lambdaCallbackFunction);
 
 				//	Stop this lambda server instance
 				void stop();
@@ -154,7 +154,7 @@
 				std::thread worker;
 				void connectDispatch();
 
-				std::function<lambdaResponse(lambdaEvent)> callback;
+				std::function <lambdaResponse(lambdaEvent)> requestCallback;
 				bool handlerDispatched;
 				void handler();
 

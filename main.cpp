@@ -131,7 +131,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Partially succeeded"},
+						{"Request", "Failed with errors"},
 						{"Error", "Requested entry is not found"}
 					}).dump()
 				};
@@ -163,8 +163,6 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 					}).dump()
 				};
 			}
-			
-
 		}
 
 		//	OK, let's store some data
@@ -176,7 +174,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Partially succeeded"},
+						{"Request", "Failed with errors"},
 						{"Error", "Empty request body; Use DELETE method to remove data"}
 					}).dump()
 				};
@@ -206,7 +204,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Partially succeeded"},
+						{"Request", "Failed with errors"},
 						{"Error", "No such entry or already deleted"}
 					}).dump()
 				};
@@ -224,8 +222,45 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 		}
 	}
 
-	//	OK, we're done with the database
-	//	let's serve some static files - html, css and whatever else
+	//	enough of the database
+	//	let's try fetching something from remote
+	if (lambda::startsWith(event.path, "/api/proxy")) {
+
+		auto proxyTo = "www.google.com";
+
+		//	GET http://google.com with no additional headers of request body
+		auto googeResp = lambda::fetch(proxyTo, "GET", {}, {});
+
+		if (googeResp.errors.size()) {
+			return {
+				200,
+				{},
+				JSON({
+					{"Proxy to", proxyTo},
+					{"Request", "Failed with errors"},
+					{"Errors", googeResp.errors}
+				}).dump()
+			};
+		}
+
+		JSON headers ({});
+
+		for (auto header : googeResp.headers)
+			headers[header.name] = header.value;
+
+		return {
+			200,
+			{},
+			JSON({
+				{"Proxy to", proxyTo},
+				{"Response", googeResp.statusText},
+				{"Headers", headers},
+				{"Body", std::to_string(googeResp.body.size()) + " bytes"}
+			}).dump()
+		};
+	}
+
+	//	For the last example, let's serve some static html, css and whatever else
 
 	//	Fhis feature isn't really a selling point. I mean, lambda can be a
 	//	 file server, but it was designed to replace AWS Lambda
