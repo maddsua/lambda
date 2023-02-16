@@ -85,7 +85,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	if (!keyExists("Host", &headers)) headers.push_back({"Host", fullhost});
 	if (!keyExists("User-Agent", &headers)) headers.push_back({"User-Agent", HTTPLAMBDA_USERAGENT});
 	
-	insertHeader("Accept-Encoding", "br, gzip, deflate", &headers);
+	insertHeader("Accept-Encoding", HTTPLAMBDA_ACCEPTENC, &headers);
 
 	//	send request
 	auto sent = socketSendHTTP(&connection, (toUpperCase(method) + " " + path + " HTTP/1.1"), &headers, &body);
@@ -128,7 +128,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 		trim(&enc);
 		std::string decompressed;
 
-		if (enc == "br") {
+		/*if (enc == "br") {
 
 			decompressed = lambda::compression::brDecompress(&serverResponse.body);
 			
@@ -141,7 +141,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 				break;
 			}
 
-		} else if (enc == "gzip" || enc == "deflate") {
+		} else */if (enc == "gzip" || enc == "deflate") {
 
 			decompressed = lambda::compression::gzDecompress(&serverResponse.body);
 
@@ -155,7 +155,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 			}
 		}
 
-		result.errors += "Unknown encoding;";
+		result.errors += "Unsupported encoding;";
 	}
 
 	//	returm the response

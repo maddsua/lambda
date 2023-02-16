@@ -25,8 +25,7 @@ namespace lambda {
 		std::string gzDecompress(const std::string* data);
 
 		std::string brCompress(const std::string* data);
-		std::string brDecompress(const std::string* data);
-
+		//std::string brDecompress(const std::string* data);
 	}
 }
 

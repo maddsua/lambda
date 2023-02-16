@@ -177,7 +177,7 @@ std::string lambda::compression::gzDecompress(const std::string* compressed) {
 /**
  * Decompresses brotli-encoded data from std::string. The return value "true" indicatess success
 */
-std::string lambda::compression::brDecompress(const std::string* data) {
+/*std::string lambda::compression::brDecompress(const std::string* data) {
 
 	if (!data->size()) return {};
 
@@ -208,7 +208,7 @@ std::string lambda::compression::brDecompress(const std::string* data) {
 	if (opresult != BROTLI_DECODER_RESULT_SUCCESS) return {};
 
 	return result;
-}
+}*/
 
 /**
  * Compress data from std::string using Brotli. The return value "true" indicatess success

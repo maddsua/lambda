@@ -27,6 +27,7 @@
 #define HTTPLAMBDA_BODY_CHUNK		(131072)
 #define MADDSUAHTTP_ATTEMPTS		(3)
 #define HTTPLAMBDA_USERAGENT		"maddsua/lambda"
+#define HTTPLAMBDA_ACCEPTENC		"gzip, deflate"
 
 
 namespace lambda {
