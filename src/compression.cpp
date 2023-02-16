@@ -1,7 +1,7 @@
 /*
-	maddsua's lambda
-	A C++ HTTP server framework
-	2023 https://github.com/maddsua/lambda
+	zlib and brotli C++ wrappers for simple buffer compression
+	2023 maddsua
+	https://github.com/maddsua/
 */
 
 
@@ -11,7 +11,7 @@
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
-#include "../include/lambda/compression.hpp"
+#include "../include/maddsua/compression.hpp"
 
 #define LAMBDA_ZLIB_HEADER_Z		(8)
 #define LAMBDA_ZLIB_HEADER_GZ		(26)
@@ -34,7 +34,7 @@
  * @param plain pointer to a string with original data
  * @param compressed pointer to a destination string, where the compressed data will be saved
 */
-std::string lambda::compression::gzCompress(const std::string* plain, bool gzipHeader) {
+std::string maddsua::gzCompress(const std::string* plain, bool gzipHeader) {
 
 	if (!plain->size()) return {};
 
@@ -103,7 +103,7 @@ std::string lambda::compression::gzCompress(const std::string* plain, bool gzipH
  * @param compressed pointer to a string with compressed data
  * @param plain pointer to a destination string, original data will get here
 */
-std::string lambda::compression::gzDecompress(const std::string* compressed) {
+std::string maddsua::gzDecompress(const std::string* compressed) {
 
 	if (!compressed->size()) return {};
 
@@ -177,7 +177,7 @@ std::string lambda::compression::gzDecompress(const std::string* compressed) {
 /**
  * Decompresses brotli-encoded data from std::string. The return value "true" indicatess success
 */
-/*std::string lambda::compression::brDecompress(const std::string* data) {
+/*std::string maddsua::brDecompress(const std::string* data) {
 
 	if (!data->size()) return {};
 
@@ -213,7 +213,7 @@ std::string lambda::compression::gzDecompress(const std::string* compressed) {
 /**
  * Compress data from std::string using Brotli. The return value "true" indicatess success
 */
-std::string  lambda::compression::brCompress(const std::string* data) {
+std::string  maddsua::brCompress(const std::string* data) {
 
 	if (!data->size()) return {};
 

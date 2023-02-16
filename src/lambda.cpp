@@ -7,7 +7,7 @@
 
 #include "../include/lambda/httpcore.hpp"
 #include "../include/lambda/lambda.hpp"
-#include "../include/lambda/compression.hpp"
+#include "../include/maddsua/compression.hpp"
 
 
 lambda::lambda::lambda() {
@@ -417,18 +417,18 @@ void lambda::lambda::handler() {
 
 		std::string appliedCompression;
 
-		if (acceptEncodings[0] == "br") {
-			compressedBody = compression::brCompress(&callbackResult.body);
+		if (acceptEncodings.front() == "br") {
+			compressedBody = maddsua::brCompress(&callbackResult.body);
 			if (compressedBody.size()) appliedCompression = "br";
 				else addLogEntry(context, LAMBDA_LOG_ERR, "brotli compression failed");
 			
-		} else if (acceptEncodings[0] == "gzip") {
-			compressedBody = compression::gzCompress(&callbackResult.body, true);
+		} else if (acceptEncodings.front() == "gzip") {
+			compressedBody = maddsua::gzCompress(&callbackResult.body, true);
 			if (compressedBody.size()) appliedCompression = "gzip";
 				else addLogEntry(context, LAMBDA_LOG_ERR, "gzip compression failed");
 
-		} else if (acceptEncodings[0] == "deflate") {
-			compressedBody = compression::gzCompress(&callbackResult.body, false);
+		} else if (acceptEncodings.front() == "deflate") {
+			compressedBody = maddsua::gzCompress(&callbackResult.body, false);
 			if (compressedBody.size()) appliedCompression = "deflate";
 				else addLogEntry(context, LAMBDA_LOG_ERR, "deflate compression failed");
 		}

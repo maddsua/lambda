@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #include "../include/lambda/lambda.hpp"
-#include "../include/lambda/compression.hpp"
+#include "../include/maddsua/compression.hpp"
 
 
 lambda::fetchResult lambda::fetch(std::string url, const fetchData& data) {
@@ -133,7 +133,7 @@ lambda::fetchResult lambda::fetch(std::string url, const fetchData& data) {
 
 		/*if (enc == "br") {
 
-			decompressed = lambda::compression::brDecompress(&serverResponse.body);
+			decompressed = maddsua::brDecompress(&serverResponse.body);
 			
 			if (decompressed.size()) {
 				serverResponse.body = decompressed;
@@ -146,7 +146,7 @@ lambda::fetchResult lambda::fetch(std::string url, const fetchData& data) {
 
 		} else */if (enc == "gzip" || enc == "deflate") {
 
-			decompressed = compression::gzDecompress(&serverResponse.body);
+			decompressed = maddsua::gzDecompress(&serverResponse.body);
 
 			if (decompressed.size()) {
 				serverResponse.body = decompressed;
