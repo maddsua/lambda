@@ -9,7 +9,7 @@
 
 #include "../include/lambda/localdb.hpp"
 #include "../include/lambda/fs.hpp"
-#include "../include/lambda/compression.hpp"
+#include "../include/maddsua/compression.hpp"
 #include "../include/maddsua/base64.hpp"
 
 
@@ -138,7 +138,7 @@ bool maddsua::radishDB::store(std::string path) {
 	}
 
 
-	auto compressed = lambda::compression::gzCompress(&dbstring, true);
+	auto compressed = maddsua::gzCompress(&dbstring, true);
 
 	if (!lambda::fs::writeSync(path, &compressed)) return false;
 	
@@ -152,7 +152,7 @@ bool maddsua::radishDB::load(std::string path) {
 	if (!lambda::fs::readSync(path, &rawBinData)) return false;
 
 	//	decompress
-	auto dbstring = lambda::compression::gzDecompress(&rawBinData);
+	auto dbstring = maddsua::gzDecompress(&rawBinData);
 
 	size_t blit_begin = 0;
 	size_t blit_end = 0;
