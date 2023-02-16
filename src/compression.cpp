@@ -22,10 +22,8 @@
 #define LAMBDA_ZLIB_EXPECT_RATIO	(3)
 #define LAMBDA_ZLIB_CHUNK			(131072)	//	128k
 
-#define LAMBDA_BROTLICHUNK			(131072)	//	128k
-#define LAMBDA_BROTLIEXPECT_RATIO	(3)
-
-#define LAMBDA_ZSTD_COMPRESSION		(1)
+#define LAMBDA_BROTLI_CHUNK			(131072)	//	128k
+#define LAMBDA_BROTLI_EXPCT_RATIO	(3)
 
 /*
 	zlib "wrapper" for de/compressing binary data
@@ -54,9 +52,6 @@ std::string lambda::compression::gzCompress(const std::string* plain, bool gzipH
 	int zlibFlush;
 	bool opresult = true;
 	size_t carrierShift = 0;
-
-	//std::unique_ptr<uint8_t[]> chunkIn(new uint8_t[LAMBDA_ZLIB_CHUNK]);
-	//std::unique_ptr<uint8_t[]> chunkIn(new uint8_t[LAMBDA_ZLIB_CHUNK]);
 
 	auto chunkIn = new uint8_t [LAMBDA_ZLIB_CHUNK];
 	auto chunkOut = new uint8_t [LAMBDA_ZLIB_CHUNK];
@@ -191,19 +186,19 @@ std::string lambda::compression::brDecompress(const std::string* data) {
 	BrotliDecoderResult opresult;
 	auto chunkInSize = data->size();
 	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(data->data());
-	auto bufferOut = new uint8_t [LAMBDA_BROTLICHUNK];
+	auto bufferOut = new uint8_t [LAMBDA_BROTLI_CHUNK];
 
 	std::string result;
-		result.reserve(data->size() * LAMBDA_BROTLIEXPECT_RATIO);
+		result.reserve(data->size() * LAMBDA_BROTLI_EXPCT_RATIO);
 
 	do {
 		uint8_t* chunkOut = bufferOut;
-		size_t chunkOutSize = LAMBDA_BROTLICHUNK;
+		size_t chunkOutSize = LAMBDA_BROTLI_CHUNK;
 
 		opresult = BrotliDecoderDecompressStream(instance, &chunkInSize, &bufferIn, &chunkOutSize, &chunkOut, nullptr);
 		if (opresult == BROTLI_DECODER_RESULT_ERROR) break;
 			
-		result.insert(result.end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
+		result.insert(result.end(), bufferOut, bufferOut + (LAMBDA_BROTLI_CHUNK - chunkOutSize));
 
 	} while (chunkInSize != 0 || opresult != BROTLI_DECODER_RESULT_SUCCESS);
 
@@ -216,37 +211,26 @@ std::string lambda::compression::brDecompress(const std::string* data) {
 }
 
 /**
- * Compress data from std::string using brotli. The return value "true" indicatess success
+ * Compress data from std::string using Brotli. The return value "true" indicatess success
 */
 std::string  lambda::compression::brCompress(const std::string* data) {
 
+	//	Imho Brotli has the worst API of all compression libs I've seen
+	//	And the algorythm itsekf is pretty slow
+	//	I've already ditched zstd, but just because it wasn't really needed here
+	//	maybe it's time to do the same to Brotli
+
 	if (!data->size()) return {};
 
-	auto instance = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
-
-	bool opresult;
-	auto chunkInSize = data->size();
-	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(data->data());
-	auto bufferOut = new uint8_t [LAMBDA_BROTLICHUNK];
-
 	std::string result;
-		result.reserve(data->size() / LAMBDA_BROTLIEXPECT_RATIO);
+		result.resize(BrotliEncoderMaxCompressedSize(data->size()));
 
-	do {
-		uint8_t* chunkOut = bufferOut;
-		size_t chunkOutSize = LAMBDA_BROTLICHUNK;
+	size_t encodedSize = result.size();
 
-		opresult = BrotliEncoderCompressStream(instance, BROTLI_OPERATION_FINISH, &chunkInSize, &bufferIn, &chunkOutSize, &chunkOut, nullptr);
-		if (!opresult) break;
+	if (!BrotliEncoderCompress(BROTLI_DEFAULT_QUALITY, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE, data->size(), (const uint8_t*)data->data(), &encodedSize, (uint8_t*)result.data())) return {};
 
-		result.insert(result.end(), bufferOut, bufferOut + (LAMBDA_BROTLICHUNK - chunkOutSize));
-
-	} while (chunkInSize != 0 || !BrotliEncoderIsFinished(instance));
-
-	BrotliEncoderDestroyInstance(instance);
-	delete bufferOut;
-
-	if (opresult != BROTLI_DECODER_RESULT_SUCCESS) return {};
+	result.resize(encodedSize);
+	result.shrink_to_fit();
 
 	return result;
 }
