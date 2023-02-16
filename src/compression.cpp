@@ -26,7 +26,7 @@
 #define LAMBDA_BROTLI_EXPCT_RATIO	(3)
 
 /*
-	zlib "wrapper" for de/compressing binary data
+	zlib "wrapper" for de/compressing buffers
 */
 
 /**
@@ -170,8 +170,8 @@ std::string lambda::compression::gzDecompress(const std::string* compressed) {
 	By the way 2, why not just dynamically fckng allocate the memory needed? Am I the only one person to compress
 	 in-memory stuff (http requests in this case)?
 	 
-	No, really. Both brotli and zlib have functions that work with complete buffers of known size. But they both fail to make
-	 them usable.
+	No, really. Both brotli and zlib have functions that work with buffers of known size. But they both fail to make
+	 these functions any usable.
 */
 
 /**
@@ -214,11 +214,6 @@ std::string lambda::compression::brDecompress(const std::string* data) {
  * Compress data from std::string using Brotli. The return value "true" indicatess success
 */
 std::string  lambda::compression::brCompress(const std::string* data) {
-
-	//	Imho Brotli has the worst API of all compression libs I've seen
-	//	And the algorythm itsekf is pretty slow
-	//	I've already ditched zstd, but just because it wasn't really needed here
-	//	maybe it's time to do the same to Brotli
 
 	if (!data->size()) return {};
 
