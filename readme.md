@@ -10,7 +10,7 @@ The idea behind this project is to bring the simplicity of building serverless b
 
 OK, I just needed to have http server functionality and serial port communications in the same app. I tried doing that with NodeJS with results that did not satisfy me. Unfortunally, Deno didn't have Web Serial API implemented just yet and all the libs that claim to bring it are, IMHO, garbage.
 
-But it does not end on COM ports. It's C++, do whatever you want to do 😎👍
+But it does not end on COM ports. It's C++, now you have all the power possible 😎👍
 
 ### Why not any other C++ server library?
 
