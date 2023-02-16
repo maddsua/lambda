@@ -5,7 +5,8 @@
 #include <nlohmann/json.hpp>
 using JSON = nlohmann::json;
 
-#include "include/maddsua/lambda.hpp"
+#include "include/lambda/lambda.hpp"
+#include "include/lambda/fs.hpp"
 
 //	Pls note:
 //
@@ -24,7 +25,7 @@ struct passtrough {
 };
 
 //	declare a request callback function
-lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event);
+lambda::Response requestHandeler(lambda::Event event);
 
 
 int main(int argc, char** argv) {
@@ -33,7 +34,7 @@ int main(int argc, char** argv) {
 	lambda::lambda lambdaserver;
 	
 	//	tweak server settings
-	lambda::lambdaConfig lambdacfg;
+	lambda::Config lambdacfg;
 		lambdacfg.compression_preferBr = true;
 
 	//	apply server settings
@@ -81,13 +82,13 @@ int main(int argc, char** argv) {
 }
 
 
-lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
+lambda::Response requestHandeler(lambda::Event event) {
 
 
 	//	let' demonstrate a database access
 	//	we can access database by it's pointer, passed trough the wormhole
 	//	check if requested URL starts with something we consider the database API path
-	if (lambda::startsWith(event.path, "/api/db")) {
+	if (event.path.startsWith("/api/db")) {
 
 		//	OK, so user asks to get database access
 
@@ -104,7 +105,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 		}
 
 		//	let's see what he wants, get a record id
-		auto entryID = lambda::findQuery("entry", &event.searchQuery);
+		auto entryID = event.searchQuery.find("entry");
 
 		//	return if not specified
 		if (!entryID.size()) {
@@ -224,12 +225,12 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 
 	//	enough of the database
 	//	let's try fetching something from remote
-	if (lambda::startsWith(event.path, "/api/proxy")) {
+	if (event.path.startsWith("/api/proxy")) {
 
 		auto proxyTo = "www.google.com";
 
 		//	GET http://google.com with no additional headers of request body
-		auto googeResp = lambda::fetch(proxyTo, "GET", {}, {});
+		auto googeResp = lambda::fetch(proxyTo);
 
 		if (googeResp.errors.size()) {
 			return {
@@ -243,10 +244,12 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			};
 		}
 
-		JSON headers ({});
+		JSON listOfHeaders ({});
 
-		for (auto header : googeResp.headers)
-			headers[header.name] = header.value;
+		auto allRespHeaders = googeResp.headers.list();
+
+		for (auto header : allRespHeaders)
+			listOfHeaders[header.key] = header.value;
 
 		return {
 			200,
@@ -254,7 +257,7 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 			JSON({
 				{"Proxy to", proxyTo},
 				{"Response", googeResp.statusText},
-				{"Headers", headers},
+				{"Headers", listOfHeaders},
 				{"Body", std::to_string(googeResp.body.size()) + " bytes"}
 			}).dump()
 		};
@@ -269,25 +272,25 @@ lambda::lambdaResponse requestHandeler(lambda::lambdaEvent event) {
 
 	//	Format path, is up to you.
 	//	Probably will add some basic path transformation rules in the future
-	if (event.path[event.path.size() - 1] == '/') event.path += "index.html";
-	event.path = std::regex_replace(("demo/" + event.path), std::regex("/+"), "/");
+	if (event.path.endsWith("/")) event.path += "index.html";
+	event.path = std::regex_replace(("demo/" + event.path.sstring), std::regex("/+"), "/");
 
 	//	read file contents to this string
 	//	return if fails
 	std::string filecontents;
-	if (!lambda::fs::readSync(event.path, &filecontents)) {
+	if (!lambda::fs::readSync(event.path.sstring, &filecontents)) {
 		return { 404, {}, "File not found"};
 	}
 
 	//	determine the file extension
-	auto fileext = event.path.find_last_of('.');
+	auto fileext = event.path.sstring.find_last_of('.');
 	//	determine content type based on file extension
-	auto contentType = lambda::mimetype((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin");
+	auto contentType = lambda::mimetype((fileext + 1) < event.path.sstring.size() ? event.path.sstring.substr(fileext + 1) : "bin");
 
 	//	serve that kitty picture
 	return {
 		200, {
-			{ "Content-Type", contentType },
+			{ "Content-Type", contentType }
 		}, filecontents
 	};
 

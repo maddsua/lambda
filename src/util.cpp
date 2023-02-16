@@ -2,10 +2,10 @@
 	maddsua's lambda
 	A C++ HTTP server framework
 	2023 https://github.com/maddsua/lambda
-*/                                        
+*/
 
 
-#include "../include/maddsua/crypto.hpp"
+#include "../include/lambda/crypto.hpp"
 
 #include <random>
 #include <array>
@@ -78,7 +78,7 @@ std::vector <uint8_t> lambda::randomStream(size_t length) {
 	return randomIntList;
 }
 
-std::array <uint8_t, UUID_BYTES> lambda::createByteUUID() {
+std::string lambda::createUniqueId() {
 
 	/*
 		Byte timestamp:
@@ -94,7 +94,7 @@ std::array <uint8_t, UUID_BYTES> lambda::createByteUUID() {
 
 	time_t utctime = time(nullptr);
 	time_t systime = GetTickCount64();
-	auto NaCl = randomStream(8);
+	auto NaCl = lambda::randomStream(8);
 
 	std::vector <uint8_t> timestamp;
 		timestamp.resize((2 * sizeof(time_t)));
@@ -103,21 +103,14 @@ std::array <uint8_t, UUID_BYTES> lambda::createByteUUID() {
 
 	timestamp.insert(timestamp.end(), NaCl.begin(), NaCl.end());
 	
-	auto hashbytes = sha1Hash(std::vector <uint8_t> (timestamp.begin(), timestamp.end()));
+	auto hashbytes = lambda::sha1Hash(std::vector <uint8_t> (timestamp.begin(), timestamp.end()));
 	std::copy(hashbytes.begin(), hashbytes.begin() + UUID_BYTES, byteid.begin());
 
-	return byteid;
-}
+	auto uuid = binToHex(byteid.data(), UUID_BYTES);
 
-std::string lambda::formatUUID(std::array <uint8_t, UUID_BYTES>& byteid, bool showFull) {
-
-	auto uuid = binToHex(byteid.data(), showFull ? UUID_BYTES : 4);
-	if (!showFull) return uuid;
-
-	const std::array <int, 4> uuid_separators = {8,14,19,24};
-	for (auto pos : uuid_separators) {
+	static const std::array <int, 4> uuid_separators = {8,14,19,24};
+	for (auto pos : uuid_separators)
 		uuid.insert(uuid.begin() + pos, '-');
-	}
 	
 	return uuid;
 }

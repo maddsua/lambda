@@ -7,9 +7,9 @@
 
 #include <time.h>
 
-#include "../include/maddsua/radishdb.hpp"
-#include "../include/maddsua/compression.hpp"
-#include "../include/maddsua/fs.hpp"
+#include "../include/lambda/localdb.hpp"
+#include "../include/lambda/fs.hpp"
+#include "../include/lambda/compression.hpp"
 #include "../include/maddsua/base64.hpp"
 
 

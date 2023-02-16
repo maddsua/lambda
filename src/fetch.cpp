@@ -8,11 +8,13 @@
 #include <regex>
 #include <algorithm>
 
-#include "../include/maddsua/http.hpp"
+#include "../include/lambda/lambda.hpp"
+#include "../include/lambda/compression.hpp"
 
-lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vector <lambda::datapair> headers, std::string body) {
+
+lambda::fetchResult lambda::fetch(std::string url, const fetchData& data) {
 	
-	lambda::fetchResult result;
+	fetchResult result;
 
 	std::string path;
 	std::string host;
@@ -53,7 +55,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	size_t connectAttempts = 0;
     for (ptr = hostAddr; ptr != nullptr; ptr = ptr->ai_next) {
 
-		if (connectAttempts > MADDSUAHTTP_ATTEMPTS) {
+		if (connectAttempts > LAMBDA_HTTP_ATTEMPTS) {
 			result.statusCode = 0;
 			result.errors += "Reached max attempts without succeding;";
 			return result;
@@ -80,15 +82,16 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	//	cleanup
 	freeaddrinfo(hostAddr);
 
-	//	add service headers
-	if (!method.size()) method = "GET";
-	if (!keyExists("Host", &headers)) headers.push_back({"Host", fullhost});
-	if (!keyExists("User-Agent", &headers)) headers.push_back({"User-Agent", HTTPLAMBDA_USERAGENT});
-	
-	insertHeader("Accept-Encoding", HTTPLAMBDA_ACCEPTENC, &headers);
+	std::string requestMethod = data.method.size() ? data.method : "GET";
+	auto requestHeaders = httpHeaders(data.headers);
 
+	//	add some headers
+	requestHeaders.add("Host", fullhost);
+	requestHeaders.add("User-Agent", LAMBDA_HTTP_USERAGENT);
+	requestHeaders.set("Accept-Encoding", LAMBDA_HTTP_ACCEPTENC);
+	
 	//	send request
-	auto sent = socketSendHTTP(&connection, (toUpperCase(method) + " " + path + " HTTP/1.1"), &headers, &body);
+	auto sent = socketSendHTTP(&connection, (toUpperCase(requestMethod) + " " + path + " HTTP/1.1"), requestHeaders, data.body);
 	if (!sent.success) {
 		closesocket(connection);
 		result.statusCode = 0;
@@ -102,7 +105,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	//	cleanup
 	closesocket(connection);
 
-	if (serverResponse.startLineArgs.size() < 3) {
+	if (serverResponse.arguments.size() < 3) {
 		
 		result.statusCode = 0;
 		result.errors += "Invalid http response;";
@@ -110,7 +113,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	}
 
 	try {
-		result.statusCode = std::stoi(serverResponse.startLineArgs[1]);
+		result.statusCode = std::stoi(serverResponse.arguments[1]);
 	} catch(...) {
 		result.statusCode = 0;
 		result.errors += "Invalid http status code;";
@@ -118,14 +121,14 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	}
 
 	//	decode body
-	auto encodings = splitBy(findHeader("Content-Encoding", &serverResponse.headers), ",");
+	auto encodings = splitBy(serverResponse.headers.find("Content-Encoding"), ",");
 	std::reverse(encodings.begin(), encodings.end());
 
 	//	account for possible multiple layers of encoding
 	//	idk why but http allows that
 	for (auto enc : encodings) {
 
-		trim(&enc);
+		trimString(&enc);
 		std::string decompressed;
 
 		/*if (enc == "br") {
@@ -143,7 +146,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 
 		} else */if (enc == "gzip" || enc == "deflate") {
 
-			decompressed = lambda::compression::gzDecompress(&serverResponse.body);
+			decompressed = compression::gzDecompress(&serverResponse.body);
 
 			if (decompressed.size()) {
 				serverResponse.body = decompressed;
@@ -164,4 +167,8 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	result.body = serverResponse.body;
 
 	return result;
+}
+
+lambda::fetchResult lambda::fetch(std::string url) {
+	return fetch(url, {});
 }

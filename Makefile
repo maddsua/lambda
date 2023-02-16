@@ -6,7 +6,7 @@
 APP_DEV    = lambda.exe
 LIBNAME    = lambda
 
-OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
+OBJECTS    = src/constants.o src/httpcore.o src/lambda.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/localdb.o
 
 FLAGS      = -std=c++20
 LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc
@@ -60,8 +60,11 @@ $(LIBNAME).res: $(LIBNAME).rc
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
 
-src/sockets.o: src/sockets.cpp
-	g++ -c src/sockets.cpp -o src/sockets.o $(FLAGS)
+src/httpcore.o: src/httpcore.cpp
+	g++ -c src/httpcore.cpp -o src/httpcore.o $(FLAGS)
+
+src/constants.o: src/constants.cpp
+	g++ -c src/constants.cpp -o src/constants.o $(FLAGS)
 
 src/http.o: src/http.cpp
 	g++ -c src/http.cpp -o src/http.o $(FLAGS)
@@ -91,5 +94,5 @@ src/sha.o: src/sha.cpp
 # ----
 #	kinda plugins
 # ----
-src/radishdb.o: src/radishdb.cpp
-	g++ -c src/radishdb.cpp -o src/radishdb.o $(FLAGS)
+src/localdb.o: src/localdb.cpp
+	g++ -c src/localdb.cpp -o src/localdb.o $(FLAGS)

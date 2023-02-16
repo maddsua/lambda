@@ -7,3 +7,6 @@
 *.def
 *.db
 *.res
+
+# Local Netlify folder
+.netlify

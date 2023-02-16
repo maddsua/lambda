@@ -5,20 +5,35 @@
 */
 
 
-#include "../include/maddsua/lambda.hpp"
+#include "../include/lambda/httpcore.hpp"
+#include "../include/lambda/lambda.hpp"
+#include "../include/lambda/compression.hpp"
 
 
-const std::vector<std::string> compressibleTypes = { "text", "application" };
+lambda::lambda::lambda() {
+	memset(&wsaData, 0, sizeof(wsaData));
+	ListenSocket = INVALID_SOCKET;
+	handlerDispatched = true;
+	running = false;
+	instanceWormhole = nullptr;
+}
 
-void lambda::lambda::setConfig(lambdaConfig config) {
+lambda::lambda::~lambda() {
+	stop();
+}
+
+void lambda::lambda::setConfig(Config config) {
 	instanceConfig = config;
 }
+
 void lambda::lambda::openWormhole(void* object) {
 	instanceWormhole = object;
 }
+
 void lambda::lambda::closeWormhole() {
 	instanceWormhole = nullptr;
 }
+
 
 std::string lambda::lambda::serverTime(time_t timestamp) {
 	char timebuff[16];
@@ -26,21 +41,22 @@ std::string lambda::lambda::serverTime(time_t timestamp) {
 	strftime(timebuff, sizeof(timebuff), "%H:%M:%S", timedata);
 	return std::string(timebuff);
 }
+
 std::string lambda::lambda::serverTime() {
 	return serverTime(time(nullptr));
 }
 
 
-void lambda::lambda::addLogEntry(lambdaInvokContext context, short typeCode, std::string message) {
+void lambda::lambda::addLogEntry(Context context, int typeCode, std::string message) {
 	
-	lambdaLogEntry entry;
+	LogEntry entry;
 		entry.type = typeCode;
 		entry.message = message;
 		entry.timestamp = time(nullptr);
-		entry.requestId = context.uuid;
+		entry.requestId = context.requestId.substr(0, context.requestId.find_first_of('-'));
 		entry.clientIP = context.clientIP;
 
-	instanceLog.push_back(entry);
+	instanceLog.push_back(std::move(entry));
 }
 
 std::vector <std::string> lambda::lambda::showLogs() {
@@ -54,11 +70,12 @@ std::vector <std::string> lambda::lambda::showLogs() {
 		auto temp = serverTime();
 
 		switch (logEntry.type) {
-			case LAMBDALOG_WARN:
+
+			case LAMBDA_LOG_WARN:
 				temp += " [WARN] ";
 			break;
 
-			case LAMBDALOG_ERR:
+			case LAMBDA_LOG_ERR:
 				temp += " [ERRR] ";
 			break;
 			
@@ -67,7 +84,7 @@ std::vector <std::string> lambda::lambda::showLogs() {
 			break;
 		}
 		
-		printout.push_back(temp + logEntry.clientIP + ' ' + formatUUID(logEntry.requestId, false) + " : " + logEntry.message);
+		printout.push_back(temp + logEntry.clientIP + ' ' + logEntry.requestId + " : " + logEntry.message);
 	}
 
 	instanceLog.clear();
@@ -75,8 +92,7 @@ std::vector <std::string> lambda::lambda::showLogs() {
 	return printout;
 }
 
-
-lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaResponse(lambdaEvent)> lambdaCallbackFunction) {
+lambda::actionResult lambda::lambda::start(const int port, std::function<Response(Event)> lambdaCallbackFunction) {
 
 	if (running) return {
 		false,
@@ -87,25 +103,25 @@ lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaR
 		if (WSAStartup(MAKEWORD(2,2), &wsaData)) return {
 			false,
 			"Startup failed",
-			"WINAPI:" + std::to_string(GetLastError())
+			"Code:" + std::to_string(GetLastError())
 		};
 	}
 
 	//	resolve server address
 	struct addrinfo *servAddr = NULL;
-	struct addrinfo hints;
-		ZeroMemory(&hints, sizeof(hints));
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_protocol = IPPROTO_TCP;
-		hints.ai_flags = AI_PASSIVE;
+	struct addrinfo addrHints;
+		ZeroMemory(&addrHints, sizeof(addrHints));
+		addrHints.ai_family = AF_INET;
+		addrHints.ai_socktype = SOCK_STREAM;
+		addrHints.ai_protocol = IPPROTO_TCP;
+		addrHints.ai_flags = AI_PASSIVE;
 
-	if (getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &servAddr) != 0) {
+	if (getaddrinfo(NULL, std::to_string(port).c_str(), &addrHints, &servAddr) != 0) {
 		if (!instanceConfig.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Localhost didn't resolve",
-			"WINAPI:" + std::to_string(GetLastError())
+			"Code:" + std::to_string(GetLastError())
 		};
 	}
 
@@ -117,9 +133,10 @@ lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaR
 		return {
 			false,
 			"Failed to create listening socket",
-			"WINAPI:" + std::to_string(GetLastError())
+			"Code:" + std::to_string(GetLastError())
 		};
 	}
+
 	if (bind(ListenSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 		freeaddrinfo(servAddr);
 		closesocket(ListenSocket);
@@ -127,7 +144,7 @@ lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaR
 		return {
 			false,
 			"Failed to bind a TCP socket",
-			"WINAPI:" + std::to_string(GetLastError())
+			"Code:" + std::to_string(GetLastError())
 		};
 	}
 
@@ -139,7 +156,7 @@ lambda::actionResult lambda::lambda::start(const int port, std::function<lambdaR
 		return {
 			false,
 			"Socket error",
-			"WINAPI:" + std::to_string(GetLastError())
+			"Code:" + std::to_string(GetLastError())
 		};
 	}
 
@@ -178,6 +195,135 @@ void lambda::lambda::connectDispatch() {
 	}
 }
 
+bool lambda::socketsReady() {
+	bool result = true;
+
+    SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (temp == INVALID_SOCKET){
+		if (GetLastError() == WSANOTINITIALISED) result = false;
+    }
+    closesocket(temp);
+
+	return result;
+}
+
+lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
+
+	//	receive http header first
+	std::string rawData;
+	bool opresult = true;
+	auto headerEnded = std::string::npos;
+	auto headerChunk = new char [LAMBDAHTTP_HEADER_CHUNK];
+
+	while (headerEnded == std::string::npos && opresult) {
+
+		auto bytesReceived = recv(*client, headerChunk, LAMBDAHTTP_HEADER_CHUNK, 0);
+		if (bytesReceived <= 0) {
+			//	drop the connection if error occured
+			if (bytesReceived < 0) opresult = false;
+			break;
+		}
+		if (!opresult) break;
+
+		rawData.append(headerChunk, bytesReceived);
+
+		//	"\r\n\r\n" - is a marker of http header end
+		headerEnded = rawData.find("\r\n\r\n");
+	}
+	
+	delete headerChunk;
+	
+	if (!opresult) return { false };
+
+	std::string requestHeaderText = rawData.substr(0, headerEnded);
+
+	//	split text by lines
+	auto headerLines = splitBy(requestHeaderText, "\r\n");
+	if (headerLines.size() < 1) return { false };
+
+	//	parse start-line
+	auto startArgs = splitBy(headerLines[0], " ");
+	//	drop if less than 3 args here
+	if (startArgs.size() < 3) return { false };
+
+	httpHeaders headers;
+	headerLines.erase(headerLines.begin());
+	headers.parse(headerLines);
+
+	//	download body if exists
+	std::string requestBody;
+	auto contentLength = headers.find("Content-Length");
+	if (contentLength.size()) {
+		size_t bodySize;
+
+		try { bodySize = std::stoi(contentLength); }
+			catch(...) { bodySize = 0; }
+
+		if (bodySize) {
+			
+			requestBody = rawData.substr(headerEnded + 4);
+
+			if (requestBody.size() < bodySize) {
+
+				auto bodyChunk = new char [LAMBDAHTTP_BODY_CHUNK];
+				while (requestBody.size() < bodySize) {
+					
+					auto bytesReceived = recv(*client, bodyChunk, LAMBDAHTTP_BODY_CHUNK, 0);
+
+					if (bytesReceived <= 0) {
+						if (bytesReceived < 0) opresult = false;
+						break;
+					}
+					
+					requestBody.append(bodyChunk, bytesReceived);
+				}
+
+				delete bodyChunk;
+			}
+		}
+	}
+
+    return {
+		true,
+		startArgs,
+		headers,
+		requestBody
+	};
+}
+
+lambda::actionResult lambda::socketSendHTTP(SOCKET* client, std::string startline, httpHeaders& headers, const std::string& body) {
+
+	//	create response message
+	auto temp = startline + "\r\n";
+
+	//	add content length header
+	if (body.size()) headers.set("Content-Length", std::to_string(body.size()));
+
+	//	add headers
+	temp += headers.dump();
+	
+	//	end headers block
+	temp += "\r\n";
+
+	//	append body
+	if (body.size()) temp.append(body);
+
+	auto sendResult = send(*client, &temp[0], temp.size(), 0);
+
+	//	success
+	if (sendResult > 0) return {
+		true,
+		"Sent"
+	};
+
+	//	encountered an error
+	return {
+		false,
+		"Network error",
+		"WINAPI:" + std::to_string(GetLastError())
+	};
+}
+
 void lambda::lambda::handler() {
 
 	//	accept socket and free the flag for next handler instance
@@ -187,70 +333,78 @@ void lambda::lambda::handler() {
 	handlerDispatched = true;
 
 	//	create metadata
-	lambdaInvokContext context;
-		context.uuid = createByteUUID();
+	Context context;
+		context.requestId = createUniqueId();
 		context.started = time(nullptr);
-		context.requestType = LAMBDAREQ_LAMBDA;
+		context.requestType = LAMBDA_REQ_LAMBDA;
 
 	//	append client's ip to metadata
-	char clientIPBuff[50];
+	char clientIPBuff[64];
 	if (inet_ntop(AF_INET, &clientAddr.sin_addr, clientIPBuff, sizeof(clientIPBuff)))
 		context.clientIP = clientIPBuff;
 
 	//	download http request
-	auto httprequest = socketGetHTTP(&ClientSocket);
-
+	auto incomingRequest = socketGetHTTP(&ClientSocket);
 	//	drop connection if the request is invalid
-	if (!httprequest.success) {
-		addLogEntry(context, LAMBDALOG_WARN, "Aborted");
+	if (!incomingRequest.success) {
+		addLogEntry(context, LAMBDA_LOG_WARN, "Aborted");
 		closesocket(ClientSocket);
 		return;
 	}
 
-	//	pass the data to lambda function
-	auto targetURL = toLowerCase(httprequest.startLineArgs[1]);
-	lambdaEvent event;
-		event.method = toUpperCase(httprequest.startLineArgs[0]);
-		event.httpversion = toUpperCase(httprequest.startLineArgs[2]);
-		event.clientIP = context.clientIP;
+	auto targetURL = toLowerCase(incomingRequest.arguments[1]);
 
-		event.path = targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL;
-		event.searchQuery = getSearchQuery(&targetURL);
-		event.headers = httprequest.headers;
-		event.body = httprequest.body;
+	//	pass the data to the callback
+	auto callbackResult = requestCallback({
 
-		//	neutron-star-explosive part
-		event.wormhole = instanceWormhole;
+		//	httpversion
+		toUpperCase(incomingRequest.arguments[2]),
+		//	requestID
+		context.requestId,
+		//	clientIP
+		context.clientIP,
 
-	//	get callback result
-	auto lcbResult = requestCallback(event);
+		//	wormhole
+		instanceWormhole,
+
+		//method
+		toUpperCase(incomingRequest.arguments[0]),
+		//	path
+		targetURL.find('?') ? targetURL.substr(0, targetURL.find_last_of('?')) : targetURL,
+		//	headers
+		incomingRequest.headers,
+		//	searchQuery
+		httpSearchQuery(targetURL),
+		//	body
+		incomingRequest.body
+	});
+
+	auto responseHeaders = httpHeaders(callbackResult.headers);
 
 	//	inject additional headers
-	addHeader({ "X-Powered-By", HTTPLAMBDA_USERAGENT }, &lcbResult.headers);
-	addHeader({ "X-Request-ID", formatUUID(context.uuid, true) }, &lcbResult.headers);
-	addHeader({ "Date", httpTimeNow() }, &lcbResult.headers);
+	responseHeaders.add("X-Powered-By", LAMBDA_HTTP_USERAGENT);
+	responseHeaders.add("X-Request-ID", context.requestId);
+	responseHeaders.add("Date", httpTime());
 	
-	if (lcbResult.body.size()) {
-		auto jsJsonObject = (lcbResult.body[0] == '{' && lcbResult.body[lcbResult.body.size() - 1] == '}');
-		auto isJsonArray = (lcbResult.body[0] == '[' && lcbResult.body[lcbResult.body.size() - 1] == ']');
-		addHeader({ "Content-Type", mimetype((jsJsonObject || isJsonArray) ? "json" : "html") }, &lcbResult.headers);
+	if (callbackResult.body.size()) {
+		//	check if is a json object
+		auto jsJsonObject = (callbackResult.body[0] == '{' && callbackResult.body[callbackResult.body.size() - 1] == '}');
+		//	check if is a json array
+		auto isJsonArray = (callbackResult.body[0] == '[' && callbackResult.body[callbackResult.body.size() - 1] == ']');
+		//	apply content type
+		responseHeaders.add("Content-Type", mimetype((jsJsonObject || isJsonArray) ? "json" : "html"));
 	}
 
-	//	reset header case
-	for (size_t i = 0; i < lcbResult.headers.size(); i++)
-		toTitleCase(&lcbResult.headers[i].name);
-
 	//	apply request compression
-	auto acceptEncodings = splitBy(findHeader("Accept-Encoding", &httprequest.headers), ",");
+	auto acceptEncodings = splitBy(incomingRequest.headers.find("Accept-Encoding"), ",");
 
-	auto isCompressable = includes(findHeader("Content-Type",  &lcbResult.headers), compressibleTypes);
 	std::string compressedBody;
+	static const std::vector <std::string> compressibleTypes = { "text", "application" };
+	auto isCompressable = jstring(responseHeaders.find("Content-Type")).includes(compressibleTypes);
 	
 	if (instanceConfig.compression_enabled && acceptEncodings.size() && (isCompressable || instanceConfig.compression_allFileTypes)) {
 
-		for (auto &&encoding : acceptEncodings) {
-			trim(&encoding);
-		}
+		for (auto &&encoding : acceptEncodings) trimString(&encoding);
 
 		if (instanceConfig.compression_preferBr) {
 			for (auto encoding : acceptEncodings) {
@@ -264,36 +418,35 @@ void lambda::lambda::handler() {
 		std::string appliedCompression;
 
 		if (acceptEncodings[0] == "br") {
-			compressedBody = compression::brCompress(&lcbResult.body);
+			compressedBody = compression::brCompress(&callbackResult.body);
 			if (compressedBody.size()) appliedCompression = "br";
-				else addLogEntry(context, LAMBDALOG_ERR, "brotli compression failed");
+				else addLogEntry(context, LAMBDA_LOG_ERR, "brotli compression failed");
 			
 		} else if (acceptEncodings[0] == "gzip") {
-			compressedBody = compression::gzCompress(&lcbResult.body, true);
+			compressedBody = compression::gzCompress(&callbackResult.body, true);
 			if (compressedBody.size()) appliedCompression = "gzip";
-				else addLogEntry(context, LAMBDALOG_ERR, "gzip compression failed");
+				else addLogEntry(context, LAMBDA_LOG_ERR, "gzip compression failed");
 
 		} else if (acceptEncodings[0] == "deflate") {
-			compressedBody = compression::gzCompress(&lcbResult.body, false);
+			compressedBody = compression::gzCompress(&callbackResult.body, false);
 			if (compressedBody.size()) appliedCompression = "deflate";
-				else addLogEntry(context, LAMBDALOG_ERR, "deflate compression failed");
+				else addLogEntry(context, LAMBDA_LOG_ERR, "deflate compression failed");
 		}
 
-		if (appliedCompression.size()) insertHeader("Content-Encoding", appliedCompression, &lcbResult.headers);
-			else compressedBody.erase(compressedBody.begin(), compressedBody.end());
+		if (appliedCompression.size()) responseHeaders.set("Content-Encoding", appliedCompression);
+			else compressedBody.clear();
 	}
 
 	//	generate response title
-	std::string startLine = "HTTP/1.1 " + httpStatusString(lcbResult.statusCode);
+	std::string startLine = "HTTP/1.1 " + httpStatusString(callbackResult.statusCode);
 
 	//	send response and close socket
-	auto responseSent = socketSendHTTP(&ClientSocket, startLine, &lcbResult.headers, compressedBody.size() ? &compressedBody : &lcbResult.body);
+	auto responseSent = socketSendHTTP(&ClientSocket, startLine, responseHeaders, compressedBody.size() ? compressedBody : callbackResult.body);
 	closesocket(ClientSocket);
 
-	if (responseSent.success) addLogEntry(context, LAMBDALOG_INFO, "Resp. " + std::to_string(lcbResult.statusCode) + " for " + targetURL + "");
-		else addLogEntry(context, LAMBDALOG_INFO, "Request for " + targetURL + " failed: " + responseSent.cause);
+	if (responseSent.success) addLogEntry(context, LAMBDA_LOG_INFO, "Resp. " + std::to_string(callbackResult.statusCode) + " for " + targetURL + "");
+		else addLogEntry(context, LAMBDA_LOG_INFO, "Request for " + targetURL + " failed: " + responseSent.cause);
 
 	//	done!
 	return;
 }
-

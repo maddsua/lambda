@@ -15,19 +15,18 @@
 #ifndef H_MADDSUA_LAMBDA_COMPRESSION
 #define H_MADDSUA_LAMBDA_COMPRESSION
 
-#include <string>
+	#include <string>
 
-namespace lambda {
+	namespace lambda {
 
-	namespace compression {
+		namespace compression {
 
-		std::string gzCompress(const std::string* data, bool gzipHeader);
-		std::string gzDecompress(const std::string* data);
+			std::string gzCompress(const std::string* data, bool gzipHeader);
+			std::string gzDecompress(const std::string* data);
 
-		std::string brCompress(const std::string* data);
-		//std::string brDecompress(const std::string* data);
+			std::string brCompress(const std::string* data);
+			//std::string brDecompress(const std::string* data);
+		}
 	}
-}
-
 
 #endif

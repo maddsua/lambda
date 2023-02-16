@@ -6,6 +6,10 @@ LIBS       = -lz -lbrotli
 .PHONY: all all-before all-after action-custom
 all: all-before all-after
 
+# http test
+http: action-custom
+	g++ http_test.cpp ../src/httpcore.cpp -o http_test.exe $(FLAGS)
+
 
 # base64 test
 base64: action-custom

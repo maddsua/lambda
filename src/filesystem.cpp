@@ -10,15 +10,13 @@
 #include <dir.h>
 #include <dirent.h>
 
-#include "../include/maddsua/fs.hpp"
+#include "../include/lambda/fs.hpp"
 
-bool lambda::fs::createTree(std::string tree) {
+bool lambda::fs::createTree(std::string& tree) {
 
 	tree = std::regex_replace(tree, std::regex("[\\\\\\/]+"), "\\");
 
-	if (!tree.size()) {
-		return false;
-	}
+	if (!tree.size()) return false;
 
 	auto createIfDontexist = [](std::string path) {
 		auto dir = opendir(path.c_str());
@@ -31,7 +29,7 @@ bool lambda::fs::createTree(std::string tree) {
 	};
 
 	auto hierrarchy = tree.find_first_of('\\');
-	while(hierrarchy != std::string::npos) {
+	while (hierrarchy != std::string::npos) {
 		if (!createIfDontexist(tree.substr(0, hierrarchy))) return false;
 		hierrarchy = tree.find_first_of('\\', hierrarchy + 1);
 	}
@@ -39,16 +37,7 @@ bool lambda::fs::createTree(std::string tree) {
 	return true;
 }
 
-bool lambda::fs::writeSync(const std::string path, const std::string* data) {
-
-	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
-		auto dirpath = std::regex_replace(path, std::regex("\\+"), "/");
-		dirpath = dirpath.substr(0, dirpath.find_last_of('/'));
-
-		DIR* dir = opendir(dirpath.c_str());
-		if (!dir) mkdir(dirpath.c_str());
-		else closedir(dir);
-	}
+bool lambda::fs::writeSync(std::string path, const std::string* data) {
 
 	FILE* binfile = fopen64(path.c_str(), "wb");
 	if (!binfile) return false;
@@ -57,12 +46,14 @@ bool lambda::fs::writeSync(const std::string path, const std::string* data) {
 		fclose(binfile);
 		return false;
 	};
+	
 	fclose(binfile);
 
 	return true;
 }
 
 bool lambda::fs::readSync(std::string path, std::string* dest) {
+
 	FILE* binfile = fopen64(path.c_str(), "rb");
 	if (!binfile) return false;
 
@@ -72,6 +63,7 @@ bool lambda::fs::readSync(std::string path, std::string* dest) {
 		if (ferror(binfile)) return false;
 		dest->insert(dest->end(), fileChunk, fileChunk + bytesRead);
 	}
+
 	fclose(binfile);
 
 	return true;
