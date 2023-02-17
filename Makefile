@@ -3,14 +3,22 @@
 # makefile for windows build
 # GCC-12.2-ucrt64 is in use
 
-APP_DEV    = lambda.exe
-LIBNAME    = lambda
+APP_DEV		= lambda.exe
+LIBNAME		= lambda
 
-OBJECTS    = src/constants.o src/httpcore.o src/lambda.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/localdb.o
+OBJECTS		= src/constants.o src/httpcore.o src/lambda.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/localdb.o
 
-FLAGS      = -std=c++20
-LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc
-SYSLIBS    = -lws2_32 -lwinmm
+FLAGS		= -std=c++20
+LIBS_SHARED	= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+
+#	to get these static libs you need to compile brotli and zlib youself
+#	it's basically just compiling all source files to objects
+#	and then putting all of them into .a static lib
+LIBS_STATIC	= -l:libz.a -l:libbrotli.a
+LIBS_SYSTEM	= -lws2_32 -lwinmm
+
+LIBSTATIC	= lib$(LIBNAME).a
+LIBSHARED	= $(LIBNAME).dll
 
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
@@ -28,9 +36,22 @@ run: action-custom
 # ----
 #	labmda demo/test app
 # ----
-$(APP_DEV): libshared main.o
+#	regular dev app
+$(APP_DEV): main.o $(OBJECTS)
+	g++ main.o $(OBJECTS) $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
+
+#	fully static build, version for demo
+static: $(LIBSTATIC) main.o
+	g++ -static main.o -L. -l$(LIBNAME) $(LIBS_STATIC) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
+
+#	dynamically linked to all the dlls
+dynamic: libshared main.o
 	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEV)
 
+
+# ----
+#	dev main
+# ----
 main.o: main.cpp
 	g++ -c main.cpp -o main.o $(FLAGS)
 
@@ -39,12 +60,16 @@ main.o: main.cpp
 #	lib
 # ----
 #	make static lib
-libstatic: $(OBJECTS)
-	ar rvs lib$(LIBNAME).a $(OBJECTS)
+libstatic: $(LIBSTATIC)
+
+$(LIBSTATIC): $(OBJECTS)
+	ar rvs $(LIBSTATIC) $(OBJECTS)
 
 #	make dll
-libshared: $(OBJECTS) $(LIBNAME).res
-	g++ $(OBJECTS) $(LIBNAME).res $(LIBS) $(SYSLIBS) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+libshared: $(LIBSHARED)
+
+$(LIBSHARED): $(OBJECTS) $(LIBNAME).res
+	g++ $(OBJECTS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
 
 
 # ----
