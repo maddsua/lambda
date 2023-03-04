@@ -21,7 +21,8 @@ using JSON = nlohmann::json;
 //	A user-defined structure, is used to pass any kind of data
 //	to an isolated process
 struct passtrough {
-	maddsua::radishDB* db;
+	lambda::localdb* db;
+	lambda::virtualFS* vfs;
 };
 
 //	declare a request callback function
@@ -52,22 +53,27 @@ int main(int argc, char** argv) {
 	//	report successful lambda start
 	std::cout << "Waiting for connections at http://localhost:27015/" << std::endl;
 
-	
-	//	now let's create a database instance
-	maddsua::radishDB database;
+
+	//	let's create a "wormhole" to share objects with isolated function
+	passtrough shared;
+
+	//	creating a database instance
+	shared.db = new lambda::localdb;
 
 	//	set a test value to the database, so it can be easily accessed
 	//	request url will look like this: "http://localhost:27015/api/db?entry=test"
-	database.push("test", "test value", false);
+	shared.db->push("test", "test value", false);
 
-	//	let's put a pointer to the database inside and object 
-	//	you don't really need to use a struct/object for this, but I do it anyway
-	//	and if you'd like to pass an object... you get it, just use a struct
-	passtrough interstellarData;
-		interstellarData.db = &database;
+	//	Oh and I wanna show virtual FS too
+	//	Sometimes VFS can make resources load muuuch faster
+	shared.vfs = new lambda::virtualFS;
+	auto loaded = shared.vfs->loadSnapshot("demo.tar.gz");
 
-	//	and make it accessable to the lambda
-	lambdaserver.openWormhole(&interstellarData);
+	std::cout << "VFS: " << (loaded ? ("Failed with code " + std::to_string(loaded)) : "Loaded") << std::endl;
+
+
+	//	and finally make wormhole accessable to the lambda
+	lambdaserver.openWormhole(&shared);
 
 	//	now just chill in the log loop
 	while (true) {
@@ -160,7 +166,7 @@ lambda::Response requestHandeler(lambda::Event event) {
 					JSON({
 						{"Request", "Succeeded"},
 						{"Base64", true},
-						{"Data", maddsua::b64Encode(&recordData)}
+						{"Data", lambda::b64Encode(&recordData)}
 					}).dump()
 				};
 			}
@@ -273,13 +279,25 @@ lambda::Response requestHandeler(lambda::Event event) {
 	//	Format path, is up to you.
 	//	Probably will add some basic path transformation rules in the future
 	if (event.path.endsWith("/")) event.path += "index.html";
-	event.path = std::regex_replace(("demo/" + event.path.sstring), std::regex("/+"), "/");
+	
 
-	//	read file contents to this string
-	//	return if fails
 	std::string filecontents;
-	if (!lambda::fs::readSync(event.path.sstring, &filecontents)) {
-		return { 404, {}, "File not found"};
+	std::string storageHeader;
+
+	//	try to get files from vfs, then try form a directory
+	auto vfs = ((passtrough*)event.wormhole)->vfs;
+
+	if (vfs) {
+		filecontents = vfs->read(event.path.sstring);
+		storageHeader = "lambda VFS";
+	}
+	
+	if (!filecontents.size()) {
+		event.path = std::regex_replace(("demo/" + event.path.sstring), std::regex("/+"), "/");
+		storageHeader = "filesystem";
+		if (!lambda::fs::readSync(event.path.sstring, &filecontents)) {
+			return { 404, {}, "File not found"};
+		}
 	}
 
 	//	determine the file extension
@@ -290,7 +308,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 	//	serve that kitty picture
 	return {
 		200, {
-			{ "Content-Type", contentType }
+			{ "Content-Type", contentType },
+			{ "X-Storage", storageHeader }
 		}, filecontents
 	};
 

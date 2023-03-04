@@ -56,7 +56,7 @@ And here goes my lambda (C++):
 #include <nlohmann/json.hpp>
 using JSON = nlohmann::json;
 
-maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
+lambda::Response requesthandeler(lambda::Event event) {
     return {
         200,    //    status code
         {       //    headers

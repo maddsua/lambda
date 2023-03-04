@@ -9,12 +9,12 @@
 #include <algorithm>
 
 #include "../include/lambda/lambda.hpp"
-#include "../include/maddsua/compression.hpp"
+#include "../include/lambda/compression.hpp"
 
 
-lambda::fetchResult lambda::fetch(std::string url, const fetchData& data) {
+lambda::FetchResult lambda::fetch(std::string url, const FetchData& data) {
 	
-	fetchResult result;
+	FetchResult result;
 
 	std::string path;
 	std::string host;
@@ -146,7 +146,7 @@ lambda::fetchResult lambda::fetch(std::string url, const fetchData& data) {
 
 		} else */if (enc == "gzip" || enc == "deflate") {
 
-			decompressed = maddsua::gzDecompress(&serverResponse.body);
+			decompressed = gzDecompress(&serverResponse.body);
 
 			if (decompressed.size()) {
 				serverResponse.body = decompressed;
@@ -169,6 +169,6 @@ lambda::fetchResult lambda::fetch(std::string url, const fetchData& data) {
 	return result;
 }
 
-lambda::fetchResult lambda::fetch(std::string url) {
+lambda::FetchResult lambda::fetch(std::string url) {
 	return fetch(url, {});
 }

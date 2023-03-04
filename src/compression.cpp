@@ -6,161 +6,210 @@
 
 
 #include <memory>
+#include <array>
 
-#include <zlib.h>
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
-#include "../include/maddsua/compression.hpp"
+#include "../include/lambda/compression.hpp"
 
-#define LAMBDA_ZLIB_HEADER_Z		(8)
-#define LAMBDA_ZLIB_HEADER_GZ		(26)
-#define LAMBDA_ZLIB_DECOMP_GZ		(16)
-#define LAMBDA_ZLIB_DECOM_AUTO		(32)
-#define LAMBDA_ZLIB_RAW				(-15)
-#define LAMBDA_ZLIB_MEMORY			(9)
-#define LAMBDA_ZLIB_EXPECT_RATIO	(3)
-#define LAMBDA_ZLIB_CHUNK			(131072)	//	128k
 
 #define LAMBDA_BROTLI_CHUNK			(131072)	//	128k
 #define LAMBDA_BROTLI_EXPCT_RATIO	(3)
+
+
+/*
+	ZLIB decompression stream class
+*/
+
+lambda::zlibDecompressStream::zlibDecompressStream() {
+	datastream = new z_stream;
+	memset(datastream, 0, sizeof(z_stream));
+	tempBuffer = new uint8_t[chunkSize];
+}
+
+lambda::zlibDecompressStream::~zlibDecompressStream() {
+	if (initialized) inflateEnd(datastream);
+	delete datastream;
+	delete tempBuffer;
+}
+
+bool lambda::zlibDecompressStream::init(int windowBits) {
+
+	streamStatus = inflateInit2(datastream, windowBits);
+	if (streamStatus != Z_OK) return false;
+
+	initialized = true;
+	return true;
+}
+
+bool lambda::zlibDecompressStream::done() {
+	return (streamStatus == Z_STREAM_END);
+}
+
+bool lambda::zlibDecompressStream::error() {
+	//	negative values are all errors
+	return (streamStatus < Z_OK || streamStatus == Z_NEED_DICT);
+}
+
+bool lambda::zlibDecompressStream::doInflate(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
+
+	datastream->next_in = bufferIn;
+	datastream->avail_in = dataInSize;
+
+	do {
+		datastream->avail_out = chunkSize;
+		datastream->next_out = tempBuffer;
+		
+		streamStatus = inflate(datastream, Z_NO_FLUSH);
+		if (error()) return false;
+
+		bufferOut->insert(bufferOut->end(), tempBuffer, tempBuffer + (chunkSize - datastream->avail_out));
+		
+	} while (datastream->avail_out == 0);
+	
+	return streamStatus;
+}
+
+
+/*
+	ZLIB compression stream class
+*/
+
+lambda::zlibCompressStream::zlibCompressStream() {
+	datastream = new z_stream;
+	memset(datastream, 0, sizeof(z_stream));
+	tempBuffer = new uint8_t[chunkSize];
+}
+
+lambda::zlibCompressStream::~zlibCompressStream() {
+	if (initialized) inflateEnd(datastream);
+	delete datastream;
+	delete tempBuffer;
+}
+
+bool lambda::zlibCompressStream::init(int compressLvl, int addHeader) {
+
+	if (compressLvl < 0 || compressLvl > 9) compressLvl = Z_DEFAULT_COMPRESSION;
+
+	streamStatus = deflateInit2(datastream, compressLvl, Z_DEFLATED, addHeader, def_memlvl, Z_DEFAULT_STRATEGY);
+	if (streamStatus != Z_OK) return false;
+
+	initialized = true;
+	return true;
+}
+
+bool lambda::zlibCompressStream::done() {
+	return (streamStatus == Z_STREAM_END);
+}
+bool lambda::zlibCompressStream::error() {
+	//puts(std::to_string(streamStatus).c_str());
+	//	negative values are errors
+	return (streamStatus < Z_OK || streamStatus == Z_NEED_DICT);
+}
+
+bool lambda::zlibCompressStream::doDeflate(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
+
+	datastream->next_in = bufferIn;
+	datastream->avail_in = dataInSize;
+
+	do {
+		datastream->avail_out = chunkSize;
+		datastream->next_out = tempBuffer;
+		
+		streamStatus = deflate(datastream, finish ? Z_FINISH : Z_NO_FLUSH);
+		if (error()) return false;
+
+		bufferOut->insert(bufferOut->end(), tempBuffer, tempBuffer + (chunkSize - datastream->avail_out));
+		
+	} while (datastream->avail_out == 0);
+	
+	return error();
+}
+
 
 /*
 	zlib "wrapper" for de/compressing buffers
 */
 
 /**
- * Compress data inside std::string using gzip. The return value "true" indicatess success
+ * Compress std::string buffer as gzip. Successful if output size > 0
  * @param plain pointer to a string with original data
  * @param compressed pointer to a destination string, where the compressed data will be saved
 */
-std::string maddsua::gzCompress(const std::string* plain, bool gzipHeader) {
+std::string lambda::gzCompress(const std::string* data, bool gzipHeader) {
 
-	if (!plain->size()) return {};
+	if (!data->size()) return {};
 
-	z_stream zlibStream;
-		zlibStream.zalloc = Z_NULL;
-		zlibStream.zfree = Z_NULL;
-		zlibStream.opaque = Z_NULL;
+	zlibCompressStream stream;
 
-	auto zlibResult = deflateInit2(&zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (gzipHeader ? LAMBDA_ZLIB_HEADER_GZ : LAMBDA_ZLIB_HEADER_Z), LAMBDA_ZLIB_MEMORY, Z_DEFAULT_STRATEGY);
-		if (zlibResult != Z_OK) return {};
+	stream.init(Z_DEFAULT_COMPRESSION, gzipHeader ? zlibCompressStream::header_gz : zlibCompressStream::header_deflate);
+	if (stream.error()) return {};
 
-	std::string result;
-		result.reserve(plain->size() / LAMBDA_ZLIB_EXPECT_RATIO);
+	std::vector <uint8_t> result;
+		result.reserve(data->size() / zlibCompressStream::expect_ratio);
 
-	int zlibFlush;
-	bool opresult = true;
+	bool streamEnd = false;
 	size_t carrierShift = 0;
-
-	auto chunkIn = new uint8_t [LAMBDA_ZLIB_CHUNK];
-	auto chunkOut = new uint8_t [LAMBDA_ZLIB_CHUNK];
+	size_t partSize = 0;
+	std::array <uint8_t, zlibCompressStream::chunkSize> chunkIn;
 
 	do {
-		size_t partSize = LAMBDA_ZLIB_CHUNK;
-		if ((LAMBDA_ZLIB_CHUNK + carrierShift) > plain->size()) partSize = (plain->size() - carrierShift);
+		streamEnd = (carrierShift + zlibCompressStream::chunkSize) >= data->size();
+		partSize = streamEnd ? (data->size() - carrierShift) : zlibCompressStream::chunkSize;
 
-		std::copy(plain->begin() + carrierShift, plain->begin() + carrierShift + partSize, chunkIn);
+		memcpy(chunkIn.data(), data->data() + carrierShift, partSize);
+		carrierShift += partSize;
 
-		carrierShift += LAMBDA_ZLIB_CHUNK;
-		zlibFlush = (partSize < LAMBDA_ZLIB_CHUNK) ? Z_FINISH : Z_NO_FLUSH;
-		zlibStream.avail_in = partSize;
-		zlibStream.next_in = chunkIn;
+		stream.doDeflate(chunkIn.data(), partSize, &result, streamEnd);
 
-		do {
-			zlibStream.avail_out = LAMBDA_ZLIB_CHUNK;
-			zlibStream.next_out = chunkOut;
-			zlibResult = deflate(&zlibStream, zlibFlush);
-
-			if (zlibResult == Z_STREAM_ERROR) {
-				opresult = false;
-				break;
-			}
-
-			result.insert(result.end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
-
-		} while (zlibStream.avail_out == 0 && opresult);
-
-		if (zlibStream.avail_in != 0) {
-			opresult = false;
-			break;
-		}
-
-	} while (zlibFlush != Z_FINISH && opresult);
-
-	(void)deflateEnd(&zlibStream);
-	delete chunkIn;
-	delete chunkOut;
+	} while (!streamEnd && !stream.error());
 
 	//	return empty string on error
-	if (zlibResult != Z_STREAM_END || !opresult) return {};
+	if (!stream.done() || stream.error()) return {};
 
-	return result;
+	return std::string(result.begin(), result.end());
 }
 
 /**
- * Decompresses gzip-encoded data from std::string. The return value "true" indicatess success
+ * Decompresses gzip-encoded std::string buffer. Successful if output size > 0
  * @param compressed pointer to a string with compressed data
  * @param plain pointer to a destination string, original data will get here
 */
-std::string maddsua::gzDecompress(const std::string* compressed) {
+std::string lambda::gzDecompress(const std::string* data) {
 
-	if (!compressed->size()) return {};
+	if (!data->size()) return {};
 
-	z_stream zlibStream;
-		zlibStream.zalloc = Z_NULL;
-		zlibStream.zfree = Z_NULL;
-		zlibStream.opaque = Z_NULL;
-		zlibStream.avail_in = 0;
-		zlibStream.next_in = Z_NULL;
+	zlibDecompressStream stream;
 
-	auto zlibResult = inflateInit2(&zlibStream, LAMBDA_ZLIB_DECOM_AUTO);
-		if (zlibResult != Z_OK) return {};
+	stream.init(zlibDecompressStream::winbit_auto);
+	if (stream.error()) return {};
 
-	std::string result;
-		result.reserve(compressed->size() * LAMBDA_ZLIB_EXPECT_RATIO);
+	std::vector <uint8_t> result;
+		result.reserve(data->size() / zlibCompressStream::expect_ratio);
 
+	bool streamEnd = false;
 	size_t carrierShift = 0;
-	bool opresult = true;
-	auto chunkIn = new uint8_t [LAMBDA_ZLIB_CHUNK];
-	auto chunkOut = new uint8_t [LAMBDA_ZLIB_CHUNK];
+	size_t partSize = 0;
+	std::array <uint8_t, zlibCompressStream::chunkSize> chunkIn;
 
 	do {
-		size_t partSize = LAMBDA_ZLIB_CHUNK;
-		if ((LAMBDA_ZLIB_CHUNK + carrierShift) > compressed->size()) partSize = (compressed->size() - carrierShift);
+		streamEnd = (carrierShift + zlibCompressStream::chunkSize) >= data->size();
+		partSize = streamEnd ? (data->size() - carrierShift) : zlibCompressStream::chunkSize;
 
-		std::copy(compressed->begin() + carrierShift, compressed->begin() + carrierShift + partSize, chunkIn);
+		memcpy(chunkIn.data(), data->data() + carrierShift, partSize);
+		carrierShift += partSize;
 
-		carrierShift += LAMBDA_ZLIB_CHUNK;
-		zlibStream.avail_in = partSize;
+		stream.doInflate(chunkIn.data(), partSize, &result);
 
-		zlibStream.next_in = chunkIn;
+	} while (!streamEnd && !stream.error());
 
-		do {
-			zlibStream.avail_out = LAMBDA_ZLIB_CHUNK;
-			zlibStream.next_out = chunkOut;
-			zlibResult = inflate(&zlibStream, Z_NO_FLUSH);
+	//	return empty string on error
+	if (!stream.done() || stream.error()) return {};
 
-			//	negative values are errors
-			if (zlibResult < Z_OK) {
-				opresult = false;
-				break;
-			}
-
-			result.insert(result.end(), chunkOut, chunkOut + (LAMBDA_ZLIB_CHUNK - zlibStream.avail_out));
-
-		} while (zlibStream.avail_out == 0 && opresult);
-
-	} while (zlibResult != Z_STREAM_END && opresult);
-
-	(void)inflateEnd(&zlibStream);
-	delete chunkIn;
-	delete chunkOut;
-
-	if (zlibResult != Z_STREAM_END || !opresult) return {};
-
-	return result;
+	return std::string(result.begin(), result.end());
 }
+
 
 /*
 	brotli "wrapper" for de/compressing binary data
@@ -213,7 +262,7 @@ std::string maddsua::gzDecompress(const std::string* compressed) {
 /**
  * Compress data from std::string using Brotli. The return value "true" indicatess success
 */
-std::string  maddsua::brCompress(const std::string* data) {
+std::string  lambda::brCompress(const std::string* data) {
 
 	if (!data->size()) return {};
 

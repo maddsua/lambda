@@ -2,12 +2,12 @@
 #include <vector>
 #include <thread>
 
-#include "../include/maddsua/radishdb.hpp"
+#include "../include/lambda/localdb.hpp"
 
 
 int main() {
 
-	auto db = new maddsua::radishDB;
+	auto db = new lambda::localdb;
 
 	auto filePresent = db->load("db.db");
 

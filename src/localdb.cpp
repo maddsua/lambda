@@ -9,7 +9,7 @@
 
 #include "../include/lambda/localdb.hpp"
 #include "../include/lambda/fs.hpp"
-#include "../include/maddsua/compression.hpp"
+#include "../include/lambda/compression.hpp"
 #include "../include/maddsua/base64.hpp"
 
 
@@ -22,7 +22,7 @@
 */
 
 
-bool maddsua::radishDB::push(std::string key, std::string value, bool replace) {
+bool lambda::localdb::push(std::string key, std::string value, bool replace) {
 
 	std::lock_guard <std::mutex> lock (threadLock);
 
@@ -44,13 +44,13 @@ bool maddsua::radishDB::push(std::string key, std::string value, bool replace) {
 	dbdata.push_back(std::move(temp));
 	return true;
 }
-bool maddsua::radishDB::present(std::string key) {
+bool lambda::localdb::present(std::string key) {
 	for (auto entry : dbdata) {
 		if (entry.key == key) return true;
 	}
 	return false;
 }
-std::string maddsua::radishDB::pull(std::string key) {
+std::string lambda::localdb::pull(std::string key) {
 
 	std::lock_guard <std::mutex> lock (threadLock);
 
@@ -62,14 +62,9 @@ std::string maddsua::radishDB::pull(std::string key) {
 	}
 	return {};
 }
-bool maddsua::radishDB::rename(std::string key, std::string newKey) {
+bool lambda::localdb::rename(std::string key, std::string newKey) {
 
 	std::lock_guard <std::mutex> lock (threadLock);
-
-	//	check if this name is occupied
-	for (auto entry : dbdata) {
-		if (entry.key == newKey) return false;
-	}
 
 	//	assign new name
 	for (auto& entry : dbdata) {
@@ -81,7 +76,7 @@ bool maddsua::radishDB::rename(std::string key, std::string newKey) {
 
 	return false;
 }
-bool maddsua::radishDB::remove(std::string key) {
+bool lambda::localdb::remove(std::string key) {
 
 	std::lock_guard <std::mutex> lock (threadLock);
 	
@@ -94,12 +89,12 @@ bool maddsua::radishDB::remove(std::string key) {
 
 	return false;
 }
-std::vector <maddsua::radishDB::listing> maddsua::radishDB::list() {
+std::vector <lambda::localdb::listing> lambda::localdb::list() {
 
-	std::vector <radishDB::listing> result;
+	std::vector <localdb::listing> result;
 
 	for (auto& entry : dbdata) {
-		radishDB::listing temp;
+		localdb::listing temp;
 			temp.accessed = entry.accessed;
 			temp.updated = entry.updated;
 			temp.key = entry.key;
@@ -112,13 +107,13 @@ std::vector <maddsua::radishDB::listing> maddsua::radishDB::list() {
 
 /*
 	Packet structure:
-		- updated (time_t)
-		- accessed (time_t)
-		- key (string)
-		- value (string)
+		- updated	(string, ASCI)		[CRLF]
+		- accessed	(string, ASCI)		[CRLF]
+		- key		(string, base64)	[CRLF]
+		- value		(string, base64)	[CRLF]
 */
 
-bool maddsua::radishDB::store(std::string path) {
+bool lambda::localdb::store(std::string path) {
 
 	std::string dbstring;
 
@@ -131,28 +126,28 @@ bool maddsua::radishDB::store(std::string path) {
 
 			dbstring += std::to_string(entry.updated) + "\r\n";
 			dbstring += std::to_string(entry.accessed) + "\r\n";
-			dbstring += maddsua::b64Encode(&entry.key) + "\r\n";
-			dbstring += maddsua::b64Encode(&entry.value) + "\r\n";
+			dbstring += lambda::b64Encode(&entry.key) + "\r\n";
+			dbstring += lambda::b64Encode(&entry.value) + "\r\n";
 			dbstring += "\r\n";
 		}
 	}
 
 
-	auto compressed = maddsua::gzCompress(&dbstring, true);
+	auto compressed = lambda::gzCompress(&dbstring, true);
 
 	if (!lambda::fs::writeSync(path, &compressed)) return false;
 	
 	return true;
 }
 
-bool maddsua::radishDB::load(std::string path) {
+bool lambda::localdb::load(std::string path) {
 
 	std::string rawBinData;
 
 	if (!lambda::fs::readSync(path, &rawBinData)) return false;
 
 	//	decompress
-	auto dbstring = maddsua::gzDecompress(&rawBinData);
+	auto dbstring = lambda::gzDecompress(&rawBinData);
 
 	size_t blit_begin = 0;
 	size_t blit_end = 0;
@@ -184,11 +179,11 @@ bool maddsua::radishDB::load(std::string path) {
 					break;
 
 					case 2:
-						tmpentry.key = maddsua::b64Decode(&entryRow);
+						tmpentry.key = lambda::b64Decode(&entryRow);
 					break;
 
 					case 3:
-						tmpentry.value = maddsua::b64Decode(&entryRow);
+						tmpentry.value = lambda::b64Decode(&entryRow);
 					break;
 					
 					default:

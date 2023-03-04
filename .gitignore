@@ -2,11 +2,11 @@
 *.o
 *.a
 .vscode
-*.gz
 *.dll
 *.def
 *.db
 *.res
+tests/*.gz
 
 # Local Netlify folder
 .netlify

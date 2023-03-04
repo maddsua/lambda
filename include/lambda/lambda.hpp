@@ -64,7 +64,7 @@
 		//	Send http data to a socket in one go
 		actionResult socketSendHTTP(SOCKET* client, std::string startline, httpHeaders& headers, const std::string& body);
 
-		struct fetchResult {
+		struct FetchResult {
 			std::string errors;
 			unsigned int statusCode;
 			std::string statusText;
@@ -72,15 +72,15 @@
 			std::string body;
 		};
 		
-		struct fetchData {
+		struct FetchData {
 			std::string method;
 			std::vector <stringPair> headers;
 			std::string body;
 		};
 
 		//	The same as javascript's fetch(). Sends request to a URL and returns server response
-		fetchResult fetch(std::string url);
-		fetchResult fetch(std::string url, const fetchData& data);
+		FetchResult fetch(std::string url);
+		FetchResult fetch(std::string url, const FetchData& data);
 
 		struct Event {
 			std::string httpversion;

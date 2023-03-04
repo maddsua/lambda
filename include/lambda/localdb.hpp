@@ -16,12 +16,11 @@
 	#include <list>
 	#include <mutex>
 
-	namespace maddsua {
+	namespace lambda {
 		
-		class radishDB {
+		class localdb {
 
 			public:
-			
 				struct listing {
 					time_t updated = 0;
 					time_t accessed = 0;
@@ -40,7 +39,6 @@
 				bool load(std::string path);
 
 			private:
-
 				struct dbitem {
 					time_t updated = 0;
 					time_t accessed = 0;

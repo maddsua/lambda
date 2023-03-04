@@ -12,7 +12,7 @@
 	#include <string>
 	#include <vector>
 
-	namespace maddsua {
+	namespace lambda {
 
 		std::string b64Decode(std::string* data);
 		std::string b64Encode(std::string* data);

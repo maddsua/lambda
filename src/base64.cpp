@@ -7,7 +7,7 @@
 
 #include "../include/maddsua/base64.hpp"
 
-bool maddsua::b64Validate(const std::string* data) {
+bool lambda::b64Validate(const std::string* data) {
 	
 	for (auto symbol : *data) {
 		if (!isalnum(symbol) && !((symbol == '+') || (symbol == '/') || (symbol == '=')))
@@ -17,7 +17,7 @@ bool maddsua::b64Validate(const std::string* data) {
 	return true;
 }
 
-std::string maddsua::b64Decode(std::string* data) {
+std::string lambda::b64Decode(std::string* data) {
 
 	//	full decode table does brrrrrr. high-speed tricks here
 	const uint8_t b64dt[256] = {
@@ -60,7 +60,7 @@ std::string maddsua::b64Decode(std::string* data) {
 	return result;
 }
 
-std::string maddsua::b64Encode(std::string* data) {
+std::string lambda::b64Encode(std::string* data) {
 
 	//	yes. this table is here too
 	const char b64et[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

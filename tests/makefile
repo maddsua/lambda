@@ -25,16 +25,20 @@ util: action-custom
 sha: action-custom
 	g++ sha_test.cpp ../src/sha.cpp -o sha_test.exe $(FLAGS)
 
+# SHA test
+virtualfs: action-custom
+	g++ virtualfs_test.cpp ../src/compression.cpp ../src/filesystem.cpp -o virtualfs_test.exe -lbrotli -lz $(FLAGS)
+
 
 # database test
-db: radish_test.o ../src/radishdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o
-	g++ radish_test.cpp ../src/radishdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o $(LIBS) $(FLAGS) -o radish_test.exe
+db: localdb_test.o ../src/localdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o
+	g++ localdb_test.cpp ../src/localdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o $(LIBS) $(FLAGS) -o localdb_test.exe
 
-radish_test.o: radish_test.cpp
-	g++ -c radish_test.cpp -o radish_test.o $(LIBS) $(FLAGS)
+localdb_test.o: localdb_test.cpp
+	g++ -c localdb_test.cpp -o localdb_test.o $(LIBS) $(FLAGS)
 
-../src/radishdb.o: ../src/radishdb.cpp
-	g++ -c ../src/radishdb.cpp -o ../src/radishdb.o $(LIBS) $(FLAGS)
+../src/localdb.o: ../src/localdb.cpp
+	g++ -c ../src/localdb.cpp -o ../src/localdb.o $(LIBS) $(FLAGS)
 
 ../src/compression.o: ../src/compression.cpp
 	g++ -c ../src/compression.cpp -o ../src/compression.o $(LIBS) $(FLAGS)
