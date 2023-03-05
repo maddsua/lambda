@@ -8,7 +8,5 @@
 *.res
 tests/*.gz
 
-# Local Netlify folder
-.netlify
 **/node_modules/**
 **/dist/**
