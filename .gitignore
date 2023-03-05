@@ -1,3 +1,4 @@
+# gcc stuff
 *.exe
 *.o
 *.a
@@ -6,6 +7,8 @@
 *.def
 *.db
 *.res
+
+# tests stuff
 tests/*.gz
 
 **/node_modules/**

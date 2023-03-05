@@ -104,8 +104,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 				200,
 				{/* no headers here, using default mimetype - json */},
 				JSON({
-					{"Request", "Failed"},
-					{"Error", "Sorry, but the database is not accessable"}
+					{"success", false},
+					{"error", "sorry, but the database is not accessable"}
 				}).dump()
 			};
 		}
@@ -119,8 +119,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 				200,
 				{},
 				JSON({
-					{"Request", "Failed"},
-					{"Error", "Entry id is not specified"}
+					{"success", false},
+					{"error", "entry id is not specified"}
 				}).dump()
 			};
 		}
@@ -138,8 +138,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Failed with errors"},
-						{"Error", "Requested entry is not found"}
+						{"success", false},
+						{"error", "requested entry is not found"}
 					}).dump()
 				};
 			}
@@ -152,8 +152,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Succeeded"},
-						{"Data", recordData}
+						{"success", true},
+						{"data", recordData}
 					}).dump()
 				};
 
@@ -164,9 +164,9 @@ lambda::Response requestHandeler(lambda::Event event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Succeeded"},
-						{"Base64", true},
-						{"Data", lambda::b64Encode(&recordData)}
+						{"success", true},
+						{"base64", true},
+						{"data", lambda::b64Encode(&recordData)}
 					}).dump()
 				};
 			}
@@ -181,8 +181,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Failed with errors"},
-						{"Error", "Empty request body; Use DELETE method to remove data"}
+						{"success", false},
+						{"error", "empty request body; Use DELETE method to remove data"}
 					}).dump()
 				};
 			}
@@ -195,8 +195,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 				200,
 				{},
 				JSON({
-					{"Request", "Ok"},
-					{"Info", "Saved"}
+					{"success", true},
+					{"info", "saved"}
 				}).dump()
 			};
 		}
@@ -211,8 +211,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 					200,
 					{},
 					JSON({
-						{"Request", "Failed with errors"},
-						{"Error", "No such entry or already deleted"}
+						{"success", false},
+						{"error", "no such entry or already deleted"}
 					}).dump()
 				};
 			}
@@ -222,8 +222,8 @@ lambda::Response requestHandeler(lambda::Event event) {
 				200,
 				{},
 				JSON({
-					{"Request", "Ok"},
-					{"Info", "Deleted"}
+					{"success", true},
+					{"info", "deleted"}
 				}).dump()
 			};
 		}
@@ -243,9 +243,9 @@ lambda::Response requestHandeler(lambda::Event event) {
 				200,
 				{},
 				JSON({
-					{"Proxy to", proxyTo},
-					{"Request", "Failed with errors"},
-					{"Errors", googeResp.errors}
+					{"proxy to", proxyTo},
+					{"success", false},
+					{"errors", googeResp.errors}
 				}).dump()
 			};
 		}
@@ -261,10 +261,10 @@ lambda::Response requestHandeler(lambda::Event event) {
 			200,
 			{},
 			JSON({
-				{"Proxy to", proxyTo},
-				{"Response", googeResp.statusText},
-				{"Headers", listOfHeaders},
-				{"Body", std::to_string(googeResp.body.size()) + " bytes"}
+				{"proxy to", proxyTo},
+				{"response", googeResp.statusText},
+				{"headers", listOfHeaders},
+				{"body", std::to_string(googeResp.body.size()) + " bytes"}
 			}).dump()
 		};
 	}
@@ -293,7 +293,7 @@ lambda::Response requestHandeler(lambda::Event event) {
 	}
 	
 	if (!filecontents.size()) {
-		event.path = std::regex_replace(("demo/" + event.path.sstring), std::regex("/+"), "/");
+		event.path = std::regex_replace(("demo/dist/" + event.path.sstring), std::regex("/+"), "/");
 		storageHeader = "filesystem";
 		if (!lambda::fs::readSync(event.path.sstring, &filecontents)) {
 			return { 404, {}, "File not found"};
