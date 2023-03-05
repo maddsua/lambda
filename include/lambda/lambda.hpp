@@ -49,6 +49,7 @@
 	#define LAMBDA_REQ_WEBSOCK		(2)
 
 	#define LAMBDA_DSP_SLEEP		(10)
+	#define LAMBDA_TCP_TIMEOUT_MS	(30000)
 
 	#define LAMBDA_FS_READ_CHUNK	(1048576)
 
