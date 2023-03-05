@@ -174,6 +174,7 @@ lambda::actionResult lambda::lambda::start(const int port, std::function<Respons
 void lambda::lambda::stop() {
 	running = false;
 	if (worker.joinable()) worker.join();
+	shutdown(ListenSocket, SD_BOTH);
 	closesocket(ListenSocket);
 	if (!instanceConfig.mutlipeInstances) WSACleanup();
 }
@@ -202,6 +203,7 @@ bool lambda::socketsReady() {
     if (temp == INVALID_SOCKET){
 		if (GetLastError() == WSANOTINITIALISED) result = false;
     }
+
     closesocket(temp);
 
 	return result;
@@ -332,6 +334,11 @@ void lambda::lambda::handler() {
 	SOCKET ClientSocket = accept(ListenSocket, (SOCKADDR*)&clientAddr, &clientAddrLen);
 	handlerDispatched = true;
 
+	//	set socket timeouts
+	const uint32_t tcpTimeout = LAMBDA_TCP_TIMEOUT_MS;
+	setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));
+	setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));	
+
 	//	create metadata
 	Context context;
 		context.requestId = createUniqueId();
@@ -348,6 +355,7 @@ void lambda::lambda::handler() {
 	//	drop connection if the request is invalid
 	if (!incomingRequest.success) {
 		addLogEntry(context, LAMBDA_LOG_WARN, "Aborted");
+		shutdown(ClientSocket, SD_BOTH);
 		closesocket(ClientSocket);
 		return;
 	}
@@ -442,6 +450,7 @@ void lambda::lambda::handler() {
 
 	//	send response and close socket
 	auto responseSent = socketSendHTTP(&ClientSocket, startLine, responseHeaders, compressedBody.size() ? compressedBody : callbackResult.body);
+	shutdown(ClientSocket, SD_BOTH);
 	closesocket(ClientSocket);
 
 	if (responseSent.success) addLogEntry(context, LAMBDA_LOG_INFO, "Resp. " + std::to_string(callbackResult.statusCode) + " for " + targetURL + "");
