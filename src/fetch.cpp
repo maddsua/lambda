@@ -2,6 +2,9 @@
 	maddsua's lambda
 	A C++ HTTP server framework
 	2023 https://github.com/maddsua/lambda
+
+	Component: fetch
+	Component version: 1.0
 */
 
 
@@ -20,8 +23,10 @@ lambda::FetchResult lambda::fetch(std::string url, const FetchData& data) {
 	std::string host;
 	std::string port;
 	std::string fullhost;
+
+	//	do things to the provided url
 	{
-		if (url.find("https://") != std::string::npos) result.errors = "http only is supported;";
+		if (url.find("https://") != std::string::npos) result.errors = "only http is supported in this version of lambda:fetch;";
 
 		url = std::regex_replace(url, std::regex("http(s?):\\/\\/"), "");
 		url = std::regex_replace(url, std::regex("::"), ":");
@@ -131,9 +136,9 @@ lambda::FetchResult lambda::fetch(std::string url, const FetchData& data) {
 		trimString(&enc);
 		std::string decompressed;
 
-		/*if (enc == "br") {
+		if (enc == "br") {
 
-			decompressed = maddsua::brDecompress(&serverResponse.body);
+			decompressed = brDecompress(&serverResponse.body);
 			
 			if (decompressed.size()) {
 				serverResponse.body = decompressed;
@@ -144,7 +149,7 @@ lambda::FetchResult lambda::fetch(std::string url, const FetchData& data) {
 				break;
 			}
 
-		} else */if (enc == "gzip" || enc == "deflate") {
+		} else if (enc == "gzip" || enc == "deflate") {
 
 			decompressed = gzDecompress(&serverResponse.body);
 

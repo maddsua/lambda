@@ -39,7 +39,7 @@
 	#define LAMBDAHTTP_HEADER_CHUNK		(2048)
 	#define LAMBDAHTTP_BODY_CHUNK		(131072)
 	#define LAMBDA_HTTP_USERAGENT	"maddsua/lambda"
-	#define LAMBDA_HTTP_ACCEPTENC	"gzip, deflate"
+	#define LAMBDA_HTTP_ACCEPTENC	"br, gzip, deflate"
 
 	#define LAMBDA_LOG_INFO			(1)
 	#define LAMBDA_LOG_WARN			(0)

@@ -233,7 +233,17 @@ lambda::Response requestHandeler(lambda::Event event) {
 	//	let's try fetching something from remote
 	if (event.path.startsWith("/api/proxy")) {
 
-		auto proxyTo = "www.google.com";
+		auto proxyTo = event.searchQuery.find("target");
+		if (!proxyTo.size()) {
+			return {
+				200,
+				{},
+				JSON({
+					{"success", false},
+					{"errors", "No url specified. Try like this: /api/proxy?target=http://google.com"}
+				}).dump()
+			};
+		}
 
 		//	GET http://google.com with no additional headers of request body
 		auto googeResp = lambda::fetch(proxyTo);
