@@ -302,9 +302,7 @@ std::string lambda::brCompress(const std::string* data) {
 		dataProcessed += partSize;
 	}
 
-	if (!stream.done()) {
-		puts("stream not done!!!");
-	}
+	if (!stream.done()) return {};
 	
 	return std::string(result.begin(), result.end());;
 }
@@ -313,6 +311,8 @@ std::string lambda::brCompress(const std::string* data) {
  * Decompress data from std::string using Brotli. The return value "true" indicatess success
 */
 std::string lambda::brDecompress(const std::string* data) {
+
+	if (!data->size()) return {};
 
 	std::vector <uint8_t> result;
 		result.reserve(data->size() * brotliCompressStream::expect_ratio);
@@ -330,9 +330,7 @@ std::string lambda::brDecompress(const std::string* data) {
 		dataProcessed += partSize;
 	}
 
-	if (!stream.done()) {
-		puts("stream not done!!!");
-	}
+	if (!stream.done()) return {};
 	
 	return std::string(result.begin(), result.end());;
 }
