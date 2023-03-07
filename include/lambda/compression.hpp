@@ -102,11 +102,11 @@
 				BrotliDecoderState* instance;
 		};
 
-		std::string gzCompress(const std::string* data, bool gzipHeader);
-		std::string gzDecompress(const std::string* data);
+		std::string gzCompress(const std::string& data, bool gzipHeader);
+		std::string gzDecompress(const std::string& data);
 
-		std::string brCompress(const std::string* data);
-		std::string brDecompress(const std::string* data);
+		std::string brCompress(const std::string& data);
+		std::string brDecompress(const std::string& data);
 	}
 
 #endif

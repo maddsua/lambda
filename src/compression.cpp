@@ -137,9 +137,9 @@ bool lambda::zlibCompressStream::doDeflate(uint8_t* bufferIn, size_t dataInSize,
  * @param plain pointer to a string with original data
  * @param compressed pointer to a destination string, where the compressed data will be saved
 */
-std::string lambda::gzCompress(const std::string* data, bool gzipHeader) {
+std::string lambda::gzCompress(const std::string& data, bool gzipHeader) {
 
-	if (!data->size()) return {};
+	if (!data.size()) return {};
 
 	zlibCompressStream stream;
 
@@ -147,21 +147,18 @@ std::string lambda::gzCompress(const std::string* data, bool gzipHeader) {
 	if (stream.error()) return {};
 
 	std::vector <uint8_t> result;
-		result.reserve(data->size() / zlibCompressStream::expect_ratio);
+		result.reserve(data.size() / zlibCompressStream::expect_ratio);
 
 	bool streamEnd = false;
-	size_t carrierShift = 0;
+	size_t dataProcessed = 0;
 	size_t partSize = 0;
-	std::array <uint8_t, zlibCompressStream::chunkSize> chunkIn;
 
 	do {
-		streamEnd = (carrierShift + zlibCompressStream::chunkSize) >= data->size();
-		partSize = streamEnd ? (data->size() - carrierShift) : zlibCompressStream::chunkSize;
+		streamEnd = (dataProcessed + zlibCompressStream::chunkSize) >= data.size();
+		partSize = streamEnd ? (data.size() - dataProcessed) : zlibCompressStream::chunkSize;
 
-		memcpy(chunkIn.data(), data->data() + carrierShift, partSize);
-		carrierShift += partSize;
-
-		stream.doDeflate(chunkIn.data(), partSize, &result, streamEnd);
+		stream.doDeflate((uint8_t*)(data.data() + dataProcessed), partSize, &result, streamEnd);
+		dataProcessed += partSize;
 
 	} while (!streamEnd && !stream.error());
 
@@ -176,9 +173,9 @@ std::string lambda::gzCompress(const std::string* data, bool gzipHeader) {
  * @param compressed pointer to a string with compressed data
  * @param plain pointer to a destination string, original data will get here
 */
-std::string lambda::gzDecompress(const std::string* data) {
+std::string lambda::gzDecompress(const std::string& data) {
 
-	if (!data->size()) return {};
+	if (!data.size()) return {};
 
 	zlibDecompressStream stream;
 
@@ -186,21 +183,18 @@ std::string lambda::gzDecompress(const std::string* data) {
 	if (stream.error()) return {};
 
 	std::vector <uint8_t> result;
-		result.reserve(data->size() / zlibCompressStream::expect_ratio);
+		result.reserve(data.size() / zlibCompressStream::expect_ratio);
 
 	bool streamEnd = false;
-	size_t carrierShift = 0;
+	size_t dataProcessed = 0;
 	size_t partSize = 0;
-	std::array <uint8_t, zlibCompressStream::chunkSize> chunkIn;
 
 	do {
-		streamEnd = (carrierShift + zlibCompressStream::chunkSize) >= data->size();
-		partSize = streamEnd ? (data->size() - carrierShift) : zlibCompressStream::chunkSize;
+		streamEnd = (dataProcessed + zlibCompressStream::chunkSize) >= data.size();
+		partSize = streamEnd ? (data.size() - dataProcessed) : zlibCompressStream::chunkSize;
 
-		memcpy(chunkIn.data(), data->data() + carrierShift, partSize);
-		carrierShift += partSize;
-
-		stream.doInflate(chunkIn.data(), partSize, &result);
+		stream.doInflate((uint8_t*)(data.data() + dataProcessed), partSize, &result);
+		dataProcessed += partSize;
 
 	} while (!streamEnd && !stream.error());
 
@@ -323,16 +317,16 @@ bool lambda::brotliDecompressStream::decompressChunk(const uint8_t* chunk, const
 /**
  * Compress data from std::string using Brotli. The return value "true" indicatess success
 */
-std::string  lambda::brCompress(const std::string* data) {
+std::string lambda::brCompress(const std::string& data) {
 
-	if (!data->size()) return {};
+	if (!data.size()) return {};
 
 	std::string result;
-		result.resize(BrotliEncoderMaxCompressedSize(data->size()));
+		result.resize(BrotliEncoderMaxCompressedSize(data.size()));
 
 	size_t encodedSize = result.size();
 
-	if (!BrotliEncoderCompress(BROTLI_DEFAULT_QUALITY, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE, data->size(), (const uint8_t*)data->data(), &encodedSize, (uint8_t*)result.data())) return {};
+	if (!BrotliEncoderCompress(BROTLI_DEFAULT_QUALITY, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE, data.size(), (const uint8_t*)data.data(), &encodedSize, (uint8_t*)result.data())) return {};
 
 	result.resize(encodedSize);
 	result.shrink_to_fit();
