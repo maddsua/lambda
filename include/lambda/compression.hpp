@@ -46,7 +46,7 @@
 		class zlibCompressStream {
 			public:
 				static const size_t chunkSize = CHUNK_128K;
-				static const int expect_ratio = -15;
+				static const int expect_ratio = 3;
 				static const int header_gz = 26;
 				static const int header_deflate = 8;
 				static const int header_raw = -15;
@@ -73,6 +73,7 @@
 		class brotliCompressStream {
 			public:
 				static const size_t chunkSize = 131072;
+				static const int expect_ratio = 3;
 
 				brotliCompressStream();
 				~brotliCompressStream();
@@ -84,7 +85,7 @@
 				bool compressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut, bool finish);
 
 			private:
-				BrotliEncoderState* instance;
+				void* instance;
 		};
 
 		class brotliDecompressStream {
@@ -99,14 +100,14 @@
 				bool decompressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut);
 
 			private:
-				BrotliDecoderState* instance;
+				void* instance;
 		};
 
-		std::string gzCompress(const std::string& data, bool gzipHeader);
-		std::string gzDecompress(const std::string& data);
+		std::string gzCompress(const std::string* data, bool gzipHeader);
+		std::string gzDecompress(const std::string* data);
 
-		std::string brCompress(const std::string& data);
-		std::string brDecompress(const std::string& data);
+		std::string brCompress(const std::string* data);
+		std::string brDecompress(const std::string* data);
 	}
 
 #endif
