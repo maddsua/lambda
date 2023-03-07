@@ -211,21 +211,82 @@ std::string lambda::gzDecompress(const std::string* data) {
 }
 
 
-/*
-	brotli "wrapper" for de/compressing binary data
-	Seriously, the procedure is fckd. I thought that zlib is weird, but not comparing to this.
-	By the way, any clues why there is no function to determine required buffer size for one-shot decompression?
-	 How am I supposed to know the size of reconstructed data? Should I guess it, or try to fit in pre-allocated 10k buffer?
-	By the way 2, why not just dynamically fckng allocate the memory needed? Am I the only one person to compress
-	 in-memory stuff (http requests in this case)?
-	 
-	No, really. Both brotli and zlib have functions that work with buffers of known size. But they both fail to make
-	 these functions any usable.
-*/
 
-/**
- * Decompresses brotli-encoded data from std::string. The return value "true" indicatess success
-*/
+/*	brotli strean classes	*/
+
+lambda::brotliCompressStream::brotliCompressStream() {
+	instance = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
+}
+lambda::brotliCompressStream::~brotliCompressStream() {
+	BrotliEncoderDestroyInstance(instance);
+}
+
+bool lambda::brotliCompressStream::setQuality(int quality) {
+	if (quality < BROTLI_MIN_QUALITY || quality > BROTLI_MAX_QUALITY) return false;
+	return BrotliEncoderSetParameter(instance, BROTLI_PARAM_QUALITY, quality);
+}
+bool lambda::brotliCompressStream::done() {
+	return BrotliEncoderIsFinished(instance);
+}
+
+bool lambda::brotliCompressStream::compressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut, bool finish) {
+
+	size_t avail_in = chunkSize;
+	auto operation = finish ? BROTLI_OPERATION_FINISH : BROTLI_OPERATION_PROCESS;
+
+	while (avail_in) {
+		uint8_t *next_out = nullptr;
+		size_t avail_out = 0;
+
+		if (!BrotliEncoderCompressStream(instance, operation, &avail_in, &chunk, &avail_out, &next_out, nullptr)) return false;
+
+		if (BrotliEncoderHasMoreOutput(instance)) {
+			size_t size = 0;
+			auto brTempOutBuff = BrotliEncoderTakeOutput(instance, &size);
+			if (!brTempOutBuff) return false;
+			bufferOut->insert(bufferOut->end(), brTempOutBuff, brTempOutBuff + size);
+		}
+	}
+
+	return true;
+}
+
+lambda::brotliDecompressStream::brotliDecompressStream() {
+	instance = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
+}
+lambda::brotliDecompressStream::~brotliDecompressStream() {
+	BrotliDecoderDestroyInstance(instance);
+}
+
+bool lambda::brotliDecompressStream::done() {
+	return BrotliDecoderIsFinished(instance);
+}
+
+bool lambda::brotliDecompressStream::decompressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut) {
+
+	size_t avail_in = chunkSize;
+
+	while (avail_in) {
+		uint8_t *next_out = nullptr;
+		size_t avail_out = 0;
+
+		if (!BrotliDecoderDecompressStream(instance, &avail_in, &chunk, &avail_out, &next_out, nullptr)) return false;
+
+		if (BrotliDecoderHasMoreOutput(instance)) {
+			size_t size = 0;
+			auto brTempOutBuff = BrotliDecoderTakeOutput(instance, &size);
+			if (!brTempOutBuff) return false;
+			bufferOut->insert(bufferOut->end(), brTempOutBuff, brTempOutBuff + size);
+		}
+	}
+
+	return true;
+}
+
+/*	brotli wrapper for buffer de/compression	*/
+
+
+
 /*std::string maddsua::brDecompress(const std::string* data) {
 
 	if (!data->size()) return {};
