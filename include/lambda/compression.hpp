@@ -4,6 +4,8 @@
 	https://github.com/maddsua/
 */
 
+#define CHUNK_128K	(131072)
+
 
 #ifndef H_MADDSUA_LAMBDA_COMPRESSION
 #define H_MADDSUA_LAMBDA_COMPRESSION
@@ -19,7 +21,7 @@
 			public:
 				static const int winbit_auto = 32;
 				static const int winbit_gzip = 16;
-				static const size_t chunkSize = 131072;
+				static const size_t chunkSize = CHUNK_128K;
 
 				zlibDecompressStream();
 				~zlibDecompressStream();
@@ -43,7 +45,7 @@
 
 		class zlibCompressStream {
 			public:
-				static const size_t chunkSize = 131072;
+				static const size_t chunkSize = CHUNK_128K;
 				static const int expect_ratio = -15;
 				static const int header_gz = 26;
 				static const int header_deflate = 8;
@@ -57,7 +59,7 @@
 				bool done();
 				bool error();
 
-				bool doDeflate(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool flush);
+				bool doDeflate(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
 
 			private:
 				uint8_t* tempBuffer;
