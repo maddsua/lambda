@@ -79,7 +79,6 @@
 				~brotliCompressStream();
 
 				bool setQuality(int quality);
-
 				bool done();
 
 				bool compressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut, bool finish);
