@@ -72,8 +72,8 @@
 
 		class brotliCompressStream {
 			public:
-				static const size_t chunkSize = 131072;
-				static const int expect_ratio = 3;
+				static const size_t chunkSize = CHUNK_128K;
+				static const int expect_ratio = 5;
 
 				brotliCompressStream();
 				~brotliCompressStream();
@@ -90,7 +90,7 @@
 
 		class brotliDecompressStream {
 			public:
-				static const size_t chunkSize = 131072;
+				static const size_t chunkSize = CHUNK_128K;
 
 				brotliDecompressStream();
 				~brotliDecompressStream();
