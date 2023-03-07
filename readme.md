@@ -77,10 +77,9 @@ See [demo code](./main.cpp) for more. It will make sence, I promise.
 ## Building a server app with the lambda
 
 1. Include `lambda.hpp`
-2. Create a callback function, as in the [example](main.cpp)
-3. Create a lambda server
-4. Link to lambda.dll and compile project
-5. Run it. Everything should be fine
+2. Create a callback function and a lambda instance, as in the [example](main.cpp)
+3. Link to lambda.dll and compile the project
+4. Run it. Everything should run smoooothly
 
 ### [See how to do that in detail](main.cpp)
 
