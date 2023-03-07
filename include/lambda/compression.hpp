@@ -70,11 +70,43 @@
 				static const int def_memlvl = 9;
 		};
 
+		class brotliCompressStream {
+			public:
+				static const size_t chunkSize = 131072;
+
+				brotliCompressStream();
+				~brotliCompressStream();
+
+				bool setQuality(int quality);
+
+				bool done();
+
+				bool compressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut, bool finish);
+
+			private:
+				BrotliEncoderState* instance;
+		};
+
+		class brotliDecompressStream {
+			public:
+				static const size_t chunkSize = 131072;
+
+				brotliDecompressStream();
+				~brotliDecompressStream();
+
+				bool done();
+
+				bool decompressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut);
+
+			private:
+				BrotliDecoderState* instance;
+		};
+
 		std::string gzCompress(const std::string* data, bool gzipHeader);
 		std::string gzDecompress(const std::string* data);
 
 		std::string brCompress(const std::string* data);
-		//std::string brDecompress(const std::string* data);
+		std::string brDecompress(const std::string* data);
 	}
 
 #endif
