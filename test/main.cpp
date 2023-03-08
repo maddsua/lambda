@@ -10,7 +10,8 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 	std::string body = "<h1>hello darkness my old friend</h1>";
 		body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
 
-	/*if (maddsua::findSearchQuery("user", &event.searchQuery) == "maddsua") {
+	if (maddsua::searchQueryFind("ask", &event.searchQuery) == "google") {
+
 		body = "<h2>Good night, my Dark Lord</h2>\r\n";
 
 		//	connect to google.com
@@ -20,10 +21,11 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 				if (googeResp.errors.size()) puts(googeResp.errors.c_str());
 			body += "<p>This is what google says: Page " + googeResp.statusText + "</p>";
 		}
-	}*/
+	}
 
 	std::string htmlpage;
 	if (maddsua::readBinary("index.html", &htmlpage)) body = htmlpage;
+		else body += "\r\nHave tried to load index.html, but didn't fount it =((\r\n";
 
 	return {
 		200,
