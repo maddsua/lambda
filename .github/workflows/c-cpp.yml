@@ -34,7 +34,7 @@ jobs:
       run: pacman -S zlib --noconfirm
 
     - name: install brotli
-      run: pacman -S brotli --noconfirm
+      run: pacman -S brotli-devel --noconfirm
       
     - name: make lib
       working-directory: ./lib
