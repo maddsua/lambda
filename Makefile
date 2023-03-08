@@ -1,72 +1,95 @@
+# 2023 maddsua's lambda
+# Demo/Test app
+# makefile for windows build
+# GCC-12.2-ucrt64 is in use
+
+APP_DEV		= lambda.exe
+LIBNAME		= lambda
+
+OBJECTS		= src/constants.o src/util.o src/httpcore.o src/lambda.o src/fetch.o src/compress.o src/filesystem.o src/sha.o src/localdb.o
+
+FLAGS		= -std=c++20
+LIBS_SHARED	= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+
+#	to get these static libs you need to compile brotli and zlib youself
+#	it's basically just compiling all source files to objects
+#	and then putting all of them into .a static lib
+LIBS_STATIC	= -l:libz.a -l:libbrotli.a
+LIBS_SYSTEM	= -lws2_32 -lwinmm
+
+LIBSTATIC	= lib$(LIBNAME).a
+LIBSHARED	= $(LIBNAME).dll
+
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
-APP_DEV    = lambda.exe
-
-APP_DEMO   = lambda-server.exe
-LIBNAME    = lambda
-
-OBJECTS    = src/sockets.o src/http.o src/lambda.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/util.o src/sha.o src/radishdb.o
-
-FLAGS      = -std=c++20
-LIBS       = -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lzstd
-LIB_STC    = -l:libz.a -l:libbrotli.a -l:libzstd.a
-LIBS_SYS   = -lws2_32 -lwinmm
-
-.PHONY: all all-before all-after clean-custom run-custom lib demo
+.PHONY: all all-before all-after action-custom
 all: all-before $(APP_DEV) all-after
 
-clean: clean-custom
-	del /S *.exe *.a *.dll
-#	rm -rf *.exe *.a *.dll
+purge: action-custom
+	del /S *.o *.exe *.a *.dll *.res
+#	rm -rf *.o *.exe *.a *.dll *.res
 
-purge: clean-custom
-	del /S *.o *.exe *.a *.dll
-#	rm -rf *.o *.exe *.a *.dll
-
-run: run-custom
+run: action-custom
 	$(APP_DEV)
 
 
 # ----
-#	dev app
+#	labmda demo/test app
 # ----
-$(APP_DEV): $(OBJECTS) main.o
-	g++ $(OBJECTS) main.o $(LIBS_SYS) $(LIBS) $(FLAGS) -o $(APP_DEV)
+#	regular dev app
+$(APP_DEV): main.o $(OBJECTS)
+	g++ main.o $(OBJECTS) $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
+
+#	fully static build, version for the demo
+static: $(LIBSTATIC) main.o
+	g++ -static main.o -L. -l$(LIBNAME) $(LIBS_STATIC) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
+
+#	dynamically linked to all the dlls
+dynamic: libshared main.o
+	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEV)
 
 
+# ----
+#	dev main
+# ----
 main.o: main.cpp
 	g++ -c main.cpp -o main.o $(FLAGS)
-
-
-# ----
-#	demo app
-# ----
-demo: main.o
-#	dynamic linking
-	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEMO)
-#	static linking
-#	g++ demo/main.o -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS) -o $(APP_DEMO)
 
 
 # ----
 #	lib
 # ----
 #	make static lib
-libstatic: $(OBJECTS)
-	ar rvs lib$(LIBNAME).a $(OBJECTS)
+libstatic: $(LIBSTATIC)
+
+$(LIBSTATIC): $(OBJECTS)
+	ar rvs $(LIBSTATIC) $(OBJECTS)
 
 #	make dll
-libshared: $(OBJECTS)
-	g++ $(OBJECTS) $(LIBS_SYS) $(LIB_STC) $(FLAGS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a
+libshared: $(LIBSHARED)
+
+$(LIBSHARED): $(OBJECTS) $(LIBNAME).res
+	g++ $(OBJECTS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
+
 
 # ----
-#	objects
+#	resources
+# ----
+$(LIBNAME).res: $(LIBNAME).rc
+	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
+
+
+# ----
+#	main components
 # ----
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
 
-src/sockets.o: src/sockets.cpp
-	g++ -c src/sockets.cpp -o src/sockets.o $(FLAGS)
+src/httpcore.o: src/httpcore.cpp
+	g++ -c src/httpcore.cpp -o src/httpcore.o $(FLAGS)
+
+src/constants.o: src/constants.cpp
+	g++ -c src/constants.cpp -o src/constants.o $(FLAGS)
 
 src/http.o: src/http.cpp
 	g++ -c src/http.cpp -o src/http.o $(FLAGS)
@@ -77,8 +100,8 @@ src/mimetypes.o: src/mimetypes.cpp
 src/fetch.o: src/fetch.cpp
 	g++ -c src/fetch.cpp -o src/fetch.o $(FLAGS)
 
-src/compression.o: src/compression.cpp
-	g++ -c src/compression.cpp -o src/compression.o $(FLAGS)
+src/compress.o: src/compress.cpp
+	g++ -c src/compress.cpp -o src/compress.o $(FLAGS)
 
 src/filesystem.o: src/filesystem.cpp
 	g++ -c src/filesystem.cpp -o src/filesystem.o $(FLAGS)
@@ -93,5 +116,8 @@ src/sha.o: src/sha.cpp
 	g++ -c src/sha.cpp -o src/sha.o $(FLAGS)
 
 
-src/radishdb.o: src/radishdb.cpp
-	g++ -c src/radishdb.cpp -o src/radishdb.o $(FLAGS)
+# ----
+#	kinda plugins
+# ----
+src/localdb.o: src/localdb.cpp
+	g++ -c src/localdb.cpp -o src/localdb.o $(FLAGS)

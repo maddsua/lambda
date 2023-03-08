@@ -1,7 +1,15 @@
+# gcc stuff
 *.exe
 *.o
 *.a
 .vscode
-*.gz
 *.dll
 *.def
+*.db
+*.res
+
+# tests stuff
+tests/*.gz
+
+**/node_modules/**
+**/dist/**

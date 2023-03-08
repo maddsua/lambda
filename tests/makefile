@@ -1,35 +1,44 @@
 
 FLAGS      = -std=c++20
-LIBS       = -lz -lbrotli -lzstd
+LIBS       = -lz -lbrotli
+# lbrotli is a static libbrotli.a
 
-.PHONY: all all-before all-after base64
+.PHONY: all all-before all-after action-custom
 all: all-before all-after
+
+# http test
+http: action-custom
+	g++ http_test.cpp ../src/httpcore.cpp -o http_test.exe $(FLAGS)
 
 
 # base64 test
-base64:
+base64: action-custom
 	g++ base64_test.cpp ../src/base64.cpp -o base64_test.exe $(FLAGS)
 
 
 # utils test
-util:
+util: action-custom
 	g++ util_test.cpp ../src/util.cpp ../src/sha.cpp -o util_test.exe $(FLAGS) -lwinmm
 
 
 # SHA test
-sha:
+sha: action-custom
 	g++ sha_test.cpp ../src/sha.cpp -o sha_test.exe $(FLAGS)
+
+# SHA test
+virtualfs: action-custom
+	g++ virtualfs_test.cpp ../src/compression.cpp ../src/filesystem.cpp -o virtualfs_test.exe -lbrotli -lz $(FLAGS)
 
 
 # database test
-db: radish_test.o ../src/radishdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o
-	g++ radish_test.cpp ../src/radishdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o -o radish_test.exe $(LIBS) $(FLAGS)
+db: localdb_test.o ../src/localdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o
+	g++ localdb_test.cpp ../src/localdb.o ../src/compression.o ../src/filesystem.o ../src/base64.o $(LIBS) $(FLAGS) -o localdb_test.exe
 
-radish_test.o: radish_test.cpp
-	g++ -c radish_test.cpp -o radish_test.o $(LIBS) $(FLAGS)
+localdb_test.o: localdb_test.cpp
+	g++ -c localdb_test.cpp -o localdb_test.o $(LIBS) $(FLAGS)
 
-../src/radishdb.o: ../src/radishdb.cpp
-	g++ -c ../src/radishdb.cpp -o ../src/radishdb.o $(LIBS) $(FLAGS)
+../src/localdb.o: ../src/localdb.cpp
+	g++ -c ../src/localdb.cpp -o ../src/localdb.o $(LIBS) $(FLAGS)
 
 ../src/compression.o: ../src/compression.cpp
 	g++ -c ../src/compression.cpp -o ../src/compression.o $(LIBS) $(FLAGS)

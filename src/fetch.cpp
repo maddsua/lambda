@@ -1,18 +1,32 @@
+/*
+	maddsua's lambda
+	A C++ HTTP server framework
+	2023 https://github.com/maddsua/lambda
+
+	Component: fetch
+	Component version: 1.0
+*/
+
 
 #include <regex>
 #include <algorithm>
 
-#include "../include/maddsua/http.hpp"
+#include "../include/lambda/lambda.hpp"
+#include "../include/lambda/compress.hpp"
 
-lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vector <lambda::datapair> headers, std::string body) {
-	lambda::fetchResult result;
+
+lambda::FetchResult lambda::fetch(std::string url, const FetchData& data) {
+	
+	FetchResult result;
 
 	std::string path;
 	std::string host;
 	std::string port;
 	std::string fullhost;
+
+	//	do things to the provided url
 	{
-		if (url.find("https://") != std::string::npos) result.errors = "http only is supported;";
+		if (url.find("https://") != std::string::npos) result.errors = "only http is supported in this version of lambda:fetch;";
 
 		url = std::regex_replace(url, std::regex("http(s?):\\/\\/"), "");
 		url = std::regex_replace(url, std::regex("::"), ":");
@@ -46,7 +60,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	size_t connectAttempts = 0;
     for (ptr = hostAddr; ptr != nullptr; ptr = ptr->ai_next) {
 
-		if (connectAttempts > MADDSUAHTTP_ATTEMPTS) {
+		if (connectAttempts > LAMBDA_HTTP_ATTEMPTS) {
 			result.statusCode = 0;
 			result.errors += "Reached max attempts without succeding;";
 			return result;
@@ -73,15 +87,16 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	//	cleanup
 	freeaddrinfo(hostAddr);
 
-	//	add service headers
-	if (!method.size()) method = "GET";
-	if (!headerExists("Host", &headers)) headers.push_back({"Host", fullhost});
-	if (!headerExists("User-Agent", &headers)) headers.push_back({"User-Agent", MADDSUAHTTP_USERAGENT});
-	
-	headerInsert("Accept-Encoding", "br, gzip, deflate", &headers);
+	std::string requestMethod = data.method.size() ? data.method : "GET";
+	auto requestHeaders = httpHeaders(data.headers);
 
+	//	add some headers
+	requestHeaders.add("Host", fullhost);
+	requestHeaders.add("User-Agent", LAMBDA_HTTP_USERAGENT);
+	requestHeaders.set("Accept-Encoding", LAMBDA_HTTP_ACCEPTENC);
+	
 	//	send request
-	auto sent = socketSendHTTP(&connection, (toUpperCase(method) + " " + path + " HTTP/1.1"), &headers, &body);
+	auto sent = socketSendHTTP(&connection, (toUpperCase(requestMethod) + " " + path + " HTTP/1.1"), requestHeaders, data.body);
 	if (!sent.success) {
 		closesocket(connection);
 		result.statusCode = 0;
@@ -95,7 +110,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	//	cleanup
 	closesocket(connection);
 
-	if (serverResponse.startLineArgs.size() < 3) {
+	if (serverResponse.arguments.size() < 3) {
 		
 		result.statusCode = 0;
 		result.errors += "Invalid http response;";
@@ -103,7 +118,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	}
 
 	try {
-		result.statusCode = std::stoi(serverResponse.startLineArgs[1]);
+		result.statusCode = std::stoi(serverResponse.arguments[1]);
 	} catch(...) {
 		result.statusCode = 0;
 		result.errors += "Invalid http status code;";
@@ -111,19 +126,19 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	}
 
 	//	decode body
-	auto encodings = splitBy(headerFind("Content-Encoding", &serverResponse.headers), ",");
+	auto encodings = splitBy(serverResponse.headers.get("Content-Encoding"), ",");
 	std::reverse(encodings.begin(), encodings.end());
 
 	//	account for possible multiple layers of encoding
 	//	idk why but http allows that
 	for (auto enc : encodings) {
 
-		trim(&enc);
+		trimString(&enc);
 		std::string decompressed;
 
 		if (enc == "br") {
 
-			decompressed = lambda::compression::brDecompress(&serverResponse.body);
+			decompressed = brDecompress(&serverResponse.body);
 			
 			if (decompressed.size()) {
 				serverResponse.body = decompressed;
@@ -136,7 +151,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 
 		} else if (enc == "gzip" || enc == "deflate") {
 
-			decompressed = lambda::compression::gzDecompress(&serverResponse.body);
+			decompressed = gzDecompress(&serverResponse.body);
 
 			if (decompressed.size()) {
 				serverResponse.body = decompressed;
@@ -148,7 +163,7 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 			}
 		}
 
-		result.errors += "Unknown encoding;";
+		result.errors += "Unsupported encoding;";
 	}
 
 	//	returm the response
@@ -157,4 +172,8 @@ lambda::fetchResult lambda::fetch(std::string url, std::string method, std::vect
 	result.body = serverResponse.body;
 
 	return result;
+}
+
+lambda::FetchResult lambda::fetch(std::string url) {
+	return fetch(url, {});
 }

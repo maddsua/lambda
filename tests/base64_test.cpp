@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../include/maddsua/base64.hpp"
+#include "../include/lambda/util.hpp"
 
 std::vector<std::string> tests = {
 	"short",
@@ -18,10 +18,10 @@ int main() {
 
 		std::cout << "\r\nTest string: \"" << test << "\"\r\n";
 		
-		auto encoded = maddsua::b64Encode(&test);
+		auto encoded = b64Encode(&test);
 		std::cout << "base64: \"" << encoded << "\"\r\n";
 
-		auto decoded = maddsua::b64Decode(&encoded);
+		auto decoded = b64Decode(&encoded);
 
 		if (decoded.size() != test.size()) {
 			std::cout << "Test case failed. Data size mismatch\r\n";
