@@ -1,6 +1,15 @@
-#include "../include/maddsua/fs.hpp"
+#include <regex>
+#include <stdio.h>
+#include <dir.h>
+#include <dirent.h>
 
-bool maddsua::writeBinary(const std::string path, const std::string* data) {
+#include "../include/maddsua/lambda.hpp"
+
+
+#define LAMBDA_FS_READ_CHUNK	(1048576)
+
+
+bool lambda::fs::writeBinary(const std::string path, const std::string* data) {
 
 	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
 		auto dirpath = std::regex_replace(path, std::regex("\\+"), "/");
@@ -23,13 +32,13 @@ bool maddsua::writeBinary(const std::string path, const std::string* data) {
 	return true;
 }
 
-bool maddsua::readBinary(std::string path, std::string* dest) {
+bool lambda::fs::readBinary(std::string path, std::string* dest) {
 	FILE* binfile = fopen64(path.c_str(), "rb");
 	if(!binfile) return false;
 
 	while(!feof(binfile)) {
-		uint8_t fileChunk[MADDSUA_FS_READ_CHUNK];
-		size_t bytesRead = fread(fileChunk, 1, MADDSUA_FS_READ_CHUNK, binfile);
+		uint8_t fileChunk[LAMBDA_FS_READ_CHUNK];
+		size_t bytesRead = fread(fileChunk, 1, LAMBDA_FS_READ_CHUNK, binfile);
 		if (ferror(binfile)) return false;
 		dest->insert(dest->end(), fileChunk, fileChunk + bytesRead);
 	}

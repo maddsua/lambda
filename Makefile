@@ -1,45 +1,64 @@
+#	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
-DEV_APP   = lambda.exe
-DEV_MAIN  = dev
-LIBNAME   = libmda
-LIBDIR    = lib
-FLAGS     = -std=c++20
-OBJECTS   = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
-LINK_LIBS = -lws2_32 -lz -lbrotli_static
+APP_DEV    = lambda.exe
+APP_DEMO   = demo/lambda.exe
+LIBNAME    = mdslambda
 
-.PHONY: all all-before all-after clean clean-custom run-custom
+OBJECTS    = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compression.o src/filesystem.o src/base64.o src/hex.o src/gen.o src/sha2.o src/sha1.o 
 
-all: all-before $(DEV_APP) all-after
+FLAGS      = -std=c++20
+LIBS       = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc -lwinmm
+
+.PHONY: all all-before all-after clean-custom run-custom lib demo
+all: all-before $(APP_DEV) all-after
 
 clean: clean-custom
-	del /S *.o *.exe
+	del /S *.exe *.a *.dll
+#	rm -rf *.exe *.a *.dll
+
+purge: clean-custom
+	del /S *.o *.exe *.a *.dll
+#	rm -rf *.o *.exe *.a *.dll
 
 run: run-custom
-	$(DEV_APP)
+	$(APP_DEV)
 
 
+# ----
+#	dev app
+# ----
+$(APP_DEV): $(OBJECTS) main.o
+	g++ $(OBJECTS) main.o -o $(APP_DEV) $(LIBS) $(FLAGS)
 
-## Dev executable
-
-$(DEV_APP): $(DEV_MAIN).o $(OBJECTS)
-	g++ $(DEV_MAIN).o $(OBJECTS) -o $(DEV_APP) $(LINK_LIBS)
-
-$(DEV_MAIN).o: $(DEV_MAIN).cpp
-	g++ -c $(DEV_MAIN).cpp -o $(DEV_MAIN).o $(FLAGS)
-
-
-
-## Library Build
-
-libstatic: $(OBJECTS)
-	ar rvs $(LIBDIR)/$(LIBNAME).a $(OBJECTS)
-
-## on Linux: mkdir -p $(LIBDIR)/
+main.o: main.cpp
+	g++ -c main.cpp -o main.o $(FLAGS)
 
 
+# ----
+#	demo app
+# ----
+demo: demo/main.o
+#	static link
+	g++ demo/main.o -o $(APP_DEMO) -L. -l:lib$(LIBNAME).a $(LIBS) $(FLAGS)
+#	dynamic link
+#	g++ demo/main.o -o $(APP_DEMO) -L. -l$(LIBNAME) $(LIBS) $(FLAGS)
 
-## Library objects
+demo/main.o: demo/main.cpp
+	g++ -c demo/main.cpp -o demo/main.o $(FLAGS)
 
+
+# ----
+#	lib
+# ----
+lib: $(OBJECTS)
+#	make static lib
+	ar rvs lib$(LIBNAME).a $(OBJECTS)
+#	make dll
+	g++ $(OBJECTS) -s -shared -o $(LIBNAME).dll -Wl,--out-implib,lib$(LIBNAME).dll.a $(LIBS) $(FLAGS)
+
+# ----
+#	lib objects
+# ----
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
 
@@ -58,11 +77,23 @@ src/mimetypes.o: src/mimetypes.cpp
 src/fetch.o: src/fetch.cpp
 	g++ -c src/fetch.cpp -o src/fetch.o $(FLAGS)
 
-src/compress.o: src/compress.cpp
-	g++ -c src/compress.cpp -o src/compress.o $(FLAGS)
+src/compression.o: src/compression.cpp
+	g++ -c src/compression.cpp -o src/compression.o $(FLAGS)
 
 src/filesystem.o: src/filesystem.cpp
 	g++ -c src/filesystem.cpp -o src/filesystem.o $(FLAGS)
 
 src/base64.o: src/base64.cpp
 	g++ -c src/base64.cpp -o src/base64.o $(FLAGS)
+
+src/hex.o: src/hex.cpp
+	g++ -c src/hex.cpp -o src/hex.o $(FLAGS)
+
+src/gen.o: src/gen.cpp
+	g++ -c src/gen.cpp -o src/gen.o $(FLAGS)
+
+src/sha2.o: src/sha2.cpp
+	g++ -c src/sha2.cpp -o src/sha2.o $(FLAGS)
+
+src/sha1.o: src/sha1.cpp
+	g++ -c src/sha1.cpp -o src/sha1.o $(FLAGS)
