@@ -29,7 +29,7 @@ $(DEV_MAIN).o: $(DEV_MAIN).cpp
 
 
 
-## Static Library
+## Library Build
 
 lib: $(OBJECTS)
 	ar rvs $(LIBDIR)/$(LIBNAME).a $(OBJECTS)
