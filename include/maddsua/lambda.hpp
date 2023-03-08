@@ -18,6 +18,11 @@ namespace maddsua {
 		std::vector <datapair> headers;
 		std::string body;
 	};
+	struct lambdaConfig {
+		bool useCompression = true;
+		bool compressAll = false;
+		bool mutlipeInstances = false;
+	};
 
 	class lambda {
 
@@ -27,7 +32,6 @@ namespace maddsua {
 				ListenSocket = INVALID_SOCKET;
 				handlerDispatched = true;
 				running = false;
-				config_useCompression = true;
 			}
 			lambda(const lambda & obj) {
 				//	a copy constructor so IntelliSense would shut the f up
@@ -66,7 +70,7 @@ namespace maddsua {
 			std::vector <std::string> serverlog;
 			void addLogEntry(std::string module, std::string type, std::string text);
 
-			bool config_useCompression;
+			lambdaConfig config;
 	};
 
 }

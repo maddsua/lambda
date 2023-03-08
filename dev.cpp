@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <regex>
 
 #include "include/maddsua/lambda.hpp"
 #include "include/maddsua/compress.hpp"
@@ -7,24 +8,46 @@
 
 maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
-	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
 
-	if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
-		body = "Good night, my Dark Lord";
+	//	api calls, like real functions in AWS Lambda
+	if (maddsua::startsWith(event.path, "/api")) {
+
+		std::string body = "<h1>hello darkness my old friend</h1>";
+			body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
+
+		if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
+			body = "Good night, my Dark Lord";
+		}
+
+		body += "<br><br>Some text to test network mechanistms";
+
+		body += "<br><br>Even more text content here to test network compression functionality";
+		
+		return {
+			200,
+			{
+				{ "test", "maddsua" }
+			},
+			body
+		};
 	}
 
-	body += "<br><br>Some text to test network mechanistms";
+	//	fileserver part
+	if (event.path[event.path.size() - 1] == '/') event.path += "index.html";
+	event.path = std::regex_replace(("demo/" + event.path), std::regex("/+"), "/");
 
-	body += "<br><br>Even more text content here to test network compression functionality";
-	
-	return {
-		200,
-		{
-			{ "test", "maddsua" }
-		},
-		body
-	};
+	std::string filecontents;
+
+	if (!maddsua::readBinary(event.path, &filecontents)) {
+		return { 404, {}, "File not found"};
+	}
+
+	auto fileext = event.path.find_last_of('.');
+
+	return { 200, {
+		{ "Content-Type", maddsua::findMimeType((fileext + 1) < event.path.size() ? event.path.substr(fileext + 1) : "bin")}
+	}, filecontents};
+
 }
 
 int main(int argc, char** argv) {
