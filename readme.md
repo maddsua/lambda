@@ -1,4 +1,4 @@
-# A request-isolating multi thread HTTP/1.1 Web Server
+# A request-isolating multi threaded HTTP/1.1 Web Server
 
 My idea was to replicate overall feeling of Netlify Functions but in C++, so I could use all the good Windows API like serial ports. Need that for the other project, nevermind.
 
@@ -22,9 +22,6 @@ import { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
   return {
     statusCode: 200,
-    headers: {
-      "x-maddsua": "test"
-    },
     body: JSON.stringify({ message: "Hello World" }),
   };
 };
@@ -36,16 +33,13 @@ And here goes maddsua lambda (C/C++):
 
 ```
 #include "include/lambda.hpp"
-#include <nlohmann/json.hpp>
 
 maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
+
     return {
         200,    //    status code
-        {       //    headers
-          { "x-maddsua", "test" }
-        },
-                //    body
-        json({ {"message", "Hello World"} }).dump()
+        {},     //    no headers in this example
+        "{\"message\":\"Hello World\"}"
     };
 }
 ```
@@ -154,8 +148,8 @@ Seriously, it would be a better idea to use curl or something similar for the ht
 
 # Dependencies
 
- - libbrotli <https://github.com/google/brotli>
+ - <https://github.com/google/brotli>
 
- - zlib <https://github.com/madler/zlib>
+ - <https://github.com/madler/zlib>
 
- - Windows Sockets 2 API
+ - <https://github.com/nlohmann/json>
