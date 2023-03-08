@@ -5,46 +5,28 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
+    
 
 jobs:
-
   build:
 
     runs-on: windows-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { icon: '⬛', sys: mingw32 }
-          - { icon: '🟦', sys: mingw64 }
-          - { icon: '🟨', sys: ucrt64  } # Experimental!
-          - { icon: '🟧', sys: clang64 } # Experimental!
-
-    name: 🚧${{ matrix.icon }} ${{ matrix.sys }}
-
     defaults:
       run:
-        shell: msys2 {0}
+        shell: msys2 {0} 
 
     steps:
+    - uses: actions/checkout@v3
 
-    - name: '🧰 Checkout'
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+    - uses: msys2/setup-msys2@v2
 
-    - name: '${{ matrix.icon }} Setup MSYS2'
-      with:
-        msystem: ${{matrix.sys}}
-        update: true
-        install: >-
-          git
-          make
-          zlib
-          brotli
+    - name: install_zlib
+      run: pacman -S zlib
 
+    - name: install_brotli
+      run: pacman -S brotli
+          
     - name: cd_lib
       run: cd lib
       
@@ -56,4 +38,3 @@ jobs:
       
     - name: make_cd_test
       run: make
-
