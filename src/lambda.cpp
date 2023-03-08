@@ -180,7 +180,7 @@ void lambda::lambda::handler() {
 
 	//	drop connection if the request is invalid
 	if (!rqData.success) {
-		addLogEntry(context.uid, LAMBDALOG_ERR, "Invalid request or connection problem");
+		addLogEntry(context.uid, LAMBDALOG_WARN, "Aborted");
 		closesocket(ClientSocket);
 		return;
 	}
