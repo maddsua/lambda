@@ -1,7 +1,7 @@
 
 APP      = lambda.exe
 MAIN     = main
-OBJECTS  = main.o src/lambda.o src/http.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
+OBJECTS  = main.o src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
 FLAGS    = -std=c++20
 LIBS     = -lws2_32 -lz -lbrotli_static
 
@@ -23,6 +23,9 @@ $(MAIN).o: $(MAIN).cpp
 
 src/lambda.o: src/lambda.cpp
 	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
+
+src/sockets.o: src/sockets.cpp
+	g++ -c src/sockets.cpp -o src/sockets.o $(FLAGS)
 
 src/http.o: src/http.cpp
 	g++ -c src/http.cpp -o src/http.o $(FLAGS)

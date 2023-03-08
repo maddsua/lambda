@@ -109,7 +109,7 @@ void maddsua::lambda::handler() {
 	auto rqData = _getData(&ClientSocket);
 
 	//	drop connection if the request is invalid
-	if (rqData.startLineArgs.size() < 3) {
+	if (!rqData.success) {
 		serverlog.push_back({ "Handler", "Now", "Connection dropped" });
 		closesocket(ClientSocket);
 		return;
@@ -134,15 +134,14 @@ void maddsua::lambda::handler() {
 	}
 
 	//	inject additional headers
-	if (!findHeader("X-Powered-By", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"X-Powered-By", "maddsua/lambda"});
-	if (!findHeader("Date", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"Date", formattedTime(time(nullptr))});
+	if (!findHeader("X-Powered-By", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"X-Powered-By", MADDSUAHTTP_USERAGENT});
+	if (!findHeader("Date", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"Date", httpTimeNow()});
 	if (!findHeader("Content-Type", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"Content-Type", findMimeType("html")});
 
-
 	//	generate response title
-	std::string startLine = "HTTP/1.1 ";
-	auto statText = _findHttpCode(lambdaResult.statusCode);
-	startLine += (statText.size() ? (std::to_string(lambdaResult.statusCode) + " " + statText) : "200 OK");
+	std::string startLine = "HTTP/1.1 " + _findHttpCode(lambdaResult.statusCode);
+	/*auto statText = _findHttpCode(lambdaResult.statusCode);
+	startLine += (statText.size() ? (std::to_string(lambdaResult.statusCode) + " " + statText) : "200 OK");*/
 
 	//	apply compression
 	auto acceptEncodings = findHeader("Accept-Encoding", &rqData.headers);
