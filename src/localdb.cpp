@@ -225,7 +225,7 @@ bool lambda::localdb::load(std::string path) {
 	std::string dbTextBuff;
 
 	zlibDecompressStream gzstream;
-	if (!gzstream.init(zlibDecompressStream::winbit_auto)) return false;
+	if (!gzstream.init()) return false;
 
 	size_t entrySplit = std::string::npos;
 	size_t failedEntries = 0;
@@ -248,10 +248,8 @@ bool lambda::localdb::load(std::string path) {
 			std::lock_guard <std::mutex> lock (threadLock);
 
 			try {
-				
 				auto temp = parseEntry(dbTextBuff.substr(0, entrySplit));
 				dbdata.push_back(temp);
-
 			} catch(...) {
 				failedEntries++;
 				//if (failedEntries > maxFailedReadRecords) return false;
