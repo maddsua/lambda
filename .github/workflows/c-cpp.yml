@@ -35,6 +35,9 @@ jobs:
 
     - name: install brotli
       run: pacman -S mingw-w64-x86_64-brotli --noconfirm
+
+    - name: install nlohmann-json
+      run: pacman -S mingw-w64-x86_64-nlohmann-json --noconfirm
       
     - name: build library
       run: make libstatic
