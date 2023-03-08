@@ -86,3 +86,13 @@ std::vector<uint8_t> maddsua::b64Decode(std::string encoded) {
 	
 	return decoded;
 }
+
+bool maddsua::b64Validate(std::string* encoded) {
+
+	for (auto bcr : *encoded) {
+		if (!isalnum(bcr) && !((bcr == '+') || (bcr == '/') || (bcr == '=')))
+			return false;
+	}
+		
+	return true;
+}
