@@ -137,15 +137,13 @@ If you are experiencing weird errors during compilation, try putting `#include <
 
 # Notes
 
-## Helper functions
-
 ## WSA
 
-The idea is that you only start only one lambda server per application and handle diffirenet requests by routing them in the request handeler function.
+The idea is that you start only one lambda server per application, and handle diffirenet requests trough the handeler function.
 
 When not using lambda server, before calling `fetch()` make sure that windows sockets are initialized. Check that by invoking `socketsReady()` - true indicates that you are good to go. If not, call `WSAStartup()` yourself and hope for best 😈.
 
-Seriously, it's better to use curl or something similar for the http CLIENT things.
+Seriously, it would be a better idea to use curl or something similar for the http CLIENT things, in case you don't need the SERVER.
 
 
 # Dependencies
