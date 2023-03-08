@@ -109,6 +109,7 @@ void maddsuahttp::lambda::handler() {
 
 	//	drop connection if the request is invalid
 	if (rqData.startLineArgs.size() < 3) {
+		serverlog.push_back({ "Handler", "Now", "Connection dropped" });
 		closesocket(ClientSocket);
 		return;
 	}
@@ -139,11 +140,14 @@ void maddsuahttp::lambda::handler() {
 
 	//	generate response title
 	std::string startLine = "HTTP/1.1 ";
-	auto statCode = _findHttpCode(lambdaResult.statusCode);
-	startLine += (statCode.size() ? (std::to_string(lambdaResult.statusCode) + " " + statCode) : "200 OK");
+	auto statText = _findHttpCode(lambdaResult.statusCode);
+	startLine += (statText.size() ? (std::to_string(lambdaResult.statusCode) + " " + statText) : "200 OK");
 
 	//	send response and close socket
-	_sendData(&ClientSocket, startLine, &lambdaResult.headers, &lambdaResult.body);
+	auto sent = _sendData(&ClientSocket, startLine, &lambdaResult.headers, &lambdaResult.body);
 	closesocket(ClientSocket);
+
+	if (sent.success) serverlog.push_back({ "Handler", "Now", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"" });
+		else serverlog.push_back({ "Handler", "Now", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause });
 	//	done!
 }
