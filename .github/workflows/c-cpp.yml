@@ -21,6 +21,12 @@ jobs:
 
     - uses: msys2/setup-msys2@v2
 
+    - name: install_gcc
+      run: pacman -S gcc --noconfirm    
+
+    - name: install_make
+      run: pacman -S make --noconfirm    
+
     - name: install_zlib
       run: pacman -S zlib --noconfirm
 
