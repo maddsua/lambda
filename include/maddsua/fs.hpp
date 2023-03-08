@@ -15,8 +15,8 @@
 
 namespace maddsua {
 
-	bool writeBinary(const std::string path, const std::vector<uint8_t>* data);
-	bool readBinary(const std::string path, std::vector<uint8_t>* dest);
+	bool writeBinary(const std::string path, const std::string* data);
+	bool readBinary(const std::string path, std::string* dest);
 }
 
 

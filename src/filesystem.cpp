@@ -1,6 +1,6 @@
 #include "../include/maddsua/fs.hpp"
 
-bool maddsua::writeBinary(const std::string path, const std::vector<uint8_t>* data) {
+bool maddsua::writeBinary(const std::string path, const std::string* data) {
 
 	if (path.find('/') != std::string::npos || path.find('\\') != std::string::npos) {
 		auto dirpath = std::regex_replace(path, std::regex("\\+"), "/");
@@ -23,7 +23,7 @@ bool maddsua::writeBinary(const std::string path, const std::vector<uint8_t>* da
 	return true;
 }
 
-bool maddsua::readBinary(std::string path, std::vector<uint8_t>* dest) {
+bool maddsua::readBinary(std::string path, std::string* dest) {
 	FILE* binfile = fopen64(path.c_str(), "rb");
 	if(!binfile) return false;
 
