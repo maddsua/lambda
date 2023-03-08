@@ -1,6 +1,6 @@
+#include <zlib.h>
 #include <brotli/encode.h>
 #include <brotli/decode.h>
-#include <zlib.h>
 
 #include "../include/maddsua/compress.hpp"
 
@@ -111,6 +111,14 @@ bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
 
 /*
 	brotli "wrapper" for de/compressing binary data
+	Seriously, the procedure is fckd. I thought that zlib is weird, but not comparing to this.
+	By the way, any clues why there is no function to determine required buffer size for one-shot decompression?
+	 How am I supposed to know the size of reconstructed data? Should I guess it, or try to fit in pre-allocated 10k buffer?
+	By the way 2, why not just dynamically fckng allocate the memory needed? Am I the only one person to compress
+	 in-memory stuff (http requests in this case)?
+	 
+	No, really. Both brotli and zlib have functions that work with complete buffers of known size. But they both fail to make
+	 them usable.
 */
 
 bool maddsua::brDecompress(const std::string* compressed, std::string* plain) {
