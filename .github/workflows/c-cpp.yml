@@ -22,10 +22,10 @@ jobs:
     - uses: msys2/setup-msys2@v2
 
     - name: install gcc
-      run: pacman -S gcc --noconfirm 
+      run: pacman -S mingw-w64-x86_64-gcc --noconfirm 
 
     - name: install gcc libs
-      run: pacman -S gcc-libs --noconfirm 
+      run: pacman -S mingw-w64-x86_64-gcc-libs --noconfirm 
 
     - name: install make
       run: pacman -S make --noconfirm    
@@ -35,15 +35,11 @@ jobs:
 
     - name: install brotli
       run: pacman -S brotli --noconfirm
-          
-    - name: cd lib
-      run: cd lib
       
     - name: make lib
+      working-directory: ./lib
       run: make
-
-    - name: cd test
-      run: cd ../test
       
     - name: make cd test
+      working-directory: ./test
       run: make
