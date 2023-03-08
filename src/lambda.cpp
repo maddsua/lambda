@@ -153,18 +153,21 @@ void maddsua::lambda::handler() {
 
 			if (!maddsua::brCompress(&lambdaResult.body, &compressedBody)) {
 				compressedBody.erase(compressedBody.begin(), compressedBody.end());
+				serverlog.push_back({ "Handler", "Now", "Brotli compression failed" });
 			} else lambdaResult.headers.push_back({"Content-Encoding", "br"});
 			
 		} else if (acceptEncodings.find("gzip") != std::string::npos) {
 
 			if (!maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) {
 				compressedBody.erase(compressedBody.begin(), compressedBody.end());
+				serverlog.push_back({ "Handler", "Now", "gzip compression failed" });
 			} else lambdaResult.headers.push_back({"Content-Encoding", "gzip"});
 
 		} else if (acceptEncodings.find("deflate") != std::string::npos) {
 			
 			if (!maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) {
 				compressedBody.erase(compressedBody.begin(), compressedBody.end());
+				serverlog.push_back({ "Handler", "Now", "deflate compression failed" });
 			} else lambdaResult.headers.push_back({"Content-Encoding", "deflate"});
 		}
 	}

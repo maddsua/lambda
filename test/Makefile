@@ -3,7 +3,7 @@ APP      = lambda_test.exe
 MAIN     = main
 OBJECTS  = main.o
 FLAGS    = -std=c++20
-LIBS     = -lmaddsualambda -lws2_32 -lz
+LIBS     = -lmaddsualambda -lws2_32 -lz -lbrotli_static
 
 .PHONY: all all-before all-after clean clean-custom run-custom
 
