@@ -99,22 +99,29 @@ lambda::virtualFS::tarFileEntry lambda::virtualFS::readTarHeader(const uint8_t* 
 
 int lambda::virtualFS::loadSnapshot(std::string filepath) {
 
-	static const char gzExt[] = ".gz";
-	auto isGzipped = (filepath.find(gzExt) == (filepath.size() - strlen(gzExt)));
+	std::ifstream localfile(filepath, std::ios::binary);
+	if (!localfile.is_open()) return st_not_found;
+
+	bool isGzipped = false;
+	{
+		std::array <uint8_t, 10> header;
+		localfile.read((char*)header.data(), header.size());
+
+		if (header[0] == 0x1f && header[1] == 0x8b && header[2] == 0x08) isGzipped = true;
+
+		localfile.clear();
+		localfile.seekg(0, std::ios::beg);
+	}
 
 	std::list <std::string> longLinks;
-
-	std::ifstream archFile(filepath, std::ios::binary);
-
-	if (!archFile.is_open()) return st_not_found;
-
 	std::vector <uint8_t> tarBuffer;
 	std::array <uint8_t, zlibDecompressStream::chunkSize> readInBuffer;
 
 	zlibDecompressStream inflateStream;
 	
 	if (isGzipped) {
-		if (!inflateStream.init(zlibDecompressStream::winbit_auto)) return st_zlib_error;
+		auto zlibReady = inflateStream.init(zlibDecompressStream::winbit_auto);
+		if (!zlibReady) return st_zlib_error;
 	}
 
 	tarFileEntry tempEntry;
@@ -123,16 +130,16 @@ int lambda::virtualFS::loadSnapshot(std::string filepath) {
 
 	while (true)  {
 		
-		while (!archFile.eof() && (tarBuffer.size() < tar_blockSize) && !inflateStream.done()) {
+		while (!localfile.eof() && (tarBuffer.size() < tar_blockSize) && !inflateStream.done()) {
 
-			archFile.read((char*)readInBuffer.data(), readInBuffer.size());
+			localfile.read((char*)readInBuffer.data(), readInBuffer.size());
 
 			if (isGzipped) {
 
-				inflateStream.decompressChunk(readInBuffer.data(), archFile.gcount(), &tarBuffer);
+				inflateStream.decompressChunk(readInBuffer.data(), localfile.gcount(), &tarBuffer);
 				if (inflateStream.error()) return st_zlib_error;
 
-			} else tarBuffer.insert(tarBuffer.end(), readInBuffer.begin(), readInBuffer.begin() + archFile.gcount());
+			} else tarBuffer.insert(tarBuffer.end(), readInBuffer.begin(), readInBuffer.begin() + localfile.gcount());
 		}
 
 		//	check if tar is ended
@@ -298,8 +305,7 @@ std::vector <uint8_t> lambda::virtualFS::writeTarEntry(std::string name, const s
 
 int lambda::virtualFS::saveSnapshot(std::string filepath) {
 
-	static const char gzExt[] = ".gz";
-	auto isGzipped = (filepath.find(gzExt) == (filepath.size() - strlen(gzExt)));
+	auto isGzipped = filepath.ends_with(".gz") || filepath.ends_with(".tgz");
 
 	std::vector <uint8_t> tarBuffer;
 	std::vector <uint8_t> gzBuffer;
