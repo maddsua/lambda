@@ -18,6 +18,12 @@ namespace maddsua {
 		std::vector <datapair> headers;
 		std::string body;
 	};
+	/**
+	 * @param compression_enabled enable content compression
+	 * @param compression_allFileTypes compress all file types
+	 * @param compression_preferBr prefer brotli compression, if client accepts
+	 * @param mutlipeInstances check is WSA is enabled on instance init and don't disable WSA after the instance shutdown
+	*/
 	struct lambdaConfig {
 		bool compression_enabled = true;
 		bool compression_allFileTypes = false;
