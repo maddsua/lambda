@@ -7,7 +7,6 @@
 #include <windows.h>
 
 
-
 /*
 
 	HEX converter
@@ -57,6 +56,7 @@ std::vector <uint8_t> maddsua::hexToBin(std::string& data) {
 	
 	return result;
 }
+
 
 /*
 
