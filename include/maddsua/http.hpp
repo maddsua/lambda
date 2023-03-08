@@ -1,11 +1,13 @@
 #ifndef _maddsua_http
 #define _maddsua_http
 
+
 #include <stdint.h>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <time.h>
+
 
 #include <string>
 #include <vector>
@@ -16,6 +18,7 @@
 #define HTTPLAMBDA_BODY_CHUNK		(131072)
 #define MADDSUAHTTP_ATTEMPTS		(3)
 #define MADDSUAHTTP_USERAGENT		"maddsua/lambda"
+
 
 namespace maddsua {
 
