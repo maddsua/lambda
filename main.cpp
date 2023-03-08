@@ -2,7 +2,8 @@
 #include <string>
 
 #include "include/maddsua/lambda.hpp"
-#include "include/maddsua/bufferCompress.hpp"
+#include "include/maddsua/compress.hpp"
+#include "include/maddsua/fs.hpp"
 
 maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
@@ -52,16 +53,20 @@ int main(int argc, char** argv) {
 
 	std::vector<uint8_t> compressed;
 
-	auto result = maddsuaCompress::compressVector(&uncompressed, &compressed, true);
+	auto result = maddsuaCompress::gzCompress(&uncompressed, &compressed, true);
 
 	std::cout << "compression result: " << result << std::endl;
 	std::cout << "Raw: " << textData.size() << " / compressed: " << compressed.size() << std::endl;
 
 	std::vector<uint8_t> restored;
 
-	auto result2 = maddsuaCompress::decompressVector(&compressed, &restored);
+	auto writeres = maddsuaFS::writeBinary("../gz/test.gz", &compressed);
+
+	auto result2 = maddsuaCompress::gzDecompress(&compressed, &restored);
 
 	std::cout << "Restored data: " << std::string(restored.begin(), restored.end()) << std::endl;
+
+	std::cout << "Write result: " << writeres << std::endl;
 
 	return 0;
 }

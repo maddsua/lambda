@@ -7,7 +7,6 @@
 	
 */
 
-
 #include <zlib.h>
 
 #include <stdint.h>
@@ -21,14 +20,13 @@
 #define ZLIB_MEXP_DECOMP_GZ		(16)
 #define ZLIB_MEXP_DECOM_AUTO	(32)
 #define ZLIB_MEXP_RAW			(-15)
-
-#define ZLIB_MEXP_MEM_MAX		(9)
+#define ZLIB_MEXP_MEMORY		(9)
 #define ZLIB_MEXP_CHUNK			(262144)	//	256k
 
 namespace maddsuaCompress {
 
-	bool compressVector(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool mkgzip);
-	bool decompressVector(const std::vector <uint8_t>* source, std::vector <uint8_t>* result);
+	bool gzCompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool gzipHeader);
+	bool gzDecompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result);
 
 }
 
