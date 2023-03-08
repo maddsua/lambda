@@ -27,7 +27,7 @@ maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
 int main(int argc, char** argv) {
 
-/*	auto server = maddsuaHTTP::lambda();
+	auto server = maddsuaHTTP::lambda();
 	auto startresult = server.init("27015", &requesthandeler);
 
 	printf("%s\r\n", startresult.cause.c_str());
@@ -36,37 +36,27 @@ int main(int argc, char** argv) {
 
 	puts("Waiting for connections at http://localhost:27015/");
 
-	auto googled = maddsuaHTTP::fetch("google.com", "GET", {}, "");
+	//	connect to google.com
+	{
+		auto googeResp = maddsuaHTTP::fetch("google.com", "GET", {}, "");
 
-	if (googled.errors.size()) puts(googled.errors.c_str());
-	puts(std::to_string(googled.statusCode).c_str());
-	puts(googled.body.c_str());
+		printf("Connecting to google.com... %i %s", googeResp.statusCode, googeResp.statusText);
+		if (googeResp.errors.size()) puts(googeResp.errors.c_str());
+		puts(googeResp.body.c_str());
+
+		auto uncompressed = std::vector<uint8_t>(googeResp.body.begin(), googeResp.body.end());
+		std::vector<uint8_t> compressed;
+		auto result = maddsuaCompress::gzCompress(&uncompressed, &compressed, true);
+		std::cout << "Compression result: " << result << std::endl;
+		std::cout << "Raw: " << uncompressed.size() << " / compressed: " << compressed.size() << std::endl;
+
+		std::cout << "Writing to googlecom.html.gz result: " << maddsuaFS::writeBinary("googlecom.html.gz", &compressed) << std::endl;
+	}
 
 	while (true) {
 		//	just chill while server is working
 		Sleep(1000);
-	}*/
-
-	std::string textData = "1: this is a sample text string / 2: this is a sample text string / 3: this is a sample text string";
-
-	auto uncompressed = std::vector<uint8_t>(textData.begin(), textData.end());
-
-	std::vector<uint8_t> compressed;
-
-	auto result = maddsuaCompress::gzCompress(&uncompressed, &compressed, true);
-
-	std::cout << "compression result: " << result << std::endl;
-	std::cout << "Raw: " << textData.size() << " / compressed: " << compressed.size() << std::endl;
-
-	std::vector<uint8_t> restored;
-
-	auto writeres = maddsuaFS::writeBinary("../gz/test.gz", &compressed);
-
-	auto result2 = maddsuaCompress::gzDecompress(&compressed, &restored);
-
-	std::cout << "Restored data: " << std::string(restored.begin(), restored.end()) << std::endl;
-
-	std::cout << "Write result: " << writeres << std::endl;
+	}
 
 	return 0;
 }
