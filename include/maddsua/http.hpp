@@ -52,18 +52,18 @@ namespace maddsua {
 
 	void trim(std::string* text);
 	std::string trim(std::string text);
-	std::vector <std::string> splitBy(const char* source, const char* token);
+	std::vector <std::string> splitBy(std::string source, std::string token);
 
-	std::string findHeader(const char* headerName, std::vector <datapair>* headers);
-	inline bool headerExists(const char* headerName, std::vector <datapair>* headers) {
+	std::string findHeader(std::string headerName, std::vector <datapair>* headers);
+	inline bool headerExists(std::string headerName, std::vector <datapair>* headers) {
 		return findHeader(headerName, headers).size();
 	}
 
-	std::string findMimeType(const char* extension);
+	std::string findMimeType(std::string extension);
 	std::string formattedTime(time_t epoch_time);
 
 	std::vector <datapair> searchQueryParams(std::string* url);
-	inline std::string findSearchQuery(const char* headerName, std::vector <datapair>* headers) {
+	inline std::string findSearchQuery(std::string headerName, std::vector <datapair>* headers) {
 		return findHeader(headerName, headers);
 	}
 

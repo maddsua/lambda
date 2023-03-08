@@ -67,9 +67,8 @@ const std::vector <_httpcode> httpCodeList = {
 
 std::string maddsua::_findHttpCode(const uint16_t statusCode) {
 	for (auto status : httpCodeList) {
-		if (status.code == statusCode) {
+		if (status.code == statusCode)
 			return status.textCode;
-		}
 	}
 	return "";
 }

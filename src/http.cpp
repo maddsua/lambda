@@ -92,43 +92,32 @@ std::string maddsua::trim(std::string text) {
 //	I thought that was a good idea to code this part in C, for speed.
 //	But here we go again, it probably contains a ton of explosive bugs.
 //	Tested several times, looks ok, but still, be aware of
-std::vector <std::string> maddsua::splitBy(const char* source, const char* token) {
+std::vector <std::string> maddsua::splitBy(std::string source, std::string token) {
 	std::vector <std::string> temp;
 
-	//	abort it source is empty
-	if (!strlen(source)) return {};
+	//	abort if source is empty
+	if (!source.size()) return {};
 	//	return entrire source is deliminator/token is empty
-	if (!strlen(token)) return { source };
-	//	return entrire source is deliminator/token is not present in the source
-	char* match = strstr(source, token);
-		if (!match) return { source };
+	if (!token.size()) return { source };
 
-	//	start from the beginning
-	size_t pos_start = 0;
-	//	take the first occurance so loop will just start
-	size_t length = (match - source);
-	while (match) {
-		//	find the token in unprocessed part of source
-		//	sum start position with source string pointer so it will result in "sliding forwards"
-		match = strstr(source + pos_start, token);
-			//	stop cycle if no more tokens found
-			if (!match) break;
-		//	calculate substring length
-		length = (match - (source + pos_start));
-		//	if it's not empty - push it
-		//	"source + pos_start" - slides forwards without reallocating eny memory
-		//	and yes, copy only needed part
-		if (length) temp.push_back(std::string(source + pos_start, length));
-		pos_start += length + strlen(token);
+	//	return entrire source is deliminator/token is not present in the source
+	auto match = source.find(token);
+		if (match == std::string::npos) return { source };
+
+	//	iterate trough the res of the string
+	while (match != std::string::npos) {
+		if (match > 0) temp.push_back(source.substr(0, match));
+		source = source.substr(match + token.size());
+		match = source.find(token);
 	}
 	
-	//	push remaining part
-	if (pos_start < strlen(source)) temp.push_back(std::string(source + pos_start));
+	//	push the remaining part
+	if (source.size()) temp.push_back(source);
 	//	done
 	return temp;
 }
 
-std::string maddsua::findHeader(const char* headerName, std::vector <maddsua::datapair>* headers) {
+std::string maddsua::findHeader(std::string headerName, std::vector <maddsua::datapair>* headers) {
 	for (auto headerObject : *headers) {
 		if (toLowerCase(headerObject.name) == toLowerCase(headerName)) {
 			return headerObject.value;

@@ -1184,11 +1184,10 @@ const std::vector <_mimetypeitem> mimeTypeTable = {
 	{ "zmm", "application/vnd.handheld-entertainment+xml" }
 };
 
-std::string maddsua::findMimeType(const char* extension) {
+std::string maddsua::findMimeType(std::string extension) {
 	for (auto ftype : mimeTypeTable) {
-		if (!strcmp(ftype.extension, extension)) {
+		if (ftype.extension == extension)
 			return ftype.mimetype;
-		}
 	}
 	return "application/octet-stream";
 }
