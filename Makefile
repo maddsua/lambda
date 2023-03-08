@@ -1,7 +1,7 @@
 
 DEV_APP   = lambda.exe
 DEV_MAIN  = dev
-LIBNAME   = libmaddsualambda
+LIBNAME   = libmda
 LIBDIR    = lib
 FLAGS     = -std=c++20
 OBJECTS   = src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
@@ -31,11 +31,10 @@ $(DEV_MAIN).o: $(DEV_MAIN).cpp
 
 ## Library Build
 
-lib: $(OBJECTS)
-	mkdir $(LIBDIR)\
+libstatic: $(OBJECTS)
 	ar rvs $(LIBDIR)/$(LIBNAME).a $(OBJECTS)
 
-## on Linux: mkdir -p $(LIBDIR)
+## on Linux: mkdir -p $(LIBDIR)/
 
 
 
