@@ -86,9 +86,7 @@ maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
 This example functions will return "hello darkness my old friend" with your user-agent below for any request that does not have `user=maddsua` search query. For requests that have, it will show different greeting.
 
-By the way, just have a look at [demo/main.cpp](demo/main.cpp). It's easy as pie.
-
-## Data types
+## Types:
 
 ### lambdaResponse
 
