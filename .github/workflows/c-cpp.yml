@@ -37,9 +37,7 @@ jobs:
       run: pacman -S mingw-w64-x86_64-brotli --noconfirm
       
     - name: build library
-      working-directory: ./lib
-      run: make
+      run: make lib
       
     - name: build demo executable
-      working-directory: ./demo
-      run: make
+      run: make demo
