@@ -20,10 +20,22 @@
 
 namespace maddsua {
 
+	/**
+	 * @param name
+	 * @param value
+	*/
 	struct datapair {
 		std::string name;
 		std::string value;
 	};
+
+	/**
+	 * @param errors
+	 * @param statusCode
+	 * @param statusText
+	 * @param headers
+	 * @param body
+	*/
 	struct fetchResult {
 		std::string errors;
 		uint16_t statusCode;
@@ -31,11 +43,24 @@ namespace maddsua {
 		std::vector <datapair> headers;
 		std::string body;
 	};
+
+	/**
+	 * @param success
+	 * @param cause
+	 * @param info
+	*/
 	struct actionResult {
 		bool success;
 		std::string cause;
 		std::string info;
 	};
+
+	/**
+	 * @param success
+	 * @param startLineArgs
+	 * @param headers
+	 * @param body
+	*/
 	struct httpRequest {
 		bool success;
 		std::vector <std::string> startLineArgs;
