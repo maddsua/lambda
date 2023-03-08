@@ -1,4 +1,9 @@
+
+#include <regex>
+#include <algorithm>
+
 #include "../include/maddsua/http.hpp"
+#include "../include/maddsua/compress.hpp"
 
 maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::vector <maddsua::datapair> headers, std::string body) {
 	maddsua::fetchResult result;
@@ -69,12 +74,16 @@ maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::ve
 	//	cleanup
 	freeaddrinfo(hostAddr);
 
-	//	send request
+	//	add service headers
 	if (!method.size()) method = "GET";
 	if (!headerExists("Host", &headers)) headers.push_back({"Host", fullhost});
+	if (!headerExists("User-Agent", &headers)) headers.push_back({"User-Agent", MADDSUAHTTP_USERAGENT});
+	
+	headerInsert("Accept-Encoding", "br, gzip, deflate", &headers);
 
-	auto rqSent = _sendData(&connection, (toUpperCase(method) + " " + path + " HTTP/1.1"), &headers, &body);
-	if (!rqSent.success) {
+	//	send request
+	auto sent = socketSendHTTP(&connection, (toUpperCase(method) + " " + path + " HTTP/1.1"), &headers, &body);
+	if (!sent.success) {
 		closesocket(connection);
 		result.statusCode = 0;
 		result.errors += "Failed to send request;";
@@ -82,12 +91,12 @@ maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::ve
 	}
 
 	//	receive data
-	auto rqResult = _getData(&connection);
+	auto serverResponse = socketGetHTTP(&connection);
 
 	//	cleanup
 	closesocket(connection);
 
-	if (rqResult.startLineArgs.size() < 3) {
+	if (serverResponse.startLineArgs.size() < 3) {
 		
 		result.statusCode = 0;
 		result.errors += "Invalid http response;";
@@ -95,16 +104,52 @@ maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::ve
 	}
 
 	try {
-		result.statusCode = std::stoi(rqResult.startLineArgs[1]);
+		result.statusCode = std::stoi(serverResponse.startLineArgs[1]);
 	} catch(...) {
 		result.statusCode = 0;
 		result.errors += "Invalid http status code;";
 		return result;
 	}
-	
-	result.statusText = _findHttpCode(result.statusCode);
-	result.headers = rqResult.headers;
-	result.body = rqResult.body;
+
+	//	decode body
+	auto encodings = splitBy(headerFind("Content-Encoding", &serverResponse.headers), ",");
+	std::reverse(encodings.begin(), encodings.end());
+
+	for (auto enc : encodings) {
+
+		trim(&enc);
+		std::string decompressed;
+
+		if (enc == "br") {
+			
+			if (brDecompress(&serverResponse.body, &decompressed)) {
+				serverResponse.body = decompressed;
+				continue;
+
+			} else {
+				result.errors += "brotli decompression error;";
+				break;
+			}
+
+		} else if (enc == "gzip" || enc == "deflate") {
+
+			if (gzDecompress(&serverResponse.body, &decompressed)) {
+				serverResponse.body = decompressed;
+				continue;
+
+			} else {
+				result.errors += "zlib decompression error;";
+				break;
+			}
+		}
+
+		result.errors += "Unknown encoding;";
+	}
+
+	//	returm the response
+	result.statusText = httpStatusString(result.statusCode);
+	result.headers = serverResponse.headers;
+	result.body = serverResponse.body;
 
 	return result;
 }

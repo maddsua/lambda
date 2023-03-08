@@ -1,6 +1,19 @@
 #include "../include/maddsua/lambda.hpp"
 #include "../include/maddsua/compress.hpp"
 
+void maddsua::lambda::addLogEntry(std::string module, std::string type, std::string text) {
+	
+	auto servertime = []() {
+		char timebuff[16];
+		auto now = time(nullptr);
+		tm timedata = *gmtime(&now);
+		strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &timedata);
+		return std::string(timebuff);
+	} ();
+
+	serverlog.push_back(std::string(module) + ": " + toUpperCase(type) + " [" + servertime + "] " + text);
+}
+
 
 maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lambdaResponse(lambdaEvent)> lambda) {
 
@@ -106,11 +119,11 @@ void maddsua::lambda::handler() {
 	handlerDispatched = true;
 
 	//	download http request
-	auto rqData = _getData(&ClientSocket);
+	auto rqData = socketGetHTTP(&ClientSocket);
 
 	//	drop connection if the request is invalid
 	if (!rqData.success) {
-		serverlog.push_back({ "Handler", "Now", "Connection dropped" });
+		addLogEntry("Lambda", "Error", "Invalid request or connection problem");
 		closesocket(ClientSocket);
 		return;
 	}
@@ -134,49 +147,53 @@ void maddsua::lambda::handler() {
 	}
 
 	//	inject additional headers
-	if (!findHeader("X-Powered-By", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"X-Powered-By", MADDSUAHTTP_USERAGENT});
-	if (!findHeader("Date", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"Date", httpTimeNow()});
-	if (!findHeader("Content-Type", &lambdaResult.headers).size()) lambdaResult.headers.push_back({"Content-Type", findMimeType("html")});
+	if (!headerExists("X-Powered-By", &lambdaResult.headers)) lambdaResult.headers.push_back({"X-Powered-By", MADDSUAHTTP_USERAGENT});
+	if (!headerExists("Date", &lambdaResult.headers)) lambdaResult.headers.push_back({"Date", httpTimeNow()});
+	if (!headerExists("Content-Type", &lambdaResult.headers)) lambdaResult.headers.push_back({"Content-Type", findMimeType("html")});
 
 	//	generate response title
-	std::string startLine = "HTTP/1.1 " + _findHttpCode(lambdaResult.statusCode);
+	std::string startLine = "HTTP/1.1 " + httpStatusString(lambdaResult.statusCode);
 	/*auto statText = _findHttpCode(lambdaResult.statusCode);
 	startLine += (statText.size() ? (std::to_string(lambdaResult.statusCode) + " " + statText) : "200 OK");*/
 
 	//	apply compression
-	auto acceptEncodings = findHeader("Accept-Encoding", &rqData.headers);
+	auto acceptEncodings = headerFind("Accept-Encoding", &rqData.headers);
 	std::string compressedBody;
 	if (config_useCompression) {
 
-		if (acceptEncodings.find("br") != std::string::npos) {
+		std::string appliedCompression;
 
-			if (!maddsua::brCompress(&lambdaResult.body, &compressedBody)) {
-				compressedBody.erase(compressedBody.begin(), compressedBody.end());
-				serverlog.push_back({ "Handler", "Now", "Brotli compression failed" });
-			} else lambdaResult.headers.push_back({"Content-Encoding", "br"});
+		if (!includes(&acceptEncodings, "br")) {
+
+			if (maddsua::brCompress(&lambdaResult.body, &compressedBody)) appliedCompression = "br";
+				else addLogEntry("Lambda", "Error", "brotli compression failed");
 			
-		} else if (acceptEncodings.find("gzip") != std::string::npos) {
+		} else if (!includes(&acceptEncodings, "gzip")) {
 
-			if (!maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) {
-				compressedBody.erase(compressedBody.begin(), compressedBody.end());
-				serverlog.push_back({ "Handler", "Now", "gzip compression failed" });
-			} else lambdaResult.headers.push_back({"Content-Encoding", "gzip"});
+			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, true)) appliedCompression = "gzip";
+				else addLogEntry("Lambda", "Error", "gzip compression failed");
 
-		} else if (acceptEncodings.find("deflate") != std::string::npos) {
+		} else if (!includes(&acceptEncodings, "deflate")) {
 			
-			if (!maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) {
-				compressedBody.erase(compressedBody.begin(), compressedBody.end());
-				serverlog.push_back({ "Handler", "Now", "deflate compression failed" });
-			} else lambdaResult.headers.push_back({"Content-Encoding", "deflate"});
+			if (maddsua::gzCompress(&lambdaResult.body, &compressedBody, false)) appliedCompression = "deflate";
+				else addLogEntry("Lambda", "Error", "deflate compression failed");
 		}
+
+		if (appliedCompression.size()) headerInsert("Content-Encoding", appliedCompression, &lambdaResult.headers);
+			else compressedBody.erase(compressedBody.begin(), compressedBody.end());
 	}
 
 
 	//	send response and close socket
-	auto sent = _sendData(&ClientSocket, startLine, &lambdaResult.headers, compressedBody.size() ? &compressedBody : &lambdaResult.body);
+	auto sent = socketSendHTTP(&ClientSocket, startLine, &lambdaResult.headers, compressedBody.size() ? &compressedBody : &lambdaResult.body);
 	closesocket(ClientSocket);
 
-	if (sent.success) serverlog.push_back({ "Handler", "Now", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"" });
-		else serverlog.push_back({ "Handler", "Now", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause });
+	if (sent.success) {
+		addLogEntry("Lambda", "Info", "Response with status " + std::to_string(lambdaResult.statusCode) + " for \"" + rqEvent.path + "\"");
+
+	} else {
+		addLogEntry("Lambda", "Info", "Request for \"" + rqEvent.path + "\" failed: " + sent.cause);
+	}
+
 	//	done!
 }

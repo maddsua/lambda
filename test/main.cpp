@@ -8,7 +8,7 @@
 maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
 	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsua::findHeader("User-Agent", &event.headers);
+		body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
 
 	/*if (maddsua::findSearchQuery("user", &event.searchQuery) == "maddsua") {
 		body = "<h2>Good night, my Dark Lord</h2>\r\n";
@@ -48,10 +48,10 @@ int main(int argc, char** argv) {
 	while (true) {
 
 		for (auto log : server.logs()) {
-			puts(log.text.c_str());
+			std::cout << log << std::endl;
 		}
 		
-		//	just chill while server is working
+		//	just chill while server is running
 		Sleep(1000);
 	}
 

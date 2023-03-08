@@ -1,6 +1,6 @@
 #include "../include/maddsua/http.hpp"
 
-maddsua::httpRequest maddsua::_getData(SOCKET* client) {
+maddsua::httpRequest maddsua::socketGetHTTP(SOCKET* client) {
 
 	//	receive http header first
 	std::string rawData;
@@ -53,7 +53,7 @@ maddsua::httpRequest maddsua::_getData(SOCKET* client) {
 
 	//	download body is exists
 	std::string requestBody;
-	auto contentLength = findHeader("Content-Length", &headers);
+	auto contentLength = headerFind("Content-Length", &headers);
 	if (contentLength.size()) {
 		size_t bodySize;
 
@@ -93,19 +93,18 @@ maddsua::httpRequest maddsua::_getData(SOCKET* client) {
 	};
 }
 
-maddsua::actionResult maddsua::_sendData(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body) {
+maddsua::actionResult maddsua::socketSendHTTP(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body) {
 
 	//	create reaponse message
 	auto temp = startline + "\r\n";
+
+	//	add content length header
+	if (body->size()) headerInsert("Content-Length", std::to_string(body->size()), headers);
 
 	//	add headers
 	for (auto header : *headers) {
 		temp += header.name + ": " + header.value + "\r\n";
 	}
-
-	//	add content length header
-	if (body->size() && !findHeader("Content-Length", headers).size())
-		temp += "Content-Length: " + std::to_string(body->size()) + "\r\n";
 	
 	//	end headers block
 	temp += "\r\n";

@@ -12,7 +12,6 @@
 #include <vector>
 #include <thread>
 #include <functional>
-#include <regex>
 
 #define HTTPLAMBDA_HEADER_CHUNK		(2048)
 #define HTTPLAMBDA_BODY_CHUNK		(131072)
@@ -94,14 +93,22 @@ namespace maddsua {
 	/**
 	 * Looks for specific header in a vector of headers and returns it's value, or an empty string, if it was not found
 	*/
-	std::string findHeader(std::string headerName, std::vector <datapair>* headers);
+	std::string headerFind(std::string headerName, std::vector <datapair>* headers);
+	inline std::string headerFind(std::string headerName, std::vector <datapair> headers) {
+		return headerFind(headerName, &headers);
+	}
 
 	/**
 	 * Returns true if header exists in the provided vector of headers
 	*/
 	inline bool headerExists(std::string headerName, std::vector <datapair>* headers) {
-		return findHeader(headerName, headers).size();
+		return headerFind(headerName, headers).size();
 	}
+
+	/**
+	 * Add header, replacing if already exists
+	*/
+	void headerInsert(std::string header, std::string value, std::vector <datapair>* headers);
 
 	/**
 	 * Returns mimetype for specified file extension.
@@ -130,7 +137,7 @@ namespace maddsua {
 	 * Looks for specific search query and returns it's value, or an empty string, if it was not found
 	*/
 	inline std::string searchQueryFind(std::string queryName, std::vector <datapair>* queries) {
-		return findHeader(queryName, queries);
+		return headerFind(queryName, queries);
 	}
 
 	/**
@@ -142,20 +149,20 @@ namespace maddsua {
 
 	/**
 	 * Finds http status text for the provided status code.
-	 * _findHttpCode(403) => "403 Forbidden"
+	 * (403) => "403 Forbidden"
 	 * If not found, defaults to "200 OK"
 	*/
-	std::string _findHttpCode(const uint16_t statusCode);
+	std::string httpStatusString(const uint16_t statusCode);
 
 	/**
 	 * Receive http data from a socket in one go
 	*/
-	httpRequest _getData(SOCKET* client);
+	httpRequest socketGetHTTP(SOCKET* client);
 
 	/**
 	 * Send http data to a socket in one go
 	*/
-	actionResult _sendData(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body);
+	actionResult socketSendHTTP(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body);
 
 	/**
 	 * The same as javascript's fetch(). Sends request to a URL and returns server response
