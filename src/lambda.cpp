@@ -22,11 +22,13 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 		"Already running"
 	};
 
-	if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) return {
-		false,
-		"Startup failed",
-		"WINAPI:" + std::to_string(GetLastError())
-	};
+	if (!config.mutlipeInstances || (config.mutlipeInstances && !socketsReady())) {
+		if (WSAStartup(MAKEWORD(2,2), &wsaData)) return {
+			false,
+			"Startup failed",
+			"WINAPI:" + std::to_string(GetLastError())
+		};
+	}
 
 	//	resolve server address
 	struct addrinfo *servAddr = NULL;
@@ -37,7 +39,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 		hints.ai_protocol = IPPROTO_TCP;
 		hints.ai_flags = AI_PASSIVE;
 	if (getaddrinfo(NULL, port, &hints, &servAddr) != 0) {
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Localhost didn't resolve",
@@ -49,7 +51,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 	ListenSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
 	if (ListenSocket == INVALID_SOCKET) {
 		freeaddrinfo(servAddr);
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to create listening socket",
@@ -59,7 +61,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 	if (bind(ListenSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 		freeaddrinfo(servAddr);
 		closesocket(ListenSocket);
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Failed to bind a TCP socket",
@@ -71,7 +73,7 @@ maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lamb
 
 	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
 		closesocket(ListenSocket);
-		WSACleanup();
+		if (!config.mutlipeInstances) WSACleanup();
 		return {
 			false,
 			"Socket error",
@@ -94,7 +96,7 @@ void maddsua::lambda::close() {
 	running = false;
 	if (worker.joinable()) worker.join();
 	closesocket(ListenSocket);
-	WSACleanup();
+	if (!config.mutlipeInstances) WSACleanup();
 }
 
 void maddsua::lambda::connectManager() {
