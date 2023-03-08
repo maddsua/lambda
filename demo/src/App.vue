@@ -16,6 +16,7 @@ import { RouterLink, RouterView } from 'vue-router';
 				<RouterLink to="/">Home</RouterLink>
 				<RouterLink to="/db">Database</RouterLink>
 				<RouterLink to="/vfs">VFS</RouterLink>
+				<RouterLink to="/fetch">Fetch/Proxy</RouterLink>
 			</nav>
 
 			<nav class="links">

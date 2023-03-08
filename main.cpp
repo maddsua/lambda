@@ -260,18 +260,23 @@ lambda::Response requestHandeler(lambda::Event event) {
 			};
 		}
 
-		JSON listOfHeaders ({});
+		auto listOfHeaders = JSON::array();
 
 		auto allRespHeaders = googeResp.headers.list();
 
-		for (auto header : allRespHeaders)
-			listOfHeaders[header.key] = header.value;
+		for (auto header : allRespHeaders) {
+			listOfHeaders.push_back({
+				{"name", header.key},
+				{"value", header.value}
+			});
+		};
 
 		return {
 			200,
 			{},
 			JSON({
 				{"proxy to", proxyTo},
+				{"success", true},
 				{"response", googeResp.statusText},
 				{"headers", listOfHeaders},
 				{"body", std::to_string(googeResp.body.size()) + " bytes"}

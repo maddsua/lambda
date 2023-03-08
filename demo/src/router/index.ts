@@ -18,6 +18,11 @@ const router = createRouter({
 			path: '/vfs',
 			name: 'VFS',
 			component: () => import('../views/virtualfilesystem.vue')
+		},
+		{
+			path: '/fetch',
+			name: 'Fetch',
+			component: () => import('../views/fetch.vue')
 		}
 	]
 })
