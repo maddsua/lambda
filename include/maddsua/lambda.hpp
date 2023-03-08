@@ -3,7 +3,7 @@
 #ifndef _maddsua_http_lambda
 #define _maddsua_http_lambda
 
-namespace maddsuaHTTP {
+namespace maddsua {
 
 	struct lambdaEvent {
 		std::string method;

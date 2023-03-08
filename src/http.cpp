@@ -1,6 +1,6 @@
 #include "../include/maddsua/http.hpp"
 
-bool maddsuaHTTP::socketsReady() {
+bool maddsua::socketsReady() {
 	bool result = true;
 
     SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -12,42 +12,42 @@ bool maddsuaHTTP::socketsReady() {
 	return result;
 }
 
-void maddsuaHTTP::toLowerCase(std::string* text) {
+void maddsua::toLowerCase(std::string* text) {
 	for (size_t i = 0; i < text->size(); i++) {
 		if (text->at(i) >= 'A' && text->at(i) <= 'Z') {
 			text->at(i) += 0x20;
 		}
 	}
 }
-std::string maddsuaHTTP::toLowerCase(std::string text) {
+std::string maddsua::toLowerCase(std::string text) {
 	std::string temp = text;
 	toLowerCase(&temp);
 	return temp;
 }
 
-void maddsuaHTTP::toUpperCase(std::string* text) {
+void maddsua::toUpperCase(std::string* text) {
 	for (size_t c = 0; c < text->size(); c++) {
 		if (text->at(c) >= 'a' && text->at(c) <= 'z') text->at(c) -= 0x20;
 	}
 }
-std::string maddsuaHTTP::toUpperCase(std::string text) {
+std::string maddsua::toUpperCase(std::string text) {
 	std::string temp = text;
 	toUpperCase(&temp);
 	return temp;
 }
 
-void maddsuaHTTP::toTitleCase(std::string* text) {
+void maddsua::toTitleCase(std::string* text) {
 	for (size_t i = 0; i < text->size(); i++) {
 		if (((i >= 1) ? text->at(i - 1) : '-') == '-' && (text->at(i) >= 'a' && text->at(i) <= 'z')) text->at(i) -= 0x20;
 	}
 }
-std::string maddsuaHTTP::toTitleCase(std::string text) {
+std::string maddsua::toTitleCase(std::string text) {
 	std::string temp = text;
 	toTitleCase(&temp);
 	return temp;
 }
 
-void maddsuaHTTP::trim(std::string* text) {
+void maddsua::trim(std::string* text) {
 	//	list of characters to remove
 	const std::string wsc = "\r\n\t ";
 
@@ -83,7 +83,7 @@ void maddsuaHTTP::trim(std::string* text) {
 	
 	*text = temp;
 }
-std::string maddsuaHTTP::trim(std::string text) {
+std::string maddsua::trim(std::string text) {
 	std::string temp = text;
 	trim(&temp);
 	return temp;
@@ -92,7 +92,7 @@ std::string maddsuaHTTP::trim(std::string text) {
 //	I thought that was a good idea to code this part in C, for speed.
 //	But here we go again, it probably contains a ton of explosive bugs.
 //	Tested several times, looks ok, but still, be aware of
-std::vector <std::string> maddsuaHTTP::splitBy(const char* source, const char* token) {
+std::vector <std::string> maddsua::splitBy(const char* source, const char* token) {
 	std::vector <std::string> temp;
 
 	//	abort it source is empty
@@ -128,7 +128,7 @@ std::vector <std::string> maddsuaHTTP::splitBy(const char* source, const char* t
 	return temp;
 }
 
-std::string maddsuaHTTP::findHeader(const char* headerName, std::vector <maddsuaHTTP::datapair>* headers) {
+std::string maddsua::findHeader(const char* headerName, std::vector <maddsua::datapair>* headers) {
 	for (auto headerObject : *headers) {
 		if (toLowerCase(headerObject.name) == toLowerCase(headerName)) {
 			return headerObject.value;
@@ -137,7 +137,7 @@ std::string maddsuaHTTP::findHeader(const char* headerName, std::vector <maddsua
 	return "";
 }
 
-maddsuaHTTP::httpRequest maddsuaHTTP::_getData(SOCKET* client) {
+maddsua::httpRequest maddsua::_getData(SOCKET* client) {
 
 	//	receive http header first
 	std::string dataStageOne;
@@ -200,7 +200,7 @@ maddsuaHTTP::httpRequest maddsuaHTTP::_getData(SOCKET* client) {
 	}*/
 
 	//	parse headers
-	std::vector <maddsuaHTTP::datapair> headers;
+	std::vector <maddsua::datapair> headers;
 	{
 		for (size_t i = 1; i < headerLines.size(); i++) {
 			auto hLine = headerLines[i];
@@ -266,7 +266,7 @@ maddsuaHTTP::httpRequest maddsuaHTTP::_getData(SOCKET* client) {
 	};
 }
 
-maddsuaHTTP::actionResult maddsuaHTTP::_sendData(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body) {
+maddsua::actionResult maddsua::_sendData(SOCKET* client, std::string startline, std::vector <datapair>* headers, std::string* body) {
 
 	//	create reaponse message
 	auto temp = startline + "\r\n";
@@ -304,15 +304,15 @@ maddsuaHTTP::actionResult maddsuaHTTP::_sendData(SOCKET* client, std::string sta
 	};
 }
 
-std::string maddsuaHTTP::formattedTime(time_t epoch_time) {
+std::string maddsua::formattedTime(time_t epoch_time) {
 	char timebuff[128];
 	tm tms = *gmtime(&epoch_time);
 	strftime(timebuff, sizeof(timebuff), "%a, %d %b %Y %H:%M:%S GMT", &tms);
 	return timebuff;
 }
 
-std::vector <maddsuaHTTP::datapair> maddsuaHTTP::searchQueryParams(std::string* url) {
-	std::vector <maddsuaHTTP::datapair> params;
+std::vector <maddsua::datapair> maddsua::searchQueryParams(std::string* url) {
+	std::vector <maddsua::datapair> params;
 
 	auto startpoint = url->find_last_of('?');
 		if (startpoint == std::string::npos || startpoint >= (url->size() - 1)) return params;

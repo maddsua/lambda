@@ -3,7 +3,7 @@
 /*
 	zlib "wrapper" for de/compressing binary data
 */
-bool maddsuaCompress::gzCompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool gzipHeader) {
+bool maddsua::gzCompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result, bool gzipHeader) {
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;
 		zlibStream.zfree = Z_NULL;
@@ -50,7 +50,7 @@ bool maddsuaCompress::gzCompress(const std::vector <uint8_t>* source, std::vecto
 	return true;
 }
 
-bool maddsuaCompress::gzDecompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result) {
+bool maddsua::gzDecompress(const std::vector <uint8_t>* source, std::vector <uint8_t>* result) {
 
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;

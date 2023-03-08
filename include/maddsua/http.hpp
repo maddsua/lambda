@@ -17,7 +17,7 @@
 #define HTTPLAMBDA_CHUNK_SIZE	(8192)
 #define MADDSUAHTTP_ATTEMPTS	(3)
 
-namespace maddsuaHTTP {
+namespace maddsua {
 
 	struct datapair {
 		std::string name;

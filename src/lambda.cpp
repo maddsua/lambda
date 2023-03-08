@@ -1,7 +1,7 @@
 #include "../include/maddsua/lambda.hpp"
 
 
-maddsuaHTTP::actionResult maddsuaHTTP::lambda::init(const char* port, std::function<lambdaResponse(lambdaEvent)> lambda) {
+maddsua::actionResult maddsua::lambda::init(const char* port, std::function<lambdaResponse(lambdaEvent)> lambda) {
 
 	if (running) return {
 		false,
@@ -76,14 +76,14 @@ maddsuaHTTP::actionResult maddsuaHTTP::lambda::init(const char* port, std::funct
 	};
 }
 
-void maddsuaHTTP::lambda::close() {
+void maddsua::lambda::close() {
 	running = false;
 	if (worker.joinable()) worker.join();
 	closesocket(ListenSocket);
 	WSACleanup();
 }
 
-void maddsuaHTTP::lambda::connectManager() {
+void maddsua::lambda::connectManager() {
 
 	while (running) {
 
@@ -98,7 +98,7 @@ void maddsuaHTTP::lambda::connectManager() {
 	}
 }
 
-void maddsuaHTTP::lambda::handler() {
+void maddsua::lambda::handler() {
 
 	//	accept socket and free the flag for next handler instance
 	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);

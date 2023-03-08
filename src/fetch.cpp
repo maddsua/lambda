@@ -1,7 +1,7 @@
 #include "../include/maddsua/http.hpp"
 
-maddsuaHTTP::fetchResult maddsuaHTTP::fetch(std::string url, std::string method, std::vector <maddsuaHTTP::datapair> headers, std::string body) {
-	maddsuaHTTP::fetchResult result;
+maddsua::fetchResult maddsua::fetch(std::string url, std::string method, std::vector <maddsua::datapair> headers, std::string body) {
+	maddsua::fetchResult result;
 
 	std::string path;
 	std::string host;
