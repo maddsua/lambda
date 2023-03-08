@@ -5,7 +5,6 @@
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <windows.h>
 #include <time.h>
 
 #include <string>
@@ -20,10 +19,22 @@
 
 namespace maddsua {
 
+	/**
+	 * @param name
+	 * @param value
+	*/
 	struct datapair {
 		std::string name;
 		std::string value;
 	};
+
+	/**
+	 * @param errors
+	 * @param statusCode
+	 * @param statusText
+	 * @param headers
+	 * @param body
+	*/
 	struct fetchResult {
 		std::string errors;
 		uint16_t statusCode;
@@ -31,11 +42,24 @@ namespace maddsua {
 		std::vector <datapair> headers;
 		std::string body;
 	};
+
+	/**
+	 * @param success
+	 * @param cause
+	 * @param info
+	*/
 	struct actionResult {
 		bool success;
 		std::string cause;
 		std::string info;
 	};
+
+	/**
+	 * @param success
+	 * @param startLineArgs
+	 * @param headers
+	 * @param body
+	*/
 	struct httpRequest {
 		bool success;
 		std::vector <std::string> startLineArgs;
@@ -84,11 +108,41 @@ namespace maddsua {
 	 * It's the same length
 	*/
 	inline bool includes(std::string* findIn, std::string substring) {
-		return findIn->find(substring) == std::string::npos;
+		return findIn->find(substring) != std::string::npos;
 	}
 	inline bool includes(std::string findIn, std::string substring) {
 		return includes(&findIn, substring);
 	}
+	inline bool includes(std::string* findIn, std::vector <std::string> substrings) {
+		for (auto substring : substrings) {
+			if (findIn->find(substring) != std::string::npos) return true;
+		}
+		return false;
+	}
+	inline bool includes(std::string findIn, std::vector <std::string> substrings) {
+		return includes(&findIn, substrings);
+	}
+
+	/**
+	 * True, if a string starts with a substring
+	*/
+	inline bool startsWith(std::string* text, std::string substring) {
+		return text->find(substring) == 0;
+	}
+	inline bool startsWith(std::string text, std::string substring) {
+		return startsWith(&text, substring);
+	}
+
+	/**
+	 * True, if a string ends with a substring
+	*/
+	inline bool endsWith(std::string* text, std::string substring) {
+		return text->find(substring) == text->size() - substring.size();
+	}
+	inline bool endsWith(std::string text, std::string substring) {
+		return endsWith(&text, substring);
+	}
+
 
 	/**
 	 * Looks for specific header in a vector of headers and returns it's value, or an empty string, if it was not found
@@ -105,8 +159,19 @@ namespace maddsua {
 		return headerFind(headerName, headers).size();
 	}
 
+
 	/**
-	 * Add header, replacing if already exists
+	 * Add a header, if there is no other with such a name
+	 * Returns false if a header with such a name already exists
+	*/
+	inline bool headerAdd(datapair header, std::vector <datapair>* headers) {
+		if (headerExists(header.name, headers)) return false;
+		headers->push_back({header.name, header.value});
+		return true;
+	}
+
+	/**
+	 * Add a header, replacing if already exists
 	*/
 	void headerInsert(std::string header, std::string value, std::vector <datapair>* headers);
 
