@@ -151,3 +151,5 @@ Seriously, it would be a better idea to use curl or something similar for the ht
  - <https://github.com/google/brotli>
 
  - <https://github.com/madler/zlib>
+
+ - <https://github.com/nlohmann/json>

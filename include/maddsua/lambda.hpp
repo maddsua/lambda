@@ -68,7 +68,7 @@ namespace maddsua {
 			bool handlerDispatched;
 			void handler();
 			std::vector <std::string> serverlog;
-			void addLogEntry(std::string module, std::string type, std::string text);
+			void addLogEntry(std::string type, std::string text);
 
 			lambdaConfig config;
 	};

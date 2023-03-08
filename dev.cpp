@@ -2,9 +2,13 @@
 #include <string>
 #include <regex>
 
+#include <nlohmann/json.hpp>
+using JSON = nlohmann::json;
+
 #include "include/maddsua/lambda.hpp"
 #include "include/maddsua/compress.hpp"
 #include "include/maddsua/fs.hpp"
+
 
 maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 
@@ -12,23 +16,22 @@ maddsua::lambdaResponse requesthandeler(maddsua::lambdaEvent event) {
 	//	api calls, like real functions in AWS Lambda
 	if (maddsua::startsWith(event.path, "/api")) {
 
-		std::string body = "<h1>hello darkness my old friend</h1>";
-			body += "Your user agent is: " + maddsua::headerFind("User-Agent", &event.headers);
+		JSON data = {
+			{"success", true},
+			{"api-response", "succeded"},
+			{"api-data", "test data"}
+		};
 
 		if (maddsua::searchQueryFind("user", &event.searchQuery) == "maddsua") {
-			body = "Good night, my Dark Lord";
+			data["secret-message"] = "Buy some milk this time, come on Daniel =)";
 		}
-
-		body += "<br><br>Some text to test network mechanistms";
-
-		body += "<br><br>Even more text content here to test network compression functionality";
 		
 		return {
 			200,
 			{
-				{ "test", "maddsua" }
+				{ "content-type", maddsua::findMimeType("json") }
 			},
-			body
+			data.dump()
 		};
 	}
 
