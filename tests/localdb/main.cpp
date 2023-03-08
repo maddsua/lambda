@@ -2,7 +2,7 @@
 #include <vector>
 #include <thread>
 
-#include "../include/lambda/localdb.hpp"
+#include "../../include/lambda/localdb.hpp"
 
 
 int main() {

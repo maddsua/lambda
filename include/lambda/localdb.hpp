@@ -21,6 +21,8 @@
 		class localdb {
 
 			public:
+				//static const size_t maxFailedReadRecords = 4;
+
 				struct listing {
 					time_t updated = 0;
 					time_t accessed = 0;
@@ -47,6 +49,8 @@
 					std::string value;
 					bool markedForDeletion = false;
 				};
+
+				dbitem parseEntry(std::string textBlock);
 
 				std::mutex threadLock;
 				std::list <dbitem> dbdata;

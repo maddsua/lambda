@@ -127,8 +127,12 @@ int lambda::virtualFS::loadSnapshot(std::string filepath) {
 
 			archFile.read((char*)readInBuffer.data(), readInBuffer.size());
 
-			if (isGzipped) inflateStream.decompressChunk(readInBuffer.data(), archFile.gcount(), &tarBuffer);
-				else tarBuffer.insert(tarBuffer.end(), readInBuffer.begin(), readInBuffer.begin() + archFile.gcount());
+			if (isGzipped) {
+
+				inflateStream.decompressChunk(readInBuffer.data(), archFile.gcount(), &tarBuffer);
+				if (inflateStream.error()) return st_zlib_error;
+
+			} else tarBuffer.insert(tarBuffer.end(), readInBuffer.begin(), readInBuffer.begin() + archFile.gcount());
 		}
 
 		//	check if tar is ended

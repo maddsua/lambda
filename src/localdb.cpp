@@ -7,10 +7,10 @@
 
 #include <time.h>
 #include <fstream>
+#include <array>
 
 #include "../include/lambda/util.hpp"
 #include "../include/lambda/localdb.hpp"
-#include "../include/lambda/fs.hpp"
 #include "../include/lambda/compress.hpp"
 
 
@@ -168,77 +168,104 @@ bool lambda::localdb::store(std::string path) {
 	return stream.done();
 }
 
+lambda::localdb::dbitem lambda::localdb::parseEntry(std::string textBlock) {
+
+	dbitem tempEntry;
+
+	size_t row = 0;
+	size_t enit_begin = 0;
+	size_t enit_end = 0;
+
+	while ((enit_end = textBlock.find("\r\n", enit_begin)) != std::string::npos) {
+
+		if (enit_end == enit_begin) continue;
+
+		auto entryRow = textBlock.substr(enit_begin, enit_end - enit_begin);
+
+		switch (row) {
+			case 0:
+				tempEntry.updated = std::stoull(entryRow);
+			break;
+
+			case 1:
+				tempEntry.accessed = std::stoull(entryRow);
+			break;
+
+			case 2:
+				if (!b64Validate(&entryRow)) throw "key is not b64";
+				tempEntry.key = b64Decode(&entryRow);
+			break;
+
+			case 3:
+				if (!b64Validate(&entryRow)) throw "value is not b64";
+				tempEntry.value = b64Decode(&entryRow);
+			break;
+			
+			default:
+				throw "wtf?";
+			break;
+		}
+
+		row++;
+		enit_begin = enit_end;
+		enit_begin += 2;
+	}
+
+	return tempEntry;
+}
+
 bool lambda::localdb::load(std::string path) {
 
-	std::string rawBinData;
+	std::ifstream localfile(path, std::ios::binary);
 
-	if (!lambda::fs::readSync(path, &rawBinData)) return false;
+	if (!localfile.is_open()) return false;
 
-	//	decompress
-	auto dbstring = lambda::gzDecompress(&rawBinData);
+	std::array <uint8_t, zlibDecompressStream::chunkSize> readInBuff;
+	std::vector <uint8_t> gzTempBuff;
+	std::string dbTextBuff;
 
-	size_t blit_begin = 0;
-	size_t blit_end = 0;
-	while ((blit_end = dbstring.find("\r\n\r\n", blit_begin)) != std::string::npos) {
+	zlibDecompressStream gzstream;
+	if (!gzstream.init(zlibDecompressStream::winbit_auto)) return false;
 
-		if (blit_end == blit_begin) continue;
+	size_t entrySplit = std::string::npos;
+	size_t failedEntries = 0;
 
-		try {
+	while (true) {
 
-			auto entryString = dbstring.substr(blit_begin, blit_end - blit_begin + 2);
-			dbitem tmpentry;
+		while (((entrySplit = dbTextBuff.find("\r\n\r\n")) == std::string::npos) && !localfile.eof() && !gzstream.done()) {
 
-			size_t row = 0;
-			size_t enit_begin = 0;
-			size_t enit_end = 0;
-			while ((enit_end = entryString.find("\r\n", enit_begin)) != std::string::npos) {
+			localfile.read((char*)readInBuff.data(), readInBuff.size());
+			
+			gzstream.decompressChunk(readInBuff.data(), readInBuff.size(), &gzTempBuff);
+			if (gzstream.error()) return false;
 
-				if (enit_end == enit_begin) continue;
-
-				auto entryRow = entryString.substr(enit_begin, enit_end - enit_begin);
-
-				switch (row) {
-					case 0:
-						tmpentry.updated = std::stoull(entryRow);
-					break;
-
-					case 1:
-						tmpentry.accessed = std::stoull(entryRow);
-					break;
-
-					case 2:
-						tmpentry.key = b64Decode(&entryRow);
-					break;
-
-					case 3:
-						tmpentry.value = b64Decode(&entryRow);
-					break;
-					
-					default:
-						throw "wtf?";
-					break;
-				}
-
-				row++;
-				enit_begin = enit_end;
-				enit_begin += 2;
-			}
-
-			std::lock_guard <std::mutex> lock (threadLock);
-
-			dbdata.push_back(tmpentry);
-
-		} catch(...) {
-			//	db entry failed to load
-			//	but we don't really care at the moment
-			//	this should not happen in normal operation
-			//	the only way is if a file is damaged
-			//	need to add a way to notify that something is wrong
+			dbTextBuff.insert(dbTextBuff.end(), gzTempBuff.begin(), gzTempBuff.end());
+			gzTempBuff.clear();
 		}
 		
-		blit_begin = blit_end;
-		blit_begin += 4;
+		if (entrySplit != std::string::npos) {
+			
+			std::lock_guard <std::mutex> lock (threadLock);
+
+			try {
+				
+				auto temp = parseEntry(dbTextBuff.substr(0, entrySplit));
+				dbdata.push_back(temp);
+
+			} catch(...) {
+				failedEntries++;
+				//if (failedEntries > maxFailedReadRecords) return false;
+			}
+			
+			dbTextBuff.erase(0, entrySplit + 4);
+			entrySplit = std::string::npos;
+			continue;
+		}
+
+		break;
 	}
+
+	localfile.close();
 
 	return true;
 }
