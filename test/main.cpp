@@ -2,16 +2,26 @@
 #include <string>
 
 #include "../include/maddsua/lambda.hpp"
+#include "../include/maddsua/compress.hpp"
+#include "../include/maddsua/fs.hpp"
 
-maddsuahttp::lambdaResponse requesthandeler(maddsuahttp::lambdaEvent event) {
+maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
 	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsuahttp::findHeader("User-Agent", &event.headers);
+		body += "Your user agent is: " + maddsuaHTTP::findHeader("User-Agent", &event.headers);
 
-	if (maddsuahttp::findSearchQuery("user", &event.searchQuery) == "maddsua") {
-		body = "Good night, my Dark Lord";
+	if (maddsuaHTTP::findSearchQuery("user", &event.searchQuery) == "maddsua") {
+		body = "<h2>Good night, my Dark Lord</h2>\r\n";
+
+		//	connect to google.com
+		{
+			auto googeResp = maddsuaHTTP::fetch("google.com", "GET", {}, "");
+			printf("Connecting to google.com... %i %s", googeResp.statusCode, googeResp.statusText.c_str());
+				if (googeResp.errors.size()) puts(googeResp.errors.c_str());
+			body += "<p>This is what google says: Page " + googeResp.statusText + "</p>";
+		}
 	}
-	
+
 	return {
 		200,
 		{
@@ -23,7 +33,7 @@ maddsuahttp::lambdaResponse requesthandeler(maddsuahttp::lambdaEvent event) {
 
 int main(int argc, char** argv) {
 
-	/*auto server = maddsuahttp::lambda();
+	auto server = maddsuaHTTP::lambda();
 	auto startresult = server.init("27015", &requesthandeler);
 
 	printf("%s\r\n", startresult.cause.c_str());
@@ -32,24 +42,10 @@ int main(int argc, char** argv) {
 
 	puts("Waiting for connections at http://localhost:27015/");
 
-	auto googled = maddsuahttp::fetch("google.com", "GET", {}, "");
-
-	if (googled.errors.size()) puts(googled.errors.c_str());
-	puts(std::to_string(googled.statusCode).c_str());
-	puts(googled.body.c_str());
-
 	while (true) {
 		//	just chill while server is working
 		Sleep(1000);
-	}*/
-
-    SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (s == INVALID_SOCKET){
-		auto code = GetLastError();
-		std::cout << code << std::endl;
-    }
-
-    closesocket(s);
+	}
 
 	return 0;
 }

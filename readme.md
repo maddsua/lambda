@@ -121,7 +121,7 @@ Check out the `test` directory, a lot of cool stuff there
 2. GCC 10+ (probably older versions will do too)
 3. Make. Old good one, don't confuse with CMake
 
-### Type literally two commands:
+### Type in literally two commands:
 
 ```
 cd lib
@@ -132,3 +132,15 @@ Now grab the `libmaddsualambda.a` from `lib` directory and link it to your proje
 Don't forget to include `lambda.hpp` from the `include` directory and to also link `-lmswsock -lwinmm -lws2_32`.
 
 That's it.
+
+# Notes
+
+## Helper functions
+
+## WSA
+
+The idea is that you only start only one lambda server per application and handle diffirenet requests by routing them in the request handeler function.
+
+When not using lambda server, before calling `fetch()` make sure that windows sockets are initialized. Check that by invoking `socketsReady()` - true indicates that you are good to go. If not, call `WSAStartup()` yourself and hope for best 😈.
+
+Seriously, it's better to use curl or something similar for the http CLIENT things.

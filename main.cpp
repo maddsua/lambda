@@ -23,8 +23,6 @@ maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 	};
 }
 
-
-
 int main(int argc, char** argv) {
 
 	auto server = maddsuaHTTP::lambda();

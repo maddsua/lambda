@@ -1,7 +1,7 @@
 
 APP      = libmaddsualambda
 MAIN     = main
-OBJECTS  = ../src/lambda.o ../src/http.o ../src/statuscode.o ../src/mimetypes.o
+OBJECTS  = ../src/lambda.o ../src/http.o ../src/statuscode.o ../src/mimetypes.o ../src/fetch.o ../src/compress.o ../src/filesystem.o
 FLAGS    = -std=c++20
 LIBS     = -lmswsock -lwinmm -lws2_32
 
@@ -29,3 +29,13 @@ $(APP): $(OBJECTS)
 
 ../src/mimetypes.o: ../src/mimetypes.cpp
 	g++ -c ../src/mimetypes.cpp -o ../src/mimetypes.o $(FLAGS)
+
+../src/fetch.o: ../src/fetch.cpp
+	g++ -c ../src/fetch.cpp -o ../src/fetch.o $(FLAGS)
+
+../src/compress.o: ../src/compress.cpp
+	g++ -c ../src/compress.cpp -o ../src/compress.o $(FLAGS)
+
+../src/filesystem.o: ../src/filesystem.cpp
+	g++ -c ../src/filesystem.cpp -o ../src/filesystem.o $(FLAGS)
+
