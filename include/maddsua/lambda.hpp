@@ -33,6 +33,7 @@ namespace maddsua {
 				ListenSocket = INVALID_SOCKET;
 				handlerDispatched = true;
 				running = false;
+				config_useCompression = true;
 			}
 			lambda(const lambda & obj) {
 				//	a copy constructor so IntelliSense would shut the f up
@@ -69,6 +70,8 @@ namespace maddsua {
 			bool handlerDispatched;
 			void handler();
 			std::vector <lambdalog> serverlog;
+
+			bool config_useCompression;
 	};
 
 }

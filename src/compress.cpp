@@ -7,7 +7,7 @@
 /*
 	zlib "wrapper" for de/compressing binary data
 */
-bool maddsua::gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* compressed, bool gzipHeader) {
+bool maddsua::gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader) {
 
 	if (!plain->size()) return false;
 
@@ -58,7 +58,7 @@ bool maddsua::gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_
 	return (zlibResult == Z_STREAM_END);
 }
 
-bool maddsua::gzDecompress(const std::vector <uint8_t>* compressed, std::vector <uint8_t>* plain) {
+bool maddsua::gzDecompress(const std::string* compressed, std::string* plain) {
 
 	if (!compressed->size()) return false;
 
@@ -113,7 +113,7 @@ bool maddsua::gzDecompress(const std::vector <uint8_t>* compressed, std::vector 
 	brotli "wrapper" for de/compressing binary data
 */
 
-bool maddsua::brDecompress(const std::vector <uint8_t>* compressed, std::vector <uint8_t>* plain) {
+bool maddsua::brDecompress(const std::string* compressed, std::string* plain) {
 
 	if (!compressed->size()) return false;
 
@@ -145,7 +145,7 @@ bool maddsua::brDecompress(const std::vector <uint8_t>* compressed, std::vector 
 	return true;
 }
 
-bool maddsua::brCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* compressed) {
+bool maddsua::brCompress(const std::string* plain, std::string* compressed) {
 
 	if (!plain->size()) return false;
 
