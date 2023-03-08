@@ -6,7 +6,6 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
-/*#include <winhttp.h>*/
 #include <time.h>
 
 #include <string>
@@ -48,6 +47,12 @@ namespace maddsuahttp {
 		std::vector <std::string> startLineArgs;
 		std::vector <datapair> headers;
 		std::string body;
+	};
+
+	struct logentry {
+		std::string type;
+		std::string time;
+		std::string text;
 	};
 
 	void toLowerCase(std::string* text);
@@ -99,6 +104,12 @@ namespace maddsuahttp {
 			actionResult init(const char* port, std::function <lambdaResponse(lambdaEvent)> lambda);
 			void close();
 
+			inline bool logsAvail() { return serverlog.size(); }
+			inline std::vector <logentry> logs() {
+				auto temp = serverlog;
+				serverlog.erase(serverlog.begin(), serverlog.end());
+				return temp;
+			}
 
 		private:
 			WSADATA wsaData;
@@ -111,6 +122,7 @@ namespace maddsuahttp {
 			std::function<lambdaResponse(lambdaEvent)> callback;
 			bool handlerDispatched;
 			void handler();
+			std::vector <logentry> serverlog;
 	};
 
 }
