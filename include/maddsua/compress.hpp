@@ -7,11 +7,13 @@
 	
 */
 
+#ifndef _maddsua_compression_wrapper
+#define _maddsua_compression_wrapper
+
+
 #include <stdint.h>
 #include <string>
 
-#ifndef _maddsua_compression_wrapper
-#define _maddsua_compression_wrapper
 
 #define MCOMP_Z_HEADER_Z		(8)
 #define MCOMP_Z_HEADER_GZ		(26)

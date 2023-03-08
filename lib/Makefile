@@ -1,5 +1,5 @@
 
-APP      = libmaddsualambda
+TARGET   = libmda
 MAIN     = main
 OBJECTS  = ../src/sockets.o ../src/lambda.o ../src/http.o ../src/statuscode.o ../src/mimetypes.o ../src/fetch.o ../src/compress.o ../src/filesystem.o ../src/base64.o
 FLAGS    = -std=c++20
@@ -7,16 +7,16 @@ LIBS     = -lmswsock -lwinmm -lws2_32
 
 .PHONY: all all-before all-after clean clean-custom run-custom
 
-all: all-before $(APP) all-after
+all: all-before $(TARGET) all-after
 
 clean: clean-custom
 	del /S *.o *.exe
 
 run: run-custom
-	$(APP)
+	$(TARGET)
 
-$(APP): $(OBJECTS)
-	ar rvs $(APP).a $(OBJECTS)
+$(TARGET): $(OBJECTS)
+	ar rvs $(TARGET).a $(OBJECTS)
 
 ../src/sockets.o: ../src/sockets.cpp
 	g++ -c ../src/sockets.cpp -o ../src/sockets.o $(FLAGS)

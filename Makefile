@@ -1,9 +1,9 @@
 
 APP      = lambda.exe
-dev     = dev
+dev      = dev
 OBJECTS  = dev.o src/sockets.o src/http.o src/lambda.o src/statuscode.o src/mimetypes.o src/fetch.o src/compress.o src/filesystem.o src/base64.o
 FLAGS    = -std=c++20
-LIBS     = -lws2_32 -lz -lbrotli_static
+LIBS     = -lws2_32 -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
 .PHONY: all all-before all-after clean clean-custom run-custom
 
