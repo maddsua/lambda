@@ -1,4 +1,4 @@
-#include "../include/lambda.hpp"
+#include "../include/maddsua/http.hpp"
 
 struct _httpcode {
 	uint16_t code;
@@ -65,7 +65,7 @@ const std::vector <_httpcode> httpCodeList = {
 	{ 511, "Network Authentication Required" }
 };
 
-std::string maddsuahttp::_findHttpCode(const uint16_t statusCode) {
+std::string maddsuaHTTP::_findHttpCode(const uint16_t statusCode) {
 	for (auto status : httpCodeList) {
 		if (status.code == statusCode) {
 			return status.textCode;

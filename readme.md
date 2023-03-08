@@ -34,7 +34,7 @@ And here goes maddsua lambda (C/C++):
 ```
 #include "include/lambda.hpp"
 
-maddsuahttp::lambdaResponse requesthandeler(maddsuahttp::lambdaEvent event) {
+maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
     return {
         200,    //    status code
@@ -51,37 +51,34 @@ Find 10 differences...
 So basically you init the server providing a callback function that gets called everytime the http request is coming:
 
 ```
-auto server = maddsuahttp::lambda();
+auto server = maddsuaHTTP::lambda();
 auto startresult = server.init("27015", &requesthandeler);
 ```
 
 There are two requirements for callback function (`requesthandeler` in this snippet):
 
-1. Return type is `maddsuahttp::lambdaResponse`
-2. The function should have single `maddsuahttp::lambdaEvent event` argument.
+1. Return type is `maddsuaHTTP::lambdaResponse`
+2. The function should have single `maddsuaHTTP::lambdaEvent event` argument.
 
 Apart from it, you are free to do anything.
 
 Create handler function:
 
 ```
-maddsuahttp::lambdaResponse requesthandeler(maddsuahttp::lambdaEvent event) {
-
-    if (maddsuahttp::findSearchQuery("user", &event.searchQuery) == "maddsua")
-        return {
-            200,
-            {
-                {"test", "maddsua"}
-            },
-            "Good night, my Dark Lord"
-        };
+maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
     std::string body = "<h1>hello darkness my old friend</h1>";
-        body += "Your user agent is: " + maddsuahttp::findHeader("User-Agent", &event.headers);
+        body += "Your user agent is: " + maddsuaHTTP::findHeader("User-Agent", &event.headers);
 
+    if (maddsuaHTTP::findSearchQuery("user", &event.searchQuery) == "maddsua") {
+        body = "Good night, my Dark Lord";
+    }
+    
     return {
         200,
-        {},
+        {
+            {"test", "maddsua"}
+        },
         body
     };
 }
