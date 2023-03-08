@@ -121,6 +121,7 @@ std::vector <lambda::localdb::listing> lambda::localdb::list() {
 		- accessed	(string, ASCI)		[CRLF]
 		- key		(string, base64)	[CRLF]
 		- value		(string, base64)	[CRLF]
+		- Extra line feed (CRLF)
 */
 
 bool lambda::localdb::store(std::string path) {
