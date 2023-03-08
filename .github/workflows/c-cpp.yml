@@ -36,10 +36,18 @@ jobs:
     - name: install brotli
       run: pacman -S mingw-w64-x86_64-brotli --noconfirm
       
-    - name: make lib
+    - name: build library
       working-directory: ./lib
       run: make
       
-    - name: make cd test
-      working-directory: ./test
+    - name: build demo executable
+      working-directory: ./demo
       run: make
+
+    - name: build test
+      working-directory: ./tests
+      run: make
+
+    - name: run test
+      working-directory: ./tests
+      run: make run

@@ -86,7 +86,7 @@ maddsuaHTTP::lambdaResponse requesthandeler(maddsuaHTTP::lambdaEvent event) {
 
 This example functions will return "hello darkness my old friend" with your user-agent below for any request that does not have `user=maddsua` search query. For requests that have, it will show different greeting.
 
-By the way, just run [test/main.cpp](test/main.cpp). It's easy as pie.
+By the way, just have a look at [demo/main.cpp](demo/main.cpp). It's easy as pie.
 
 ## Data types
 
@@ -132,7 +132,8 @@ Now grab the `libmaddsualambda.a` from `lib` directory and link it to your proje
 
 Don't forget to include `lambda.hpp` from the `include` directory and to also link `-lmswsock -lwinmm -lws2_32`.
 
-That's it.
+### Note:
+If you are experiencing weird errors during compilation, try putting `#include <winsock2.h>` at the top of the main source file (let's say, main.cpp). That's just winapi being a Microsoft creature in all it's beauty.
 
 # Notes
 
@@ -145,3 +146,10 @@ The idea is that you only start only one lambda server per application and handl
 When not using lambda server, before calling `fetch()` make sure that windows sockets are initialized. Check that by invoking `socketsReady()` - true indicates that you are good to go. If not, call `WSAStartup()` yourself and hope for best 😈.
 
 Seriously, it's better to use curl or something similar for the http CLIENT things.
+
+
+# Dependencies
+
+ - <https://github.com/google/brotli>
+
+ - <https://github.com/madler/zlib>
