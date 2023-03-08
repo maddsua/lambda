@@ -8,6 +8,9 @@
 	zlib "wrapper" for de/compressing binary data
 */
 bool maddsua::gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* compressed, bool gzipHeader) {
+
+	if (!plain->size()) return false;
+
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;
 		zlibStream.zfree = Z_NULL;
@@ -56,6 +59,8 @@ bool maddsua::gzCompress(const std::vector <uint8_t>* plain, std::vector <uint8_
 }
 
 bool maddsua::gzDecompress(const std::vector <uint8_t>* compressed, std::vector <uint8_t>* plain) {
+
+	if (!compressed->size()) return false;
 
 	z_stream zlibStream;
 		zlibStream.zalloc = Z_NULL;
@@ -108,13 +113,15 @@ bool maddsua::gzDecompress(const std::vector <uint8_t>* compressed, std::vector 
 	brotli "wrapper" for de/compressing binary data
 */
 
-bool maddsua::brDecompress(const std::vector <uint8_t>* encoded, std::vector <uint8_t>* plain) {
+bool maddsua::brDecompress(const std::vector <uint8_t>* compressed, std::vector <uint8_t>* plain) {
+
+	if (!compressed->size()) return false;
 
 	auto instance = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
 	
 	BrotliDecoderResult opresult;
-	size_t chunkInSize = encoded->size();
-	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(encoded->data());
+	size_t chunkInSize = compressed->size();
+	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(compressed->data());
 	uint8_t bufferOut[MCOMP_BR_CHUNK];
 
 	plain->resize(0);
@@ -138,7 +145,9 @@ bool maddsua::brDecompress(const std::vector <uint8_t>* encoded, std::vector <ui
 	return true;
 }
 
-bool maddsua::brCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* encoded) {
+bool maddsua::brCompress(const std::vector <uint8_t>* plain, std::vector <uint8_t>* compressed) {
+
+	if (!plain->size()) return false;
 
 	auto instance = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
 
@@ -147,8 +156,8 @@ bool maddsua::brCompress(const std::vector <uint8_t>* plain, std::vector <uint8_
 	const uint8_t* bufferIn = reinterpret_cast<const uint8_t*>(plain->data());
 	uint8_t bufferOut[MCOMP_BR_CHUNK];
 
-	encoded->resize(0);
-	encoded->reserve(plain->size() / MCOMP_BR_EXPECT_RATIO);
+	compressed->resize(0);
+	compressed->reserve(plain->size() / MCOMP_BR_EXPECT_RATIO);
 
 	do {
 		uint8_t* chunkOut = bufferOut;
@@ -157,7 +166,7 @@ bool maddsua::brCompress(const std::vector <uint8_t>* plain, std::vector <uint8_
 		opresult = BrotliEncoderCompressStream(instance, BROTLI_OPERATION_FINISH, &chunkInSize, &bufferIn, &chunkOutSize, &chunkOut, nullptr);
 			if (!opresult) break;
 
-		encoded->insert(encoded->end(), bufferOut, bufferOut + (MCOMP_BR_CHUNK - chunkOutSize));
+		compressed->insert(compressed->end(), bufferOut, bufferOut + (MCOMP_BR_CHUNK - chunkOutSize));
 
 	} while (chunkInSize != 0 || !BrotliEncoderIsFinished(instance));
 
