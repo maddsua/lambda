@@ -22,10 +22,10 @@ jobs:
     - uses: msys2/setup-msys2@v2
 
     - name: install_zlib
-      run: pacman -S zlib
+      run: pacman -S zlib --noconfirm
 
     - name: install_brotli
-      run: pacman -S brotli
+      run: pacman -S brotli --noconfirm
           
     - name: cd_lib
       run: cd lib
