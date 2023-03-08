@@ -36,11 +36,11 @@ And here goes maddsua lambda (C/C++):
 
 maddsuahttp::lambdaResponse requesthandeler(maddsuahttp::lambdaEvent event) {
 
-	return {
-		200,	//	status code
-		{},		//	no headers in this example
-		"{\"message\":\"Hello World\"}"
-	};
+    return {
+        200,    //    status code
+        {},     //    no headers in this example
+        "{\"message\":\"Hello World\"}"
+    };
 }
 ```
 
@@ -67,23 +67,23 @@ Create handler function:
 ```
 maddsuahttp::lambdaResponse requesthandeler(maddsuahttp::lambdaEvent event) {
 
-	if (maddsuahttp::findSearchQuery("user", &event.searchQuery) == "maddsua")
-		return {
-			200,
-			{
-				{"test", "maddsua"}
-			},
-			"Good night, my Dark Lord"
-		};
+    if (maddsuahttp::findSearchQuery("user", &event.searchQuery) == "maddsua")
+        return {
+            200,
+            {
+                {"test", "maddsua"}
+            },
+            "Good night, my Dark Lord"
+        };
 
-	std::string body = "<h1>hello darkness my old friend</h1>";
-		body += "Your user agent is: " + maddsuahttp::findHeader("User-Agent", &event.headers);
+    std::string body = "<h1>hello darkness my old friend</h1>";
+        body += "Your user agent is: " + maddsuahttp::findHeader("User-Agent", &event.headers);
 
-	return {
-		200,
-		{},
-		body
-	};
+    return {
+        200,
+        {},
+        body
+    };
 }
 ```
 
