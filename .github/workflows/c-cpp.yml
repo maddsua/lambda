@@ -28,13 +28,13 @@ jobs:
       run: pacman -S mingw-w64-x86_64-gcc-libs --noconfirm 
 
     - name: install make
-      run: pacman -S make --noconfirm    
+      run: pacman -S make --noconfirm
 
     - name: install zlib
       run: pacman -S zlib --noconfirm
 
     - name: install brotli
-      run: pacman -S brotli-devel --noconfirm
+      run: pacman -S mingw-w64-x86_64-brotli --noconfirm
       
     - name: make lib
       working-directory: ./lib
