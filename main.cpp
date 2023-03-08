@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 	//	Oh and I wanna show virtual FS too
 	//	Sometimes VFS can make resources load muuuch faster
 	shared.vfs = new lambda::virtualFS;
-	auto loaded = shared.vfs->loadSnapshot("demo.tar.gz");
+	auto loaded = shared.vfs->loadSnapshot("demo/dist.tar.gz");
 
 	std::cout << "VFS: " << (loaded ? ("Failed with code " + std::to_string(loaded)) : "Loaded") << std::endl;
 
