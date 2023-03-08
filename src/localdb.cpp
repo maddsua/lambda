@@ -233,7 +233,7 @@ bool lambda::localdb::load(std::string path) {
 			//	but we don't really care at the moment
 			//	this should not happen in normal operation
 			//	the only way is if a file is damaged
-			//	need to add a way to notify that something is going on
+			//	need to add a way to notify that something is wrong
 		}
 		
 		blit_begin = blit_end;
