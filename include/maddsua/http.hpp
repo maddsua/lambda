@@ -1,18 +1,18 @@
 #ifndef _maddsua_http
 #define _maddsua_http
 
-
 #include <stdint.h>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <time.h>
 
-
 #include <string>
 #include <vector>
 #include <thread>
 #include <functional>
+
+#include "compression.hpp"
 
 #define HTTPLAMBDA_HEADER_CHUNK		(2048)
 #define HTTPLAMBDA_BODY_CHUNK		(131072)
@@ -151,9 +151,6 @@ namespace lambda {
 	 * Looks for specific header in a vector of headers and returns it's value, or an empty string, if it was not found
 	*/
 	std::string headerFind(std::string headerName, std::vector <datapair>* headers);
-	inline std::string headerFind(std::string headerName, std::vector <datapair> headers) {
-		return headerFind(headerName, &headers);
-	}
 
 	/**
 	 * Returns true if header exists in the provided vector of headers
@@ -236,17 +233,6 @@ namespace lambda {
 	 * The same as javascript's fetch(). Sends request to a URL and returns server response
 	*/
 	fetchResult fetch(std::string url, std::string method, std::vector <datapair> headers, std::string body);
-
-	/**
-	 * HTTP compression
-	*/
-	namespace compression {
-		bool gzCompress(const std::string* plain, std::string* compressed, bool gzipHeader);
-		bool gzDecompress(const std::string* compressed, std::string* plain);
-
-		bool brCompress(const std::string* plain, std::string* encoded);
-		bool brDecompress(const std::string* encoded, std::string* plain);
-	}
 
 }
 

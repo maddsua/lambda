@@ -1,5 +1,79 @@
 #include "../include/maddsua/http.hpp"
 
+struct _httpcode {
+	uint16_t code;
+	const char* textCode;
+};
+
+//	kindly borrowed from https://github.com/anonkey/http-status-code-json/blob/master/index.json
+const std::vector <_httpcode> httpCodeList = {
+	{ 100, "Continue" },
+	{ 101, "Switching Protocols" },
+	{ 102, "Processing" },
+	{ 200, "OK" },
+	{ 201, "Created" },
+	{ 202, "Accepted" },
+	{ 203, "Non-Authoritative Information" },
+	{ 204, "No Content" },
+	{ 205, "Reset Content" },
+	{ 206, "Partial Content" },
+	{ 207, "Multi-Status" },
+	{ 226, "IM Used" },
+	{ 300, "Multiple Choices" },
+	{ 301, "Moved Permanently" },
+	{ 302, "Found" },
+	{ 303, "See Other" },
+	{ 304, "Not Modified" },
+	{ 305, "Use Proxy" },
+	{ 307, "Temporary Redirect" },
+	{ 308, "Permanent Redirect" },
+	{ 400, "Bad Request" },
+	{ 401, "Unauthorized" },
+	{ 402, "Payment Required" },
+	{ 403, "Forbidden" },
+	{ 404, "Not Found" },
+	{ 405, "Method Not Allowed" },
+	{ 406, "Not Acceptable" },
+	{ 407, "Proxy Authentication Required" },
+	{ 408, "Request Timeout" },
+	{ 409, "Conflict" },
+	{ 410, "Gone" },
+	{ 411, "Length Required" },
+	{ 412, "Precondition Failed" },
+	{ 413, "Payload Too Large" },
+	{ 414, "URI Too Long" },
+	{ 415, "Unsupported Media Type" },
+	{ 416, "Range Not Satisfiable" },
+	{ 417, "Expectation Failed" },
+	{ 418, "I'm a teapot" },
+	{ 422, "Unprocessable Entity" },
+	{ 423, "Locked" },
+	{ 424, "Failed Dependency" },
+	{ 426, "Upgrade Required" },
+	{ 428, "Precondition Required" },
+	{ 429, "Too Many Requests" },
+	{ 431, "Request Header Fields Too Large" },
+	{ 451, "Unavailable For Legal Reasons" },
+	{ 500, "Internal Server Error" },
+	{ 501, "Not Implemented" },
+	{ 502, "Bad Gateway" },
+	{ 503, "Service Unavailable" },
+	{ 504, "Gateway Time-out" },
+	{ 505, "HTTP Version Not Supported" },
+	{ 506, "Variant Also Negotiates" },
+	{ 507, "Insufficient Storage" },
+	{ 511, "Network Authentication Required" }
+};
+
+std::string lambda::httpStatusString(const uint16_t statusCode) {
+	for (auto status : httpCodeList) {
+		if (status.code == statusCode)
+			return (std::to_string(status.code) + " " + status.textCode);
+	}
+	return "200 OK";
+}
+
+
 bool lambda::socketsReady() {
 	bool result = true;
 
@@ -104,25 +178,25 @@ std::vector <std::string> lambda::splitBy(std::string source, std::string token)
 		if (match == std::string::npos) return { source };
 
 	//	iterate trough the res of the string
+	size_t startpos = 0;
 	while (match != std::string::npos) {
-		if (match > 0) temp.push_back(source.substr(0, match));
-		source = source.substr(match + token.size());
-		match = source.find(token);
+		temp.push_back(source.substr(startpos, match - startpos));
+		startpos = match + token.size();
+		match = source.find(token, startpos);
 	}
 	
 	//	push the remaining part
-	if (source.size()) temp.push_back(source);
+	if (source.size() - startpos) temp.push_back(source.substr(startpos));
 	//	done
 	return temp;
 }
 
 std::string lambda::headerFind(std::string headerName, std::vector <lambda::datapair>* headers) {
 	for (auto headerObject : *headers) {
-		if (toLowerCase(headerObject.name) == toLowerCase(headerName)) {
+		if (toLowerCase(headerObject.name) == toLowerCase(headerName))
 			return headerObject.value;
-		}
 	}
-	return "";
+	return {};
 }
 
 std::string lambda::httpTime(time_t epoch_time) {

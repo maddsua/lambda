@@ -39,7 +39,7 @@ lambda::lambdaResponse requesthandeler(lambda::lambdaEvent event) {
 
 	std::string filecontents;
 
-	if (!lambda::fs::readBinary(event.path, &filecontents)) {
+	if (!lambda::fs::readFileSync(event.path, &filecontents)) {
 		return { 404, {}, "File not found"};
 	}
 
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 			std::cout << header.name << " " << header.value << std::endl;
 		}
 
-		std::cout << "Writing to googlecom.bin result: " << maddsua::writeBinary("googlecom.bin", &googeResp.body) << std::endl;
+		std::cout << "Writing to googlecom.bin result: " << maddsua::writeFileSync("googlecom.bin", &googeResp.body) << std::endl;
 	}*/
 
 	while (true) {
