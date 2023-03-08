@@ -32,6 +32,7 @@ $(DEV_MAIN).o: $(DEV_MAIN).cpp
 ## Library Build
 
 lib: $(OBJECTS)
+	mkdir -p $(LIBDIR)
 	ar rvs $(LIBDIR)/$(LIBNAME).a $(OBJECTS)
 
 
