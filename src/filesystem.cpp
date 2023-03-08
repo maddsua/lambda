@@ -229,7 +229,7 @@ int lambda::virtualFS::loadSnapshot(std::string filepath) {
 		tarBuffer.erase(tarBuffer.begin(), tarBuffer.begin() + tar_blockSize);
 	}
 	
-	return 0;
+	return st_ok;
 }
 
 std::vector <uint8_t> lambda::virtualFS::writeTarEntry(std::string name, const std::string& content, time_t modified, char type) {
@@ -411,7 +411,8 @@ std::vector <lambda::virtualFS::listEntry> lambda::virtualFS::list() {
 	for (auto entry : vFiles) {
 		result.push_back({
 			entry.name,
-			entry.modified
+			entry.modified,
+			entry.content.size()
 		});
 	}
 

@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 	shared.vfs = new lambda::virtualFS;
 	auto loaded = shared.vfs->loadSnapshot("demo/dist.tar.gz");
 
-	std::cout << "VFS: " << (loaded ? ("Failed with code " + std::to_string(loaded)) : "Loaded") << std::endl;
+	std::cout << "VFS: " << (loaded == lambda::virtualFS::st_ok ? "Loaded" : ("Failed with code " + std::to_string(loaded))) << std::endl;
 
 
 	//	and finally make wormhole accessable to the lambda

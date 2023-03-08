@@ -58,12 +58,12 @@
 
 		class virtualFS {
 			public:
-				static const int st_ok = 0;
-				static const int st_unknown_format = 1;
-				static const int st_not_found = 2;
-				static const int st_fs_error = 3;
-				static const int st_zlib_error = -1;
-				static const int st_tar_error = -2;
+				static const int st_not_found = 0;
+				static const int st_ok = 1;
+				static const int st_unknown_format = 2;
+				static const int st_fs_error = -1;
+				static const int st_zlib_error = -2;
+				static const int st_tar_error = -3;
 
 				static const size_t tar_maxFieldSize = 160U;
 				static const size_t tar_blockSize = 512U;
@@ -89,6 +89,7 @@
 				struct listEntry {
 					std::string name;
 					time_t modified;
+					size_t size;
 				};
 
 				std::vector <listEntry> list();

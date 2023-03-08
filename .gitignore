@@ -13,3 +13,6 @@ tests/*.gz
 
 **/node_modules/**
 **/dist/**
+tests/vfs/**.tar.gz
+tests/vfs/**.tar
+tests/vfs/**.tgz
