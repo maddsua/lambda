@@ -10,6 +10,7 @@
 
 #include <brotli/encode.h>
 #include <brotli/decode.h>
+#include <zlib.h>
 
 #include "../include/lambda/compress.hpp"
 
@@ -29,14 +30,14 @@ lambda::zlibDecompressStream::zlibDecompressStream() {
 }
 
 lambda::zlibDecompressStream::~zlibDecompressStream() {
-	if (initialized) inflateEnd(instance);
+	if (initialized) inflateEnd((z_stream*)instance);
 	delete[] temp;
-	delete instance;
+	delete ((z_stream*)instance);
 }
 
 bool lambda::zlibDecompressStream::init(int windowBits) {
 
-	streamStatus = inflateInit2(instance, windowBits);
+	streamStatus = inflateInit2((z_stream*)instance, windowBits);
 	if (streamStatus != Z_OK) return false;
 
 	initialized = true;
@@ -54,19 +55,19 @@ bool lambda::zlibDecompressStream::error() {
 
 bool lambda::zlibDecompressStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
 
-	instance->next_in = bufferIn;
-	instance->avail_in = dataInSize;
+	((z_stream*)instance)->next_in = bufferIn;
+	((z_stream*)instance)->avail_in = dataInSize;
 
 	do {
-		instance->avail_out = chunkSize;
-		instance->next_out = temp;
+		((z_stream*)instance)->avail_out = chunkSize;
+		((z_stream*)instance)->next_out = temp;
 		
-		streamStatus = inflate(instance, Z_NO_FLUSH);
+		streamStatus = inflate((z_stream*)instance, Z_NO_FLUSH);
 		if (error()) return false;
 
-		bufferOut->insert(bufferOut->end(), temp, temp + (chunkSize - instance->avail_out));
+		bufferOut->insert(bufferOut->end(), temp, temp + (chunkSize - ((z_stream*)instance)->avail_out));
 		
-	} while (instance->avail_out == 0);
+	} while (((z_stream*)instance)->avail_out == 0);
 	
 	return !error();
 }
@@ -83,16 +84,16 @@ lambda::zlibCompressStream::zlibCompressStream() {
 }
 
 lambda::zlibCompressStream::~zlibCompressStream() {
-	if (initialized) deflateEnd(instance);
+	if (initialized) deflateEnd((z_stream*)instance);
 	delete[] temp;
-	delete instance;
+	delete ((z_stream*)instance);
 }
 
 bool lambda::zlibCompressStream::init(int compressLvl, int addHeader) {
 
 	if (compressLvl < 0 || compressLvl > 9) compressLvl = Z_DEFAULT_COMPRESSION;
 
-	streamStatus = deflateInit2(instance, compressLvl, Z_DEFLATED, addHeader, def_memlvl, Z_DEFAULT_STRATEGY);
+	streamStatus = deflateInit2((z_stream*)instance, compressLvl, Z_DEFLATED, addHeader, def_memlvl, Z_DEFAULT_STRATEGY);
 	if (streamStatus != Z_OK) return false;
 
 	initialized = true;
@@ -109,19 +110,19 @@ bool lambda::zlibCompressStream::error() {
 
 bool lambda::zlibCompressStream::compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
 
-	instance->next_in = bufferIn;
-	instance->avail_in = dataInSize;
+	((z_stream*)instance)->next_in = bufferIn;
+	((z_stream*)instance)->avail_in = dataInSize;
 
 	do {
-		instance->avail_out = chunkSize;
-		instance->next_out = temp;
+		((z_stream*)instance)->avail_out = chunkSize;
+		((z_stream*)instance)->next_out = temp;
 		
-		streamStatus = deflate(instance, finish ? Z_FINISH : Z_NO_FLUSH);
+		streamStatus = deflate((z_stream*)instance, finish ? Z_FINISH : Z_NO_FLUSH);
 		if (error()) return false;
 
-		bufferOut->insert(bufferOut->end(), temp, temp + (chunkSize - instance->avail_out));
+		bufferOut->insert(bufferOut->end(), temp, temp + (chunkSize - ((z_stream*)instance)->avail_out));
 		
-	} while (instance->avail_out == 0);
+	} while (((z_stream*)instance)->avail_out == 0);
 	
 	return !error();
 }
