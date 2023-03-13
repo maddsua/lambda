@@ -23,20 +23,20 @@
 */
 
 lambda::zlibDecompressStream::zlibDecompressStream() {
-	datastream = new z_stream;
-	memset(datastream, 0, sizeof(z_stream));
-	tempBuffer = new uint8_t[chunkSize];
+	instance = new z_stream;
+	memset(instance, 0, sizeof(z_stream));
+	temp = new uint8_t[chunkSize];
 }
 
 lambda::zlibDecompressStream::~zlibDecompressStream() {
-	if (initialized) inflateEnd(datastream);
-	delete datastream;
-	delete tempBuffer;
+	if (initialized) inflateEnd(instance);
+	delete[] temp;
+	delete instance;
 }
 
 bool lambda::zlibDecompressStream::init(int windowBits) {
 
-	streamStatus = inflateInit2(datastream, windowBits);
+	streamStatus = inflateInit2(instance, windowBits);
 	if (streamStatus != Z_OK) return false;
 
 	initialized = true;
@@ -54,19 +54,19 @@ bool lambda::zlibDecompressStream::error() {
 
 bool lambda::zlibDecompressStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
 
-	datastream->next_in = bufferIn;
-	datastream->avail_in = dataInSize;
+	instance->next_in = bufferIn;
+	instance->avail_in = dataInSize;
 
 	do {
-		datastream->avail_out = chunkSize;
-		datastream->next_out = tempBuffer;
+		instance->avail_out = chunkSize;
+		instance->next_out = temp;
 		
-		streamStatus = inflate(datastream, Z_NO_FLUSH);
+		streamStatus = inflate(instance, Z_NO_FLUSH);
 		if (error()) return false;
 
-		bufferOut->insert(bufferOut->end(), tempBuffer, tempBuffer + (chunkSize - datastream->avail_out));
+		bufferOut->insert(bufferOut->end(), temp, temp + (chunkSize - instance->avail_out));
 		
-	} while (datastream->avail_out == 0);
+	} while (instance->avail_out == 0);
 	
 	return !error();
 }
@@ -77,22 +77,22 @@ bool lambda::zlibDecompressStream::decompressChunk(uint8_t* bufferIn, size_t dat
 */
 
 lambda::zlibCompressStream::zlibCompressStream() {
-	datastream = new z_stream;
-	memset(datastream, 0, sizeof(z_stream));
-	tempBuffer = new uint8_t[chunkSize];
+	instance = new z_stream;
+	memset(instance, 0, sizeof(z_stream));
+	temp = new uint8_t[chunkSize];
 }
 
 lambda::zlibCompressStream::~zlibCompressStream() {
-	if (initialized) inflateEnd(datastream);
-	delete datastream;
-	delete tempBuffer;
+	if (initialized) deflateEnd(instance);
+	delete[] temp;
+	delete instance;
 }
 
 bool lambda::zlibCompressStream::init(int compressLvl, int addHeader) {
 
 	if (compressLvl < 0 || compressLvl > 9) compressLvl = Z_DEFAULT_COMPRESSION;
 
-	streamStatus = deflateInit2(datastream, compressLvl, Z_DEFLATED, addHeader, def_memlvl, Z_DEFAULT_STRATEGY);
+	streamStatus = deflateInit2(instance, compressLvl, Z_DEFLATED, addHeader, def_memlvl, Z_DEFAULT_STRATEGY);
 	if (streamStatus != Z_OK) return false;
 
 	initialized = true;
@@ -109,19 +109,19 @@ bool lambda::zlibCompressStream::error() {
 
 bool lambda::zlibCompressStream::compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
 
-	datastream->next_in = bufferIn;
-	datastream->avail_in = dataInSize;
+	instance->next_in = bufferIn;
+	instance->avail_in = dataInSize;
 
 	do {
-		datastream->avail_out = chunkSize;
-		datastream->next_out = tempBuffer;
+		instance->avail_out = chunkSize;
+		instance->next_out = temp;
 		
-		streamStatus = deflate(datastream, finish ? Z_FINISH : Z_NO_FLUSH);
+		streamStatus = deflate(instance, finish ? Z_FINISH : Z_NO_FLUSH);
 		if (error()) return false;
 
-		bufferOut->insert(bufferOut->end(), tempBuffer, tempBuffer + (chunkSize - datastream->avail_out));
+		bufferOut->insert(bufferOut->end(), temp, temp + (chunkSize - instance->avail_out));
 		
-	} while (datastream->avail_out == 0);
+	} while (instance->avail_out == 0);
 	
 	return !error();
 }
@@ -236,10 +236,13 @@ bool lambda::brotliCompressStream::compressChunk(const uint8_t* chunk, const siz
 		if (!BrotliEncoderCompressStream((BrotliEncoderState*)instance, operation, &avail_in, &chunk, &avail_out, &next_out, nullptr)) return false;
 
 		if (BrotliEncoderHasMoreOutput((BrotliEncoderState*)instance)) {
+
 			size_t size = 0;
-			auto brTempOutBuff = BrotliEncoderTakeOutput((BrotliEncoderState*)instance, &size);
-			if (!brTempOutBuff) return false;
-			bufferOut->insert(bufferOut->end(), brTempOutBuff, brTempOutBuff + size);
+
+			auto temp = BrotliEncoderTakeOutput((BrotliEncoderState*)instance, &size);
+			if (!temp) return false;
+
+			bufferOut->insert(bufferOut->end(), temp, temp + size);
 		}
 	}
 
@@ -268,10 +271,13 @@ bool lambda::brotliDecompressStream::decompressChunk(const uint8_t* chunk, const
 		if (!BrotliDecoderDecompressStream((BrotliDecoderState*)instance, &avail_in, &chunk, &avail_out, &next_out, nullptr)) return false;
 
 		if (BrotliDecoderHasMoreOutput((BrotliDecoderState*)instance)) {
+
 			size_t size = 0;
-			auto brTempOutBuff = BrotliDecoderTakeOutput((BrotliDecoderState*)instance, &size);
-			if (!brTempOutBuff) return false;
-			bufferOut->insert(bufferOut->end(), brTempOutBuff, brTempOutBuff + size);
+
+			auto temp = BrotliDecoderTakeOutput((BrotliDecoderState*)instance, &size);
+			if (!temp) return false;
+
+			bufferOut->insert(bufferOut->end(), temp, temp + size);
 		}
 	}
 
@@ -293,14 +299,14 @@ std::string lambda::brCompress(const std::string* data) {
 	brotliCompressStream stream;
 
 	bool streamEnd = false;
-	size_t dataProcessed = 0;
-	size_t partSize = 0;
+	size_t processed = 0;
+	size_t chunkDataSize = 0;
 
-	while (dataProcessed < data->size()) {
-		streamEnd = (dataProcessed + brotliCompressStream::chunkSize) >= data->size();
-		partSize = streamEnd ? (data->size() - dataProcessed) : brotliCompressStream::chunkSize;
-		if (!stream.compressChunk((const uint8_t*)(data->data() + dataProcessed), partSize, &result, streamEnd)) return {};
-		dataProcessed += partSize;
+	while (processed < data->size()) {
+		streamEnd = (processed + brotliCompressStream::chunkSize) >= data->size();
+		chunkDataSize = streamEnd ? (data->size() - processed) : brotliCompressStream::chunkSize;
+		if (!stream.compressChunk((const uint8_t*)(data->data() + processed), chunkDataSize, &result, streamEnd)) return {};
+		processed += chunkDataSize;
 	}
 
 	if (!stream.done()) return {};
@@ -321,14 +327,14 @@ std::string lambda::brDecompress(const std::string* data) {
 	brotliDecompressStream stream;
 
 	bool streamEnd = false;
-	size_t dataProcessed = 0;
-	size_t partSize = 0;
+	size_t processed = 0;
+	size_t chunkDataSize = 0;
 
-	while (dataProcessed < data->size()) {
-		streamEnd = (dataProcessed + brotliCompressStream::chunkSize) >= data->size();
-		partSize = streamEnd ? (data->size() - dataProcessed) : brotliCompressStream::chunkSize;
-		if (!stream.decompressChunk((const uint8_t*)(data->data() + dataProcessed), partSize, &result)) return {};
-		dataProcessed += partSize;
+	while (processed < data->size()) {
+		streamEnd = (processed + brotliCompressStream::chunkSize) >= data->size();
+		chunkDataSize = streamEnd ? (data->size() - processed) : brotliCompressStream::chunkSize;
+		if (!stream.decompressChunk((const uint8_t*)(data->data() + processed), chunkDataSize, &result)) return {};
+		processed += chunkDataSize;
 	}
 
 	if (!stream.done()) return {};

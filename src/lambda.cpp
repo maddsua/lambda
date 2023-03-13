@@ -57,7 +57,7 @@ void lambda::lambda::addLogEntry(Context context, int typeCode, std::string mess
 		entry.requestId = context.requestId.substr(0, context.requestId.find_first_of('-'));
 		entry.clientIP = context.clientIP;
 
-	instanceLog.push_back(std::move(entry));
+	instanceLog.push_back(entry);
 }
 
 std::vector <std::string> lambda::lambda::showLogs() {
@@ -119,6 +119,7 @@ lambda::actionResult lambda::lambda::start(const int port, std::function<Respons
 
 	if (getaddrinfo(NULL, std::to_string(port).c_str(), &addrHints, &servAddr) != 0) {
 		if (!instanceConfig.mutlipeInstances) WSACleanup();
+		freeaddrinfo(servAddr);
 		return {
 			false,
 			"Localhost didn't resolve",
