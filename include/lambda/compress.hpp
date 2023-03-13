@@ -37,8 +37,8 @@
 				bool decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
 			
 			private:
-				uint8_t* tempBuffer = nullptr;
-				z_stream* datastream = nullptr;
+				uint8_t* temp = nullptr;
+				z_stream* instance = nullptr;
 				bool initialized = false;
 				int streamStatus = Z_OK;
 		};
@@ -63,8 +63,8 @@
 				bool compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
 
 			private:
-				uint8_t* tempBuffer = nullptr;
-				z_stream* datastream = nullptr;
+				uint8_t* temp = nullptr;
+				z_stream* instance = nullptr;
 				bool initialized = false;
 				int streamStatus = Z_OK;
 
