@@ -13,7 +13,6 @@
 	#include <string>
 	#include <vector>
 	#include <stdint.h>
-	#include <zlib.h>
 
 	namespace lambda {
 
@@ -38,16 +37,16 @@
 			
 			private:
 				uint8_t* temp = nullptr;
-				z_stream* instance = nullptr;
+				void* instance = nullptr;
 				bool initialized = false;
-				int streamStatus = Z_OK;
+				int streamStatus = 0;
 		};
 
 		class zlibCompressStream {
 			public:
 				static const size_t chunkSize = CHUNK_128K;
 				static const int expect_ratio = 3;
-				static const int defCompress = Z_DEFAULT_COMPRESSION;
+				static const int defCompress = -1;
 				static const int header_gz = 26;
 				static const int header_deflate = 8;
 				static const int header_raw = -15;
@@ -64,9 +63,9 @@
 
 			private:
 				uint8_t* temp = nullptr;
-				z_stream* instance = nullptr;
+				void* instance = nullptr;
 				bool initialized = false;
-				int streamStatus = Z_OK;
+				int streamStatus = 0;
 
 				static const int def_memlvl = 9;
 		};
