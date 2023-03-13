@@ -230,7 +230,7 @@ bool lambda::brotliCompressStream::compressChunk(const uint8_t* chunk, const siz
 	auto operation = finish ? BROTLI_OPERATION_FINISH : BROTLI_OPERATION_PROCESS;
 
 	while (avail_in) {
-		uint8_t *next_out = nullptr;
+		uint8_t* next_out = nullptr;
 		size_t avail_out = 0;
 
 		if (!BrotliEncoderCompressStream((BrotliEncoderState*)instance, operation, &avail_in, &chunk, &avail_out, &next_out, nullptr)) return false;
@@ -265,7 +265,7 @@ bool lambda::brotliDecompressStream::decompressChunk(const uint8_t* chunk, const
 	size_t avail_in = chunkSize;
 
 	while (avail_in) {
-		uint8_t *next_out = nullptr;
+		uint8_t* next_out = nullptr;
 		size_t avail_out = 0;
 
 		if (!BrotliDecoderDecompressStream((BrotliDecoderState*)instance, &avail_in, &chunk, &avail_out, &next_out, nullptr)) return false;

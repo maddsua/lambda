@@ -30,32 +30,32 @@ enum tarfilemode {
 lambda::virtualFS::tarFileEntry lambda::virtualFS::readTarHeader(const uint8_t* block512) {
 
 	tarFileEntry header;
-	auto temp = new char[tar_maxFieldSize];
+	auto tempField = new char[tar_maxFieldSize];
 
 	//	check for ustar format
-	memset(temp, 0, tar_maxFieldSize);
-	memcpy(temp, block512 + 257, 6);
-	header.ustarFormat = !strcmp(temp, "ustar");
+	memset(tempField, 0, tar_maxFieldSize);
+	memcpy(tempField, block512 + 257, 6);
+	header.ustarFormat = !strcmp(tempField, "ustar");
 
 	//	get entry name
-	memset(temp, 0, tar_maxFieldSize);
-	memcpy(temp, block512, 100);
-	header.name += temp;
+	memset(tempField, 0, tar_maxFieldSize);
+	memcpy(tempField, block512, 100);
+	header.name += tempField;
 
 	//	get entry size
 	try {
-		memset(temp, 0, tar_maxFieldSize);
-		memcpy(temp, block512 + 124, 12);
-		header.contentSize = std::stoull(temp, nullptr, 8);
+		memset(tempField, 0, tar_maxFieldSize);
+		memcpy(tempField, block512 + 124, 12);
+		header.contentSize = std::stoull(tempField, nullptr, 8);
 	} catch(...) {
 		header.contentSize = 0;
 	}
 
 	//	get last modification date
 	try {
-		memset(temp, 0, tar_maxFieldSize);
-		memcpy(temp, block512 + 136, 12);
-		header.modified = std::stoull(temp, nullptr, 8);
+		memset(tempField, 0, tar_maxFieldSize);
+		memcpy(tempField, block512 + 136, 12);
+		header.modified = std::stoull(tempField, nullptr, 8);
 	} catch(...) {
 		header.modified = 0;
 	}
@@ -80,9 +80,9 @@ lambda::virtualFS::tarFileEntry lambda::virtualFS::readTarHeader(const uint8_t* 
 	
 	//	validate checksum
 	try {
-		memset(temp, 0, tar_maxFieldSize);
-		memcpy(temp, block512 + 148, 8);
-		auto checksum = std::stoll(temp, nullptr, 8);
+		memset(tempField, 0, tar_maxFieldSize);
+		memcpy(tempField, block512 + 148, 8);
+		auto checksum = std::stoll(tempField, nullptr, 8);
 		if (checksum == checksumSigned || checksum == checksumUnsigned) header.checksumValid = true;
 			else throw false;
 	} catch(...) {
@@ -92,7 +92,7 @@ lambda::virtualFS::tarFileEntry lambda::virtualFS::readTarHeader(const uint8_t* 
 	//	get record type
 	header.type = block512[156];
 	
-	delete temp;
+	delete[] tempField;
 	return header;
 }
 

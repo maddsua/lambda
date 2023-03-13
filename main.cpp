@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 	
 	//	tweak server settings
 	lambda::Config lambdacfg;
-		lambdacfg.compression_preferBr = false;
+		lambdacfg.compression_preferBr = true;
 
 	//	apply server settings
 	lambdaserver.setConfig(lambdacfg);

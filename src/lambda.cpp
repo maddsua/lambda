@@ -235,7 +235,7 @@ lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 		headerEnded = rawData.find("\r\n\r\n");
 	}
 	
-	delete headerChunk;
+	delete[] headerChunk;
 	
 	if (!opresult) return { false };
 
@@ -282,7 +282,7 @@ lambda::httpRequest lambda::socketGetHTTP(SOCKET* client) {
 					requestBody.append(bodyChunk, bytesReceived);
 				}
 
-				delete bodyChunk;
+				delete[] bodyChunk;
 			}
 		}
 	}
