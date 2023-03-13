@@ -30,8 +30,8 @@ lambda::zlibDecompressStream::zlibDecompressStream() {
 
 lambda::zlibDecompressStream::~zlibDecompressStream() {
 	if (initialized) inflateEnd(datastream);
+	delete[] tempBuffer;
 	delete datastream;
-	delete tempBuffer;
 }
 
 bool lambda::zlibDecompressStream::init(int windowBits) {
@@ -83,9 +83,9 @@ lambda::zlibCompressStream::zlibCompressStream() {
 }
 
 lambda::zlibCompressStream::~zlibCompressStream() {
-	if (initialized) inflateEnd(datastream);
+	if (initialized) deflateEnd(datastream);
+	delete[] tempBuffer;
 	delete datastream;
-	delete tempBuffer;
 }
 
 bool lambda::zlibCompressStream::init(int compressLvl, int addHeader) {

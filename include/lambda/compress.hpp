@@ -37,7 +37,7 @@
 				bool decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
 			
 			private:
-				uint8_t* tempBuffer;
+				uint8_t* tempBuffer = nullptr;
 				z_stream* datastream = nullptr;
 				bool initialized = false;
 				int streamStatus = Z_OK;
@@ -63,7 +63,7 @@
 				bool compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
 
 			private:
-				uint8_t* tempBuffer;
+				uint8_t* tempBuffer = nullptr;
 				z_stream* datastream = nullptr;
 				bool initialized = false;
 				int streamStatus = Z_OK;
@@ -85,7 +85,7 @@
 				bool compressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut, bool finish);
 
 			private:
-				void* instance;
+				void* instance = nullptr;
 		};
 
 		class brotliDecompressStream {
@@ -100,7 +100,7 @@
 				bool decompressChunk(const uint8_t* chunk, const size_t chunkSize, std::vector <uint8_t>* bufferOut);
 
 			private:
-				void* instance;
+				void* instance = nullptr;
 		};
 
 		std::string gzCompress(const std::string* data, bool gzipHeader);

@@ -8,7 +8,7 @@ LIBNAME		= lambda
 
 OBJECTS		= src/constants.o src/util.o src/httpcore.o src/lambda.o src/fetch.o src/compress.o src/filesystem.o src/sha.o src/localdb.o
 
-FLAGS		= -std=c++20
+FLAGS		= -std=c++20 -g
 LIBS_SHARED	= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
 #	to get these static libs you need to compile brotli and zlib youself
