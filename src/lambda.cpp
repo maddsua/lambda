@@ -49,7 +49,7 @@ std::string lambda::lambda::serverTime() {
 
 
 void lambda::lambda::addLogEntry(Context context, int typeCode, std::string message) {
-	
+
 	LogEntry entry;
 		entry.type = typeCode;
 		entry.message = message;
@@ -57,6 +57,7 @@ void lambda::lambda::addLogEntry(Context context, int typeCode, std::string mess
 		entry.requestId = context.requestId.substr(0, context.requestId.find_first_of('-'));
 		entry.clientIP = context.clientIP;
 
+	std::lock_guard<std::mutex> lock (threadLock);
 	instanceLog.push_back(entry);
 }
 

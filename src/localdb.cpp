@@ -51,6 +51,9 @@ bool lambda::localdb::set(std::string key, std::string value) {
 }
 
 bool lambda::localdb::exist(std::string key) {
+
+	std::lock_guard <std::mutex> lock (threadLock);
+	
 	for (auto entry : dbdata) {
 		if (entry.key == key) return true;
 	}
@@ -102,6 +105,7 @@ bool lambda::localdb::remove(std::string key) {
 std::vector <lambda::localdb::listing> lambda::localdb::list() {
 
 	std::vector <localdb::listing> result;
+	std::lock_guard <std::mutex> lock (threadLock);
 
 	for (auto& entry : dbdata) {
 		localdb::listing temp;

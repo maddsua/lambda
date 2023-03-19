@@ -311,8 +311,10 @@ lambda::Response requestHandeler(lambda::Event event) {
 	}
 	
 	if (!filecontents.size()) {
+
 		event.path = std::regex_replace(("demo/dist/" + event.path.sstring), std::regex("/+"), "/");
 		storageHeader = "filesystem";
+		
 		if (!lambda::fs::readSync(event.path.sstring, &filecontents)) {
 			return { 404, {}, "File not found"};
 		}

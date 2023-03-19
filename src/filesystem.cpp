@@ -383,9 +383,10 @@ bool lambda::virtualFS::write(std::string internalFilePath, const std::string& c
 		temp.content = content;
 		temp.modified= time(nullptr);
 
+	std::lock_guard <std::mutex> lock(threadLock);
+
 	for (auto& entry : vFiles) {
 		if (entry.name == internalFilePath) {
-			std::lock_guard <std::mutex> lock (threadLock);
 			entry = temp;			
 			return true;
 		}
@@ -398,7 +399,7 @@ bool lambda::virtualFS::write(std::string internalFilePath, const std::string& c
 
 bool lambda::virtualFS::remove(std::string internalFilePath) {
 
-	std::lock_guard <std::mutex> lock (threadLock);
+	std::lock_guard <std::mutex> lock(threadLock);
 
 	for (auto itr = vFiles.begin(); itr != vFiles.end(); itr++) {
 		if ((*itr).name == internalFilePath) {
@@ -413,6 +414,8 @@ bool lambda::virtualFS::remove(std::string internalFilePath) {
 std::vector <lambda::virtualFS::listEntry> lambda::virtualFS::list() {
 
 	std::vector <lambda::virtualFS::listEntry> result;
+
+	std::lock_guard <std::mutex> lock(threadLock);
 
 	for (auto entry : vFiles) {
 		result.push_back({
