@@ -90,7 +90,7 @@ See [demo code](./main.cpp) for more. It will make sence, I promise.
 
 ## Requirements for building the lib
 
-- M$ Windows build of [GCC 4+](https://packages.msys2.org/base/mingw-w64-gcc) ( I use GCC 12.2 UCRT by the way )
+- M$ Windows build of [GCC 9+](https://packages.msys2.org/base/mingw-w64-gcc) ( I use GCC 12 by the way )
 - [JSON for Modern C++](https://github.com/nlohmann/json)
 - `make` utility to make stuff. Get it?
 - Brotli compression library. A static library or a dll, header files are needed too
