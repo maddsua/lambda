@@ -46,14 +46,33 @@ namespace HTTP {
 			void del(std::string key);
 			std::string stringify();
 			std::vector<KVtype> entries();
+			size_t length();
 	};
+
+	class URL {
+		private:
+			void refresh();
+		
+		public:
+			URL();
+			URL(const std::string href);
+			const std::string href();
+			void setHref(const std::string href);
+			std::string host;
+			std::string port;
+			std::string protocol;
+			std::string pathname;
+			URLSearchParams searchParams;
+	};
+	
 
 	/*class Request {
 		private:
 			uint16_t statusCode;
 			std::string status;
+			std::string pathname;
+			URLSearchParams searchParams;
 			Headers headers;
-			std::string url;
 			std::vector<uint8_t> body;
 
 		public:
