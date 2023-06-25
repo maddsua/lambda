@@ -67,18 +67,14 @@ void HTTP::stringTrim(std::string& str) {
 	//	forward pass
 	size_t pos_from = 0;
 	while (pos_from < str.size()) {
-		if (whitespaceChars.find(str[pos_from]) == whitespaceChars.end()) {
-			break;
-		}
+		if (whitespaceChars.find(str[pos_from]) == whitespaceChars.end()) break;
 		pos_from++;
 	}
 	
 	//	backward pass
 	size_t pos_to = str.size() - 1;
 	while (pos_to >= 0) {
-		if (whitespaceChars.find(str[pos_to]) == whitespaceChars.end()) {
-			break;
-		}
+		if (whitespaceChars.find(str[pos_to]) == whitespaceChars.end()) break;
 		pos_to--;
 	}
 
