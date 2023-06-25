@@ -4,7 +4,7 @@ HTTP::Headers::Headers() {
 	//	do nothing lol
 }
 
-HTTP::Headers::Headers(std::string& httpHeader) {
+HTTP::Headers::Headers(const std::string& httpHeader) {
 	auto headerLines = stringSplit(httpHeader, "\r\n");
 	for (auto& item : headerLines) {
 		
@@ -24,11 +24,10 @@ HTTP::Headers::Headers(std::string& httpHeader) {
 	}
 }
 
-HTTP::Headers::Headers(std::vector<HTTP::KVtype>& headers) {
+HTTP::Headers::Headers(const std::vector<HTTP::KVtype>& headers) {
 	for (auto& item : headers) {
 		if (!item.key.size() || !item.value.size()) continue;
-		stringToTittleCase(item.key);
-		this->data[item.key] = item.value;
+		this->data[item.key] = stringToTittleCase(item.key);
 	}
 }
 
