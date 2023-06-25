@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <string>
-#include <map>
 #include <unordered_map>
 
 namespace HTTP {
@@ -14,6 +13,7 @@ namespace HTTP {
 	};
 
 	typedef std::unordered_map<std::string, std::string> HeadersMap;
+	typedef std::unordered_map<std::string, std::string> SearchQueryMap;
 
 	class Headers {
 		private:
@@ -34,11 +34,18 @@ namespace HTTP {
 
 	class URLSearchParams {
 		private:
-			HeadersMap data;
+			SearchQueryMap data;
 
 		public:
 			URLSearchParams();
-			URLSearchParams(const std::string& URL);
+			URLSearchParams(const std::string& URLString);
+			bool has(std::string key);
+			void set(std::string key, const std::string& value);
+			bool append(std::string key, const std::string& value);
+			std::string get(std::string key);
+			void del(std::string key);
+			std::string stringify();
+			std::vector<KVtype> entries();
 	};
 
 	//	Set all string characters to lower case
@@ -63,6 +70,9 @@ namespace HTTP {
 	//	Split string into array of substrings separated by token
 	std::vector<std::string> stringSplit(const std::string& str, const char* token);
 	
+	//	URL-encode string
+	std::string encodeURIComponent(const std::string& str);
+	//void encodeURIComponent(std::string& str);
 }
 
 #endif
