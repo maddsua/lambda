@@ -46,6 +46,10 @@ bool Compress::ZlibStream::compressionError() {
 	return (compressStatus < Z_OK || compressStatus == Z_NEED_DICT);
 }
 
+int Compress::ZlibStream::compressionStatus() {
+	return compressStatus;
+}
+
 bool Compress::ZlibStream::compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
 
 	if (compressStream == nullptr || compressTemp == nullptr) return false;
@@ -116,6 +120,10 @@ bool Compress::ZlibStream::decompressionDone() {
 
 bool Compress::ZlibStream::decompressionError() {
 	return (decompressStatus < Z_OK || compressStatus == Z_NEED_DICT);
+}
+
+int Compress::ZlibStream::decompressionStatus() {
+	return decompressStatus;
 }
 
 bool Compress::ZlibStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
