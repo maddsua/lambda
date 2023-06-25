@@ -1,12 +1,17 @@
 #include "http.hpp"
-
 #include <string.h>
+
 
 void HTTP::stringToLowerCase(std::string& str) {
 	for (auto &&c : str) {
 		if (c > 'Z' || c < 'A') continue;
 		c += 0x20;
 	}
+}
+std::string HTTP::stringToLowerCase(const std::string& str) {
+	auto temp = str;
+	stringToLowerCase(temp);
+	return temp;
 }
 
 void HTTP::stringToUpperCase(std::string& str) {
@@ -15,13 +20,24 @@ void HTTP::stringToUpperCase(std::string& str) {
 		c -= 0x20;
 	}
 }
+std::string HTTP::stringToUpperCase(const std::string& str) {
+	auto temp = str;
+	stringToUpperCase(temp);
+	return temp;
+}
 
 void HTTP::stringToTittleCase(std::string& str) {
-	bool needToCapitalize = true;
+	bool needToBeCapital = true;
 	for (auto &&c : str) {
-		if (needToCapitalize && (c >= 'a' && c <= 'z')) c -= 0x20;
-		needToCapitalize = (c == ' ' || c == '-');
+		if (needToBeCapital && (c >= 'a' && c <= 'z')) c -= 0x20;
+		if (!needToBeCapital && (c >= 'A' && c <= 'Z')) c += 0x20;
+		needToBeCapital = (c == ' ' || c == '-');
 	}
+}
+std::string HTTP::stringToTittleCase(const std::string& str) {
+	auto temp = str;
+	stringToTittleCase(temp);
+	return temp;
 }
 
 void HTTP::stringTrim(std::string& str) {
@@ -50,6 +66,11 @@ void HTTP::stringTrim(std::string& str) {
 	if (pos_from == std::string::npos || pos_to == std::string::npos) return;
 	
 	str = str.substr(pos_from, pos_to - pos_from);
+}
+std::string HTTP::stringTrim(const std::string& str) {
+	auto temp = str;
+	stringTrim(temp);
+	return temp;
 }
 
 std::vector<std::string> HTTP::stringSplit(const std::string& str, const char* token) {
