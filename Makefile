@@ -76,6 +76,24 @@ test_http: $(OBJECTS_HTTP)
 	g++ tests/http/http.cpp $(OBJECTS_HTTP) -o test_http.exe
 
 
+#------------
+# Component: Compression
+#------------
+
+COMPONENT_COMPRESS = obj_http
+LIBSTATIC_COMPRESS = lib$(FRAMEWORK)compression.a
+OBJECTS_COMPRESS = compression/zlib.o compression/brotli.o
+
+$(COMPONENT_COMPRESS): $(OBJECTS_COMPRESS)
+	ar rvs $(LIBSTATIC_COMPRESS) $(OBJECTS_COMPRESS)
+
+compression/zlib.o: compression/zlib.cpp
+	g++ -c compression/zlib.cpp -o compression/zlib.o $(FLAGS)
+
+compression/brotli.o: compression/brotli.cpp
+	g++ -c compression/brotli.cpp -o compression/brotli.o $(FLAGS)
+
+
 
 
 
