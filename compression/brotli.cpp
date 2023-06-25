@@ -7,11 +7,15 @@ Compress::BrotliStream::BrotliStream() {
 }
 
 Compress::BrotliStream::~BrotliStream() {
-	if (compressStream != nullptr)
+	if (compressStream != nullptr) {
+		BrotliEncoderDestroyInstance((BrotliEncoderState*)compressStream);
 		delete ((BrotliEncoderState*)compressStream);
+	}
 
-	if (decompressStream != nullptr)
+	if (decompressStream != nullptr) {
+		BrotliDecoderDestroyInstance((BrotliDecoderState*)decompressStream);
 		delete ((BrotliDecoderState*)decompressStream);
+	}
 }
 
 bool Compress::BrotliStream::startCompression(int quality) {
@@ -82,4 +86,68 @@ bool Compress::BrotliStream::compressBuffer(std::vector<uint8_t>* bufferIn, std:
 	}
 
 	return compressionDone();
+}
+
+bool Compress::BrotliStream::startDecompression() {
+	decompressStream = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
+	decompressStatus = BROTLI_DECODER_RESULT_SUCCESS;
+}
+
+bool Compress::BrotliStream::decompressionDone() {
+	return BrotliDecoderIsFinished((BrotliDecoderState*)decompressStream);
+}
+
+bool Compress::BrotliStream::decompressionError() {
+	return !decompressStatus;
+}
+
+int Compress::BrotliStream::decompressionStatus() {
+	return decompressStatus;
+}
+
+bool Compress::BrotliStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
+
+	auto instance = (BrotliDecoderState*)decompressStream;
+
+	size_t avail_in = dataInSize;
+
+	while (avail_in) {
+		uint8_t* next_out = nullptr;
+		size_t avail_out = 0;
+
+		if (!BrotliDecoderDecompressStream(instance, &avail_in, &bufferIn, &avail_out, &next_out, nullptr)) return false;
+
+		if (BrotliDecoderHasMoreOutput(instance)) {
+
+			size_t size = 0;
+
+			auto temp = BrotliDecoderTakeOutput(instance, &size);
+			if (!temp) return false;
+
+			bufferOut->insert(bufferOut->end(), temp, temp + size);
+		}
+	}
+
+	return true;
+}
+
+bool Compress::BrotliStream::decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
+
+	if (!bufferIn->size()) return false;
+
+	bufferOut->resize(0);
+	bufferOut->reserve(bufferIn->size() * expect_ratio);
+
+	bool streamEnd = false;
+	size_t processed = 0;
+	size_t chunkDataSize = 0;
+
+	while (processed < bufferIn->size()) {
+		streamEnd = (processed + chunkSize) >= bufferIn->size();
+		chunkDataSize = streamEnd ? (bufferIn->size() - processed) : chunkSize;
+		if (!decompressChunk(bufferIn->data() + processed, chunkDataSize, bufferOut)) return false;
+		processed += chunkDataSize;
+	}
+
+	return decompressionDone();
 }
