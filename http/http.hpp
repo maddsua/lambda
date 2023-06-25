@@ -63,6 +63,16 @@ namespace HTTP {
 	void stringToTittleCase(std::string& str);
 	std::string stringToTittleCase(const std::string& str);
 
+	//	Checks whether string includes substring
+	bool stringIncludes(const std::string& str, const std::string& substr);
+	bool stringIncludes(const std::string& str, const std::vector <std::string>& substrs);
+
+	//	Checks whether string ends with substring
+	bool stringEndsWith(const std::string& str, const std::string& substr);
+
+	//	Checks whether string starts with substring
+	bool stringStartsWith(const std::string& str, const std::string& substr);
+
 	//	Remove trailing and preceiding whitespace characters (\\r\\n\\t\\s)
 	void stringTrim(std::string& str);
 	std::string stringTrim(const std::string& str);
