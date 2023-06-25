@@ -40,6 +40,24 @@ std::string HTTP::stringToTittleCase(const std::string& str) {
 	return temp;
 }
 
+bool HTTP::stringIncludes(const std::string& str, const std::string& substr) {
+	return str.find(substr) != std::string::npos;
+}
+bool HTTP::stringIncludes(const std::string& str, const std::vector <std::string>& substrs) {
+	for (auto& item : substrs) {
+		if (str.find(item) != std::string::npos)
+			return true;
+	}
+	return false;
+}
+
+bool HTTP::stringEndsWith(const std::string& str, const std::string& substr) {
+	return str.find(substr) == (str.size() - substr.size());
+}
+bool HTTP::stringStartsWith(const std::string& str, const std::string& substr) {
+	return str.find(substr) == 0;
+}
+
 void HTTP::stringTrim(std::string& str) {
 
 	//	list of characters to remove
