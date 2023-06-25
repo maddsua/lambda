@@ -39,11 +39,12 @@ run: action-custom
 # Component: HTTP
 #------------
 
-COMPONENT_HTTP = lib$(FRAMEWORK)http.a
-OBJECTS_HTTP = http/strings.o http/headers.o http/search.o
+COMPONENT_HTTP = obj_http
+LIBSTATIC_HTTP = lib$(FRAMEWORK)http.a
+OBJECTS_HTTP = http/strings.o http/headers.o http/search.o http/statuscode.o http/response.o
 
-obj_http: $(OBJECTS_HTTP)
-	ar rvs $(COMPONENT_HTTP) $(OBJECTS_HTTP)
+$(COMPONENT_HTTP): $(OBJECTS_HTTP)
+	ar rvs $(LIBSTATIC_HTTP) $(OBJECTS_HTTP)
 	
 http/strings.o: http/strings.cpp
 	g++ -c http/strings.cpp -o http/strings.o $(FLAGS)
@@ -53,6 +54,12 @@ http/headers.o: http/headers.cpp
 
 http/search.o: http/search.cpp
 	g++ -c http/search.cpp -o http/search.o $(FLAGS)
+
+http/statuscode.o: http/statuscode.cpp
+	g++ -c http/statuscode.cpp -o http/statuscode.o $(FLAGS)
+
+http/response.o: http/response.cpp
+	g++ -c http/response.cpp -o http/response.o $(FLAGS)
 
 
 
