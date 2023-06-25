@@ -8,13 +8,13 @@ Compress::ZlibStream::ZlibStream() {
 }
 Compress::ZlibStream::~ZlibStream() {
 	if (compressStream != nullptr) {
-		deflateEnd((z_stream*)compressStream);
+		(void)deflateEnd((z_stream*)compressStream);
 		delete ((z_stream*)compressStream);
 	}
 	if (compressTemp != nullptr) delete[] compressTemp;
 
 	if (decompressStream != nullptr) {
-		inflateEnd((z_stream*)decompressStream);
+		(void)inflateEnd((z_stream*)decompressStream);
 		delete ((z_stream*)decompressStream);
 	}
 	if (decompressTemp != nullptr) delete[] decompressTemp;
