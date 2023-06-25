@@ -72,12 +72,15 @@ void HTTP::stringTrim(std::string& str) {
 	}
 	
 	//	backward pass
-	size_t pos_to = str.size() - 1;
+	const size_t endIdx = str.size() - 1;
+	size_t pos_to = endIdx;
 	while (pos_to >= 0) {
 		if (whitespaceChars.find(str[pos_to]) == whitespaceChars.end()) break;
 		pos_to--;
 	}
 
+	if (pos_from == 0 && pos_to == endIdx) return;
+	
 	str = str.substr(pos_from, pos_to - (pos_from - 1));
 }
 std::string HTTP::stringTrim(const std::string& str) {
