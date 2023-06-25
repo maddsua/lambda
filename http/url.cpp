@@ -10,7 +10,7 @@ HTTP::URL::URL(const std::string href) {
 
 const std::string HTTP::URL::href() {
 
-	auto href = this->protocol + "://" + this->host;
+	auto href = this->host.size() ? this->protocol + "://" + this->host : std::string();
 
 	if (this->port != "80")
 		href += ":" + this->port;
