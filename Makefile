@@ -94,6 +94,68 @@ compression/brotli.o: compression/brotli.cpp
 	g++ -c compression/brotli.cpp -o compression/brotli.o $(FLAGS)
 
 
+#------------
+# Test: Compression
+#------------
+
+test_compress: $(OBJECTS_COMPRESS)
+	g++ tests/compression/compression.cpp $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_compress.exe
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
