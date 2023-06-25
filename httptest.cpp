@@ -15,5 +15,13 @@ int main() {
 
 	puts(header.stringify().c_str());
 
+	auto response = HTTP::Response(204, {
+		{"contenty-type", "text"}
+	}, "woohooo");
+
+	auto respdump = response.dump();
+
+	puts(std::string(respdump.begin(), respdump.end()).c_str());
+
 	return 0;
 }
