@@ -70,3 +70,7 @@ std::vector<HTTP::KVtype> HTTP::URLSearchParams::entries() {
 	}
 	return entries;
 }
+
+size_t HTTP::URLSearchParams::length() {
+	return this->data.size();
+}
