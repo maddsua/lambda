@@ -49,42 +49,25 @@ namespace HTTP {
 			size_t length();
 	};
 
-	class URL {
+	class Request {
 		private:
-			void refresh();
-		
-		public:
-			URL();
-			URL(const std::string href);
-			const std::string href();
-			void setHref(const std::string href);
-			std::string host;
-			std::string port;
-			std::string protocol;
-			std::string pathname;
-			URLSearchParams searchParams;
-	};
-	
-
-	/*class Request {
-		private:
-			uint16_t statusCode;
-			std::string status;
-			std::string pathname;
-			URLSearchParams searchParams;
-			Headers headers;
-			std::vector<uint8_t> body;
+			std::string _method;
+			std::string _path;
+			URLSearchParams _searchParams;
+			Headers _headers;
+			std::vector<uint8_t> _body;
 
 		public:
-			Request(std::vector<uint8_t> httpHead);
-			void setBody(std::vector<uint8_t> content);
-			void setBody(std::string content);
-			const uint16_t statusCode();
-			const std::string status();
+			Request(std::vector<uint8_t>& httpHead);
+			void setBody(std::vector<uint8_t>& content);
+			void setBody(std::string& content);
+			const std::string method();
+			const std::string path();
+			const URLSearchParams searchParams();
 			const Headers headers();
-			const std::string url();
 			const std::vector<uint8_t> body();
-	};*/
+			const std::string text();
+	};
 
 	class Response {
 		private:
@@ -108,6 +91,22 @@ namespace HTTP {
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::vector<uint8_t>& body);
 			std::vector<uint8_t> dump();
+	};
+
+	class URL {
+		private:
+			void refresh();
+		
+		public:
+			URL();
+			URL(const std::string href);
+			const std::string href();
+			void setHref(const std::string href);
+			std::string host;
+			std::string port;
+			std::string protocol;
+			std::string pathname;
+			URLSearchParams searchParams;
 	};
 
 	//	Get status text for provided status code. Returns empty string if not found
