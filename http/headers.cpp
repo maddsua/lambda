@@ -5,15 +5,18 @@ HTTP::Headers::Headers() {
 }
 
 HTTP::Headers::Headers(const std::string& httpHeader) {
+	
 	auto headerLines = stringSplit(httpHeader, "\r\n");
-	for (auto& item : headerLines) {
-		
-		if (item.find(':') == std::string::npos) continue;
-		auto header = HTTP::stringSplit(item, ":");
 
+	for (auto& item : headerLines) {
+
+		if (item.find(':') == std::string::npos) continue;
+
+		auto header = HTTP::stringSplit(item, ":");
+		if (header.size() < 2) continue;
+		
 		auto key = header.at(0);
 		auto value = header.at(1);
-
 		if (!key.size() || !value.size()) continue;
 
 		HTTP::stringTrim(key);
