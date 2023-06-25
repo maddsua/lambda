@@ -44,23 +44,23 @@ void HTTP::Request::setBody(std::string& content) {
 	this->_body = std::vector<uint8_t>(content.begin(), content.end());
 }
 
-const std::string HTTP::Request::method() {
+std::string HTTP::Request::method() {
 	return this->_method;
 }
-const std::string HTTP::Request::path() {
+std::string HTTP::Request::path() {
 	return this->_path;
 }
-const HTTP::URLSearchParams HTTP::Request::searchParams() {
+HTTP::URLSearchParams HTTP::Request::searchParams() {
 	return this->_searchParams;
 }
 
-const HTTP::Headers HTTP::Request::headers() {
+HTTP::Headers HTTP::Request::headers() {
 	return this->_headers;
 }
 
-const std::vector<uint8_t> HTTP::Request::body() {
+std::vector<uint8_t> HTTP::Request::body() {
 	return this->_body;
 }
-const std::string HTTP::Request::text() {
+std::string HTTP::Request::text() {
 	return std::string(this->_body.begin(), this->_body.end());
 }

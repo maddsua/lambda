@@ -73,7 +73,7 @@ http/url.o: http/url.cpp
 #------------
 
 test_http: $(OBJECTS_HTTP)
-	g++ httptest.cpp $(OBJECTS_HTTP) -o test_http.exe
+	g++ tests/http/http.cpp $(OBJECTS_HTTP) -o test_http.exe
 
 
 

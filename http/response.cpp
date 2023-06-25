@@ -1,9 +1,10 @@
 #include "http.hpp"
+#include <cstdio>
 
 void HTTP::Response::setStatusCode(const uint16_t code) {
-	auto status = statusText(statusCode);
+	auto status = statusText(code);
 	if (!status.size()) return;
-	this->statusCode = statusCode;
+	this->statusCode = code;
 	this->status = status;
 }
 
@@ -54,7 +55,7 @@ HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& h
 }
 
 std::vector<uint8_t> HTTP::Response::dump() {
-	
+
 	auto frame = "HTTP/1.1 " + std::to_string(this->statusCode) + " " + this->status + "\r\n";
 	if (this->body.size()) this->headers.append("content-size", std::to_string(this->body.size()));
 	frame += this->headers.stringify();

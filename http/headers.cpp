@@ -30,7 +30,7 @@ HTTP::Headers::Headers(const std::string& httpHeader) {
 HTTP::Headers::Headers(const std::vector<HTTP::KVtype>& headers) {
 	for (auto& item : headers) {
 		if (!item.key.size() || !item.value.size()) continue;
-		this->data[item.key] = stringToTittleCase(item.value);
+		this->data[item.key] = item.value;
 	}
 }
 

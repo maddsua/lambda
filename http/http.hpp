@@ -61,12 +61,12 @@ namespace HTTP {
 			Request(std::vector<uint8_t>& httpHead);
 			void setBody(std::vector<uint8_t>& content);
 			void setBody(std::string& content);
-			const std::string method();
-			const std::string path();
-			const URLSearchParams searchParams();
-			const Headers headers();
-			const std::vector<uint8_t> body();
-			const std::string text();
+			std::string method();
+			std::string path();
+			URLSearchParams searchParams();
+			Headers headers();
+			std::vector<uint8_t> body();
+			std::string text();
 	};
 
 	class Response {
