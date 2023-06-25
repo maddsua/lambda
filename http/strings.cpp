@@ -68,7 +68,6 @@ void HTTP::stringTrim(std::string& str) {
 	size_t pos_from = 0;
 	while (pos_from < str.size()) {
 		if (whitespaceChars.find(str[pos_from]) == whitespaceChars.end()) {
-			printf("%c\n", str[pos_from]);
 			break;
 		}
 		pos_from++;
@@ -78,7 +77,6 @@ void HTTP::stringTrim(std::string& str) {
 	size_t pos_to = str.size() - 1;
 	while (pos_to >= 0) {
 		if (whitespaceChars.find(str[pos_to]) == whitespaceChars.end()) {
-			printf("%c\n", str[pos_to]);
 			break;
 		}
 		pos_to--;
