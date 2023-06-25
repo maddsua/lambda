@@ -3,7 +3,9 @@
 
 int main() {
 
-	std::cout << "\r\n--- Compression component test begin --- \r\n\r\n";
+	std::cout << "\r\n--- Compression component test begin --- \r\n";
+
+	std::cout << "\r\n--- zlib --- \r\n";
 
 	auto zlib = Compress::ZlibStream();
 
