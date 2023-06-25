@@ -7,15 +7,17 @@ Compress::ZlibStream::ZlibStream() {
 	decompressStatus = Z_OK;
 }
 Compress::ZlibStream::~ZlibStream() {
-	if (compressStream != nullptr)
+	if (compressStream != nullptr) {
+		deflateEnd((z_stream*)compressStream);
 		delete ((z_stream*)compressStream);
-	if (compressTemp != nullptr)
-		delete[] compressTemp;
+	}
+	if (compressTemp != nullptr) delete[] compressTemp;
 
-	if (decompressStream != nullptr)
+	if (decompressStream != nullptr) {
+		inflateEnd((z_stream*)decompressStream);
 		delete ((z_stream*)decompressStream);
-	if (decompressTemp != nullptr)
-		delete[] decompressTemp;
+	}
+	if (decompressTemp != nullptr) delete[] decompressTemp;
 }
 
 bool Compress::ZlibStream::startCompression(int compression, int header) {
