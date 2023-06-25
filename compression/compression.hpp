@@ -26,6 +26,7 @@ namespace Compress {
 			bool compressionDone();
 			bool compressionError();
 			bool compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
+			bool compressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
 
 			bool startDecompression(int wbits);
 			bool startDecompression();
