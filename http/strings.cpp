@@ -1,6 +1,7 @@
 #include "http.hpp"
 #include <string.h>
 #include <map>
+#include <set>
 
 void HTTP::stringToLowerCase(std::string& str) {
 	for (auto& c : str) {
@@ -61,29 +62,29 @@ bool HTTP::stringStartsWith(const std::string& str, const std::string& substr) {
 void HTTP::stringTrim(std::string& str) {
 
 	//	list of characters to remove
-	static const std::string whitespaceChars = "\r\n\t ";
+	static const std::set<char> whitespaceChars = {'\r','\n','\t',' '};
 
-	//	do both passes at the same time
-	size_t pos_from = std::string::npos;
-	size_t pos_to = std::string::npos;
-
-	for (size_t i = 0; i < str.length(); i++) {
-
-		auto found = whitespaceChars.find(str[i]) != std::string::npos;
-
-		if (pos_from == std::string::npos && !found) {
-			pos_from = i;
-		}
-
-		if (pos_from != std::string::npos && found) {
-			pos_to = i;
+	//	forward pass
+	size_t pos_from = 0;
+	while (pos_from < str.size()) {
+		if (whitespaceChars.find(str[pos_from]) == whitespaceChars.end()) {
+			printf("%c\n", str[pos_from]);
 			break;
 		}
+		pos_from++;
 	}
 	
-	if (pos_from == std::string::npos || pos_to == std::string::npos) return;
-	
-	str = str.substr(pos_from, pos_to - pos_from);
+	//	backward pass
+	size_t pos_to = str.size() - 1;
+	while (pos_to >= 0) {
+		if (whitespaceChars.find(str[pos_to]) == whitespaceChars.end()) {
+			printf("%c\n", str[pos_to]);
+			break;
+		}
+		pos_to--;
+	}
+
+	str = str.substr(pos_from, pos_to - (pos_from - 1));
 }
 std::string HTTP::stringTrim(const std::string& str) {
 	auto temp = str;
