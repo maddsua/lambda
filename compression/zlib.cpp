@@ -7,12 +7,12 @@ Compress::ZlibStream::ZlibStream() {
 }
 Compress::ZlibStream::~ZlibStream() {
 	if (this->compressStream != nullptr)
-		delete this->compressStream;
+		delete ((z_stream*)this->compressStream);
 	if (this->compressTemp != nullptr)
 		delete[] this->compressTemp;
 
 	if (this->decompressStream != nullptr)
-		delete this->decompressStream;
+		delete ((z_stream*)this->decompressStream);
 	if (this->decompressTemp != nullptr)
 		delete[] this->decompressTemp;
 }
@@ -75,7 +75,7 @@ bool Compress::ZlibStream::startDecompression(int wbits) {
 	this->decompressStatus = inflateInit2((z_stream*)decompressStream, wbits);
 	return decompressStatus == Z_OK;
 }
-bool Compress::ZlibStream::startDecompression(int wbits) {
+bool Compress::ZlibStream::startDecompression() {
 	return startDecompression(this->winbit_auto);
 }
 
