@@ -27,6 +27,14 @@ bool Compress::BrotliStream::compressionDone() {
 	return BrotliEncoderIsFinished((BrotliEncoderState*)compressStream);
 }
 
+bool Compress::BrotliStream::compressionError() {
+	return !compressStatus;
+}
+
+int Compress::BrotliStream::compressionStatus() {
+	return compressStatus;
+}
+
 bool Compress::BrotliStream::compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
 
 	size_t avail_in = dataInSize;
