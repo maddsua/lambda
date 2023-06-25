@@ -80,7 +80,7 @@ test_http: $(OBJECTS_HTTP)
 # Component: Compression
 #------------
 
-COMPONENT_COMPRESS = obj_http
+COMPONENT_COMPRESS = obj_compress
 LIBSTATIC_COMPRESS = lib$(FRAMEWORK)compression.a
 OBJECTS_COMPRESS = compression/zlib.o compression/brotli.o
 
