@@ -12,7 +12,9 @@ HTTP::URLSearchParams::URLSearchParams(const std::string& URLString) {
 	for (auto& item : queries) {
 
 		if (item.find('=') == std::string::npos) continue;
+
 		auto query = stringSplit(item, "=");
+		if (query.size() < 2) continue;
 
 		auto key = query.at(0);
 		auto value = query.at(1);
