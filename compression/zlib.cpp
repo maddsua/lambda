@@ -103,6 +103,11 @@ bool Compress::ZlibStream::compressBuffer(std::vector<uint8_t>* bufferIn, std::v
 	return true;
 }
 
+bool Compress::ZlibStream::compressionReset() {
+	compressStatus = inflateReset((z_stream*)compressStream);
+	return compressStatus == Z_OK;
+}
+
 
 bool Compress::ZlibStream::startDecompression(int wbits) {
 
@@ -180,4 +185,9 @@ bool Compress::ZlibStream::decompressBuffer(std::vector<uint8_t>* bufferIn, std:
 	if (!decompressionDone() || decompressionError()) return false;
 
 	return true;
+}
+
+bool Compress::ZlibStream::decompressionReset() {
+	decompressStatus = deflateReset((z_stream*)decompressStream);
+	return decompressStatus == Z_OK;
 }
