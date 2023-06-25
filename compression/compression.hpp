@@ -63,6 +63,7 @@ namespace Compress {
 			bool startCompression();
 			bool compressionDone();
 			bool compressionError();
+			int compressionStatus();
 			bool compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
 			bool compressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
 			bool compressionReset();
@@ -70,6 +71,7 @@ namespace Compress {
 			bool startDecompression();
 			bool decompressionDone();
 			bool decompressionError();
+			int decompressionStatus();
 			bool decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
 			bool decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
 			bool decompressionReset();
