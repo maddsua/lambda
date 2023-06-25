@@ -9,8 +9,11 @@ int main() {
 
 	puts(search.stringify().c_str());
 
-	/*auto split = HTTP::stringSplit(":", ":");
-	printf("|%s|%s|\n", split.at(0).c_str(), split.at(1).c_str());*/
+	auto header = HTTP::Headers();
+	header.set("content-type", "application/test");
+	header.set("auTHoRiZaTiOn", "Bearer idX");
+
+	puts(header.stringify().c_str());
 
 	return 0;
 }
