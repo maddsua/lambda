@@ -1,6 +1,5 @@
 #include "compression.hpp"
 #include <zlib.h>
-#include <cstdio>
 
 Compress::ZlibStream::ZlibStream() {
 	compressStatus = Z_OK;
@@ -24,7 +23,7 @@ bool Compress::ZlibStream::startCompression(int compression, int header) {
 
 	if (compressStream != nullptr || compressTemp != nullptr) return false;
 
-	if (compression < 0 || compression > 9) compression = -1;
+	if (compression < Z_NO_COMPRESSION || compression > 9) compression = -1;
 	if (header != header_gz && header != header_deflate && header != header_raw) header = header_gz;
 
 	compressStream = new z_stream;
@@ -56,7 +55,7 @@ bool Compress::ZlibStream::compressChunk(uint8_t* bufferIn, size_t dataInSize, s
 
 	if (compressStream == nullptr || compressTemp == nullptr) return false;
 
-	z_stream* instance = ((z_stream*)compressStream);
+	auto instance = ((z_stream*)compressStream);
 
 	instance->next_in = bufferIn;
 	instance->avail_in = dataInSize;
@@ -137,7 +136,7 @@ bool Compress::ZlibStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize,
 
 	if (decompressStream == nullptr || decompressTemp == nullptr) return false;
 
-	z_stream* instance = ((z_stream*)decompressStream);
+	auto instance = ((z_stream*)decompressStream);
 
 	instance->next_in = bufferIn;
 	instance->avail_in = dataInSize;
@@ -161,8 +160,6 @@ bool Compress::ZlibStream::decompressBuffer(std::vector<uint8_t>* bufferIn, std:
 	if (decompressStream == nullptr || decompressTemp == nullptr) return false;
 
 	if (!bufferIn->size()) return false;
-
-	z_stream* instance = ((z_stream*)decompressStream);
 
 	bufferOut->resize(0);
 	bufferOut->reserve(bufferIn->size() * expect_ratio);
