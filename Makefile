@@ -41,7 +41,7 @@ run: action-custom
 
 COMPONENT_HTTP = obj_http
 LIBSTATIC_HTTP = lib$(FRAMEWORK)http.a
-OBJECTS_HTTP = http/strings.o http/headers.o http/search.o http/statuscode.o http/response.o
+OBJECTS_HTTP = http/strings.o http/headers.o http/search.o http/statuscode.o http/response.o http/url.o
 
 $(COMPONENT_HTTP): $(OBJECTS_HTTP)
 	ar rvs $(LIBSTATIC_HTTP) $(OBJECTS_HTTP)
@@ -61,10 +61,16 @@ http/statuscode.o: http/statuscode.cpp
 http/response.o: http/response.cpp
 	g++ -c http/response.cpp -o http/response.o $(FLAGS)
 
+http/url.o: http/url.cpp
+	g++ -c http/url.cpp -o http/url.o $(FLAGS)
 
 
+#------------
+# Test: HTTP
+#------------
 
-
+test_http: $(OBJECTS_HTTP)
+	g++ httptest.cpp $(OBJECTS_HTTP) -o test_http.exe
 
 
 
