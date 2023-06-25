@@ -48,6 +48,36 @@ namespace Compress {
 			static const int winbit_gzip = 16;
 	};
 
+	class BrotliStream {
+		private:
+			void* compressStream = nullptr;
+			int compressStatus;
+			void* decompressStream = nullptr;
+			int decompressStatus;
+
+		public:
+			BrotliStream();
+			~BrotliStream();
+
+			bool startCompression(int quality);
+			bool startCompression();
+			bool compressionDone();
+			bool compressionError();
+			bool compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
+			bool compressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
+			bool compressionReset();
+
+			bool startDecompression();
+			bool decompressionDone();
+			bool decompressionError();
+			bool decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
+			bool decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
+			bool decompressionReset();
+
+			static const size_t chunkSize = 131072;
+			static const int expect_ratio = 4;
+	};
+
 };
 
 #endif
