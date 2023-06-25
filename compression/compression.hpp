@@ -35,6 +35,7 @@ namespace Compress {
 			bool decompressionError();
 			int decompressionStatus();
 			bool decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
+			bool decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
 
 			static const size_t chunkSize = 131072;
 			static const int expect_ratio = 3;

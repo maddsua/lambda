@@ -128,6 +128,8 @@ int Compress::ZlibStream::decompressionStatus() {
 
 bool Compress::ZlibStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
 
+	if (decompressStream == nullptr || decompressTemp == nullptr) return false;
+
 	z_stream* instance = ((z_stream*)decompressStream);
 
 	instance->next_in = bufferIn;
@@ -145,4 +147,35 @@ bool Compress::ZlibStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize,
 	} while (instance->avail_out == 0);
 	
 	return !decompressionError();
+}
+
+bool Compress::ZlibStream::decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
+
+	if (decompressStream == nullptr || decompressTemp == nullptr) return false;
+
+	if (!bufferIn->size()) return false;
+
+	z_stream* instance = ((z_stream*)decompressStream);
+
+	bufferOut->resize(0);
+	bufferOut->reserve(bufferIn->size() * expect_ratio);
+
+	bool streamEnd = false;
+	size_t dataProcessed = 0;
+	size_t partSize = 0;
+
+	do {
+		streamEnd = (dataProcessed + chunkSize) >= bufferIn->size();
+		partSize = streamEnd ? (bufferIn->size() - dataProcessed) : chunkSize;
+
+		decompressChunk(bufferIn->data() + dataProcessed, partSize, bufferOut);
+		if (decompressionError()) return false;
+		dataProcessed += partSize;
+
+	} while (!streamEnd && !decompressionError());
+
+	//	return empty string on error
+	if (!decompressionDone() || decompressionError()) return false;
+
+	return true;
 }
