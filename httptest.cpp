@@ -23,7 +23,7 @@ int main() {
 
 	puts(std::string(respdump.begin(), respdump.end()).c_str());
 
-	auto url = HTTP::URL("https://google.com/kittens?test=22");
+	auto url = HTTP::URL("/kittens?test=22");
 
 	url.searchParams.set("new", "supernew");
 
