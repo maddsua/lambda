@@ -48,6 +48,52 @@ namespace HTTP {
 			std::vector<KVtype> entries();
 	};
 
+	/*class Request {
+		private:
+			uint16_t statusCode;
+			std::string status;
+			Headers headers;
+			std::string url;
+			std::vector<uint8_t> body;
+
+		public:
+			Request(std::vector<uint8_t> httpHead);
+			void setBody(std::vector<uint8_t> content);
+			void setBody(std::string content);
+			const uint16_t statusCode();
+			const std::string status();
+			const Headers headers();
+			const std::string url();
+			const std::vector<uint8_t> body();
+	};*/
+
+	class Response {
+		private:
+			uint16_t statusCode = 200;
+			std::string status = "OK";
+			Headers headers;
+			std::vector<uint8_t> body;
+			void setStatusCode(const uint16_t code);
+
+		public:
+			Response();
+			Response(const uint16_t statusCode);
+			Response(const std::vector<KVtype>& headers);
+			Response(const std::vector<uint8_t>& body);
+			Response(const std::string& body);
+			Response(const std::vector<KVtype>& headers, const std::string& body);
+			Response(const std::vector<KVtype>& headers, const std::vector<uint8_t>& body);
+			Response(const uint16_t statusCode, const Headers headers);
+			Response(const uint16_t statusCode, const std::string& body);
+			Response(const uint16_t statusCode, const std::vector<uint8_t>& body);
+			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body);
+			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::vector<uint8_t>& body);
+			std::vector<uint8_t> dump();
+	};
+
+	//	Get status text for provided status code. Returns empty string if not found
+	std::string statusText(const uint16_t statusCode);
+
 	//	Set all string characters to lower case
 	//	AaA -> aaa
 	void stringToLowerCase(std::string& str);
