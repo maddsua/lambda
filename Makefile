@@ -3,12 +3,14 @@
 # makefile for windows build
 # GCC-12.2-ucrt64 is in use
 
+FRAMEWORK  = lambda
+
 APP_DEV		= lambda.exe
 LIBNAME		= lambda
 
 OBJECTS		= src/constants.o src/util.o src/httpcore.o src/lambda.o src/fetch.o src/compress.o src/filesystem.o src/sha.o src/localdb.o
 
-FLAGS		= -std=c++20 -g
+FLAGS		= -std=c++20
 LIBS_SHARED	= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
 #	to get these static libs you need to compile brotli and zlib youself
@@ -25,12 +27,41 @@ LIBSHARED	= $(LIBNAME).dll
 .PHONY: all all-before all-after action-custom
 all: all-before $(APP_DEV) all-after
 
-purge: action-custom
+clean: action-custom
 	del /S *.o *.exe *.a *.dll *.res
 #	rm -rf *.o *.exe *.a *.dll *.res
 
 run: action-custom
 	$(APP_DEV)
+
+
+#------------
+# Component: HTTP
+#------------
+
+COMPONENT_HTTP = lib$(FRAMEWORK)http.a
+OBJECTS_HTTP = http/strings.o http/headers.o http/search.o
+
+obj_http: $(OBJECTS_HTTP)
+	ar rvs $(COMPONENT_HTTP) $(OBJECTS_HTTP)
+	
+http/strings.o: http/strings.cpp
+	g++ -c http/strings.cpp -o http/strings.o $(FLAGS)
+
+http/headers.o: http/headers.cpp
+	g++ -c http/headers.cpp -o http/headers.o $(FLAGS)
+
+http/search.o: http/search.cpp
+	g++ -c http/search.cpp -o http/search.o $(FLAGS)
+
+
+
+
+
+
+
+
+
 
 
 # ----
