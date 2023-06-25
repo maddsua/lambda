@@ -29,5 +29,15 @@ int main() {
 
 	puts(url.href().c_str());
 
+	auto reqtext = std::string("GET /test HTTP/1.1\r\nTest-header: lambda\r\n\r\n");
+	auto reqbin = std::vector<uint8_t>(reqtext.begin(), reqtext.end());
+
+	auto req = HTTP::Request(reqbin);
+
+	puts(req.path().c_str());
+
+	auto headers = req.headers();
+	puts(headers.stringify().c_str());
+
 	return 0;
 }
