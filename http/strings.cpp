@@ -3,7 +3,7 @@
 #include <map>
 
 void HTTP::stringToLowerCase(std::string& str) {
-	for (auto c : str) {
+	for (auto& c : str) {
 		if (c > 'Z' || c < 'A') continue;
 		c += 0x20;
 	}
@@ -15,7 +15,7 @@ std::string HTTP::stringToLowerCase(const std::string& str) {
 }
 
 void HTTP::stringToUpperCase(std::string& str) {
-	for (auto c : str) {
+	for (auto& c : str) {
 		if (c > 'z' || c < 'a') continue;
 		c -= 0x20;
 	}
@@ -28,7 +28,7 @@ std::string HTTP::stringToUpperCase(const std::string& str) {
 
 void HTTP::stringToTittleCase(std::string& str) {
 	bool needToBeCapital = true;
-	for (auto c : str) {
+	for (auto& c : str) {
 		if (needToBeCapital && (c >= 'a' && c <= 'z')) c -= 0x20;
 		if (!needToBeCapital && (c >= 'A' && c <= 'Z')) c += 0x20;
 		needToBeCapital = (c == ' ' || c == '-');
