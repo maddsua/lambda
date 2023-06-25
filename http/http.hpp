@@ -21,8 +21,8 @@ namespace HTTP {
 
 		public:
 			Headers();
-			Headers(std::string& text);
-			Headers(std::vector<KVtype>& headers);
+			Headers(const std::string& text);
+			Headers(const std::vector<KVtype>& headers);
 			bool has(std::string key);
 			void set(std::string key, const std::string& value);
 			bool append(std::string key, const std::string& value);
@@ -32,10 +32,35 @@ namespace HTTP {
 			std::vector<KVtype> entries();
 	};
 
+	class URLSearchParams {
+		private:
+			HeadersMap data;
+
+		public:
+			URLSearchParams();
+			URLSearchParams(const std::string& URL);
+	};
+
+	//	Set all string characters to lower case
+	//	AaA -> aaa
 	void stringToLowerCase(std::string& str);
+	std::string stringToLowerCase(const std::string& str);
+
+	//	Set all string characters to upper case
+	//	aAa -> AAA
 	void stringToUpperCase(std::string& str);
+	std::string stringToUpperCase(const std::string& str);
+
+	//	Capitalize first character in each word and leave others in lower case
+	//	aa-bB -> Aa-Bb
 	void stringToTittleCase(std::string& str);
+	std::string stringToTittleCase(const std::string& str);
+
+	//	Remove trailing and preceiding whitespace characters (\\r\\n\\t\\s)
 	void stringTrim(std::string& str);
+	std::string stringTrim(const std::string& str);
+
+	//	Split string into array of substrings separated by token
 	std::vector<std::string> stringSplit(const std::string& str, const char* token);
 	
 }
