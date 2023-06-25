@@ -1,9 +1,9 @@
 #include "http.hpp"
 #include <string.h>
-
+#include <map>
 
 void HTTP::stringToLowerCase(std::string& str) {
-	for (auto &&c : str) {
+	for (auto c : str) {
 		if (c > 'Z' || c < 'A') continue;
 		c += 0x20;
 	}
@@ -15,7 +15,7 @@ std::string HTTP::stringToLowerCase(const std::string& str) {
 }
 
 void HTTP::stringToUpperCase(std::string& str) {
-	for (auto &&c : str) {
+	for (auto c : str) {
 		if (c > 'z' || c < 'a') continue;
 		c -= 0x20;
 	}
@@ -28,7 +28,7 @@ std::string HTTP::stringToUpperCase(const std::string& str) {
 
 void HTTP::stringToTittleCase(std::string& str) {
 	bool needToBeCapital = true;
-	for (auto &&c : str) {
+	for (auto c : str) {
 		if (needToBeCapital && (c >= 'a' && c <= 'z')) c -= 0x20;
 		if (!needToBeCapital && (c >= 'A' && c <= 'Z')) c += 0x20;
 		needToBeCapital = (c == ' ' || c == '-');
@@ -97,5 +97,50 @@ std::vector<std::string> HTTP::stringSplit(const std::string& str, const char* t
 	//	push the remaining part
 	if (str.size() - startpos) result.push_back(str.substr(startpos));
 
+	return result;
+}
+
+typedef std::map<char, std::string> URLEncodeMap;
+const auto URLEncodeTable = URLEncodeMap({
+	{'\"', "%22"},
+	{'\'', "%27"},
+	{'\\', "%5C"},
+	{'/', "%2F"},
+	{'>', "%3E"},
+	{'<', "%3C"},
+	{' ', "%20"},
+	{'%', "%25"},
+	{'{', "%7B"},
+	{'}', "%7D"},
+	{'|', "%7C"},
+	{'^', "%5E"},
+	{'`', "%60"},
+	{':', "%3A"},
+	{'\?', "%3F"},
+	{'#', "%23"},
+	{'[', "%5B"},
+	{']', "%5D"},
+	{'@', "%40"},
+	{'!', "%21"},
+	{'$', "%24"},
+	{'&', "%26"},
+	{'(', "%28"},
+	{')', "%29"},
+	{'*', "%2A"},
+	{'+', "%2B"},
+	{',', "%2C"},
+	{';', "%3B"},
+	{'=', "%3D"}
+});
+
+std::string HTTP::encodeURIComponent(const std::string& str) {
+	auto result = std::string();
+	for (auto c : str) {
+		if (URLEncodeTable.find(c) != URLEncodeTable.end()) {
+			result.append(URLEncodeTable.at(c));
+			continue;
+		}
+		result.push_back(c);
+	}
 	return result;
 }
