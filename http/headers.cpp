@@ -5,7 +5,7 @@ HTTP::Headers::Headers() {
 }
 
 HTTP::Headers::Headers(const std::string& httpHeader) {
-	
+
 	auto headerLines = stringSplit(httpHeader, "\r\n");
 
 	for (auto& item : headerLines) {
@@ -23,11 +23,12 @@ HTTP::Headers::Headers(const std::string& httpHeader) {
 		HTTP::stringTrim(value);
 		HTTP::stringToTittleCase(key);
 
-		data[key] = value;
+		this->data[key] = value;
 	}
 }
 
-HTTP::Headers::Headers(const std::vector<HTTP::KVtype>& headers) {
+void HTTP::Headers::fromEntries(const std::vector<HTTP::KVtype>& headers) {
+	this->data.clear();
 	for (auto& item : headers) {
 		if (!item.key.size() || !item.value.size()) continue;
 		this->data[item.key] = item.value;

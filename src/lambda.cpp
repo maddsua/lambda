@@ -340,7 +340,7 @@ void lambda::lambda::handler() {
 	//	set socket timeouts
 	const uint32_t tcpTimeout = LAMBDA_TCP_TIMEOUT_MS;
 	setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));
-	setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));	
+	setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));
 
 	//	create metadata
 	Context context;

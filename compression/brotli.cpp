@@ -72,7 +72,7 @@ bool Compress::BrotliStream::compressBuffer(const std::vector<uint8_t>* bufferIn
 
 	if (!bufferIn->size()) return false;
 
-	bufferOut->resize(0);
+	bufferOut->clear();
 	bufferOut->reserve(bufferIn->size() / expect_ratio);
 
 	bool streamEnd = false;
@@ -137,7 +137,7 @@ bool Compress::BrotliStream::decompressBuffer(const std::vector<uint8_t>* buffer
 
 	if (!bufferIn->size()) return false;
 
-	bufferOut->resize(0);
+	bufferOut->clear();
 	bufferOut->reserve(bufferIn->size() * expect_ratio);
 
 	bool streamEnd = false;

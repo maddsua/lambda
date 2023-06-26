@@ -80,7 +80,7 @@ bool Compress::ZlibStream::compressBuffer(std::vector<uint8_t>* bufferIn, std::v
 
 	if (!bufferIn->size()) return false;
 
-	bufferOut->resize(0);
+	bufferOut->clear();
 	bufferOut->reserve(bufferIn->size() / expect_ratio);
 	
 	bool streamEnd = false;
@@ -161,7 +161,7 @@ bool Compress::ZlibStream::decompressBuffer(std::vector<uint8_t>* bufferIn, std:
 
 	if (!bufferIn->size()) return false;
 
-	bufferOut->resize(0);
+	bufferOut->clear();
 	bufferOut->reserve(bufferIn->size() * expect_ratio);
 
 	bool streamEnd = false;

@@ -2,7 +2,7 @@
 #include <array>
 #include <algorithm>
 
-HTTP::Request HTTPSocket::receive(SOCKET* client) {
+HTTP::Request HTTPSocket::receiveMessage(SOCKET* client) {
 
 	//	receive http header first
 	static const std::string patternEndHeader = "\r\n\r\n";
@@ -28,7 +28,7 @@ HTTP::Request HTTPSocket::receive(SOCKET* client) {
 		catch(...) { bodySize = 0; }
 	
 	auto requestBody = std::vector<uint8_t>(headerEnded + patternEndHeader.size(), rawMessage.end());
-	if (requestBody.size() >= bodySize) return;
+	if (requestBody.size() >= bodySize) return request;
 	
 	auto bodyChunk = std::array<uint8_t, network_chunksize_body>();
 	while (requestBody.size() < bodySize) {
@@ -42,7 +42,7 @@ HTTP::Request HTTPSocket::receive(SOCKET* client) {
 	return request;
 }
 
-bool HTTPSocket::transmit(SOCKET* client, HTTP::Response& response) {
+bool HTTPSocket::sendMessage(SOCKET* client, HTTP::Response& response) {
 	auto payload = response.dump();
 	auto sendResult = send(*client, (char*)payload.data(), payload.size(), 0);
 	return sendResult > 0;

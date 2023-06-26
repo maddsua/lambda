@@ -2,11 +2,12 @@
 #define __LAMBDA_SOCKETS__
 
 #include "../http/http.hpp"
+#include <thread>
 
 #ifdef _WIN32
 
 	//#pragma comment(lib,"ws2_32.lib")
-	//#define WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
 	//#undef TEXT
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
@@ -29,8 +30,21 @@ namespace HTTPSocket {
 	static const size_t network_chunksize_header = 2048;
 	static const size_t network_chunksize_body = 131072;
 
-	HTTP::Request receive(SOCKET* client);
-	bool transmit(SOCKET* client, HTTP::Response& response);
+	HTTP::Request receiveMessage(SOCKET* client);
+	bool sendMessage(SOCKET* client, HTTP::Response& response);
+
+	class Server {
+		private:
+			SOCKET ListenSocket;
+			std::thread handlerThread;
+			void connectionWatchdog();
+			void connectionHandler();
+			bool handlerDispatched;
+			
+		public:
+			Server();
+			~Server();
+	};
 
 };
 

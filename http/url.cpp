@@ -23,7 +23,7 @@ const std::string HTTP::URL::href() {
 	return href;
 }
 
-void HTTP::URL::setHref(const std::string href) {
+void HTTP::URL::setHref(const std::string& href) {
 
 	auto indexofStart = 0;
 
