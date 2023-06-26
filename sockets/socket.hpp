@@ -2,6 +2,7 @@
 #define __LAMBDA_SOCKETS__
 
 #include "../http/http.hpp"
+#include "../lambda/exception.hpp"
 #include <thread>
 
 #ifdef _WIN32
@@ -36,10 +37,11 @@ namespace HTTPSocket {
 	class Server {
 		private:
 			SOCKET ListenSocket;
-			std::thread handlerThread;
+			std::thread watchdogThread;
 			void connectionWatchdog();
 			void connectionHandler();
 			bool handlerDispatched;
+			bool running;
 			
 		public:
 			Server();
