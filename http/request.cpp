@@ -37,11 +37,11 @@ HTTP::Request::Request(std::vector<uint8_t>& httpHead) {
 
 }
 
-void HTTP::Request::setBody(std::vector<uint8_t>& content) {
+void HTTP::Request::_setBody(std::vector<uint8_t>& content) {
 	this->_body = content;
 }
-void HTTP::Request::setBody(std::string& content) {
-	this->_body = std::vector<uint8_t>(content.begin(), content.end());
+void HTTP::Request::_appendBody(std::vector<uint8_t>& content) {
+	this->_body.insert(this->_body.end(), content.begin(), content.end());
 }
 
 std::string HTTP::Request::method() {
