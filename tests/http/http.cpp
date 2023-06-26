@@ -43,5 +43,10 @@ int main() {
 	std::cout << std::string(respdump.begin(), respdump.end()) << std::endl;
 	std::cout << std::endl;
 
+	//	test mimetypes
+	std::cout << HTTP::getMimetypeExt("image/jpeg") << std::endl;
+	std::cout << HTTP::getExtMimetype("json") << std::endl;
+	std::cout << std::endl;
+
 	return 0;
 }
