@@ -44,21 +44,21 @@ void HTTP::Request::_appendBody(std::vector<uint8_t>& content) {
 	this->_body.insert(this->_body.end(), content.begin(), content.end());
 }
 
-const std::string& HTTP::Request::method() {
+std::string& HTTP::Request::method() {
 	return this->_method;
 }
-const std::string& HTTP::Request::path() {
+std::string& HTTP::Request::path() {
 	return this->_path;
 }
-const HTTP::URLSearchParams& HTTP::Request::searchParams() {
+HTTP::URLSearchParams& HTTP::Request::searchParams() {
 	return this->_searchParams;
 }
 
-const HTTP::Headers& HTTP::Request::headers() {
+HTTP::Headers& HTTP::Request::headers() {
 	return this->_headers;
 }
 
-const std::vector<uint8_t>& HTTP::Request::body() {
+std::vector<uint8_t>& HTTP::Request::body() {
 	return this->_body;
 }
 std::string HTTP::Request::text() {
