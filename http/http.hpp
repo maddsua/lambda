@@ -59,13 +59,15 @@ namespace HTTP {
 
 		public:
 			Request(std::vector<uint8_t>& httpHead);
+
 			void _setBody(std::vector<uint8_t>& content);
 			void _appendBody(std::vector<uint8_t>& content);
-			std::string& method();
-			std::string& path();
-			URLSearchParams& searchParams();
-			Headers& headers();
-			std::vector<uint8_t>& body();
+			
+			std::string method();
+			std::string path();
+			URLSearchParams searchParams();
+			Headers headers();
+			std::vector<uint8_t> body();
 			std::string text();
 	};
 
@@ -79,6 +81,9 @@ namespace HTTP {
 			Response(const uint16_t statusCode);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body);
+
+			Response& operator = (const Request& right);
+
 			void setStatusCode(const uint16_t statusCode);
 			uint16_t statusCode();
 			Headers headers;
