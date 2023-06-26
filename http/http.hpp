@@ -153,6 +153,14 @@ namespace HTTP {
 
 	//	Get file extension for mimetype
 	std::string getMimetypeExt(const std::string mimetype);
+
+	//	Get server date and time
+	std::string serverDate();
+	std::string serverDate(time_t epoch_time);
+
+	//	get server time
+	std::string serverTime(time_t timestamp);
+	std::string serverTime();
 }
 
 #endif
