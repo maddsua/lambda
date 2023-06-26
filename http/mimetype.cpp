@@ -1,7 +1,5 @@
 #include "http.hpp"
 #include <map>
-#include <algorithm>
-#include <string.h>
 
 //	kindly borrowed from https://github.com/micnic/mime.json
 static const std::map<std::string, std::string> mimetypeMap = {
