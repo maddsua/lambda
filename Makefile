@@ -102,11 +102,28 @@ test_compress: $(OBJECTS_COMPRESS)
 	g++ tests/compression/compression.cpp $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_compress.exe
 
 
+#------------
+# Component: Crypto
+#------------
 
+COMPONENT_CRYPTO = obj_crypto
+LIBSTATIC_CRYPTO = lib$(FRAMEWORK)crypto.a
+OBJECTS_CRYPTO = crypto/random.o crypto/sha1.o crypto/sha256.o crypto/sha512.o
 
+$(COMPONENT_CRYPTO): $(OBJECTS_CRYPTO)
+	ar rvs $(LIBSTATIC_CRYPTO) $(OBJECTS_CRYPTO)
 
+crypto/random.o: crypto/random.cpp
+	g++ -c crypto/random.cpp -o crypto/random.o $(FLAGS)
 
+crypto/sha1.o: crypto/sha1.cpp
+	g++ -c crypto/sha1.cpp -o crypto/sha1.o $(FLAGS)
 
+crypto/sha256.o: crypto/sha256.cpp
+	g++ -c crypto/sha256.cpp -o crypto/sha256.o $(FLAGS)
+
+crypto/sha512.o: crypto/sha512.cpp
+	g++ -c crypto/sha512.cpp -o crypto/sha512.o $(FLAGS)
 
 
 
