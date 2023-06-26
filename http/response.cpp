@@ -31,7 +31,7 @@ HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& h
 HTTP::Response& HTTP::Response::operator = (const HTTP::Request& right) {
 	auto request = right;
 	this->body = request.body();
-	this->headers.fromEntries(request.headers().entries());
+	this->headers = request.headers();
 	return *this;
 }
 

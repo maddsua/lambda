@@ -22,11 +22,7 @@ namespace HTTP {
 		public:
 			Headers();
 			Headers(const std::string& text);
-
-			Headers& operator=(const Headers&) = delete;
-
 			void fromEntries(const std::vector<HTTP::KVtype>& headers);
-
 			bool has(std::string key);
 			void set(std::string key, const std::string& value);
 			bool append(std::string key, const std::string& value);
@@ -43,9 +39,6 @@ namespace HTTP {
 		public:
 			URLSearchParams();
 			URLSearchParams(const std::string& URLString);
-
-			Headers& operator=(const Headers&) = delete;
-
 			bool has(std::string key);
 			void set(std::string key, const std::string& value);
 			bool append(std::string key, const std::string& value);
@@ -66,8 +59,6 @@ namespace HTTP {
 
 		public:
 			Request(std::vector<uint8_t>& httpHead);
-
-			Headers& operator=(const Headers&) = delete;
 
 			void _setBody(std::vector<uint8_t>& content);
 			void _appendBody(std::vector<uint8_t>& content);
@@ -91,7 +82,6 @@ namespace HTTP {
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body);
 
-			Headers& operator=(const Headers&) = delete;
 			Response& operator = (const Request& right);
 
 			void setStatusCode(const uint16_t statusCode);
@@ -108,9 +98,6 @@ namespace HTTP {
 		public:
 			URL();
 			URL(const std::string href);
-
-			Headers& operator=(const Headers&) = delete;
-
 			void setHref(const std::string& href);
 			const std::string href();
 			std::string host;
