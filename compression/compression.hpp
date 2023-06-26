@@ -64,16 +64,16 @@ namespace Compress {
 			bool compressionDone();
 			bool compressionError();
 			int compressionStatus();
-			bool compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
-			bool compressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
+			bool compressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
+			bool compressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
 			bool compressionReset();
 
 			bool startDecompression();
 			bool decompressionDone();
 			bool decompressionError();
 			int decompressionStatus();
-			bool decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
-			bool decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
+			bool decompressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
+			bool decompressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
 			bool decompressionReset();
 
 			static const size_t chunkSize = 131072;
