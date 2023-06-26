@@ -30,7 +30,7 @@ namespace HTTPSocket {
 	static const size_t network_chunksize_body = 131072;
 
 	HTTP::Request receive(SOCKET* client);
-	HTTP::Request transmit(SOCKET* client);
+	bool transmit(SOCKET* client, HTTP::Response& response);
 
 };
 
