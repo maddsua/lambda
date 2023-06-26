@@ -118,7 +118,7 @@ void HTTPSocket::Server::connectionHandler() {
 
 	auto resp = HTTP::Response();
 
-	resp.setHeaders({{"",""}});
+	resp.headers = {{"test-header-5", "ok"}};
 	
 
 	sendMessage(&ClientSocket, resp);
