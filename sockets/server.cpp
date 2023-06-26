@@ -2,8 +2,6 @@
 
 HTTPSocket::Server::Server() {
 
-	handlerDispatched = false;
-
 	#ifdef _WIN32
 
 		SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -53,11 +51,12 @@ HTTPSocket::Server::Server() {
 
 	//requestCallback = lambdaCallbackFunction;
 	running = true;
+	handlerDispatched = true;
 	watchdogThread = std::thread(connectionWatchdog, this);
 }
 
 HTTPSocket::Server::~Server() {
-
+	closesocket(ListenSocket);
 }
 
 void HTTPSocket::Server:: connectionWatchdog() {
@@ -112,5 +111,6 @@ void HTTPSocket::Server::connectionHandler() {
 
 	sendMessage(&ClientSocket, resp);
 
+	shutdown(ClientSocket, SD_BOTH);
 	closesocket(ClientSocket);
 }
