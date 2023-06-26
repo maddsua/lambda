@@ -41,3 +41,9 @@ HTTP::Request HTTPSocket::receive(SOCKET* client) {
 
 	return request;
 }
+
+bool HTTPSocket::transmit(SOCKET* client, HTTP::Response& response) {
+	auto payload = response.dump();
+	auto sendResult = send(*client, (char*)payload.data(), payload.size(), 0);
+	return sendResult > 0;
+}
