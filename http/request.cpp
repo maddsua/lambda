@@ -6,13 +6,13 @@
 
 HTTP::Request::Request(std::vector<uint8_t>& httpHead) {
 
-	static const char* patternEndline = "\r\n";
-	static const char* patternEndHeader = "\r\n\r\n";
+	static const std::string patternEndline = "\r\n";
+	static const std::string patternEndHeader = "\r\n\r\n";
 
 	try {
 
-		auto httpHeaderLineEnd = std::search(httpHead.begin(), httpHead.end(), patternEndline, patternEndline + strlen(patternEndline));
-		auto httpHeaderEnd = std::search(httpHead.begin(), httpHead.end(), patternEndHeader, patternEndHeader + strlen(patternEndHeader));
+		auto httpHeaderLineEnd = std::search(httpHead.begin(), httpHead.end(), patternEndline.begin(), patternEndline.end());
+		auto httpHeaderEnd = std::search(httpHead.begin(), httpHead.end(), patternEndHeader.begin(), patternEndHeader.end());
 		auto headerLineItems = stringSplit(std::string(httpHead.begin(), httpHeaderLineEnd), " ");
 
 		const auto method = headerLineItems.at(0);
@@ -26,7 +26,7 @@ HTTP::Request::Request(std::vector<uint8_t>& httpHead) {
 		} else this->_path = path;
 
 		if (httpHeaderLineEnd != httpHeaderEnd)
-			this->_headers = Headers(std::string(httpHeaderLineEnd + strlen(patternEndline), httpHeaderEnd));
+			this->_headers = Headers(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeaderEnd));
 		
 
 	} catch(const std::exception& e) {
