@@ -4,14 +4,18 @@ HTTPSocket::Server::Server() {
 
 	handlerDispatched = false;
 
-    SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (temp == INVALID_SOCKET){
-		if (GetLastError() == WSANOTINITIALISED) {
-			WSAStartup(MAKEWORD(2,2), nullptr);
-		}
-    }
+	#ifdef _WIN32
 
-    closesocket(temp);
+		SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		if (temp == INVALID_SOCKET) {
+			if (GetLastError() == WSANOTINITIALISED) {
+				WSADATA initdata;
+				auto initStat = WSAStartup(MAKEWORD(2,2), &initdata);
+				if (initStat) throw Lambda::exception("WSAStartup failed, code: " + std::to_string(GetLastError()));
+			}
+		} else closesocket(temp);
+
+	#endif
 
 	//	resolve server address
 	struct addrinfo *servAddr = NULL;
@@ -23,53 +27,33 @@ HTTPSocket::Server::Server() {
 		addrHints.ai_flags = AI_PASSIVE;
 
 	if (getaddrinfo(NULL, std::to_string(778).c_str(), &addrHints, &servAddr) != 0) {
-		//if (!instanceConfig.mutlipeInstances) WSACleanup();
 		freeaddrinfo(servAddr);
-		return;
-		/*return {
-			false,
-			"Localhost didn't resolve",
-			"Code:" + std::to_string(GetLastError())
-		};*/
+		throw Lambda::exception("Localhost didn't resolve, code: " + std::to_string(GetLastError()));
 	}
 
 	// create and bind a SOCKET
 	ListenSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
 	if (ListenSocket == INVALID_SOCKET) {
 		freeaddrinfo(servAddr);
-		//if (!instanceConfig.mutlipeInstances) WSACleanup();
-		return;
-		/*return {
-			false,
-			"Failed to create listening socket",
-			"Code:" + std::to_string(GetLastError())
-		};*/
+		throw Lambda::exception("Failed to create listening socket, code: " + std::to_string(GetLastError()));
 	}
 
 	if (bind(ListenSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 		freeaddrinfo(servAddr);
 		closesocket(ListenSocket);
-		//if (!instanceConfig.mutlipeInstances) WSACleanup();
-		return;
-		/*return {
-			false,
-			"Failed to bind a TCP socket",
-			"Code:" + std::to_string(GetLastError())
-		};*/
+		throw Lambda::exception("Failed to bind a TCP socket, code: " + std::to_string(GetLastError()));
 	}
 
 	freeaddrinfo(servAddr);
 
 	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
 		closesocket(ListenSocket);
-		//if (!instanceConfig.mutlipeInstances) WSACleanup();
-		return;
-		/*return {
-			false,
-			"Socket error",
-			"Code:" + std::to_string(GetLastError())
-		};*/
+		throw Lambda::exception("Socket listen error, code: " + std::to_string(GetLastError()));
 	}
+
+	//requestCallback = lambdaCallbackFunction;
+	running = true;
+	watchdogThread = std::thread(connectionWatchdog, this);
 }
 
 HTTPSocket::Server::~Server() {
@@ -92,12 +76,17 @@ void HTTPSocket::Server:: connectionWatchdog() {
 	}*/
 
 	while (true) {
+
+		if (!handlerDispatched) {
+			Sleep(1);
+			continue;
+		}
+
 		auto invoked = std::thread(connectionHandler, this);
 		handlerDispatched = false;
 		invoked.detach();
 	}
 
-	
 }
 
 void HTTPSocket::Server::connectionHandler() {
