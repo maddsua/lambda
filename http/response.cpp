@@ -12,11 +12,6 @@ uint16_t HTTP::Response::statusCode() {
 	return this->_statusCode;
 }
 
-void HTTP::Response::setBodyText(std::string& text) {
-	this->body = std::vector<uint8_t>(text.begin(), text.end());
-}
-
-
 HTTP::Response::Response() {
 	//	do nothing again
 }
@@ -27,7 +22,7 @@ HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& h
 	setStatusCode(statusCode);
 	this->headers.fromEntries(headers);
 }
-HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::vector<uint8_t>& body) {
+HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body) {
 	setStatusCode(statusCode);
 	this->headers.fromEntries(headers);
 	this->body = std::vector<uint8_t>(body.begin(), body.end());
