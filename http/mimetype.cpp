@@ -4,7 +4,7 @@
 #include <string.h>
 
 //	kindly borrowed from https://github.com/micnic/mime.json
-static const std::map<const char*, const char*> mimetypeMap = {
+static const std::map<std::string, std::string> mimetypeMap = {
 	{ "htm", "text/html" },
 	{ "html", "text/html" },
 	{ "txt", "text/plain" },
@@ -1181,15 +1181,14 @@ static const std::map<const char*, const char*> mimetypeMap = {
 	{ "zmm", "application/vnd.handheld-entertainment+xml" }
 };
 
-std::string HTTP::getExtMimetype(const char* ext) {
+std::string HTTP::getExtMimetype(const std::string ext) {
 	if (mimetypeMap.find(ext) == mimetypeMap.end()) return "application/octet-stream";
 	return mimetypeMap.at(ext);
 }
 
-std::string HTTP::getMimetypeExt(const char* mimetype) {
+std::string HTTP::getMimetypeExt(const std::string mimetype) {
 	for (auto& entry : mimetypeMap) {
-		auto entryEnd = entry.second + strlen(entry.second);
-		if (std::search(entry.second, entryEnd, mimetype, mimetype + strlen(mimetype)) == entryEnd) continue;
+		if (entry.second.find(mimetype) == std::string::npos) continue;
 		return entry.first;
 	}
 	return "bin";
