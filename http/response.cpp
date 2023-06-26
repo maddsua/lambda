@@ -28,6 +28,13 @@ HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& h
 	this->body = std::vector<uint8_t>(body.begin(), body.end());
 }
 
+HTTP::Response& HTTP::Response::operator = (const HTTP::Request& right) {
+	auto request = right;
+	this->body = request.body();
+	this->headers = request.headers();
+	return *this;
+}
+
 std::vector<uint8_t> HTTP::Response::dump() {
 
 	auto frame = "HTTP/1.1 " + std::to_string(this->_statusCode) + " " + this->_status + "\r\n";
