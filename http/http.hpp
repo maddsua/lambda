@@ -147,6 +147,12 @@ namespace HTTP {
 	//	URL-encode string
 	std::string encodeURIComponent(const std::string& str);
 	//void encodeURIComponent(std::string& str);
+
+	//	Get mimetype for file extension
+	std::string getExtMimetype(const char* ext);
+
+	//	Get file extension for mimetype
+	std::string getMimetypeExt(const char* mimetype);
 }
 
 #endif
