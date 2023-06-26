@@ -59,8 +59,8 @@ namespace HTTP {
 
 		public:
 			Request(std::vector<uint8_t>& httpHead);
-			void setBody(std::vector<uint8_t>& content);
-			void setBody(std::string& content);
+			void _setBody(std::vector<uint8_t>& content);
+			void _appendBody(std::vector<uint8_t>& content);
 			std::string method();
 			std::string path();
 			URLSearchParams searchParams();
