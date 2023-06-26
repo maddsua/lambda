@@ -31,7 +31,8 @@ void HTTP::Headers::fromEntries(const std::vector<HTTP::KVtype>& headers) {
 	this->data.clear();
 	for (auto& item : headers) {
 		if (!item.key.size() || !item.value.size()) continue;
-		this->data[item.key] = item.value;
+		auto key = stringToTittleCase(item.key);
+		this->data[key] = item.value;
 	}
 }
 
