@@ -31,8 +31,8 @@ clean: action-custom
 	del /S *.o *.exe *.a *.dll *.res
 #	rm -rf *.o *.exe *.a *.dll *.res
 
-run: action-custom
-	$(APP_DEV)
+#run: action-custom
+#	obj_http obj_compress obj_crypto
 
 
 #------------
@@ -133,9 +133,29 @@ crypto/sha512.o: crypto/sha512.cpp
 
 
 
+#------------
+# Component: Sockets
+#------------
 
+COMPONENT_SOCKETS = obj_sockets
+LIBSTATIC_SOCKETS = lib$(FRAMEWORK)sockets.a
+OBJECTS_SOCKETS = sockets/server.o sockets/http.o
 
+$(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
+	ar rvs $(LIBSTATIC_SOCKETS) $(OBJECTS_SOCKETS)
 
+sockets/server.o: sockets/server.cpp
+	g++ -c sockets/server.cpp -o sockets/server.o $(FLAGS)
+
+sockets/http.o: sockets/http.cpp
+	g++ -c sockets/http.cpp -o sockets/http.o $(FLAGS)
+
+#------------
+# Test: Server
+#------------
+
+test_server: $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS)
+	g++ tests/server/server.cpp $(OBJECTS_SOCKETS) $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
 
 
@@ -187,87 +207,45 @@ crypto/sha512.o: crypto/sha512.cpp
 #	labmda demo/test app
 # ----
 #	regular dev app
-$(APP_DEV): main.o $(OBJECTS)
-	g++ main.o $(OBJECTS) $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
+#$(APP_DEV): main.o $(OBJECTS)
+#	g++ main.o $(OBJECTS) $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
 
 #	fully static build, version for the demo
-static: $(LIBSTATIC) main.o
-	g++ -static main.o -L. -l$(LIBNAME) $(LIBS_STATIC) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
+#static: $(LIBSTATIC) main.o
+#	g++ -static main.o -L. -l$(LIBNAME) $(LIBS_STATIC) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
 
 #	dynamically linked to all the dlls
-dynamic: libshared main.o
-	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEV)
+#dynamic: libshared main.o
+#	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEV)
 
 
 # ----
 #	dev main
 # ----
-main.o: main.cpp
-	g++ -c main.cpp -o main.o $(FLAGS)
+#main.o: main.cpp
+#	g++ -c main.cpp -o main.o $(FLAGS)
 
 
 # ----
 #	lib
 # ----
 #	make static lib
-libstatic: $(LIBSTATIC)
+#libstatic: $(LIBSTATIC)
 
-$(LIBSTATIC): $(OBJECTS)
-	ar rvs $(LIBSTATIC) $(OBJECTS)
+#$(LIBSTATIC): $(OBJECTS)
+#	ar rvs $(LIBSTATIC) $(OBJECTS)
 
 #	make dll
-libshared: $(LIBSHARED)
+#libshared: $(LIBSHARED)
 
-$(LIBSHARED): $(OBJECTS) $(LIBNAME).res
-	g++ $(OBJECTS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
+#$(LIBSHARED): $(OBJECTS) $(LIBNAME).res
+#	g++ $(OBJECTS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
 
 
 # ----
 #	resources
 # ----
-$(LIBNAME).res: $(LIBNAME).rc
-	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
+#$(LIBNAME).res: $(LIBNAME).rc
+#	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
 
 
-# ----
-#	main components
-# ----
-src/lambda.o: src/lambda.cpp
-	g++ -c src/lambda.cpp -o src/lambda.o $(FLAGS)
-
-src/httpcore.o: src/httpcore.cpp
-	g++ -c src/httpcore.cpp -o src/httpcore.o $(FLAGS)
-
-src/constants.o: src/constants.cpp
-	g++ -c src/constants.cpp -o src/constants.o $(FLAGS)
-
-src/http.o: src/http.cpp
-	g++ -c src/http.cpp -o src/http.o $(FLAGS)
-
-src/mimetypes.o: src/mimetypes.cpp
-	g++ -c src/mimetypes.cpp -o src/mimetypes.o $(FLAGS)
-
-src/fetch.o: src/fetch.cpp
-	g++ -c src/fetch.cpp -o src/fetch.o $(FLAGS)
-
-src/compress.o: src/compress.cpp
-	g++ -c src/compress.cpp -o src/compress.o $(FLAGS)
-
-src/filesystem.o: src/filesystem.cpp
-	g++ -c src/filesystem.cpp -o src/filesystem.o $(FLAGS)
-
-src/base64.o: src/base64.cpp
-	g++ -c src/base64.cpp -o src/base64.o $(FLAGS)
-
-src/util.o: src/util.cpp
-	g++ -c src/util.cpp -o src/util.o $(FLAGS)
-
-src/sha.o: src/sha.cpp
-	g++ -c src/sha.cpp -o src/sha.o $(FLAGS)
-
-
-# ----
-#	kinda plugins
-# ----
-src/localdb.o: src/localdb.cpp
-	g++ -c src/localdb.cpp -o src/localdb.o $(FLAGS)
