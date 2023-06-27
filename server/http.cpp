@@ -5,12 +5,17 @@
 Lambda::Server::Server() {
 
 	this->ListenSocketObj = new HTTPSocket::ListenSocket();
-	if (!ListenSocketObj->ok())
-		throw Lambda::exception("Failed to start server, code: " + std::to_string(ListenSocketObj->status().status) + "/" + std::to_string(ListenSocketObj->status().code));
+	if (!ListenSocketObj->ok()) {
+		auto sockstat = ListenSocketObj->status();
+		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.status));
+		return;
+	}
+	//throw Lambda::exception("Failed to start server, code: " + std::to_string(ListenSocketObj->status().status) + "/" + std::to_string(ListenSocketObj->status().code));
 
 	running = true;
 	handlerDispatched = true;
 	watchdogThread = new std::thread(connectionWatchdog, this);
+	addLogRecord("Server start successful");
 }
 
 Lambda::Server::~Server() {
