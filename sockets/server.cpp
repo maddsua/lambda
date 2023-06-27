@@ -13,16 +13,17 @@ HTTPSocket::Server::Server() {
 }
 
 HTTPSocket::Server::~Server() {
-	closesocket(ListenSocket);
+	running = false;
+	if (watchdogThread.joinable())
+		watchdogThread.join();
+	disconnect(ListenSocket);	
 }
 
 void HTTPSocket::Server:: connectionWatchdog() {
 	time_t lastDispatched = 0;
 
 	/*while (running) {
-
 		if(handlerDispatched) {
-
 			auto invoked = std::thread(handler, this);
 			handlerDispatched = false;
 			lastDispatched = timeGetTime();
@@ -31,7 +32,7 @@ void HTTPSocket::Server:: connectionWatchdog() {
 		} else if (timeGetTime() > (lastDispatched + LAMBDA_DSP_SLEEP)) Sleep(LAMBDA_DSP_SLEEP);
 	}*/
 
-	while (true) {
+	while (running) {
 
 		if (!handlerDispatched) {
 			Sleep(1);
@@ -42,7 +43,6 @@ void HTTPSocket::Server:: connectionWatchdog() {
 		handlerDispatched = false;
 		invoked.detach();
 	}
-
 }
 
 void HTTPSocket::Server::connectionHandler() {
@@ -52,11 +52,7 @@ void HTTPSocket::Server::connectionHandler() {
 	int clientAddrLen = sizeof(clientAddr);
 	SOCKET ClientSocket = accept(ListenSocket, (SOCKADDR*)&clientAddr, &clientAddrLen);
 	handlerDispatched = true;
-
-	//	set socket timeouts
-	/*const uint32_t tcpTimeout = LAMBDA_TCP_TIMEOUT_MS;
-	setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));
-	setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));*/
+	setConnectionTimeout(ClientSocket, 15000);
 
 	auto request = receiveMessage(ClientSocket);
 
