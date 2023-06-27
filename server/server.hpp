@@ -32,8 +32,8 @@ namespace Lambda {
 			std::deque<LogEntry> logQueue;
 			void addLogRecord(std::string message);
 
-			void (*requestCallback)(HTTP::Request, Context) = nullptr;
-			HTTP::Response (*requestCallbackServerless)(HTTP::Request, Context) = nullptr;
+			void (*requestCallback)(HTTP::Request&, Context&) = nullptr;
+			HTTP::Response (*requestCallbackServerless)(HTTP::Request&, Context&) = nullptr;
 
 			void* instancePasstrough = nullptr;
 			void setPasstrough(void* object);
@@ -47,9 +47,9 @@ namespace Lambda {
 			std::vector<std::string> logsText();
 			bool hasNewLogs();
 
-			void setServerCallback(void (*callback)(HTTP::Request, Context));
+			void setServerCallback(void (*callback)(HTTP::Request&, Context&));
 			void removeServerCallback();
-			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request, Context));
+			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request&, Context&));
 			void removeServerlessCallback();
 	};
 	

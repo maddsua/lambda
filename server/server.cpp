@@ -3,15 +3,17 @@
 #include "../lambda.hpp"
 #include <chrono>
 
-Lambda::Server::Server() {
+using namespace Lambda;
 
-	this->ListenSocketObj = new Lambda::Socket::HTTPListenSocket();
+Server::Server() {
+
+	this->ListenSocketObj = new Socket::HTTPListenSocket();
 	if (!ListenSocketObj->ok()) {
 		auto sockstat = ListenSocketObj->status();
 		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.status));
 		return;
 	}
-	//throw Lambda::exception("Failed to start server, code: " + std::to_string(ListenSocketObj->status().status) + "/" + std::to_string(ListenSocketObj->status().code));
+	//throw exception("Failed to start server, code: " + std::to_string(ListenSocketObj->status().status) + "/" + std::to_string(ListenSocketObj->status().code));
 
 	running = true;
 	handlerDispatched = true;
@@ -19,7 +21,7 @@ Lambda::Server::Server() {
 	addLogRecord("Server start successful");
 }
 
-Lambda::Server::~Server() {
+Server::~Server() {
 	running = false;
 	if (watchdogThread->joinable())
 		watchdogThread->join();
@@ -27,31 +29,31 @@ Lambda::Server::~Server() {
 	delete watchdogThread;
 }
 
-void Lambda::Server::setServerCallback(void (*callback)(HTTP::Request, Context)) {
+void Server::setServerCallback(void (*callback)(HTTP::Request&, Context&)) {
 	//std::lock_guard<std::mutex>lock(mtLock);
 	this->requestCallback = callback;
 }
-void Lambda::Server::removeServerCallback() {
+void Server::removeServerCallback() {
 	//std::lock_guard<std::mutex>lock(mtLock);
 	this->requestCallback = nullptr;
 }
-void Lambda::Server::setServerlessCallback(HTTP::Response (*callback)(HTTP::Request, Context)){
+void Server::setServerlessCallback(HTTP::Response (*callback)(HTTP::Request&, Context&)){
 	//std::lock_guard<std::mutex>lock(mtLock);
 	this->requestCallbackServerless = callback;
 }
-void Lambda::Server::removeServerlessCallback() {
+void Server::removeServerlessCallback() {
 	//std::lock_guard<std::mutex>lock(mtLock);
 	this->requestCallbackServerless = nullptr;
 }
 
-void Lambda::Server::setPasstrough(void* object) {
+void Server::setPasstrough(void* object) {
 	this->instancePasstrough = object;
 }
-void Lambda::Server::removePasstrough() {
+void Server::removePasstrough() {
 	this->instancePasstrough = nullptr;
 }
 
-void Lambda::Server::connectionWatchdog() {
+void Server::connectionWatchdog() {
 
 	auto lastDispatched = std::chrono::system_clock::now();
 
@@ -74,7 +76,7 @@ void Lambda::Server::connectionWatchdog() {
 	}
 }
 
-void Lambda::Server::connectionHandler() {
+void Server::connectionHandler() {
 	
 	auto client = ListenSocketObj->acceptConnection();
 	handlerDispatched = true;

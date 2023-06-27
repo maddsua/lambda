@@ -1,5 +1,7 @@
 #include "./crypto.hpp"
 
+using namespace Lambda;
+
 /*
 
 	SHA-1
@@ -60,7 +62,7 @@ void sha1_transform(SHA1_CTX *ctx, const uint8_t* data) {
 }
 
 
-std::array <uint8_t, SHA1_BLOCK_SIZE> Lambda::Crypto::sha1Hash(std::vector<uint8_t> data) {
+std::array <uint8_t, SHA1_BLOCK_SIZE> Crypto::sha1Hash(std::vector<uint8_t> data) {
 
 	std::array <uint8_t, SHA1_BLOCK_SIZE> result;
 

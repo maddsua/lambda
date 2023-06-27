@@ -2,11 +2,13 @@
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
-Lambda::Compress::BrotliStream::BrotliStream() {
+using namespace Lambda;
+
+Compress::BrotliStream::BrotliStream() {
 	//	nothing to do this time
 }
 
-Lambda::Compress::BrotliStream::~BrotliStream() {
+Compress::BrotliStream::~BrotliStream() {
 	if (compressStream != nullptr) {
 		BrotliEncoderDestroyInstance((BrotliEncoderState*)compressStream);
 		//delete ((BrotliEncoderState*)compressStream);
@@ -18,29 +20,29 @@ Lambda::Compress::BrotliStream::~BrotliStream() {
 	}
 }
 
-bool Lambda::Compress::BrotliStream::startCompression(int quality) {
+bool Compress::BrotliStream::startCompression(int quality) {
 	compressStream = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
 	if (quality < BROTLI_MIN_QUALITY || quality > BROTLI_MAX_QUALITY) quality = 5;
 	compressStatus = BrotliEncoderSetParameter((BrotliEncoderState*)compressStream, BROTLI_PARAM_QUALITY, quality);
 	return compressStatus;
 }
-bool Lambda::Compress::BrotliStream::startCompression() {
+bool Compress::BrotliStream::startCompression() {
 	return startCompression(5);
 }
 
-bool Lambda::Compress::BrotliStream::compressionDone() {
+bool Compress::BrotliStream::compressionDone() {
 	return BrotliEncoderIsFinished((BrotliEncoderState*)compressStream);
 }
 
-bool Lambda::Compress::BrotliStream::compressionError() {
+bool Compress::BrotliStream::compressionError() {
 	return !compressStatus;
 }
 
-int Lambda::Compress::BrotliStream::compressionStatus() {
+int Compress::BrotliStream::compressionStatus() {
 	return compressStatus;
 }
 
-bool Lambda::Compress::BrotliStream::compressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
+bool Compress::BrotliStream::compressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
 
 	size_t avail_in = dataInSize;
 	auto operation = finish ? BROTLI_OPERATION_FINISH : BROTLI_OPERATION_PROCESS;
@@ -68,7 +70,7 @@ bool Lambda::Compress::BrotliStream::compressChunk(const uint8_t* bufferIn, size
 	return true;
 }
 
-bool Lambda::Compress::BrotliStream::compressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
+bool Compress::BrotliStream::compressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
 
 	if (!bufferIn->size()) return false;
 
@@ -89,25 +91,25 @@ bool Lambda::Compress::BrotliStream::compressBuffer(const std::vector<uint8_t>* 
 	return compressionDone();
 }
 
-bool Lambda::Compress::BrotliStream::startDecompression() {
+bool Compress::BrotliStream::startDecompression() {
 	decompressStream = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
 	decompressStatus = BROTLI_DECODER_RESULT_SUCCESS;
 	return decompressStatus != BROTLI_DECODER_RESULT_ERROR;
 }
 
-bool Lambda::Compress::BrotliStream::decompressionDone() {
+bool Compress::BrotliStream::decompressionDone() {
 	return BrotliDecoderIsFinished((BrotliDecoderState*)decompressStream);
 }
 
-bool Lambda::Compress::BrotliStream::decompressionError() {
+bool Compress::BrotliStream::decompressionError() {
 	return !decompressStatus;
 }
 
-int Lambda::Compress::BrotliStream::decompressionStatus() {
+int Compress::BrotliStream::decompressionStatus() {
 	return decompressStatus;
 }
 
-bool Lambda::Compress::BrotliStream::decompressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
+bool Compress::BrotliStream::decompressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
 
 	auto instance = (BrotliDecoderState*)decompressStream;
 
@@ -133,7 +135,7 @@ bool Lambda::Compress::BrotliStream::decompressChunk(const uint8_t* bufferIn, si
 	return true;
 }
 
-bool Lambda::Compress::BrotliStream::decompressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
+bool Compress::BrotliStream::decompressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
 
 	if (!bufferIn->size()) return false;
 

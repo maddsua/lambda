@@ -1,4 +1,4 @@
-#include "../../compress/compress.hpp"
+#include "../compress/compress.hpp"
 #include <iostream>
 
 using namespace Lambda;

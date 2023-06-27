@@ -1,5 +1,7 @@
 #include "./crypto.hpp"
 
+using namespace Lambda;
+
 /*
 
 	SHA-512
@@ -141,7 +143,7 @@ void sha512_Transform(SHA512CTX* ctx, const uint8_t* message, size_t block_nb) {
 }
 
 
-std::array <uint8_t, SHA512_HASH_SIZE> Lambda::Crypto::sha512Hash(std::vector<uint8_t> data) {
+std::array <uint8_t, SHA512_HASH_SIZE> Crypto::sha512Hash(std::vector<uint8_t> data) {
 
 	std::array <uint8_t, SHA512_HASH_SIZE> hash;
 

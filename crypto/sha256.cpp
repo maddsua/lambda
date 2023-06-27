@@ -1,5 +1,7 @@
 #include "./crypto.hpp"
 
+using namespace Lambda;
+
 /*
 
 	SHA-256
@@ -75,7 +77,7 @@ void sha256_Transform(SHA256CTX* ctx, const uint8_t* data) {
 	return;
 }
 
-std::array <uint8_t, SHA256_BLOCK_SIZE> Lambda::Crypto::sha256Hash(std::vector<uint8_t> data) {
+std::array <uint8_t, SHA256_BLOCK_SIZE> Crypto::sha256Hash(std::vector<uint8_t> data) {
 
 	std::array <uint8_t, SHA256_BLOCK_SIZE> result;
 

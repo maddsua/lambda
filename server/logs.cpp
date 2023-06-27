@@ -1,6 +1,8 @@
 #include "./server.hpp"
 
-void Lambda::Server::addLogRecord(std::string message) {
+using namespace Lambda;
+
+void Server::addLogRecord(std::string message) {
 
 	LogEntry newRecord;
 		newRecord.message = message;
@@ -11,11 +13,11 @@ void Lambda::Server::addLogRecord(std::string message) {
 	this->logQueue.push_back(std::move(newRecord));
 }
 
-bool Lambda::Server::hasNewLogs() {
+bool Server::hasNewLogs() {
 	return this->logQueue.size() > 0;
 }
 
-std::vector<Lambda::LogEntry> Lambda::Server::logs() {
+std::vector<LogEntry> Server::logs() {
 
 	if (!hasNewLogs()) return {};
 
@@ -26,7 +28,7 @@ std::vector<Lambda::LogEntry> Lambda::Server::logs() {
 	return queueCopy;
 }
 
-std::vector<std::string> Lambda::Server::logsText() {
+std::vector<std::string> Server::logsText() {
 
 	if (!hasNewLogs()) return {};
 

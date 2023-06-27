@@ -1,11 +1,13 @@
 #include "./compress.hpp"
 #include <zlib.h>
 
-Lambda::Compress::ZlibStream::ZlibStream() {
+using namespace Lambda;
+
+Compress::ZlibStream::ZlibStream() {
 	compressStatus = Z_OK;
 	decompressStatus = Z_OK;
 }
-Lambda::Compress::ZlibStream::~ZlibStream() {
+Compress::ZlibStream::~ZlibStream() {
 	if (compressStream != nullptr) {
 		(void)deflateEnd((z_stream*)compressStream);
 		delete ((z_stream*)compressStream);
@@ -19,7 +21,7 @@ Lambda::Compress::ZlibStream::~ZlibStream() {
 	if (decompressTemp != nullptr) delete[] decompressTemp;
 }
 
-bool Lambda::Compress::ZlibStream::startCompression(int compression, int header) {
+bool Compress::ZlibStream::startCompression(int compression, int header) {
 
 	if (compressStream != nullptr || compressTemp != nullptr) return false;
 
@@ -32,26 +34,26 @@ bool Lambda::Compress::ZlibStream::startCompression(int compression, int header)
 	compressStatus = deflateInit2((z_stream*)compressStream, compression, Z_DEFLATED, header, 9, Z_DEFAULT_STRATEGY);
 	return compressStatus == Z_OK;
 }
-bool Lambda::Compress::ZlibStream::startCompression(int compression) {
+bool Compress::ZlibStream::startCompression(int compression) {
 	return startCompression(compression, header_gz);
 }
-bool Lambda::Compress::ZlibStream::startCompression() {
+bool Compress::ZlibStream::startCompression() {
 	return startCompression(Z_DEFAULT_COMPRESSION, header_gz);
 }
 
-bool Lambda::Compress::ZlibStream::compressionDone() {
+bool Compress::ZlibStream::compressionDone() {
 	return compressStatus == Z_STREAM_END;
 }
 
-bool Lambda::Compress::ZlibStream::compressionError() {
+bool Compress::ZlibStream::compressionError() {
 	return (compressStatus < Z_OK || compressStatus == Z_NEED_DICT);
 }
 
-int Lambda::Compress::ZlibStream::compressionStatus() {
+int Compress::ZlibStream::compressionStatus() {
 	return compressStatus;
 }
 
-bool Lambda::Compress::ZlibStream::compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
+bool Compress::ZlibStream::compressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish) {
 
 	if (compressStream == nullptr || compressTemp == nullptr) return false;
 
@@ -74,7 +76,7 @@ bool Lambda::Compress::ZlibStream::compressChunk(uint8_t* bufferIn, size_t dataI
 	return !compressionError();
 }
 
-bool Lambda::Compress::ZlibStream::compressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
+bool Compress::ZlibStream::compressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
 
 	if (compressStream == nullptr || compressTemp == nullptr) return false;
 
@@ -102,13 +104,13 @@ bool Lambda::Compress::ZlibStream::compressBuffer(std::vector<uint8_t>* bufferIn
 	return true;
 }
 
-bool Lambda::Compress::ZlibStream::compressionReset() {
+bool Compress::ZlibStream::compressionReset() {
 	compressStatus = inflateReset((z_stream*)compressStream);
 	return compressStatus == Z_OK;
 }
 
 
-bool Lambda::Compress::ZlibStream::startDecompression(int wbits) {
+bool Compress::ZlibStream::startDecompression(int wbits) {
 
 	decompressStream = new z_stream;
 	decompressTemp = new uint8_t[chunkSize];
@@ -116,23 +118,23 @@ bool Lambda::Compress::ZlibStream::startDecompression(int wbits) {
 	decompressStatus = inflateInit2((z_stream*)decompressStream, wbits);
 	return decompressStatus == Z_OK;
 }
-bool Lambda::Compress::ZlibStream::startDecompression() {
+bool Compress::ZlibStream::startDecompression() {
 	return startDecompression(winbit_auto);
 }
 
-bool Lambda::Compress::ZlibStream::decompressionDone() {
+bool Compress::ZlibStream::decompressionDone() {
 	return decompressStatus == Z_STREAM_END;
 }
 
-bool Lambda::Compress::ZlibStream::decompressionError() {
+bool Compress::ZlibStream::decompressionError() {
 	return (decompressStatus < Z_OK || compressStatus == Z_NEED_DICT);
 }
 
-int Lambda::Compress::ZlibStream::decompressionStatus() {
+int Compress::ZlibStream::decompressionStatus() {
 	return decompressStatus;
 }
 
-bool Lambda::Compress::ZlibStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
+bool Compress::ZlibStream::decompressChunk(uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut) {
 
 	if (decompressStream == nullptr || decompressTemp == nullptr) return false;
 
@@ -155,7 +157,7 @@ bool Lambda::Compress::ZlibStream::decompressChunk(uint8_t* bufferIn, size_t dat
 	return !decompressionError();
 }
 
-bool Lambda::Compress::ZlibStream::decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
+bool Compress::ZlibStream::decompressBuffer(std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut) {
 
 	if (decompressStream == nullptr || decompressTemp == nullptr) return false;
 
@@ -184,7 +186,7 @@ bool Lambda::Compress::ZlibStream::decompressBuffer(std::vector<uint8_t>* buffer
 	return true;
 }
 
-bool Lambda::Compress::ZlibStream::decompressionReset() {
+bool Compress::ZlibStream::decompressionReset() {
 	decompressStatus = deflateReset((z_stream*)decompressStream);
 	return decompressStatus == Z_OK;
 }
