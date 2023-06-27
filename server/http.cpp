@@ -54,7 +54,10 @@ void Lambda::Server::connectionHandler() {
 	auto client = ListenSocketObj->acceptConnection();
 	handlerDispatched = true;
 
-	printf("client error: %i/%i\n", client.status().status, client.status().code);
+	if (!client.ok()) {
+		addLogRecord(std::string("Request aborted, socket error: ") + "client");
+		return;
+	}
 
 	auto request = client.receiveMessage();
 
