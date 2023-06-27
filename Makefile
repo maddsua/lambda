@@ -36,6 +36,26 @@ clean: action-custom
 
 
 #------------
+# Component: Encoding
+#------------
+
+COMPONENT_ENCODING = obj_encoding
+LIBSTATIC_ENCODING = lib$(FRAMEWORK)encoding.a
+OBJECTS_ENCODING = encoding/urlencode.o encoding/base64.o encoding/hex.o
+
+$(COMPONENT_ENCODING): $(OBJECTS_ENCODING)
+	ar rvs $(LIBSTATIC_ENCODING) $(OBJECTS_ENCODING)
+
+encoding/urlencode.o: encoding/urlencode.cpp
+	g++ -c encoding/urlencode.cpp -o encoding/urlencode.o $(FLAGS)
+
+encoding/base64.o: encoding/base64.cpp
+	g++ -c encoding/base64.cpp -o encoding/base64.o $(FLAGS)
+
+encoding/hex.o: encoding/hex.cpp
+	g++ -c encoding/hex.cpp -o encoding/hex.o $(FLAGS)
+
+#------------
 # Component: HTTP
 #------------
 

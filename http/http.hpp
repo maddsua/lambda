@@ -146,10 +146,6 @@ namespace Lambda::HTTP {
 
 	//	Split string into array of substrings separated by token
 	std::vector<std::string> stringSplit(const std::string& str, const char* token);
-	
-	//	URL-encode string
-	std::string encodeURIComponent(const std::string& str);
-	//void encodeURIComponent(std::string& str);
 
 	//	Get mimetype for file extension
 	std::string getExtMimetype(const std::string mimetype);
