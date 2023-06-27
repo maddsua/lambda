@@ -139,6 +139,9 @@ namespace HTTP {
 	void stringTrim(std::string& str);
 	std::string stringTrim(const std::string& str);
 
+	//	Combine multiple strings
+	std::string stringJoin(const std::vector<std::string>& strs, const char* token);
+
 	//	Split string into array of substrings separated by token
 	std::vector<std::string> stringSplit(const std::string& str, const char* token);
 	

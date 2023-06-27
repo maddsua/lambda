@@ -41,7 +41,7 @@ clean: action-custom
 
 COMPONENT_HTTP = obj_http
 LIBSTATIC_HTTP = lib$(FRAMEWORK)http.a
-OBJECTS_HTTP = http/strings.o http/headers.o http/search.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o
+OBJECTS_HTTP = http/strings.o http/headers.o http/searchquery.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o
 
 $(COMPONENT_HTTP): $(OBJECTS_HTTP)
 	ar rvs $(LIBSTATIC_HTTP) $(OBJECTS_HTTP)
@@ -52,8 +52,8 @@ http/strings.o: http/strings.cpp
 http/headers.o: http/headers.cpp
 	g++ -c http/headers.cpp -o http/headers.o $(FLAGS)
 
-http/search.o: http/search.cpp
-	g++ -c http/search.cpp -o http/search.o $(FLAGS)
+http/searchquery.o: http/searchquery.cpp
+	g++ -c http/searchquery.cpp -o http/searchquery.o $(FLAGS)
 
 http/statuscode.o: http/statuscode.cpp
 	g++ -c http/statuscode.cpp -o http/statuscode.o $(FLAGS)
@@ -157,13 +157,16 @@ sockets/clientSocket.o: sockets/clientSocket.cpp
 
 COMPONENT_SERVER = obj_server
 LIBSTATIC_SERVER = lib$(FRAMEWORK)server.a
-OBJECTS_SERVER = server/server.o
+OBJECTS_SERVER = server/http.o server/logs.o
 
 $(COMPONENT_SERVER): $(OBJECTS_SERVER)
 	ar rvs $(LIBSTATIC_SERVER) $(OBJECTS_SERVER)
 
-server/server.o: server/server.cpp
-	g++ -c server/server.cpp -o server/server.o $(FLAGS)
+server/http.o: server/http.cpp
+	g++ -c server/http.cpp -o server/http.o $(FLAGS)
+
+server/logs.o: server/logs.cpp
+	g++ -c server/logs.cpp -o server/logs.o $(FLAGS)
 
 #------------
 # Test: Server

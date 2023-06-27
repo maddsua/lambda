@@ -1,4 +1,4 @@
-#include "http.hpp"
+#include "./http.hpp"
 #include <string.h>
 #include <map>
 #include <set>
@@ -87,6 +87,15 @@ std::string HTTP::stringTrim(const std::string& str) {
 	auto temp = str;
 	stringTrim(temp);
 	return temp;
+}
+
+std::string HTTP::stringJoin(const std::vector<std::string>& strs, const char* token) {
+	std::string result;
+	for(auto& str : strs) {
+		if (result.size() > 0) result += token;
+		result += str;
+	}
+	return result;
 }
 
 std::vector<std::string> HTTP::stringSplit(const std::string& str, const char* token) {
