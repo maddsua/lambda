@@ -1,4 +1,4 @@
-#include "compress.hpp"
+#include "./compress.hpp"
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 

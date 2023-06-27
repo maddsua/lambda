@@ -1,4 +1,4 @@
-#include "compress.hpp"
+#include "./compress.hpp"
 #include <zlib.h>
 
 Lambda::Compress::ZlibStream::ZlibStream() {

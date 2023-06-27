@@ -1,4 +1,4 @@
-#include "crypto.hpp"
+#include "./crypto.hpp"
 #include <random>
 
 std::vector <uint64_t> Lambda::Crypto::randomSequence(size_t cap, size_t length) {
