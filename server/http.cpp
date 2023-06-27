@@ -55,7 +55,7 @@ void Lambda::Server::connectionHandler() {
 	handlerDispatched = true;
 
 	if (!client.ok()) {
-		addLogRecord(std::string("Request aborted, socket error: ") + "client");
+		addLogRecord(std::string("Request aborted, socket error: ") + "client.ip");
 		return;
 	}
 
