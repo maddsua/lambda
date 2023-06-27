@@ -100,6 +100,6 @@ LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::status() {
 	return { this->socketStat, this->socketError };
 }
 
-std::string LambdaSocket::HTTPClientSocket::metadata() {
+std::string LambdaSocket::HTTPClientSocket::ip() {
 	return this->_clientIPv4;
 }

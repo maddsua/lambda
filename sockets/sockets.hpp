@@ -65,7 +65,7 @@ namespace LambdaSocket {
 
 			bool ok();
 			OpStatus status();
-			std::string metadata();
+			std::string ip();
 
 			HTTP::Request receiveMessage();
 			OpStatus sendMessage(HTTP::Response& response);

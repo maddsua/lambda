@@ -1,9 +1,17 @@
 #include "../../server/server.hpp"
 #include <windows.h>
 
+HTTP::Response callback(HTTP::Request request, Lambda::Context context) {
+	puts(request.path().c_str());
+
+	return HTTP::Response(200, {{"x-serverless", "true"}}, "success!");
+};
+
 int main() {
 
 	auto server = Lambda::Server();
+
+	server.setServerlessCallback(&callback);
 
 	while (true) {
 		if (!server.hasNewLogs()) {

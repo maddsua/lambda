@@ -27,6 +27,23 @@ Lambda::Server::~Server() {
 	delete watchdogThread;
 }
 
+void Lambda::Server::setServerCallback(void (*callback)(HTTP::Request, Context)) {
+	//std::lock_guard<std::mutex>lock(mtLock);
+	this->requestCallback = callback;
+}
+void Lambda::Server::removeServerCallback() {
+	//std::lock_guard<std::mutex>lock(mtLock);
+	this->requestCallback = nullptr;
+}
+void Lambda::Server::setServerlessCallback(HTTP::Response (*callback)(HTTP::Request, Context)){
+	//std::lock_guard<std::mutex>lock(mtLock);
+	this->requestCallbackServerless = callback;
+}
+void Lambda::Server::removeServerlessCallback() {
+	//std::lock_guard<std::mutex>lock(mtLock);
+	this->requestCallbackServerless = nullptr;
+}
+
 void Lambda::Server::connectionWatchdog() {
 
 	auto lastDispatched = std::chrono::system_clock::now();
@@ -56,19 +73,36 @@ void Lambda::Server::connectionHandler() {
 	handlerDispatched = true;
 
 	if (!client.ok()) {
-		addLogRecord(std::string("Request aborted, socket error on client: ") + client.metadata());
+		addLogRecord(std::string("Request aborted, socket error on client: ") + client.ip());
 		return;
 	}
 
+	// get request payload and context
 	auto request = client.receiveMessage();
+	Context requestCTX;
+	requestCTX.clientIP = client.ip();
 
+	//	serverfull handler. note the return statement
+	if (this->requestCallback != nullptr) {
+		this->requestCallback(request, requestCTX);
+		return;
+	}
+
+	auto response = HTTP::Response();
+	response.headers.set("server", "maddsua/lambda");
+	response.headers.set("date", HTTP::serverDate());
+
+	//	serverless handler
+	if (this->requestCallbackServerless != nullptr) {
+		response = (*requestCallbackServerless)(request, requestCTX);
+	}
 
 	//	fallback handler
-	addLogRecord(std::string("Request handled in fallback mode. Path: " ) + request.path() + ", client: " + client.metadata());
-	auto resp = HTTP::Response();
-	resp.headers.append("server", "maddsua/lambda");
-	resp.headers.append("content-type", "text/plain");
-	resp.headers.append("date", HTTP::serverDate());
-	resp.setBodyText(std::string("server works. lambda v") + LAMBDAVERSION);
-	client.sendMessage(resp);
+	else {
+		addLogRecord(std::string("Request handled in fallback mode. Path: " ) + request.path() + ", client: " + client.ip());
+		response.headers.set("content-type", "text/plain");
+		response.setBodyText(std::string("server works. lambda v") + LAMBDAVERSION);
+	}
+
+	client.sendMessage(response);
 }

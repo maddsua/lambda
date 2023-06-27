@@ -4,6 +4,7 @@
 #include "../sockets/sockets.hpp"
 #include <deque>
 #include <mutex>
+#include <functional>
 
 namespace Lambda {
 
@@ -11,6 +12,10 @@ namespace Lambda {
 		std::string message;
 		std::string datetime;
 		time_t timestamp = 0;
+	};
+
+	struct Context {
+		std::string clientIP;
 	};
 
 	class Server {
@@ -27,7 +32,10 @@ namespace Lambda {
 			std::deque<LogEntry> logQueue;
 			void addLogRecord(std::string message);
 
-			//ServerStat ();
+			//std::function <void(HTTP::Request, Context)> requestCallback;
+			//std::function <HTTP::Response(HTTP::Request, Context)> requestCallbackServerless;
+			void (*requestCallback)(HTTP::Request, Context) = nullptr;
+			HTTP::Response (*requestCallbackServerless)(HTTP::Request, Context) = nullptr;
 			
 		public:
 			Server();
@@ -35,6 +43,11 @@ namespace Lambda {
 			std::vector<LogEntry> logs();
 			std::vector<std::string> logsText();
 			bool hasNewLogs();
+
+			void setServerCallback(void (*callback)(HTTP::Request, Context));
+			void removeServerCallback();
+			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request, Context));
+			void removeServerlessCallback();
 	};
 	
 }
