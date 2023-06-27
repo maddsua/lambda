@@ -1,4 +1,5 @@
 #include "socket.hpp"
+#include <chrono>
 
 HTTPSocket::Server::Server() {
 
@@ -20,25 +21,22 @@ HTTPSocket::Server::~Server() {
 }
 
 void HTTPSocket::Server:: connectionWatchdog() {
-	time_t lastDispatched = 0;
 
-	/*while (running) {
-		if(handlerDispatched) {
-			auto invoked = std::thread(handler, this);
-			handlerDispatched = false;
-			lastDispatched = timeGetTime();
-			invoked.detach();
-			
-		} else if (timeGetTime() > (lastDispatched + LAMBDA_DSP_SLEEP)) Sleep(LAMBDA_DSP_SLEEP);
-	}*/
+	auto lastDispatched = std::chrono::system_clock::now();
 
 	while (running) {
 
 		if (!handlerDispatched) {
-			Sleep(1);
+
+			if ((std::chrono::system_clock::now() - lastDispatched) > std::chrono::milliseconds(1)) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				//puts(std::to_string((std::chrono::system_clock::now() - lastDispatched).count()).c_str());
+			}
+
 			continue;
 		}
 
+		lastDispatched = std::chrono::system_clock::now();
 		auto invoked = std::thread(connectionHandler, this);
 		handlerDispatched = false;
 		invoked.detach();
