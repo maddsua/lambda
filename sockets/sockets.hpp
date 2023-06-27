@@ -57,7 +57,7 @@ namespace HTTPSocket {
 			int32_t socketStat = HSOCKERR_UNINITIALIZED;
 			int32_t socketError = HSOCKERR_UNINITIALIZED;
 			std::string clientIP;
-			std::string clientIPv6;
+			//std::string clientIPv6;
 
 		public:
 			ClientSocket(SOCKET hParentSocket, time_t timeoutMs);
