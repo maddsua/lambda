@@ -1,14 +1,6 @@
-# 2023 maddsua's lambda
-# Demo/Test app
-# makefile for windows build
-# GCC-12.2-ucrt64 is in use
 
-FRAMEWORK  = lambda
-
-APP_DEV		= lambda.exe
-LIBNAME		= lambda
-
-OBJECTS		= src/constants.o src/util.o src/httpcore.o src/lambda.o src/fetch.o src/compress.o src/filesystem.o src/sha.o src/localdb.o
+LIBNAME  = lambda
+APP_DEV    = $(LIBNAME).exe
 
 FLAGS		= -std=c++20
 LIBS_SHARED	= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
@@ -19,9 +11,6 @@ LIBS_SHARED	= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 LIBS_STATIC	= -l:libz.a -l:libbrotli.a
 LIBS_SYSTEM	= -lws2_32 -lwinmm
 
-LIBSTATIC	= lib$(LIBNAME).a
-LIBSHARED	= $(LIBNAME).dll
-
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
 .PHONY: all all-before all-after action-custom
@@ -31,8 +20,25 @@ clean: action-custom
 	del /S *.o *.exe *.a *.dll *.res
 #	rm -rf *.o *.exe *.a *.dll *.res
 
-#run: action-custom
-#	obj_http obj_compress obj_crypto
+
+#------------
+# Full library
+#------------
+
+LIBFULL_OBJS  = $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
+LIBSTATIC     = lib$(LIBNAME).a
+LIBSHARED     = $(LIBNAME).dll
+
+libstatic: $(LIBSTATIC)
+$(LIBSTATIC): $(OBJECTS)
+	ar rvs $(LIBSTATIC) $(LIBFULL_OBJS)
+
+libshared: $(LIBSHARED)
+$(LIBSHARED): $(OBJECTS) $(LIBNAME).res
+	g++ $(LIBFULL_OBJS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
+
+$(LIBNAME).res: $(LIBNAME).rc
+	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
 
 
 #------------
@@ -40,7 +46,7 @@ clean: action-custom
 #------------
 
 COMPONENT_ENCODING = obj_encoding
-LIBSTATIC_ENCODING = lib$(FRAMEWORK)-encoding.a
+LIBSTATIC_ENCODING = lib$(LIBNAME)-encoding.a
 OBJECTS_ENCODING = encoding/urlencode.o encoding/base64.o encoding/hex.o
 
 $(COMPONENT_ENCODING): $(OBJECTS_ENCODING)
@@ -60,7 +66,7 @@ encoding/hex.o: encoding/hex.cpp
 #------------
 
 COMPONENT_HTTP = obj_http
-LIBSTATIC_HTTP = lib$(FRAMEWORK)-http.a
+LIBSTATIC_HTTP = lib$(LIBNAME)-http.a
 OBJECTS_HTTP = http/strings.o http/headers.o http/searchquery.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o
 
 $(COMPONENT_HTTP): $(OBJECTS_HTTP)
@@ -107,7 +113,7 @@ test_http: $(OBJECTS_HTTP)
 #------------
 
 COMPONENT_COMPRESS = obj_compress
-LIBSTATIC_COMPRESS = lib$(FRAMEWORK)-compress.a
+LIBSTATIC_COMPRESS = lib$(LIBNAME)-compress.a
 OBJECTS_COMPRESS = compress/zlib.o compress/brotli.o
 
 $(COMPONENT_COMPRESS): $(OBJECTS_COMPRESS)
@@ -133,7 +139,7 @@ test_compress: $(OBJECTS_COMPRESS)
 #------------
 
 COMPONENT_CRYPTO = obj_crypto
-LIBSTATIC_CRYPTO = lib$(FRAMEWORK)-crypto.a
+LIBSTATIC_CRYPTO = lib$(LIBNAME)-crypto.a
 OBJECTS_CRYPTO = crypto/random.o crypto/sha1.o crypto/sha256.o crypto/sha512.o
 
 $(COMPONENT_CRYPTO): $(OBJECTS_CRYPTO)
@@ -158,7 +164,7 @@ crypto/sha512.o: crypto/sha512.cpp
 #------------
 
 COMPONENT_SOCKETS = obj_sockets
-LIBSTATIC_SOCKETS = lib$(FRAMEWORK)-sockets.a
+LIBSTATIC_SOCKETS = lib$(LIBNAME)-sockets.a
 OBJECTS_SOCKETS = sockets/httpListenSocket.o sockets/httpClientSocket.o
 
 $(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
@@ -176,7 +182,7 @@ sockets/httpClientSocket.o: sockets/httpClientSocket.cpp
 #------------
 
 COMPONENT_SERVER = obj_server
-LIBSTATIC_SERVER = lib$(FRAMEWORK)-server.a
+LIBSTATIC_SERVER = lib$(LIBNAME)-server.a
 OBJECTS_SERVER = server/server.o server/logs.o
 
 $(COMPONENT_SERVER): $(OBJECTS_SERVER)
@@ -201,7 +207,7 @@ test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_S
 #------------
 
 COMPONENT_KVSTORAGE = obj_kvstorage
-LIBSTATIC_KVSTORAGE = lib$(FRAMEWORK)-kvstorage.a
+LIBSTATIC_KVSTORAGE = lib$(LIBNAME)-kvstorage.a
 OBJECTS_KVSTORAGE = storage/kvstorage.o
 
 $(COMPONENT_KVSTORAGE): $(OBJECTS_KVSTORAGE)
@@ -254,10 +260,6 @@ test_kvstorage: $(OBJECTS_KVSTORAGE)
 
 
 
-
-
-
-
 # ----
 #	labmda demo/test app
 # ----
@@ -272,35 +274,3 @@ test_kvstorage: $(OBJECTS_KVSTORAGE)
 #	dynamically linked to all the dlls
 #dynamic: libshared main.o
 #	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEV)
-
-
-# ----
-#	dev main
-# ----
-#main.o: main.cpp
-#	g++ -c main.cpp -o main.o $(FLAGS)
-
-
-# ----
-#	lib
-# ----
-#	make static lib
-#libstatic: $(LIBSTATIC)
-
-#$(LIBSTATIC): $(OBJECTS)
-#	ar rvs $(LIBSTATIC) $(OBJECTS)
-
-#	make dll
-#libshared: $(LIBSHARED)
-
-#$(LIBSHARED): $(OBJECTS) $(LIBNAME).res
-#	g++ $(OBJECTS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
-
-
-# ----
-#	resources
-# ----
-#$(LIBNAME).res: $(LIBNAME).rc
-#	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
-
-
