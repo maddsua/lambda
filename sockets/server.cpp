@@ -100,7 +100,7 @@ void HTTPSocket::Server::connectionHandler() {
 	setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));
 	setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tcpTimeout, sizeof(uint32_t));*/
 
-	auto request = receiveMessage(&ClientSocket);
+	auto request = receiveMessage(ClientSocket);
 
 	puts(request.path().c_str());
 
@@ -109,7 +109,7 @@ void HTTPSocket::Server::connectionHandler() {
 	resp.headers = {{"test-header-5", "ok"}};
 	
 
-	sendMessage(&ClientSocket, resp);
+	sendMessage(ClientSocket, resp);
 
 	shutdown(ClientSocket, SD_BOTH);
 	closesocket(ClientSocket);
