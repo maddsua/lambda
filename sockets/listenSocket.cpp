@@ -2,6 +2,7 @@
 
 HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 
+	//	initialize winsock2, windows only, obviously
 	#ifdef _WIN32
 	SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (temp == INVALID_SOCKET && GetLastError() == WSANOTINITIALISED) {
@@ -15,15 +16,16 @@ HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 	}
 	#endif
 	
-	//	resolve server address
+	//	some network hints
 	struct addrinfo* servAddr = NULL;
 	struct addrinfo addrHints;
-	ZeroMemory(&addrHints, sizeof(addrHints));
+	memset(&addrHints, 0, sizeof(addrHints));
 	addrHints.ai_family = AF_INET;
 	addrHints.ai_socktype = SOCK_STREAM;
 	addrHints.ai_protocol = IPPROTO_TCP;
 	addrHints.ai_flags = AI_PASSIVE;
 
+	//	resolve server address
 	if (getaddrinfo(NULL, listenPort, &addrHints, &servAddr) != 0) {
 
 		#ifdef _WIN32
@@ -39,7 +41,6 @@ HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 	
 	// create and bind a SOCKET
 	this->hSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
-
 	if (this->hSocket == INVALID_SOCKET) {
 
 		#ifdef _WIN32
@@ -51,8 +52,9 @@ HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 		return;
 	}
 
-	int reuseOptVal = 1;
-	if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuseOptVal, sizeof(reuseOptVal))) {
+	//	allow fast port reuse
+	uint32_t sockoptReuseaddr = 1;
+	if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
 		
 		#ifdef _WIN32
 			socketError = GetLastError();
@@ -63,6 +65,7 @@ HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 		closesocket(this->hSocket);
 	}
 	
+	//	bind socket
 	if (bind(this->hSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 
 		#ifdef _WIN32
@@ -78,6 +81,7 @@ HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 
 	freeaddrinfo(servAddr);
 
+	//	listen for incoming connections
 	if (listen(this->hSocket, SOMAXCONN) == SOCKET_ERROR) {
 
 		#ifdef _WIN32
@@ -89,6 +93,7 @@ HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 
 		return;
 	}
+	
 	socketStat = HSOCKERR_OK;
 }
 
