@@ -10,14 +10,11 @@ HTTP::Headers::Headers(const std::string& httpHeader) {
 
 	for (auto& item : headerLines) {
 
-		if (item.find(':') == std::string::npos) continue;
+		auto kvSeparatorIdx = item.find(':');
+		if (kvSeparatorIdx == std::string::npos || kvSeparatorIdx == 0 || kvSeparatorIdx == item.size() - 1) continue;
 
-		auto header = HTTP::stringSplit(item, ":");
-		if (header.size() < 2) continue;
-		
-		auto key = header.at(0);
-		auto value = header.at(1);
-		if (!key.size() || !value.size()) continue;
+		auto key = item.substr(0, kvSeparatorIdx);
+		auto value = item.substr(kvSeparatorIdx + 1);
 
 		HTTP::stringTrim(key);
 		HTTP::stringTrim(value);
@@ -54,7 +51,7 @@ bool HTTP::Headers::append(std::string key, const std::string& value) {
 
 std::string HTTP::Headers::get(std::string key) {
 	stringToTittleCase(key);
-	return has(key) ? std::string() : this->data[key];
+	return has(key) ? this->data[key] : std::string();
 }
 
 void HTTP::Headers::del(std::string key) {
