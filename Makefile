@@ -60,7 +60,7 @@ encoding/hex.o: encoding/hex.cpp
 #------------
 
 COMPONENT_HTTP = obj_http
-LIBSTATIC_HTTP = lib$(FRAMEWORK)http.a
+LIBSTATIC_HTTP = lib$(FRAMEWORK)-http.a
 OBJECTS_HTTP = http/strings.o http/headers.o http/searchquery.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o
 
 $(COMPONENT_HTTP): $(OBJECTS_HTTP)
@@ -133,7 +133,7 @@ test_compress: $(OBJECTS_COMPRESS)
 #------------
 
 COMPONENT_CRYPTO = obj_crypto
-LIBSTATIC_CRYPTO = lib$(FRAMEWORK)crypto.a
+LIBSTATIC_CRYPTO = lib$(FRAMEWORK)-crypto.a
 OBJECTS_CRYPTO = crypto/random.o crypto/sha1.o crypto/sha256.o crypto/sha512.o
 
 $(COMPONENT_CRYPTO): $(OBJECTS_CRYPTO)
@@ -158,7 +158,7 @@ crypto/sha512.o: crypto/sha512.cpp
 #------------
 
 COMPONENT_SOCKETS = obj_sockets
-LIBSTATIC_SOCKETS = lib$(FRAMEWORK)sockets.a
+LIBSTATIC_SOCKETS = lib$(FRAMEWORK)-sockets.a
 OBJECTS_SOCKETS = sockets/httpListenSocket.o sockets/httpClientSocket.o
 
 $(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
@@ -176,7 +176,7 @@ sockets/httpClientSocket.o: sockets/httpClientSocket.cpp
 #------------
 
 COMPONENT_SERVER = obj_server
-LIBSTATIC_SERVER = lib$(FRAMEWORK)server.a
+LIBSTATIC_SERVER = lib$(FRAMEWORK)-server.a
 OBJECTS_SERVER = server/server.o server/logs.o
 
 $(COMPONENT_SERVER): $(OBJECTS_SERVER)
@@ -193,13 +193,30 @@ server/logs.o: server/logs.cpp
 #------------
 
 test_server: $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
-	g++ tests/server/server.cpp $(OBJECTS_SERVER) $(OBJECTS_SOCKETS) $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
+	g++ tests/server.cpp $(OBJECTS_SERVER) $(OBJECTS_SOCKETS) $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
 
+#------------
+# Component: KV Storage
+#------------
+
+COMPONENT_KVSTORAGE = obj_kvstorage
+LIBSTATIC_KVSTORAGE = lib$(FRAMEWORK)-kvstorage.a
+OBJECTS_KVSTORAGE = storage/kvstorage.o
+
+$(COMPONENT_KVSTORAGE): $(OBJECTS_KVSTORAGE)
+	ar rvs $(LIBSTATIC_KVSTORAGE) $(OBJECTS_KVSTORAGE)
+
+storage/kvstorage.o: storage/kvstorage.cpp
+	g++ -c storage/kvstorage.cpp -o storage/kvstorage.o $(FLAGS)
 
 
+#------------
+# Test: KV Storage
+#------------
 
-
+test_kvstorage: $(OBJECTS_KVSTORAGE)
+	g++ tests/kvstorage.cpp $(OBJECTS_KVSTORAGE) -o test_kvstorage.exe
 
 
 
