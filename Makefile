@@ -139,16 +139,16 @@ crypto/sha512.o: crypto/sha512.cpp
 
 COMPONENT_SOCKETS = obj_sockets
 LIBSTATIC_SOCKETS = lib$(FRAMEWORK)sockets.a
-OBJECTS_SOCKETS = sockets/listenSocket.o sockets/clientSocket.o
+OBJECTS_SOCKETS = sockets/httpListenSocket.o sockets/httpClientSocket.o
 
 $(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
 	ar rvs $(LIBSTATIC_SOCKETS) $(OBJECTS_SOCKETS)
 
-sockets/listenSocket.o: sockets/listenSocket.cpp
-	g++ -c sockets/listenSocket.cpp -o sockets/listenSocket.o $(FLAGS)
+sockets/httpListenSocket.o: sockets/httpListenSocket.cpp
+	g++ -c sockets/httpListenSocket.cpp -o sockets/httpListenSocket.o $(FLAGS)
 
-sockets/clientSocket.o: sockets/clientSocket.cpp
-	g++ -c sockets/clientSocket.cpp -o sockets/clientSocket.o $(FLAGS)
+sockets/httpClientSocket.o: sockets/httpClientSocket.cpp
+	g++ -c sockets/httpClientSocket.cpp -o sockets/httpClientSocket.o $(FLAGS)
 
 
 #------------

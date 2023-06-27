@@ -26,7 +26,7 @@
 
 #endif
 
-namespace HTTPSocket {
+namespace LambdaSocket {
 
 	static const size_t network_chunksize_header = 2048;
 	static const size_t network_chunksize_body = 131072;
@@ -51,7 +51,7 @@ namespace HTTPSocket {
 		int64_t code = HSOCKERR_OK;
 	};
 
-	class ClientSocket {
+	class HTTPClientSocket {
 		private:
 			SOCKET hSocket = HSOCKERR_UNINITIALIZED;
 			int32_t socketStat = HSOCKERR_UNINITIALIZED;
@@ -59,9 +59,9 @@ namespace HTTPSocket {
 			std::string _clientIP;
 
 		public:
-			ClientSocket(SOCKET hParentSocket, time_t timeoutMs);
-			ClientSocket(SOCKET hParentSocket) : ClientSocket(hParentSocket, 15000) {};
-			~ClientSocket();
+			HTTPClientSocket(SOCKET hParentSocket, time_t timeoutMs);
+			HTTPClientSocket(SOCKET hParentSocket) : HTTPClientSocket(hParentSocket, 15000) {};
+			~HTTPClientSocket();
 
 			bool ok();
 			OpStatus status();
@@ -70,7 +70,7 @@ namespace HTTPSocket {
 			OpStatus sendMessage(HTTP::Response& response);
 	};
 
-	class ListenSocket {
+	class HTTPListenSocket {
 		private:
 			SOCKET hSocket = HSOCKERR_UNINITIALIZED;
 			int32_t socketStat = HSOCKERR_UNINITIALIZED;
@@ -78,14 +78,14 @@ namespace HTTPSocket {
 			void _contructor(const char* listenPort);
 
 		public:
-			ListenSocket() : ListenSocket("8080") {};
-			ListenSocket(const char* listenPort);
-			~ListenSocket();
+			HTTPListenSocket() : HTTPListenSocket("8080") {};
+			HTTPListenSocket(const char* listenPort);
+			~HTTPListenSocket();
 
 			bool ok();
 			OpStatus status();
 
-			ClientSocket acceptConnection();
+			HTTPClientSocket acceptConnection();
 	};
 
 };

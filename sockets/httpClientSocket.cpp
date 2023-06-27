@@ -2,7 +2,7 @@
 #include <array>
 #include <algorithm>
 
-HTTPSocket::ClientSocket::ClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
+LambdaSocket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
 
 	SOCKADDR_IN clientAddr;
 	int clientAddrLen = sizeof(clientAddr);
@@ -36,13 +36,13 @@ HTTPSocket::ClientSocket::ClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
 	socketStat = HSOCKERR_OK;
 }
 
-HTTPSocket::ClientSocket::~ClientSocket() {
+LambdaSocket::HTTPClientSocket::~HTTPClientSocket() {
 	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
 
-HTTP::Request HTTPSocket::ClientSocket::receiveMessage() {
+HTTP::Request LambdaSocket::HTTPClientSocket::receiveMessage() {
 
 	//	receive http header first
 	static const std::string patternEndHeader = "\r\n\r\n";
@@ -82,7 +82,7 @@ HTTP::Request HTTPSocket::ClientSocket::receiveMessage() {
 	return request;
 }
 
-HTTPSocket::OpStatus HTTPSocket::ClientSocket::sendMessage(HTTP::Response& response) {
+LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::sendMessage(HTTP::Response& response) {
 	auto payload = response.dump();
 	if (send(this->hSocket, (char*)payload.data(), payload.size(), 0) <= 0)
 		return { HSOCKERR_SEND, GetLastError() };
@@ -90,9 +90,9 @@ HTTPSocket::OpStatus HTTPSocket::ClientSocket::sendMessage(HTTP::Response& respo
 	return { HSOCKERR_OK };
 }
 
-bool HTTPSocket::ClientSocket::ok() {
+bool LambdaSocket::HTTPClientSocket::ok() {
 	return socketStat == HSOCKERR_OK;
 }
-HTTPSocket::OpStatus HTTPSocket::ClientSocket::status() {
+LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::status() {
 	return { socketStat, socketError };
 }

@@ -1,6 +1,6 @@
 #include "sockets.hpp"
 
-HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
+LambdaSocket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 
 	//	initialize winsock2, windows only, obviously
 	#ifdef _WIN32
@@ -97,18 +97,18 @@ HTTPSocket::ListenSocket::ListenSocket(const char* listenPort) {
 	socketStat = HSOCKERR_OK;
 }
 
-HTTPSocket::ListenSocket::~ListenSocket() {
+LambdaSocket::HTTPListenSocket::~HTTPListenSocket() {
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
 
-HTTPSocket::ClientSocket HTTPSocket::ListenSocket::acceptConnection() {	
-	return ClientSocket(this->hSocket);
+LambdaSocket::HTTPClientSocket LambdaSocket::HTTPListenSocket::acceptConnection() {	
+	return HTTPClientSocket(this->hSocket);
 }
 
-bool HTTPSocket::ListenSocket::ok() {
+bool LambdaSocket::HTTPListenSocket::ok() {
 	return socketStat == HSOCKERR_OK;
 }
-HTTPSocket::OpStatus HTTPSocket::ListenSocket::status() {
+LambdaSocket::OpStatus LambdaSocket::HTTPListenSocket::status() {
 	return { socketStat, socketError };
 }

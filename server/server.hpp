@@ -15,7 +15,7 @@ namespace Lambda {
 
 	class Server {
 		private:
-			HTTPSocket::ListenSocket* ListenSocketObj;
+			LambdaSocket::HTTPListenSocket* ListenSocketObj;
 			std::thread* watchdogThread;
 			bool handlerDispatched;
 			bool running;
