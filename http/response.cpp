@@ -1,17 +1,6 @@
 #include "./http.hpp"
 #include <cstdio>
 
-void HTTP::Response::setStatusCode(const uint16_t code) {
-	auto status = statusText(code);
-	if (!status.size()) return;
-	this->_statusCode = code;
-	this->_status = status;
-}
-
-uint16_t HTTP::Response::statusCode() {
-	return this->_statusCode;
-}
-
 HTTP::Response::Response() {
 	//	do nothing again
 }
@@ -25,7 +14,7 @@ HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& h
 HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body) {
 	setStatusCode(statusCode);
 	this->headers.fromEntries(headers);
-	this->body = std::vector<uint8_t>(body.begin(), body.end());
+	setBodyText(body);
 }
 
 HTTP::Response& HTTP::Response::operator = (const HTTP::Request& right) {
@@ -44,4 +33,19 @@ std::vector<uint8_t> HTTP::Response::dump() {
 	frame += std::string(this->body.begin(), this->body.end());
 
 	return std::vector<uint8_t>(frame.begin(), frame.end());
+}
+
+void HTTP::Response::setStatusCode(const uint16_t code) {
+	auto status = statusText(code);
+	if (!status.size()) return;
+	this->_statusCode = code;
+	this->_status = status;
+}
+
+uint16_t HTTP::Response::statusCode() {
+	return this->_statusCode;
+}
+
+void HTTP::Response::setBodyText(const std::string& text) {
+	this->body = std::vector<uint8_t>(text.begin(), text.end());
 }

@@ -56,7 +56,7 @@ namespace LambdaSocket {
 			SOCKET hSocket = HSOCKERR_UNINITIALIZED;
 			int32_t socketStat = HSOCKERR_UNINITIALIZED;
 			int32_t socketError = HSOCKERR_UNINITIALIZED;
-			std::string _clientIP;
+			std::string _clientIPv4;
 
 		public:
 			HTTPClientSocket(SOCKET hParentSocket, time_t timeoutMs);
@@ -65,6 +65,7 @@ namespace LambdaSocket {
 
 			bool ok();
 			OpStatus status();
+			std::string metadata();
 
 			HTTP::Request receiveMessage();
 			OpStatus sendMessage(HTTP::Response& response);
@@ -75,7 +76,6 @@ namespace LambdaSocket {
 			SOCKET hSocket = HSOCKERR_UNINITIALIZED;
 			int32_t socketStat = HSOCKERR_UNINITIALIZED;
 			int32_t socketError = HSOCKERR_UNINITIALIZED;
-			void _contructor(const char* listenPort);
 
 		public:
 			HTTPListenSocket() : HTTPListenSocket("8080") {};

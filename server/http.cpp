@@ -1,5 +1,6 @@
 #include "./server.hpp"
 #include "../http/http.hpp"
+#include "../lambda/lambda.hpp"
 #include <chrono>
 
 Lambda::Server::Server() {
@@ -55,17 +56,19 @@ void Lambda::Server::connectionHandler() {
 	handlerDispatched = true;
 
 	if (!client.ok()) {
-		addLogRecord(std::string("Request aborted, socket error: ") + "client.ip");
+		addLogRecord(std::string("Request aborted, socket error on client: ") + client.metadata());
 		return;
 	}
 
 	auto request = client.receiveMessage();
 
-	puts(request.path().c_str());
 
+	//	fallback handler
+	addLogRecord(std::string("Request handled in fallback mode. Path: " ) + request.path() + ", client: " + client.metadata());
 	auto resp = HTTP::Response();
-
-	resp.headers.fromEntries({{"Server", "maddsua/lambda"}});
-	
+	resp.headers.append("server", "maddsua/lambda");
+	resp.headers.append("content-type", "text/plain");
+	resp.headers.append("date", HTTP::serverDate());
+	resp.setBodyText(std::string("server works. lambda v") + LAMBDAVERSION);
 	client.sendMessage(resp);
 }

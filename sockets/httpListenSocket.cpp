@@ -29,11 +29,11 @@ LambdaSocket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (getaddrinfo(NULL, listenPort, &addrHints, &servAddr) != 0) {
 
 		#ifdef _WIN32
-			socketError = GetLastError();
+			this->socketError = GetLastError();
 		#else
-			socketError = errno;
+			this->socketError = errno;
 		#endif
-		socketStat = HSOCKERR_ADDRESS;
+		this->socketStat = HSOCKERR_ADDRESS;
 
 		freeaddrinfo(servAddr);
 		return;
@@ -44,9 +44,9 @@ LambdaSocket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (this->hSocket == INVALID_SOCKET) {
 
 		#ifdef _WIN32
-			socketError = GetLastError();
+			this->socketError = GetLastError();
 		#endif
-		socketStat = HSOCKERR_CREATE;
+		this->socketStat = HSOCKERR_CREATE;
 
 		freeaddrinfo(servAddr);
 		return;
@@ -57,9 +57,9 @@ LambdaSocket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
 		
 		#ifdef _WIN32
-			socketError = GetLastError();
+			this->socketError = GetLastError();
 		#endif
-		socketStat = HSOCKERR_SETOPT;
+		this->socketStat = HSOCKERR_SETOPT;
 
 		freeaddrinfo(servAddr);
 		closesocket(this->hSocket);
@@ -69,9 +69,9 @@ LambdaSocket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (bind(this->hSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 
 		#ifdef _WIN32
-			socketError = GetLastError();
+			this->socketError = GetLastError();
 		#endif
-		socketStat = HSOCKERR_BIND;
+		this->socketStat = HSOCKERR_BIND;
 
 		freeaddrinfo(servAddr);
 		closesocket(this->hSocket);
@@ -85,16 +85,16 @@ LambdaSocket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (listen(this->hSocket, SOMAXCONN) == SOCKET_ERROR) {
 
 		#ifdef _WIN32
-			socketError = GetLastError();
+			this->socketError = GetLastError();
 		#endif
-		socketStat = HSOCKERR_LISTEN;
+		this->socketStat = HSOCKERR_LISTEN;
 
 		closesocket(this->hSocket);
 
 		return;
 	}
 	
-	socketStat = HSOCKERR_OK;
+	this->socketStat = HSOCKERR_OK;
 }
 
 LambdaSocket::HTTPListenSocket::~HTTPListenSocket() {

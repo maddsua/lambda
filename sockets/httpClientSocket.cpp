@@ -31,7 +31,7 @@ LambdaSocket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t ti
 
 	char clientIPBuff[64];
 	if (inet_ntop(AF_INET, &clientAddr.sin_addr, clientIPBuff, sizeof(clientIPBuff)) != nullptr)
-		_clientIP = clientIPBuff;
+		_clientIPv4 = clientIPBuff;
 
 	socketStat = HSOCKERR_OK;
 }
@@ -83,7 +83,9 @@ HTTP::Request LambdaSocket::HTTPClientSocket::receiveMessage() {
 }
 
 LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::sendMessage(HTTP::Response& response) {
+
 	auto payload = response.dump();
+
 	if (send(this->hSocket, (char*)payload.data(), payload.size(), 0) <= 0)
 		return { HSOCKERR_SEND, GetLastError() };
 	
@@ -91,8 +93,13 @@ LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::sendMessage(HTTP::Respons
 }
 
 bool LambdaSocket::HTTPClientSocket::ok() {
-	return socketStat == HSOCKERR_OK;
+	return this->socketStat == HSOCKERR_OK;
 }
+
 LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::status() {
-	return { socketStat, socketError };
+	return { this->socketStat, this->socketError };
+}
+
+std::string LambdaSocket::HTTPClientSocket::metadata() {
+	return this->_clientIPv4;
 }

@@ -88,6 +88,7 @@ namespace HTTP {
 			uint16_t statusCode();
 			Headers headers;
 			std::vector<uint8_t> body;
+			void setBodyText(const std::string& text);
 			std::vector<uint8_t> dump();
 	};
 
