@@ -2,7 +2,6 @@
 #define __LAMBDA_SOCKETS__
 
 #include "../http/http.hpp"
-#include "../lambda/exception.hpp"
 #include <thread>
 
 #ifdef _WIN32
