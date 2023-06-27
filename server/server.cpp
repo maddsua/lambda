@@ -99,20 +99,21 @@ void Server::connectionHandler() {
 	}
 
 	auto response = HTTP::Response();
-	response.headers.set("server", "maddsua/lambda");
-	response.headers.set("date", HTTP::serverDate());
 
 	//	serverless handler
 	if (this->requestCallbackServerless != nullptr) {
 		response = (*requestCallbackServerless)(request, requestCTX);
 	}
-
 	//	fallback handler
 	else {
 		addLogRecord(std::string("Request handled in fallback mode. Path: " ) + request.path() + ", client: " + client.ip());
-		response.headers.set("content-type", "text/plain");
 		response.setBodyText(std::string("server works. lambda v") + LAMBDAVERSION);
 	}
+
+	//	set some service headers
+	response.headers.append("server", "maddsua/lambda");
+	response.headers.append("date", HTTP::serverDate());
+	response.headers.append("content-type", "text/plain");
 
 	client.sendMessage(response);
 }
