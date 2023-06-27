@@ -192,8 +192,8 @@ server/logs.o: server/logs.cpp
 # Test: Server
 #------------
 
-test_server: $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
-	g++ tests/server.cpp $(OBJECTS_SERVER) $(OBJECTS_SOCKETS) $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
+test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
+	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
 
 #------------
