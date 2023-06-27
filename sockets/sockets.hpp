@@ -56,7 +56,7 @@ namespace HTTPSocket {
 			SOCKET hSocket = HSOCKERR_UNINITIALIZED;
 			int32_t socketStat = HSOCKERR_UNINITIALIZED;
 			int32_t socketError = HSOCKERR_UNINITIALIZED;
-			std::string clientIP;
+			std::string _clientIP;
 			//std::string clientIPv6;
 
 		public:
