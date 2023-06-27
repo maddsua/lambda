@@ -1,7 +1,7 @@
 #include "crypto.hpp"
 #include <random>
 
-std::vector <uint64_t> Crypto::randomSequence(size_t cap, size_t length) {
+std::vector <uint64_t> Lambda::Crypto::randomSequence(size_t cap, size_t length) {
 
 	if (!length) return {};
 
@@ -18,7 +18,7 @@ std::vector <uint64_t> Crypto::randomSequence(size_t cap, size_t length) {
 	return randomIntList;
 }
 
-std::vector <uint8_t> Crypto::randomStream(size_t length) {
+std::vector <uint8_t> Lambda::Crypto::randomStream(size_t length) {
 
 	if (!length) return {};
 

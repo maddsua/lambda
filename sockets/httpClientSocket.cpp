@@ -2,7 +2,7 @@
 #include <array>
 #include <algorithm>
 
-LambdaSocket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
+Lambda::Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
 
 	SOCKADDR_IN clientAddr;
 	int clientAddrLen = sizeof(clientAddr);
@@ -36,13 +36,13 @@ LambdaSocket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t ti
 	socketStat = HSOCKERR_OK;
 }
 
-LambdaSocket::HTTPClientSocket::~HTTPClientSocket() {
+Lambda::Socket::HTTPClientSocket::~HTTPClientSocket() {
 	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
 
-HTTP::Request LambdaSocket::HTTPClientSocket::receiveMessage() {
+Lambda::HTTP::Request Lambda::Socket::HTTPClientSocket::receiveMessage() {
 
 	//	receive http header first
 	static const std::string patternEndHeader = "\r\n\r\n";
@@ -58,7 +58,7 @@ HTTP::Request LambdaSocket::HTTPClientSocket::receiveMessage() {
 		headerEnded = std::search(rawMessage.begin(), rawMessage.end(), patternEndHeader.begin(), patternEndHeader.end());
 	}
 
-	auto request = HTTP::Request(rawMessage);
+	auto request = Lambda::HTTP::Request(rawMessage);
 
 	//	download request body
 	if (!request.headers().has("Content-Length")) return request;
@@ -82,7 +82,7 @@ HTTP::Request LambdaSocket::HTTPClientSocket::receiveMessage() {
 	return request;
 }
 
-LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::sendMessage(HTTP::Response& response) {
+Lambda::Socket::OpStatus Lambda::Socket::HTTPClientSocket::sendMessage(Lambda::HTTP::Response& response) {
 
 	auto payload = response.dump();
 
@@ -92,14 +92,14 @@ LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::sendMessage(HTTP::Respons
 	return { HSOCKERR_OK };
 }
 
-bool LambdaSocket::HTTPClientSocket::ok() {
+bool Lambda::Socket::HTTPClientSocket::ok() {
 	return this->socketStat == HSOCKERR_OK;
 }
 
-LambdaSocket::OpStatus LambdaSocket::HTTPClientSocket::status() {
+Lambda::Socket::OpStatus Lambda::Socket::HTTPClientSocket::status() {
 	return { this->socketStat, this->socketError };
 }
 
-std::string LambdaSocket::HTTPClientSocket::ip() {
+std::string Lambda::Socket::HTTPClientSocket::ip() {
 	return this->_clientIPv4;
 }

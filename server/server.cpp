@@ -5,7 +5,7 @@
 
 Lambda::Server::Server() {
 
-	this->ListenSocketObj = new LambdaSocket::HTTPListenSocket();
+	this->ListenSocketObj = new Lambda::Socket::HTTPListenSocket();
 	if (!ListenSocketObj->ok()) {
 		auto sockstat = ListenSocketObj->status();
 		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.status));

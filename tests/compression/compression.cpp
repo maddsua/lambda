@@ -1,5 +1,7 @@
-#include "../../compression/compression.hpp"
+#include "../../compress/compress.hpp"
 #include <iostream>
+
+using namespace Lambda;
 
 int main() {
 

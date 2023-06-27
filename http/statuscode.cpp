@@ -60,7 +60,7 @@ const std::map <uint16_t, std::string> statusCodeTable = {
 	{ 511, "Network Authentication Required" }
 };
 
-std::string HTTP::statusText(const uint16_t statusCode) {
+std::string Lambda::HTTP::statusText(const uint16_t statusCode) {
 	if (statusCodeTable.find(statusCode) == statusCodeTable.end()) return {};
 	return statusCodeTable.at(statusCode);
 }

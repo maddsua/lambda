@@ -25,7 +25,7 @@
 
 #endif
 
-namespace LambdaSocket {
+namespace Lambda::Socket {
 
 	static const size_t network_chunksize_header = 2048;
 	static const size_t network_chunksize_body = 131072;
@@ -66,8 +66,8 @@ namespace LambdaSocket {
 			OpStatus status();
 			std::string ip();
 
-			HTTP::Request receiveMessage();
-			OpStatus sendMessage(HTTP::Response& response);
+			Lambda::HTTP::Request receiveMessage();
+			OpStatus sendMessage(Lambda::HTTP::Response& response);
 	};
 
 	class HTTPListenSocket {

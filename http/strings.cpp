@@ -3,31 +3,31 @@
 #include <map>
 #include <set>
 
-void HTTP::stringToLowerCase(std::string& str) {
+void Lambda::HTTP::stringToLowerCase(std::string& str) {
 	for (auto& c : str) {
 		if (c > 'Z' || c < 'A') continue;
 		c += 0x20;
 	}
 }
-std::string HTTP::stringToLowerCase(const std::string& str) {
+std::string Lambda::HTTP::stringToLowerCase(const std::string& str) {
 	auto temp = str;
 	stringToLowerCase(temp);
 	return temp;
 }
 
-void HTTP::stringToUpperCase(std::string& str) {
+void Lambda::HTTP::stringToUpperCase(std::string& str) {
 	for (auto& c : str) {
 		if (c > 'z' || c < 'a') continue;
 		c -= 0x20;
 	}
 }
-std::string HTTP::stringToUpperCase(const std::string& str) {
+std::string Lambda::HTTP::stringToUpperCase(const std::string& str) {
 	auto temp = str;
 	stringToUpperCase(temp);
 	return temp;
 }
 
-void HTTP::stringToTittleCase(std::string& str) {
+void Lambda::HTTP::stringToTittleCase(std::string& str) {
 	bool needToBeCapital = true;
 	for (auto& c : str) {
 		if (needToBeCapital && (c >= 'a' && c <= 'z')) c -= 0x20;
@@ -35,16 +35,16 @@ void HTTP::stringToTittleCase(std::string& str) {
 		needToBeCapital = (c == ' ' || c == '-');
 	}
 }
-std::string HTTP::stringToTittleCase(const std::string& str) {
+std::string Lambda::HTTP::stringToTittleCase(const std::string& str) {
 	auto temp = str;
 	stringToTittleCase(temp);
 	return temp;
 }
 
-bool HTTP::stringIncludes(const std::string& str, const std::string& substr) {
+bool Lambda::HTTP::stringIncludes(const std::string& str, const std::string& substr) {
 	return str.find(substr) != std::string::npos;
 }
-bool HTTP::stringIncludes(const std::string& str, const std::vector <std::string>& substrs) {
+bool Lambda::HTTP::stringIncludes(const std::string& str, const std::vector <std::string>& substrs) {
 	for (auto& item : substrs) {
 		if (str.find(item) != std::string::npos)
 			return true;
@@ -52,14 +52,14 @@ bool HTTP::stringIncludes(const std::string& str, const std::vector <std::string
 	return false;
 }
 
-bool HTTP::stringEndsWith(const std::string& str, const std::string& substr) {
+bool Lambda::HTTP::stringEndsWith(const std::string& str, const std::string& substr) {
 	return str.find(substr) == (str.size() - substr.size());
 }
-bool HTTP::stringStartsWith(const std::string& str, const std::string& substr) {
+bool Lambda::HTTP::stringStartsWith(const std::string& str, const std::string& substr) {
 	return str.find(substr) == 0;
 }
 
-void HTTP::stringTrim(std::string& str) {
+void Lambda::HTTP::stringTrim(std::string& str) {
 
 	//	list of characters to remove
 	static const std::set<char> whitespaceChars = {'\r','\n','\t',' '};
@@ -83,13 +83,13 @@ void HTTP::stringTrim(std::string& str) {
 	
 	str = str.substr(pos_from, pos_to - (pos_from - 1));
 }
-std::string HTTP::stringTrim(const std::string& str) {
+std::string Lambda::HTTP::stringTrim(const std::string& str) {
 	auto temp = str;
 	stringTrim(temp);
 	return temp;
 }
 
-std::string HTTP::stringJoin(const std::vector<std::string>& strs, const char* token) {
+std::string Lambda::HTTP::stringJoin(const std::vector<std::string>& strs, const char* token) {
 	std::string result;
 	for(auto& str : strs) {
 		if (result.size() > 0) result += token;
@@ -98,7 +98,7 @@ std::string HTTP::stringJoin(const std::vector<std::string>& strs, const char* t
 	return result;
 }
 
-std::vector<std::string> HTTP::stringSplit(const std::string& str, const char* token) {
+std::vector<std::string> Lambda::HTTP::stringSplit(const std::string& str, const char* token) {
 
 	std::vector <std::string> result;
 
@@ -158,7 +158,7 @@ const auto URLEncodeTable = URLEncodeMap({
 	{'=', "%3D"}
 });
 
-std::string HTTP::encodeURIComponent(const std::string& str) {
+std::string Lambda::HTTP::encodeURIComponent(const std::string& str) {
 	auto result = std::string();
 	for (auto c : str) {
 		if (URLEncodeTable.find(c) != URLEncodeTable.end()) {

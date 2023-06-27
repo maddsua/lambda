@@ -87,17 +87,17 @@ test_http: $(OBJECTS_HTTP)
 #------------
 
 COMPONENT_COMPRESS = obj_compress
-LIBSTATIC_COMPRESS = lib$(FRAMEWORK)compression.a
-OBJECTS_COMPRESS = compression/zlib.o compression/brotli.o
+LIBSTATIC_COMPRESS = lib$(FRAMEWORK)compress.a
+OBJECTS_COMPRESS = compress/zlib.o compress/brotli.o
 
 $(COMPONENT_COMPRESS): $(OBJECTS_COMPRESS)
 	ar rvs $(LIBSTATIC_COMPRESS) $(OBJECTS_COMPRESS)
 
-compression/zlib.o: compression/zlib.cpp
-	g++ -c compression/zlib.cpp -o compression/zlib.o $(FLAGS)
+compress/zlib.o: compress/zlib.cpp
+	g++ -c compress/zlib.cpp -o compress/zlib.o $(FLAGS)
 
-compression/brotli.o: compression/brotli.cpp
-	g++ -c compression/brotli.cpp -o compression/brotli.o $(FLAGS)
+compress/brotli.o: compress/brotli.cpp
+	g++ -c compress/brotli.cpp -o compress/brotli.o $(FLAGS)
 
 
 #------------
@@ -105,7 +105,7 @@ compression/brotli.o: compression/brotli.cpp
 #------------
 
 test_compress: $(OBJECTS_COMPRESS)
-	g++ tests/compression/compression.cpp $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_compress.exe
+	g++ tests/compress/compress.cpp $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_compress.exe
 
 
 #------------

@@ -1179,12 +1179,12 @@ static const std::map<std::string, std::string> mimetypeMap = {
 	{ "zmm", "application/vnd.handheld-entertainment+xml" }
 };
 
-std::string HTTP::getExtMimetype(const std::string ext) {
+std::string Lambda::HTTP::getExtMimetype(const std::string ext) {
 	if (mimetypeMap.find(ext) == mimetypeMap.end()) return "application/octet-stream";
 	return mimetypeMap.at(ext);
 }
 
-std::string HTTP::getMimetypeExt(const std::string mimetype) {
+std::string Lambda::HTTP::getMimetypeExt(const std::string mimetype) {
 	for (auto& entry : mimetypeMap) {
 		if (entry.second.find(mimetype) == std::string::npos) continue;
 		return entry.first;

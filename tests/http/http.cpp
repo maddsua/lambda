@@ -1,6 +1,8 @@
 #include "../../http/http.hpp"
 #include <iostream>
 
+using namespace Lambda;
+
 int main() {
 
 	std::cout << "\r\n--- HTTP component test begin --- \r\n\r\n";

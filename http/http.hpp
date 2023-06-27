@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace HTTP {
+namespace Lambda::HTTP {
 
 	struct KVtype {
 		std::string key;
