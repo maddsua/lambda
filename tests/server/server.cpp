@@ -1,15 +1,14 @@
-#include "../../sockets/socket.hpp"
+#include "../../server/server.hpp"
 #include <windows.h>
 
 int main() {
 
-	auto server = HTTPSocket::Server();
+	auto server = Lambda::Server();
 
 	while (true)
 	{
 		Sleep(10);
 	}
 	
-
 	return 0;
 }

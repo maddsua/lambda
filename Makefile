@@ -139,23 +139,38 @@ crypto/sha512.o: crypto/sha512.cpp
 
 COMPONENT_SOCKETS = obj_sockets
 LIBSTATIC_SOCKETS = lib$(FRAMEWORK)sockets.a
-OBJECTS_SOCKETS = sockets/server.o sockets/http.o
+OBJECTS_SOCKETS = sockets/listenSocket.o sockets/clientSocket.o
 
 $(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
 	ar rvs $(LIBSTATIC_SOCKETS) $(OBJECTS_SOCKETS)
 
-sockets/server.o: sockets/server.cpp
-	g++ -c sockets/server.cpp -o sockets/server.o $(FLAGS)
+sockets/listenSocket.o: sockets/listenSocket.cpp
+	g++ -c sockets/listenSocket.cpp -o sockets/listenSocket.o $(FLAGS)
 
-sockets/http.o: sockets/http.cpp
-	g++ -c sockets/http.cpp -o sockets/http.o $(FLAGS)
+sockets/clientSocket.o: sockets/clientSocket.cpp
+	g++ -c sockets/clientSocket.cpp -o sockets/clientSocket.o $(FLAGS)
+
+
+#------------
+# Component: Server
+#------------
+
+COMPONENT_SERVER = obj_server
+LIBSTATIC_SERVER = lib$(FRAMEWORK)server.a
+OBJECTS_SERVER = server/server.o
+
+$(COMPONENT_SERVER): $(OBJECTS_SERVER)
+	ar rvs $(LIBSTATIC_SERVER) $(OBJECTS_SERVER)
+
+server/server.o: server/server.cpp
+	g++ -c server/server.cpp -o server/server.o $(FLAGS)
 
 #------------
 # Test: Server
 #------------
 
-test_server: $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS)
-	g++ tests/server/server.cpp $(OBJECTS_SOCKETS) $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
+test_server: $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
+	g++ tests/server/server.cpp $(OBJECTS_SERVER) $(OBJECTS_SOCKETS) $(OBJECTS_HTTP) $(OBJECTS_COMPRESS) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
 
 
