@@ -15,11 +15,12 @@ int main() {
 	server.setServerlessCallback(&callback);
 
 	while (true) {
-		if (!server.hasNewLogs()) {
-			Sleep(10);
-			continue;
+		
+		if (server.hasNewLogs()) {
+			puts(HTTP::stringJoin(server.logsText(), "\n").c_str());
 		}
-		puts(HTTP::stringJoin(server.logsText(), "\n").c_str());
+
+		Sleep(10);
 	}
 	
 	return 0;
