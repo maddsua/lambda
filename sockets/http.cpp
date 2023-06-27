@@ -2,7 +2,7 @@
 #include <array>
 #include <algorithm>
 
-HTTP::Request HTTPSocket::receiveMessage(SOCKET* client) {
+HTTP::Request HTTPSocket::receiveMessage(SOCKET clientSocket) {
 
 	//	receive http header first
 	static const std::string patternEndHeader = "\r\n\r\n";
@@ -11,7 +11,7 @@ HTTP::Request HTTPSocket::receiveMessage(SOCKET* client) {
 	auto headerChunk = std::array<uint8_t, network_chunksize_header>();
 
 	while (headerEnded == rawMessage.end()) {
-		auto bytesReceived = recv(*client, (char*)headerChunk.data(), headerChunk.size(), 0);
+		auto bytesReceived = recv(clientSocket, (char*)headerChunk.data(), headerChunk.size(), 0);
 		if (bytesReceived <= 0) break;
 		rawMessage.insert(rawMessage.end(), headerChunk.data(), headerChunk.data() + bytesReceived);
 		//	"\r\n\r\n" - is a marker of http header end
@@ -32,7 +32,7 @@ HTTP::Request HTTPSocket::receiveMessage(SOCKET* client) {
 	
 	auto bodyChunk = std::array<uint8_t, network_chunksize_body>();
 	while (requestBody.size() < bodySize) {
-		auto bytesReceived = recv(*client, (char*)bodyChunk.data(), bodyChunk.size(), 0);
+		auto bytesReceived = recv(clientSocket, (char*)bodyChunk.data(), bodyChunk.size(), 0);
 		if (bytesReceived <= 0) break;
 		requestBody.insert(requestBody.end(), bodyChunk.data(), bodyChunk.data() + bytesReceived);
 	}
@@ -42,8 +42,8 @@ HTTP::Request HTTPSocket::receiveMessage(SOCKET* client) {
 	return request;
 }
 
-bool HTTPSocket::sendMessage(SOCKET* client, HTTP::Response& response) {
+bool HTTPSocket::sendMessage(SOCKET clientSocket, HTTP::Response& response) {
 	auto payload = response.dump();
-	auto sendResult = send(*client, (char*)payload.data(), payload.size(), 0);
+	auto sendResult = send(clientSocket, (char*)payload.data(), payload.size(), 0);
 	return sendResult > 0;
 }
