@@ -2,52 +2,9 @@
 
 HTTPSocket::Server::Server() {
 
-	#ifdef _WIN32
+	auto socketInit = HTTPSocket::createAndListen(&ListenSocket, "8080");
 
-		SOCKET temp = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (temp == INVALID_SOCKET) {
-			if (GetLastError() == WSANOTINITIALISED) {
-				WSADATA initdata;
-				auto initStat = WSAStartup(MAKEWORD(2,2), &initdata);
-				if (initStat) throw Lambda::exception("WSAStartup failed, code: " + std::to_string(GetLastError()));
-			}
-		} else closesocket(temp);
-
-	#endif
-
-	//	resolve server address
-	struct addrinfo *servAddr = NULL;
-	struct addrinfo addrHints;
-		ZeroMemory(&addrHints, sizeof(addrHints));
-		addrHints.ai_family = AF_INET;
-		addrHints.ai_socktype = SOCK_STREAM;
-		addrHints.ai_protocol = IPPROTO_TCP;
-		addrHints.ai_flags = AI_PASSIVE;
-
-	if (getaddrinfo(NULL, std::to_string(778).c_str(), &addrHints, &servAddr) != 0) {
-		freeaddrinfo(servAddr);
-		throw Lambda::exception("Localhost didn't resolve, code: " + std::to_string(GetLastError()));
-	}
-
-	// create and bind a SOCKET
-	ListenSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
-	if (ListenSocket == INVALID_SOCKET) {
-		freeaddrinfo(servAddr);
-		throw Lambda::exception("Failed to create listening socket, code: " + std::to_string(GetLastError()));
-	}
-
-	if (bind(ListenSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
-		freeaddrinfo(servAddr);
-		closesocket(ListenSocket);
-		throw Lambda::exception("Failed to bind a TCP socket, code: " + std::to_string(GetLastError()));
-	}
-
-	freeaddrinfo(servAddr);
-
-	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
-		closesocket(ListenSocket);
-		throw Lambda::exception("Socket listen error, code: " + std::to_string(GetLastError()));
-	}
+	if (socketInit.code != HTTPSocket::HSOCKERR_OK) throw Lambda::exception("Failed to start server, code: " + std::to_string(socketInit.code));
 
 	//requestCallback = lambdaCallbackFunction;
 	running = true;
@@ -89,6 +46,7 @@ void HTTPSocket::Server:: connectionWatchdog() {
 }
 
 void HTTPSocket::Server::connectionHandler() {
+	
 	//	accept socket and free the flag for next handler instance
 	SOCKADDR_IN clientAddr;
 	int clientAddrLen = sizeof(clientAddr);
