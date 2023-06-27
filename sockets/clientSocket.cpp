@@ -30,8 +30,8 @@ HTTPSocket::ClientSocket::ClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
 	}
 
 	char clientIPBuff[64];
-	if (inet_ntop(AF_INET, &clientAddr.sin_addr, clientIPBuff, sizeof(clientIPBuff)) != nullptr) _clientIP = clientIPBuff;
-	//if (inet_ntop(AF_INET6, &clientAddr.sin_addr, clientIPBuff, sizeof(clientIPBuff)) != nullptr) clientIPv6 = clientIPBuff;
+	if (inet_ntop(AF_INET, &clientAddr.sin_addr, clientIPBuff, sizeof(clientIPBuff)) != nullptr)
+		_clientIP = clientIPBuff;
 
 	socketStat = HSOCKERR_OK;
 }
