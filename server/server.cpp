@@ -1,6 +1,6 @@
 #include "./server.hpp"
 #include "../http/http.hpp"
-#include "../lambda/lambda.hpp"
+#include "../lambda.hpp"
 #include <chrono>
 
 Lambda::Server::Server() {
