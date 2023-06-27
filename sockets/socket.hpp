@@ -31,8 +31,8 @@ namespace HTTPSocket {
 	static const size_t network_chunksize_header = 2048;
 	static const size_t network_chunksize_body = 131072;
 
-	HTTP::Request receiveMessage(SOCKET* client);
-	bool sendMessage(SOCKET* client, HTTP::Response& response);
+	HTTP::Request receiveMessage(SOCKET clientSocket);
+	bool sendMessage(SOCKET clientSocket, HTTP::Response& response);
 
 	class Server {
 		private:
