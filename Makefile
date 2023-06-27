@@ -40,7 +40,7 @@ clean: action-custom
 #------------
 
 COMPONENT_ENCODING = obj_encoding
-LIBSTATIC_ENCODING = lib$(FRAMEWORK)encoding.a
+LIBSTATIC_ENCODING = lib$(FRAMEWORK)-encoding.a
 OBJECTS_ENCODING = encoding/urlencode.o encoding/base64.o encoding/hex.o
 
 $(COMPONENT_ENCODING): $(OBJECTS_ENCODING)
@@ -107,7 +107,7 @@ test_http: $(OBJECTS_HTTP)
 #------------
 
 COMPONENT_COMPRESS = obj_compress
-LIBSTATIC_COMPRESS = lib$(FRAMEWORK)compress.a
+LIBSTATIC_COMPRESS = lib$(FRAMEWORK)-compress.a
 OBJECTS_COMPRESS = compress/zlib.o compress/brotli.o
 
 $(COMPONENT_COMPRESS): $(OBJECTS_COMPRESS)
