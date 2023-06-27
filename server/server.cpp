@@ -44,6 +44,13 @@ void Lambda::Server::removeServerlessCallback() {
 	this->requestCallbackServerless = nullptr;
 }
 
+void Lambda::Server::setPasstrough(void* object) {
+	this->instancePasstrough = object;
+}
+void Lambda::Server::removePasstrough() {
+	this->instancePasstrough = nullptr;
+}
+
 void Lambda::Server::connectionWatchdog() {
 
 	auto lastDispatched = std::chrono::system_clock::now();
@@ -81,6 +88,7 @@ void Lambda::Server::connectionHandler() {
 	auto request = client.receiveMessage();
 	Context requestCTX;
 	requestCTX.clientIP = client.ip();
+	requestCTX.passtrough = this->instancePasstrough;
 
 	//	serverfull handler. note the return statement
 	if (this->requestCallback != nullptr) {

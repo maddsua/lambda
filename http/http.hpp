@@ -79,6 +79,7 @@ namespace HTTP {
 		public:
 			Response();
 			Response(const uint16_t statusCode);
+			Response(const std::vector<KVtype>& headers, const std::string& body);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body);
 

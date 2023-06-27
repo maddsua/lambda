@@ -157,13 +157,13 @@ sockets/httpClientSocket.o: sockets/httpClientSocket.cpp
 
 COMPONENT_SERVER = obj_server
 LIBSTATIC_SERVER = lib$(FRAMEWORK)server.a
-OBJECTS_SERVER = server/http.o server/logs.o
+OBJECTS_SERVER = server/server.o server/logs.o
 
 $(COMPONENT_SERVER): $(OBJECTS_SERVER)
 	ar rvs $(LIBSTATIC_SERVER) $(OBJECTS_SERVER)
 
-server/http.o: server/http.cpp
-	g++ -c server/http.cpp -o server/http.o $(FLAGS)
+server/server.o: server/server.cpp
+	g++ -c server/server.cpp -o server/server.o $(FLAGS)
 
 server/logs.o: server/logs.cpp
 	g++ -c server/logs.cpp -o server/logs.o $(FLAGS)

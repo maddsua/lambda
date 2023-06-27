@@ -4,7 +4,6 @@
 #include "../sockets/sockets.hpp"
 #include <deque>
 #include <mutex>
-#include <functional>
 
 namespace Lambda {
 
@@ -16,6 +15,7 @@ namespace Lambda {
 
 	struct Context {
 		std::string clientIP;
+		void* passtrough;			//	A potential foot-shooter, be extremely careful when using it
 	};
 
 	class Server {
@@ -32,14 +32,17 @@ namespace Lambda {
 			std::deque<LogEntry> logQueue;
 			void addLogRecord(std::string message);
 
-			//std::function <void(HTTP::Request, Context)> requestCallback;
-			//std::function <HTTP::Response(HTTP::Request, Context)> requestCallbackServerless;
 			void (*requestCallback)(HTTP::Request, Context) = nullptr;
 			HTTP::Response (*requestCallbackServerless)(HTTP::Request, Context) = nullptr;
+
+			void* instancePasstrough = nullptr;
+			void setPasstrough(void* object);
+			void removePasstrough();
 			
 		public:
 			Server();
 			~Server();
+
 			std::vector<LogEntry> logs();
 			std::vector<std::string> logsText();
 			bool hasNewLogs();

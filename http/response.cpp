@@ -16,6 +16,10 @@ HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& h
 	this->headers.fromEntries(headers);
 	setBodyText(body);
 }
+HTTP::Response::Response(const std::vector<KVtype>& headers, const std::string& body) {
+	this->headers.fromEntries(headers);
+	setBodyText(body);
+}
 
 HTTP::Response& HTTP::Response::operator = (const HTTP::Request& right) {
 	auto request = right;
