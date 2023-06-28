@@ -90,8 +90,8 @@ namespace Lambda::HTTP {
 			void refresh();
 		
 		public:
-			URL();
-			URL(const std::string href);
+			URL() {};
+			URL(const std::string href) { setHref(href) ;};
 			void setHref(const std::string& href);
 			const std::string href();
 			std::string host;
