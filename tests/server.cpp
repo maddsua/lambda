@@ -5,7 +5,7 @@ using namespace Lambda;
 
 HTTP::Response callback(HTTP::Request& request, Lambda::Context& context) {
 	puts(request.path().c_str());
-	return HTTP::Response({{"x-serverless", "true"}}, "success!");
+	return HTTP::Response({{"x-serverless", "true"}}, "success! your user-agent is: " + request.headers().get("user-agent"));
 };
 
 int main() {
