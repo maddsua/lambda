@@ -24,7 +24,7 @@ Request::Request(std::vector<uint8_t>& httpHead) {
 		
 		if (pathSearchQueryIdx != std::string::npos) {
 			this->path = headerlinePath.substr(0, headerlinePath.find_first_of('?'));
-			this->searchParams = URLSearchParams(headerlinePath.substr(headerlinePath.find_first_of('?') + 1));
+			this->searchParams.fromHref(headerlinePath.substr(headerlinePath.find_first_of('?') + 1));
 		} else this->path = headerlinePath;
 
 		if (httpHeaderLineEnd != httpHeaderEnd)
