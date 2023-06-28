@@ -1,9 +1,10 @@
 #include "../server/server.hpp"
+#include <iostream>
 
 using namespace Lambda;
 
 HTTP::Response callback(HTTP::Request& request, Lambda::Context& context) {
-	puts(request.path.c_str());
+	std::cout << "Request to \"" << request.path << "\" from " << request.headers.get("user-agent") << std::endl;
 	return HTTP::Response({{"x-serverless", "true"}}, "success! your user-agent is: " + request.headers.get("user-agent"));
 };
 
