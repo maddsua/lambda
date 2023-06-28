@@ -8,13 +8,20 @@ using namespace Lambda;
 Server::Server() {
 
 	this->ListenSocketObj = new Socket::HTTPListenSocket();
+
 	if (!ListenSocketObj->ok()) {
+
 		auto sockstat = ListenSocketObj->status();
-		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.status));
+
+		this->_status.code = LAMBDA_LISTENSOCKERR;
+		this->_status.error = sockstat.code;
+		this->_status.apierror = sockstat.error;
+
+		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.code));
+
 		return;
 	}
-	//throw exception("Failed to start server, code: " + std::to_string(ListenSocketObj->status().status) + "/" + std::to_string(ListenSocketObj->status().code));
-
+	
 	running = true;
 	handlerDispatched = true;
 	watchdogThread = new std::thread(connectionWatchdog, this);
@@ -67,6 +74,35 @@ void Server::connectionWatchdog() {
 			}
 
 			continue;
+		}
+
+		if (!ListenSocketObj->ok()) {
+			auto status = ListenSocketObj->status();
+
+			this->_status.code = LAMBDA_LISTENSOCKRESTART;
+			this->_status.error = status.code;
+			this->_status.apierror = status.error;
+
+			addLogRecord("Listen socket failed, code: " + std::to_string(status.code) + " Restarting...");
+
+			delete ListenSocketObj;
+			ListenSocketObj = new Socket::HTTPListenSocket();
+			status = ListenSocketObj->status();
+
+			if (ListenSocketObj->ok()) {
+				this->_status.code = LAMBDA_OK;
+				this->_status.error = LAMBDA_UNDEFINED;
+				this->_status.apierror = LAMBDA_UNDEFINED;
+				continue;
+			}
+
+			this->_status.code = LAMBDA_LISTENSOCKERR;
+			this->_status.error = status.code;
+			this->_status.apierror = status.error;
+
+			addLogRecord("Failed to restart listen socket. Code " + std::to_string(status.code) + " Aborting.");
+
+			break;
 		}
 
 		lastDispatched = std::chrono::system_clock::now();

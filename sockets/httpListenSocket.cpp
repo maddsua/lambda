@@ -12,8 +12,8 @@ Socket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 		WSADATA initdata;
 		auto initStat = WSAStartup(MAKEWORD(2,2), &initdata);
 		if (initStat) {
-			socketStat = HSOCKERR_INIT;
-			socketError = GetLastError();
+			this->_status.code = LAMBDASOCK_INIT;
+			this->_status.error = GetLastError();
 			return;
 		} else closesocket(temp);
 	}
@@ -32,11 +32,11 @@ Socket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (getaddrinfo(NULL, listenPort, &addrHints, &servAddr) != 0) {
 
 		#ifdef _WIN32
-			this->socketError = GetLastError();
+			this->_status.error = GetLastError();
 		#else
-			this->socketError = errno;
+			this->_status.error = errno;
 		#endif
-		this->socketStat = HSOCKERR_ADDRESS;
+		this->_status.code = LAMBDASOCK_ADDRESS;
 
 		freeaddrinfo(servAddr);
 		return;
@@ -47,9 +47,9 @@ Socket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (this->hSocket == INVALID_SOCKET) {
 
 		#ifdef _WIN32
-			this->socketError = GetLastError();
+			this->_status.error = GetLastError();
 		#endif
-		this->socketStat = HSOCKERR_CREATE;
+		this->_status.code = LAMBDASOCK_CREATE;
 
 		freeaddrinfo(servAddr);
 		return;
@@ -60,9 +60,9 @@ Socket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
 		
 		#ifdef _WIN32
-			this->socketError = GetLastError();
+			this->_status.error = GetLastError();
 		#endif
-		this->socketStat = HSOCKERR_SETOPT;
+		this->_status.code = LAMBDASOCK_SETOPT;
 
 		freeaddrinfo(servAddr);
 		closesocket(this->hSocket);
@@ -72,9 +72,9 @@ Socket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (bind(this->hSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
 
 		#ifdef _WIN32
-			this->socketError = GetLastError();
+			this->_status.error = GetLastError();
 		#endif
-		this->socketStat = HSOCKERR_BIND;
+		this->_status.code = LAMBDASOCK_BIND;
 
 		freeaddrinfo(servAddr);
 		closesocket(this->hSocket);
@@ -88,16 +88,16 @@ Socket::HTTPListenSocket::HTTPListenSocket(const char* listenPort) {
 	if (listen(this->hSocket, SOMAXCONN) == SOCKET_ERROR) {
 
 		#ifdef _WIN32
-			this->socketError = GetLastError();
+			this->_status.error = GetLastError();
 		#endif
-		this->socketStat = HSOCKERR_LISTEN;
+		this->_status.code = LAMBDASOCK_LISTEN;
 
 		closesocket(this->hSocket);
 
 		return;
 	}
 	
-	this->socketStat = HSOCKERR_OK;
+	this->_status.code = LAMBDASOCK_OK;
 }
 
 Socket::HTTPListenSocket::~HTTPListenSocket() {
@@ -110,8 +110,8 @@ Socket::HTTPClientSocket Socket::HTTPListenSocket::acceptConnection() {
 }
 
 bool Socket::HTTPListenSocket::ok() {
-	return socketStat == HSOCKERR_OK;
+	return this->_status.code == LAMBDASOCK_OK;
 }
-Socket::OpStatus Socket::HTTPListenSocket::status() {
-	return { socketStat, socketError };
+Socket::SocketStatusStruct Socket::HTTPListenSocket::status() {
+	return this->_status;
 }

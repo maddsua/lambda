@@ -13,30 +13,29 @@ namespace Lambda::Socket {
 	static const size_t network_chunksize_body = 131072;
 
 	enum SockStatsuses {
-		HSOCKERR_OK = 1,
-		HSOCKERR_UNINITIALIZED = 0,
-		HSOCKERR_INIT = -1,
-		HSOCKERR_ADDRESS = -2,
-		HSOCKERR_CREATE = -3,
-		HSOCKERR_BIND = -4,
-		HSOCKERR_LISTEN = -5,
-		HSOCKERR_SHUTDOWN = -6,
-		HSOCKERR_CLOSESOCK = -7,
-		HSOCKERR_SEND = -8,
-		HSOCKERR_SETOPT = 10,
-		HSOCKERR_ACCEPT = 11
+		LAMBDASOCK_OK = 1,
+		LAMBDASOCK_UNDEFINED = 0,
+		LAMBDASOCK_INIT = -1,
+		LAMBDASOCK_ADDRESS = -2,
+		LAMBDASOCK_CREATE = -3,
+		LAMBDASOCK_BIND = -4,
+		LAMBDASOCK_LISTEN = -5,
+		LAMBDASOCK_SHUTDOWN = -6,
+		LAMBDASOCK_CLOSESOCK = -7,
+		LAMBDASOCK_SEND = -8,
+		LAMBDASOCK_SETOPT = -9,
+		LAMBDASOCK_ACCEPT = -10
 	};
 
-	struct OpStatus {
-		int64_t status = HSOCKERR_OK;
-		int64_t code = HSOCKERR_OK;
+	struct SocketStatusStruct {
+		int64_t code = LAMBDASOCK_UNDEFINED;
+		int64_t error = LAMBDASOCK_UNDEFINED;
 	};
 
 	class HTTPClientSocket {
 		private:
-			SOCKET hSocket = HSOCKERR_UNINITIALIZED;
-			int32_t socketStat = HSOCKERR_UNINITIALIZED;
-			int32_t socketError = HSOCKERR_UNINITIALIZED;
+			SOCKET hSocket = LAMBDASOCK_UNDEFINED;
+			SocketStatusStruct _status;
 			std::string _clientIPv4;
 
 		public:
@@ -45,7 +44,7 @@ namespace Lambda::Socket {
 			~HTTPClientSocket();
 
 			bool ok();
-			OpStatus status();
+			SocketStatusStruct status();
 			std::string ip();
 
 			Lambda::HTTP::Request receiveMessage();
@@ -54,9 +53,8 @@ namespace Lambda::Socket {
 
 	class HTTPListenSocket {
 		private:
-			SOCKET hSocket = HSOCKERR_UNINITIALIZED;
-			int32_t socketStat = HSOCKERR_UNINITIALIZED;
-			int32_t socketError = HSOCKERR_UNINITIALIZED;
+			SOCKET hSocket = LAMBDASOCK_UNDEFINED;
+			SocketStatusStruct _status;
 
 		public:
 			HTTPListenSocket() : HTTPListenSocket("8080") {};
@@ -64,7 +62,7 @@ namespace Lambda::Socket {
 			~HTTPListenSocket();
 
 			bool ok();
-			OpStatus status();
+			SocketStatusStruct status();
 
 			HTTPClientSocket acceptConnection();
 	};

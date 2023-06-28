@@ -19,6 +19,26 @@ namespace Lambda {
 		void* passtrough;			//	A potential foot-shooter, be extremely careful when using it
 	};
 
+	enum ServerStatus {
+		LAMBDA_UNDEFINED = 0,
+		LAMBDA_OK = 1,
+		LAMBDA_LISTENSOCKERR = -1,
+		LAMBDA_LISTENSOCKRESTART = 2,
+	};
+
+	enum ServerLogLevel {
+		LAMBDA_LOG = 0,
+		LAMBDA_LOG_ERROR = 1,
+		LAMBDA_LOG_WARN = 2,
+		LAMBDA_LOG_INFO = 2,
+	};
+
+	struct SeverStatStruct {
+		int64_t code = LAMBDA_UNDEFINED;
+		int64_t error = LAMBDA_UNDEFINED;
+		int64_t apierror = LAMBDA_UNDEFINED;
+	};
+
 	class Server {
 		private:
 			Lambda::Socket::HTTPListenSocket* ListenSocketObj;
@@ -39,6 +59,8 @@ namespace Lambda {
 			void* instancePasstrough = nullptr;
 			void setPasstrough(void* object);
 			void removePasstrough();
+
+			SeverStatStruct _status;
 			
 		public:
 			Server();
@@ -52,6 +74,9 @@ namespace Lambda {
 			void removeServerCallback();
 			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request&, Context&));
 			void removeServerlessCallback();
+
+			int status();
+			std::string statusText();
 	};
 	
 }

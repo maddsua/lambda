@@ -13,9 +13,9 @@ Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutM
 	if (this->hSocket == INVALID_SOCKET) {
 
 		#ifdef _WIN32
-			socketError = GetLastError();
+			this->_status.error = GetLastError();
 		#endif
-		socketStat = HSOCKERR_ACCEPT;
+		this->_status.code = LAMBDASOCK_ACCEPT;
 
 		return;
 	}
@@ -25,9 +25,9 @@ Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutM
 	if (setOptStatRX != 0 || setOptStatTX != 0) {
 
 		#ifdef _WIN32
-			socketError = GetLastError();
+			this->_status.error = GetLastError();
 		#endif
-		socketStat = HSOCKERR_SETOPT;
+		this->_status.code = LAMBDASOCK_SETOPT;
 
 		return;
 	}
@@ -36,7 +36,7 @@ Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutM
 	if (inet_ntop(AF_INET, &clientAddr.sin_addr, clientIPBuff, sizeof(clientIPBuff)) != nullptr)
 		_clientIPv4 = clientIPBuff;
 
-	socketStat = HSOCKERR_OK;
+	this->_status.code = LAMBDASOCK_OK;
 }
 
 Socket::HTTPClientSocket::~HTTPClientSocket() {
@@ -89,23 +89,23 @@ bool Socket::HTTPClientSocket::sendMessage(HTTP::Response& response) {
 	auto payload = response.dump();
 
 	if (send(this->hSocket, (char*)payload.data(), payload.size(), 0) <= 0) {
-		this->socketStat = HSOCKERR_SEND;
-		this->socketError = GetLastError();
+		this->_status.code = LAMBDASOCK_SEND;
+		this->_status.error = GetLastError();
 		return false;
 	}
 
-	this->socketStat = HSOCKERR_OK;
-	this->socketError = HSOCKERR_OK;
+	this->_status.code = LAMBDASOCK_OK;
+	this->_status.error = LAMBDASOCK_OK;
 	
 	return true;
 }
 
 bool Socket::HTTPClientSocket::ok() {
-	return this->socketStat == HSOCKERR_OK;
+	return this->_status.code == LAMBDASOCK_OK;
 }
 
-Socket::OpStatus Socket::HTTPClientSocket::status() {
-	return { this->socketStat, this->socketError };
+Socket::SocketStatusStruct Socket::HTTPClientSocket::status() {
+	return { this->_status.code, this->_status.error };
 }
 
 std::string Socket::HTTPClientSocket::ip() {
