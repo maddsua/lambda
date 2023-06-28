@@ -22,26 +22,6 @@ clean: action-custom
 
 
 #------------
-# Full library
-#------------
-
-LIBFULL_OBJS  = $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
-LIBSTATIC     = lib$(LIBNAME).a
-LIBSHARED     = $(LIBNAME).dll
-
-libstatic: $(LIBSTATIC)
-$(LIBSTATIC): $(OBJECTS)
-	ar rvs $(LIBSTATIC) $(LIBFULL_OBJS)
-
-libshared: $(LIBSHARED)
-$(LIBSHARED): $(OBJECTS) $(LIBNAME).res
-	g++ $(LIBFULL_OBJS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
-
-$(LIBNAME).res: $(LIBNAME).rc
-	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
-
-
-#------------
 # Component: Encoding
 #------------
 
@@ -225,9 +205,26 @@ test_kvstorage: $(OBJECTS_KVSTORAGE)
 	g++ tests/kvstorage.cpp $(OBJECTS_KVSTORAGE) -o test_kvstorage.exe
 
 
+#------------
+# Full library
+#------------
 
+LIBFULL_OBJS  = $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
+LIBSTATIC     = lib$(LIBNAME).a
+LIBSHARED     = $(LIBNAME).dll
 
+libstatic: $(LIBSTATIC)
 
+$(LIBSTATIC): $(LIBFULL_OBJS)
+	ar rvs $(LIBSTATIC) $(LIBFULL_OBJS)
+
+libshared: $(LIBSHARED)
+
+$(LIBSHARED): $(LIBFULL_OBJS) $(LIBNAME).res
+	g++ $(LIBFULL_OBJS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
+
+$(LIBNAME).res: $(LIBNAME).rc
+	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
 
 
 

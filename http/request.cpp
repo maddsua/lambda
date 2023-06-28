@@ -16,17 +16,17 @@ Lambda::HTTP::Request::Request(std::vector<uint8_t>& httpHead) {
 		auto headerLineItems = stringSplit(std::string(httpHead.begin(), httpHeaderLineEnd), " ");
 
 		const auto method = headerLineItems.at(0);
-		this->_method = stringToUpperCase(method);
+		this->method = stringToUpperCase(method);
 
 		const auto path = headerLineItems.at(1);
 		auto pathSearchQueryIdx = path.find_first_of('?');
 		if (pathSearchQueryIdx != std::string::npos) {
-			this->_path = path.substr(0, path.find_first_of('?'));
-			this->_searchParams = URLSearchParams(path.substr(path.find_first_of('?') + 1));
-		} else this->_path = path;
+			this->path = path.substr(0, path.find_first_of('?'));
+			this->searchParams = URLSearchParams(path.substr(path.find_first_of('?') + 1));
+		} else this->path = path;
 
 		if (httpHeaderLineEnd != httpHeaderEnd)
-			this->_headers = Headers(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeaderEnd));
+			this->headers = Headers(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeaderEnd));
 		
 
 	} catch(const std::exception& e) {
@@ -37,30 +37,6 @@ Lambda::HTTP::Request::Request(std::vector<uint8_t>& httpHead) {
 
 }
 
-void Lambda::HTTP::Request::_setBody(std::vector<uint8_t>& content) {
-	this->_body = content;
-}
-void Lambda::HTTP::Request::_appendBody(std::vector<uint8_t>& content) {
-	this->_body.insert(this->_body.end(), content.begin(), content.end());
-}
-
-std::string Lambda::HTTP::Request::method() {
-	return this->_method;
-}
-std::string Lambda::HTTP::Request::path() {
-	return this->_path;
-}
-Lambda::HTTP::URLSearchParams Lambda::HTTP::Request::searchParams() {
-	return this->_searchParams;
-}
-
-Lambda::HTTP::Headers Lambda::HTTP::Request::headers() {
-	return this->_headers;
-}
-
-std::vector<uint8_t> Lambda::HTTP::Request::body() {
-	return this->_body;
-}
 std::string Lambda::HTTP::Request::text() {
-	return std::string(this->_body.begin(), this->_body.end());
+	return std::string(this->body.begin(), this->body.end());
 }

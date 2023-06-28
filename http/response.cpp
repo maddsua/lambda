@@ -23,8 +23,8 @@ Lambda::HTTP::Response::Response(const std::vector<KVtype>& headers, const std::
 
 Lambda::HTTP::Response& Lambda::HTTP::Response::operator = (const Lambda::HTTP::Request& right) {
 	auto request = right;
-	this->body = request.body();
-	this->headers = request.headers();
+	this->body = request.body;
+	this->headers = request.headers;
 	return *this;
 }
 

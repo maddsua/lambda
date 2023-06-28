@@ -106,7 +106,7 @@ void Server::connectionHandler() {
 	}
 	//	fallback handler
 	else {
-		addLogRecord(std::string("Request handled in fallback mode. Path: " ) + request.path() + ", client: " + client.ip());
+		addLogRecord(std::string("Request handled in fallback mode. Path: " ) + request.path + ", client: " + client.ip());
 		response.setBodyText(std::string("server works. lambda v") + LAMBDAVERSION);
 	}
 

@@ -64,23 +64,22 @@ HTTP::Request Socket::HTTPClientSocket::receiveMessage() {
 	auto request = HTTP::Request(rawMessage);
 
 	//	download request body
-	if (!request.headers().has("Content-Length")) return request;
+	if (!request.headers.has("Content-Length")) return request;
 
 	size_t bodySize;
-	try { bodySize = std::stoi(request.headers().get("Content-Length")); }
+	try { bodySize = std::stoi(request.headers.get("Content-Length")); }
 		catch(...) { bodySize = 0; }
+
+	request.body.insert(request.body.end(), headerEnded + patternEndHeader.size(), rawMessage.end());
 	
-	auto requestBody = std::vector<uint8_t>(headerEnded + patternEndHeader.size(), rawMessage.end());
-	if (requestBody.size() >= bodySize) return request;
+	if (request.body.size() >= bodySize) return request;
 	
 	auto bodyChunk = std::array<uint8_t, network_chunksize_body>();
-	while (requestBody.size() < bodySize) {
+	while (request.body.size() < bodySize) {
 		auto bytesReceived = recv(this->hSocket, (char*)bodyChunk.data(), bodyChunk.size(), 0);
 		if (bytesReceived <= 0) break;
-		requestBody.insert(requestBody.end(), bodyChunk.data(), bodyChunk.data() + bytesReceived);
+		request.body.insert(request.body.end(), bodyChunk.data(), bodyChunk.data() + bytesReceived);
 	}
-
-	request._setBody(requestBody);
 
 	return request;
 }

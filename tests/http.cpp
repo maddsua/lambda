@@ -33,8 +33,8 @@ int main() {
 	auto reqtext = std::string("GET /test HTTP/1.1\r\nTest-header    :    lambda\r\n\r\n");
 	auto reqbin = std::vector<uint8_t>(reqtext.begin(), reqtext.end());
 	auto req = HTTP::Request(reqbin);
-	std::cout << req.method() << ":" << req.path() << std::endl;
-	std::cout << req.searchParams().stringify() << std::endl;
+	std::cout << req.method << ":" << req.path << std::endl;
+	std::cout << req.searchParams.stringify() << std::endl;
 	std::cout << std::endl;
 
 	//	create response object

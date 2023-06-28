@@ -50,24 +50,14 @@ namespace Lambda::HTTP {
 	};
 
 	class Request {
-		private:
-			std::string _method;
-			std::string _path;
-			URLSearchParams _searchParams;
-			Headers _headers;
-			std::vector<uint8_t> _body;
-
 		public:
 			Request(std::vector<uint8_t>& httpHead);
-
-			void _setBody(std::vector<uint8_t>& content);
-			void _appendBody(std::vector<uint8_t>& content);
 			
-			std::string method();
-			std::string path();
-			URLSearchParams searchParams();
-			Headers headers();
-			std::vector<uint8_t> body();
+			std::string method;
+			std::string path;
+			URLSearchParams searchParams;
+			Headers headers;
+			std::vector<uint8_t> body;
 			std::string text();
 	};
 
