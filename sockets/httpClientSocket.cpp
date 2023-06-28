@@ -1,3 +1,4 @@
+#include "./socketsapi.hpp"
 #include "./sockets.hpp"
 #include <array>
 #include <algorithm>
