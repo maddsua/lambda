@@ -21,6 +21,7 @@ Request::Request(std::vector<uint8_t>& httpHead) {
 
 		const auto path = stringToLowerCase(stringTrim(static_cast<const std::string>(headerLineItems.at(1))));
 		auto pathSearchQueryIdx = path.find_first_of('?');
+		
 		if (pathSearchQueryIdx != std::string::npos) {
 			this->path = path.substr(0, path.find_first_of('?'));
 			this->searchParams = URLSearchParams(path.substr(path.find_first_of('?') + 1));
