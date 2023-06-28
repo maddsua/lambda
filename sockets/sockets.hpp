@@ -49,7 +49,7 @@ namespace Lambda::Socket {
 			std::string ip();
 
 			Lambda::HTTP::Request receiveMessage();
-			OpStatus sendMessage(Lambda::HTTP::Response& response);
+			bool sendMessage(Lambda::HTTP::Response& response);
 	};
 
 	class HTTPListenSocket {
