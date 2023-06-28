@@ -38,8 +38,9 @@ namespace Lambda::HTTP {
 			SearchQueryMap data;
 
 		public:
-			URLSearchParams();
-			URLSearchParams(const std::string& URLString);
+			URLSearchParams() {};
+			URLSearchParams(const std::string& URLString) { fromHref(URLString); };
+			void fromHref(const std::string& URLString);
 			bool has(std::string key);
 			void set(std::string key, const std::string& value);
 			bool append(std::string key, const std::string& value);
