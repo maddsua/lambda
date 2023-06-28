@@ -84,14 +84,20 @@ HTTP::Request Socket::HTTPClientSocket::receiveMessage() {
 	return request;
 }
 
-Socket::OpStatus Socket::HTTPClientSocket::sendMessage(HTTP::Response& response) {
+bool Socket::HTTPClientSocket::sendMessage(HTTP::Response& response) {
 
 	auto payload = response.dump();
 
-	if (send(this->hSocket, (char*)payload.data(), payload.size(), 0) <= 0)
-		return { HSOCKERR_SEND, GetLastError() };
+	if (send(this->hSocket, (char*)payload.data(), payload.size(), 0) <= 0) {
+		this->socketStat = HSOCKERR_SEND;
+		this->socketError = GetLastError();
+		return false;
+	}
+
+	this->socketStat = HSOCKERR_OK;
+	this->socketError = HSOCKERR_OK;
 	
-	return { HSOCKERR_OK };
+	return true;
 }
 
 bool Socket::HTTPClientSocket::ok() {
