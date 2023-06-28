@@ -1,14 +1,8 @@
 #include "./http.hpp"
 
-Lambda::HTTP::URL::URL() {
-	//	and whe don't do a thing here
-}
+using namespace Lambda::HTTP;
 
-Lambda::HTTP::URL::URL(const std::string href) {
-	setHref(href);
-}
-
-const std::string Lambda::HTTP::URL::href() {
+const std::string URL::href() {
 
 	auto href = this->host.size() ? this->protocol + "://" + this->host : std::string();
 
@@ -23,7 +17,7 @@ const std::string Lambda::HTTP::URL::href() {
 	return href;
 }
 
-void Lambda::HTTP::URL::setHref(const std::string& href) {
+void URL::setHref(const std::string& href) {
 
 	auto indexofStart = 0;
 
@@ -62,7 +56,7 @@ void Lambda::HTTP::URL::setHref(const std::string& href) {
 	refresh();
 }
 
-void Lambda::HTTP::URL::refresh() {
+void URL::refresh() {
 
 	if (!this->protocol.size())
 		this->protocol = "http";
