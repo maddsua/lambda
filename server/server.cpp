@@ -10,22 +10,15 @@ Server::Server() {
 	this->ListenSocketObj = new Socket::HTTPListenSocket();
 
 	if (!ListenSocketObj->ok()) {
-
 		auto sockstat = ListenSocketObj->status();
-
-		this->_status.code = LAMBDA_LISTENSOCKERR;
-		this->_status.error = sockstat.code;
-		this->_status.apierror = sockstat.error;
-
-		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.code));
-
+		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.code), LAMBDA_LOG_ERROR);
 		return;
 	}
 	
 	running = true;
 	handlerDispatched = true;
 	watchdogThread = new std::thread(connectionWatchdog, this);
-	addLogRecord("Server start successful");
+	addLogRecord("Server start successful", LAMBDA_LOG_INFO);
 }
 
 Server::~Server() {
@@ -78,31 +71,18 @@ void Server::connectionWatchdog() {
 
 		if (!ListenSocketObj->ok()) {
 			auto status = ListenSocketObj->status();
-
-			this->_status.code = LAMBDA_LISTENSOCKRESTART;
-			this->_status.error = status.code;
-			this->_status.apierror = status.error;
-
-			addLogRecord("Listen socket failed, code: " + std::to_string(status.code) + " Restarting...");
+			
+			addLogRecord("Listen socket failed, code: " + std::to_string(status.code) + " Restarting...", LAMBDA_LOG_WARN);
 
 			delete ListenSocketObj;
 			ListenSocketObj = new Socket::HTTPListenSocket();
 			status = ListenSocketObj->status();
 
-			if (ListenSocketObj->ok()) {
-				this->_status.code = LAMBDA_OK;
-				this->_status.error = LAMBDA_UNDEFINED;
-				this->_status.apierror = LAMBDA_UNDEFINED;
-				continue;
+			if (!ListenSocketObj->ok()) {
+				this->running = false;
+				addLogRecord("Failed to restart listen socket. Code " + std::to_string(status.code) + " Aborting.", LAMBDA_LOG_ERROR);
+				break;
 			}
-
-			this->_status.code = LAMBDA_LISTENSOCKERR;
-			this->_status.error = status.code;
-			this->_status.apierror = status.error;
-
-			addLogRecord("Failed to restart listen socket. Code " + std::to_string(status.code) + " Aborting.");
-
-			break;
 		}
 
 		lastDispatched = std::chrono::system_clock::now();

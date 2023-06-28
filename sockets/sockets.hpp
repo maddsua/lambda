@@ -27,15 +27,15 @@ namespace Lambda::Socket {
 		LAMBDASOCK_ACCEPT = -10
 	};
 
-	struct SocketStatusStruct {
+	struct SockStatStruct {
 		int64_t code = LAMBDASOCK_UNDEFINED;
-		int64_t error = LAMBDASOCK_UNDEFINED;
+		int64_t apierror = LAMBDASOCK_UNDEFINED;
 	};
 
 	class HTTPClientSocket {
 		private:
 			SOCKET hSocket = LAMBDASOCK_UNDEFINED;
-			SocketStatusStruct _status;
+			SockStatStruct _status;
 			std::string _clientIPv4;
 
 		public:
@@ -43,9 +43,9 @@ namespace Lambda::Socket {
 			HTTPClientSocket(SOCKET hParentSocket) : HTTPClientSocket(hParentSocket, 15000) {};
 			~HTTPClientSocket();
 
-			bool ok();
-			SocketStatusStruct status();
-			std::string ip();
+			bool ok() { return this->_status.code == LAMBDASOCK_OK; };
+			SockStatStruct status() { return this->_status; };
+			std::string ip() { return this->_clientIPv4; };
 
 			Lambda::HTTP::Request receiveMessage();
 			bool sendMessage(Lambda::HTTP::Response& response);
@@ -54,17 +54,17 @@ namespace Lambda::Socket {
 	class HTTPListenSocket {
 		private:
 			SOCKET hSocket = LAMBDASOCK_UNDEFINED;
-			SocketStatusStruct _status;
+			SockStatStruct _status;
 
 		public:
 			HTTPListenSocket() : HTTPListenSocket("8080") {};
 			HTTPListenSocket(const char* listenPort);
 			~HTTPListenSocket();
 
-			bool ok();
-			SocketStatusStruct status();
+			bool ok() { return this->_status.code == LAMBDASOCK_OK; };
+			SockStatStruct status() { return this->_status; };
 
-			HTTPClientSocket acceptConnection();
+			HTTPClientSocket acceptConnection() { return HTTPClientSocket(this->hSocket); };
 	};
 
 };

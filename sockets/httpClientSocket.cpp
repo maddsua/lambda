@@ -3,9 +3,10 @@
 #include <array>
 #include <algorithm>
 
-using namespace Lambda;
+using namespace Lambda::Socket;
+using namespace Lambda::HTTP;
 
-Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
+HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutMs) {
 
 	SOCKADDR_IN clientAddr;
 	int clientAddrLen = sizeof(clientAddr);
@@ -13,7 +14,9 @@ Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutM
 	if (this->hSocket == INVALID_SOCKET) {
 
 		#ifdef _WIN32
-			this->_status.error = GetLastError();
+			this->_status.apierror = GetLastError();
+		#else 
+			this->_status.apierror = errno;
 		#endif
 		this->_status.code = LAMBDASOCK_ACCEPT;
 
@@ -25,7 +28,9 @@ Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutM
 	if (setOptStatRX != 0 || setOptStatTX != 0) {
 
 		#ifdef _WIN32
-			this->_status.error = GetLastError();
+			this->_status.apierror = GetLastError();
+		#else 
+			this->_status.apierror = errno;
 		#endif
 		this->_status.code = LAMBDASOCK_SETOPT;
 
@@ -39,13 +44,13 @@ Socket::HTTPClientSocket::HTTPClientSocket(SOCKET hParentSocket, time_t timeoutM
 	this->_status.code = LAMBDASOCK_OK;
 }
 
-Socket::HTTPClientSocket::~HTTPClientSocket() {
+HTTPClientSocket::~HTTPClientSocket() {
 	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
 
-HTTP::Request Socket::HTTPClientSocket::receiveMessage() {
+Request HTTPClientSocket::receiveMessage() {
 
 	//	receive http header first
 	static const std::string patternEndHeader = "\r\n\r\n";
@@ -84,30 +89,18 @@ HTTP::Request Socket::HTTPClientSocket::receiveMessage() {
 	return request;
 }
 
-bool Socket::HTTPClientSocket::sendMessage(HTTP::Response& response) {
+bool HTTPClientSocket::sendMessage(Lambda::HTTP::Response& response) {
 
 	auto payload = response.dump();
 
 	if (send(this->hSocket, (char*)payload.data(), payload.size(), 0) <= 0) {
 		this->_status.code = LAMBDASOCK_SEND;
-		this->_status.error = GetLastError();
+		this->_status.apierror = GetLastError();
 		return false;
 	}
 
 	this->_status.code = LAMBDASOCK_OK;
-	this->_status.error = LAMBDASOCK_OK;
+	this->_status.apierror = LAMBDASOCK_OK;
 	
 	return true;
-}
-
-bool Socket::HTTPClientSocket::ok() {
-	return this->_status.code == LAMBDASOCK_OK;
-}
-
-Socket::SocketStatusStruct Socket::HTTPClientSocket::status() {
-	return { this->_status.code, this->_status.error };
-}
-
-std::string Socket::HTTPClientSocket::ip() {
-	return this->_clientIPv4;
 }
