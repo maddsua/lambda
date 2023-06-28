@@ -4,6 +4,7 @@
 #include "../sockets/sockets.hpp"
 #include <deque>
 #include <mutex>
+#include <thread>
 
 namespace Lambda {
 
