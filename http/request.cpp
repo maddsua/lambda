@@ -19,16 +19,16 @@ Request::Request(std::vector<uint8_t>& httpHead) {
 
 		this->method = stringToUpperCase(stringTrim(static_cast<const std::string>(headerLineItems.at(0))));
 
-		const auto path = stringToLowerCase(stringTrim(static_cast<const std::string>(headerLineItems.at(1))));
-		auto pathSearchQueryIdx = path.find_first_of('?');
+		const auto headerlinePath = stringToLowerCase(stringTrim(static_cast<const std::string>(headerLineItems.at(1))));
+		auto pathSearchQueryIdx = headerlinePath.find_first_of('?');
 		
 		if (pathSearchQueryIdx != std::string::npos) {
-			this->path = path.substr(0, path.find_first_of('?'));
-			this->searchParams = URLSearchParams(path.substr(path.find_first_of('?') + 1));
-		} else this->path = path;
+			this->path = headerlinePath.substr(0, headerlinePath.find_first_of('?'));
+			this->searchParams = URLSearchParams(headerlinePath.substr(headerlinePath.find_first_of('?') + 1));
+		} else this->path = headerlinePath;
 
 		if (httpHeaderLineEnd != httpHeaderEnd)
-			this->headers = Headers(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeaderEnd));
+			this->headers.fromHTTP(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeaderEnd));
 		
 	} catch(const std::exception& e) {
 		//std::cerr << e.what() << '\n';

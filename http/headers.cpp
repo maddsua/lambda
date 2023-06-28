@@ -1,12 +1,10 @@
 #include "./http.hpp"
 
-Lambda::HTTP::Headers::Headers() {
-	//	do nothing lol
-}
+using namespace Lambda::HTTP;
 
-Lambda::HTTP::Headers::Headers(const std::string& httpHeader) {
+void Headers::fromHTTP(const std::string& httpHeaders) {
 
-	auto headerLines = stringSplit(httpHeader, "\r\n");
+	auto headerLines = stringSplit(httpHeaders, "\r\n");
 
 	for (auto& item : headerLines) {
 
@@ -16,15 +14,15 @@ Lambda::HTTP::Headers::Headers(const std::string& httpHeader) {
 		auto key = item.substr(0, kvSeparatorIdx);
 		auto value = item.substr(kvSeparatorIdx + 1);
 
-		Lambda::HTTP::stringTrim(key);
-		Lambda::HTTP::stringTrim(value);
-		Lambda::HTTP::stringToTittleCase(key);
+		stringTrim(key);
+		stringTrim(value);
+		stringToTittleCase(key);
 
 		this->data[key] = value;
 	}
 }
 
-void Lambda::HTTP::Headers::fromEntries(const std::vector<Lambda::HTTP::KVtype>& headers) {
+void Headers::fromEntries(const std::vector<KVtype>& headers) {
 	this->data.clear();
 	for (auto& item : headers) {
 		if (!item.key.size() || !item.value.size()) continue;
@@ -33,34 +31,34 @@ void Lambda::HTTP::Headers::fromEntries(const std::vector<Lambda::HTTP::KVtype>&
 	}
 }
 
-bool Lambda::HTTP::Headers::has(std::string key) {
+bool Headers::has(std::string key) {
 	stringToTittleCase(key);
 	return this->data.find(key) != this->data.end();
 }
 
-void Lambda::HTTP::Headers::set(std::string key, const std::string& value) {
+void Headers::set(std::string key, const std::string& value) {
 	stringToTittleCase(key);
 	this->data[key] = value;
 }
 
-bool Lambda::HTTP::Headers::append(std::string key, const std::string& value) {
+bool Headers::append(std::string key, const std::string& value) {
 	if (has(key)) return false;
 	set(key, value);
 	return true;
 }
 
-std::string Lambda::HTTP::Headers::get(std::string key) {
+std::string Headers::get(std::string key) {
 	stringToTittleCase(key);
 	return has(key) ? this->data[key] : std::string();
 }
 
-void Lambda::HTTP::Headers::del(std::string key) {
+void Headers::del(std::string key) {
 	stringToTittleCase(key);
 	if (!has(key)) return;
 	this->data.erase(key);
 }
 
-std::string Lambda::HTTP::Headers::stringify() {
+std::string Headers::stringify() {
 	auto result = std::string();
 	for (auto item : this->data) {
 		result += item.first + ": " + item.second + "\r\n";
@@ -68,8 +66,8 @@ std::string Lambda::HTTP::Headers::stringify() {
 	return result;
 }
 
-std::vector<Lambda::HTTP::KVtype> Lambda::HTTP::Headers::entries() {
-	auto entries = std::vector<Lambda::HTTP::KVtype>();
+std::vector<KVtype> Headers::entries() {
+	auto entries = std::vector<KVtype>();
 	for (auto& item : this->data) {
 		entries.push_back({ item.first, item.second });
 	}

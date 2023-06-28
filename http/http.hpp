@@ -20,8 +20,9 @@ namespace Lambda::HTTP {
 			HeadersMap data;
 
 		public:
-			Headers();
-			Headers(const std::string& text);
+			Headers() {};
+			Headers(const std::string& httpHeaders) { fromHTTP(httpHeaders); };
+			void fromHTTP(const std::string& httpHeaders);
 			void fromEntries(const std::vector<HTTP::KVtype>& headers);
 			bool has(std::string key);
 			void set(std::string key, const std::string& value);
