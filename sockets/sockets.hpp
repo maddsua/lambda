@@ -2,7 +2,6 @@
 #define __LAMBDA_SOCKETS__
 
 #include "../http/http.hpp"
-#include <thread>
 
 #ifndef SOCKET
 	typedef uint64_t SOCKET;
