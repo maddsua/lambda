@@ -132,9 +132,6 @@ void WebSocket::asyncWsIO() {
 	uint8_t downloadChunk[network_chunksize_websocket];
 	std::vector<uint8_t> downloadStream;
 
-	WebsocketMessage* wsmessagetemp = nullptr;
-	size_t messageDownloadLeft = 0;
-
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
 
@@ -162,31 +159,56 @@ void WebSocket::asyncWsIO() {
 			lastPing = std::chrono::steady_clock::now();
 		}
 
-		//	try to receive a message
-		auto bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
-
-		if (bytesReceived > 0) {
+		//	receive all the data available
+		int32_t bytesReceived = 0;
+		//	kinda stupid control flow, but I don't feel comfortable putting an infinite loop here
+		while (bytesReceived >= 0) {
+			bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
+			if (bytesReceived <= 0) break;
 			downloadStream.insert(downloadStream.end(), downloadChunk, downloadChunk + bytesReceived);
-		} else if (bytesReceived < 0) {
+		}
+		
+		//	if an error occured during receiving
+		if (bytesReceived < 0) {
 
-			//	kill this websocket if connection fails
+			//	kill this websocket if it's the connection that failed
+			//	but totally ignore the timeout errors
+			//	we're gonna hit them constantly
 			auto apierror = getAPIError();
-
-			if (apierror == ETIMEDOUT || apierror == WSAETIMEDOUT) {
-				//	nah, it's okay. we just hit the timeout. it's expected.
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				continue;
+			if (apierror != ETIMEDOUT && apierror != WSAETIMEDOUT) {
+				this->internalError = { "Connection terminated", apierror };
+				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+				return;
 			}
 
-			this->internalError = { "Connection terminated", apierror };
-			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-			return;
+			//	don't really need this here
+			//std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		}
 
-		} else continue;
+		//	skip further ops if there's no data
+		if (downloadStream.size() < 2) continue;
 
 		WebsocketFrameHeader frameHeader;
-		try { frameHeader = parseFrameHeader(downloadStream); }
-			catch(...) { continue; }
+
+		//	try to parse ws frame
+		//	it should always be a valid one
+		//	but in case we receive garbage data - here is a trycatch
+		try {
+			frameHeader = parseFrameHeader(downloadStream);
+		} catch(...) {
+			//	okay, it does not seem as a valid one
+			//	dropping the entire stream at this point
+			downloadStream.clear();
+			puts("dropped a stream");
+			continue;
+		}
+
+		//	check the mask big
+		if (!frameHeader.mask) {
+			this->internalError = Lambda::Error("Received unmasked data from the client");
+			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+			return;
+		}
 
 		//	check opcode
 		bool opcodeSupported = std::any_of(wsOpCodes.begin(), wsOpCodes.end(), [&frameHeader](auto element) {
@@ -257,50 +279,15 @@ void WebSocket::asyncWsIO() {
 
 			default: {
 
-				//WebsocketMessage temp;
-				//temp.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+				WebsocketMessage temp;
+				temp.timestamp = time(nullptr);
+				temp.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+				temp.message.insert(temp.message.end(), payload.begin(), payload.end());
 
-				wsmessagetemp = new WebsocketMessage;
-
-				wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
-				wsmessagetemp->timestamp = time(nullptr);
-				wsmessagetemp->binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
-
-				if (frameHeader.finbit) {
-					this->rxQueue.push_back(*wsmessagetemp);
-					delete wsmessagetemp;
-				}
-
-				//if (payload.size() < headerPayloadSize)
-				//	messageDownloadLeft = headerPayloadSize - payload.size();
+				this->rxQueue.push_back(temp);
 
 			} break;
 		}
-		
-		/*
-
-		//	abort if no message was extracted
-		if (wsmessagetemp == nullptr) continue;
-
-		//	get the remainig part of the message and push to queue
-		if (messageDownloadLeft > 0) {
-
-			//	unmask this payload chunk too
-			for (size_t i = 0; i < bytesReceived; i++)
-				downloadChunk[i] ^= maskingKey[i % 4];
-
-			wsmessagetemp->message.insert(wsmessagetemp->message.end(), downloadChunk, downloadChunk + bytesReceived);
-			if (bytesReceived < messageDownloadLeft) messageDownloadLeft -= bytesReceived;
-				else messageDownloadLeft = 0;
-		}
-
-		//	check if the entire message was read and push it to queue
-		if (messageDownloadLeft == 0) {
-			std::lock_guard<std::mutex>lock(this->mtLock);
-			this->rxQueue.push_back(*wsmessagetemp);
-			delete wsmessagetemp;
-			wsmessagetemp = nullptr;
-		}*/
 	}
 }
 
