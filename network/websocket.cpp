@@ -91,6 +91,8 @@ void WebSocket::asyncWsIO() {
 
 	WebsocketMessage* wsmessagetemp = nullptr;
 	size_t messageDownloadLeft = 0;
+	uint8_t maskingKey[4];
+
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
 
@@ -162,7 +164,6 @@ void WebSocket::asyncWsIO() {
 				headerSize += 8;
 			}
 
-			uint8_t maskingKey[4];
 			memcpy(maskingKey, &downloadChunk[headerSize], sizeof(maskingKey));
 			headerSize += 4;
 
@@ -237,6 +238,11 @@ void WebSocket::asyncWsIO() {
 
 		//	download the remainig part of the message and push to queue
 		if (messageDownloadLeft > 0) {
+
+			//	unmask this payload chunk too
+			for (size_t i = 0; i < bytesReceived; i++)
+				downloadChunk[i] ^= maskingKey[i % 4];
+
 			wsmessagetemp->message.insert(wsmessagetemp->message.end(), downloadChunk, downloadChunk + bytesReceived);
 			if (bytesReceived < messageDownloadLeft) messageDownloadLeft -= bytesReceived;
 				else messageDownloadLeft = 0;
