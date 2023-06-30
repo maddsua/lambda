@@ -18,13 +18,13 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 
 	auto sendresult = websock.sendMessage("test message");
 
-	if (sendresult.isError) {
-		std::cout << sendresult.what << std::endl;
+	if (sendresult.isError()) {
+		std::cout << sendresult.what() << std::endl;
 	}
 
 	websock.sendMessage("lets send a very long test message thats is gonna be bigger that 127 bytes so websock actually sends it as 16 bit integer and we'll se how it works in reality");
 
-	while (true) {
+	while (websock.isAlive()) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 		if (websock.availableMessage()) {
@@ -35,7 +35,11 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 				std::cout << msg.timestamp << ": " << msg.message << std::endl;
 			}
 		}
+
+		//websock.close(Lambda::Network::WSCLOSE_GOING_AWAY);
 	}
+
+	std::cout << "Websocket disconnected" << std::endl;
 
 }
 

@@ -3,8 +3,6 @@
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
 
-#include <iostream>
-
 using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
@@ -33,7 +31,7 @@ WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
 	auto headerWsKey = initalRequest.headers.get("Sec-WebSocket-Key");
 
 	if (headerConnection != "Upgrade" || headerUpgrade != "websocket" || !headerWsKey.size())
-		throw Lambda::Exception("Websockets initialization aborted: no valid handshake headers present");
+		throw Lambda::Error("Websocket initialization aborted: no valid handshake headers present");
 
 	auto combinedKey = headerWsKey + websocketMagicString;
 	auto keyHash = Crypto::sha1Hash(std::vector<uint8_t>(combinedKey.begin(), combinedKey.end()));
@@ -45,17 +43,30 @@ WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
 		{ "Sec-WebSocket-Accept", Encoding::b64Encode(keyHashString) }
 	});
 
-	auto dumpresult = handshakeReponse.dump();
-	auto resultDumpString = std::string(dumpresult.begin(), dumpresult.end());
-
 	auto hanshakeResult = sendHTTP(this->hSocket, handshakeReponse);
-	if (hanshakeResult.isError) throw Lambda::Exception("Websockets handshake failed: " + hanshakeResult.what, hanshakeResult.code);
 
-	this->receiveThread = new std::thread(asyncReceive, this);
+	if (hanshakeResult.isError())
+		throw Lambda::Error(std::string("Websocket handshake failed: ") + hanshakeResult.what(), hanshakeResult.errorCode());
+
+	this->receiveThread = new std::thread(asyncWsIO, this);
 }
 
 WebSocket::~WebSocket() {
-	this->hSocket = INVALID_SOCKET;
+
+	if (this->hSocket != INVALID_SOCKET && this->connCloseStatus) {
+
+		uint8_t closeFrame[4];
+		closeFrame[0] = 0x88;
+
+		//	should always be 2 bytes, we only send a status code with no text reason
+		closeFrame[1] = sizeof(connCloseStatus);
+
+		//	the status code itself. I hate the ppl who decided not to align ws header fields. just effing masterminds.
+		closeFrame[2] = (connCloseStatus >> 8) & 0xFF;
+		closeFrame[3] = connCloseStatus & 0xFF;
+
+		send(this->hSocket, (const char*)closeFrame, sizeof(closeFrame), 0);
+	}
 
 	if (this->receiveThread != nullptr) {
 		if (this->receiveThread->joinable())
@@ -64,39 +75,43 @@ WebSocket::~WebSocket() {
 	}
 }
 
-void WebSocket::asyncReceive() {
+void WebSocket::asyncWsIO() {
 
 	auto setOptStatRX = setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&websocketRcvTimeout, sizeof(websocketRcvTimeout));
 	if (setOptStatRX != 0) {
 		auto errcode = getAPIError();
-		throw Lambda::Exception("Failed to set websocket receive timeout", errcode);
+		throw Lambda::Error("Failed to set websocket receive timeout", errcode);
 	}
 
 	uint8_t downloadChunk[network_chunksize_websocket];
 
-	auto frameTemp = std::vector<uint8_t>();
 	WebsocketMessage* wsmessagetemp = nullptr;
 	size_t messageDownloadLeft = 0;
 
-	while (this->hSocket != INVALID_SOCKET) {
+	while (this->hSocket != INVALID_SOCKET && !this->connCloseStatus) {
 
 		auto bytesReceived = recv(hSocket, (char*)downloadChunk, network_chunksize_websocket, 0);
 
-		//	don't abort the connection - when recv goes out due to timeout, it's gonna return an error
-		//	so technically we can't detect any errors at receive function
-		//	kinda sucks, but is better than taking overlapped io here
+		//	handle receive errors
+		//	kill this websocket if connection fails
 		if (bytesReceived <= 0) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			continue;
+
+			auto apierror = getAPIError();
+
+			if (apierror == ETIMEDOUT || apierror == WSAETIMEDOUT) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				continue;
+			}
+
+			this->asyncError = { "Websocket connection error", apierror };
+			break;
 		}
 
 		if (wsmessagetemp == nullptr) {
 
-			wsmessagetemp = new WebsocketMessage;
-
 			//	parse header
 			bool mask = (downloadChunk[1] & 0x80) >> 7;
-			if (!mask) throw Lambda::Exception("Websock client message does not have a mask");
+			if (!mask) throw Lambda::Error("Websock client message does not have a mask");
 			
 			size_t headerPayloadSize = downloadChunk[1] & 0x7F;
 			size_t headerSize = 2;
@@ -111,8 +126,6 @@ void WebSocket::asyncReceive() {
 				headerSize += 8;
 			}
 
-			//printf("payload size: %i\n", headerPayloadSize);
-
 			uint8_t maskingKey[4];
 			memcpy(maskingKey, &downloadChunk[headerSize], sizeof(maskingKey));
 			headerSize += 4;
@@ -123,32 +136,65 @@ void WebSocket::asyncReceive() {
 				payload[i] ^= maskingKey[i % 4];
 			}
 
-			wsmessagetemp->partial = !((downloadChunk[0] & 0x80) >> 7);
+			bool final = ((downloadChunk[0] & 0x80) >> 7);
+
 			uint8_t opcode = downloadChunk[0] & 0x0F;
 
-			wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
-			wsmessagetemp->timestamp = time(nullptr);
-			wsmessagetemp->binary = false;
+			switch (opcode) {
 
-			if (payload.size() < headerPayloadSize)
-				messageDownloadLeft = headerPayloadSize - payload.size();
+				case WEBSOCK_OPCODE_CLOSE: {
+					this->connCloseStatus = 1000;
+				} break;
+
+				/*case WEBSOCK_OPCODE_PONG: {
+
+				} break;
+
+				case WEBSOCK_OPCODE_PING: {
+					
+					uint8_t pongFrame[8];
+
+					// set FIN bit and opcode
+					pongFrame[0] = (WEBSOCK_OPCODE_PONG | 0x80);
+					//	copy payload length from ping
+					pongFrame[1] = downloadChunk[1] & 0x7F;
+
+					puts("--> ping from client");
+
+				} break;*/
+
+				default: {
+
+					wsmessagetemp = new WebsocketMessage;
+
+					wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
+					wsmessagetemp->timestamp = time(nullptr);
+					wsmessagetemp->binary = opcode == WEBSOCK_OPCODE_BINARY;
+					wsmessagetemp->chunked = !final || opcode == WEBSOCK_OPCODE_CONTINUE;
+
+					if (payload.size() < headerPayloadSize)
+						messageDownloadLeft = headerPayloadSize - payload.size();
+					
+				} break;
+			}
 		}
+
+		if (wsmessagetemp == nullptr) continue;
 
 		if (messageDownloadLeft == 0) {
 
-			{
-				std::lock_guard<std::mutex>lock(this->mtLock);
-				this->rxQueue.push_back(*wsmessagetemp);
-			}
+			std::lock_guard<std::mutex>lock(this->mtLock);
+			this->rxQueue.push_back(*wsmessagetemp);
 
 			delete wsmessagetemp;
 			wsmessagetemp = nullptr;
 
-		} else {
-			wsmessagetemp->message.insert(wsmessagetemp->message.end(), downloadChunk, downloadChunk + bytesReceived);
-			if (bytesReceived < messageDownloadLeft) messageDownloadLeft -= bytesReceived;
-				else messageDownloadLeft = 0;
+			continue;
 		}
+
+		wsmessagetemp->message.insert(wsmessagetemp->message.end(), downloadChunk, downloadChunk + bytesReceived);
+		if (bytesReceived < messageDownloadLeft) messageDownloadLeft -= bytesReceived;
+			else messageDownloadLeft = 0;
 	}
 }
 
@@ -160,6 +206,9 @@ std::vector<WebsocketMessage> WebSocket::getMessages() {
 }
 
 Lambda::Error WebSocket::_sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary) {
+
+	if (this->connCloseStatus) return Lambda::Error("Websocket connection closed and cannot be reused");
+	if (this->hSocket) return Lambda::Error("Socket closed | Invalid socket error");
 
 	//	create frame buffer
 	std::vector<uint8_t> frameHeader;

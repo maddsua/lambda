@@ -20,36 +20,29 @@
 
 namespace Lambda {
 
-	class Exception : public std::exception {
+	class Error : public std::exception {
 		private:
 			std::string msg;
 			int64_t code = 0;
+			bool error = false;
 
-		public:
-			Exception(const std::string& message) : msg(message) {};
-			Exception(const std::string& message, int64_t errorCode) : msg(message), code(errorCode) {};
-			const char* what() const noexcept override {
-				return (this->code ? (this->msg + LAMBDA_OS_API_ERRCODE_PREFIX + std::to_string(this->code)) : this->msg).c_str();
+			void formatMessage() {
+				msg = (this->code ? (this->msg + LAMBDA_OS_API_ERRCODE_PREFIX + std::to_string(this->code)) : this->msg);
 			}
-	};
 
-	class Error {
 		public:
 			Error() {};
-			Error(const std::string& message) {
-				this->what = message;
-				isError = true;
-			};
-			Error(const std::string& message, const int64_t errorCode) {
-				this->what = message;
-				isError = true;
-				code = errorCode;
-			};
-
-		bool isError = false;
-		int64_t code = 0;
-		std::string what;
+			Error(const std::string& message) : msg(message), error(true) {};
+			Error(const std::string& message, int64_t errorCode) : msg(message), code(errorCode), error(true) {
+				formatMessage();
+			}
+			const char* what() const noexcept override {
+				return msg.c_str();
+			}
+			bool isError() { return this->error; };
+			int64_t errorCode() { return this->code; };
 	};
+
 };
 
 #endif

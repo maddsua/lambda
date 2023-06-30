@@ -14,14 +14,14 @@ HTTPConnection::HTTPConnection(SOCKET hParentSocket, time_t timeoutMs) {
 	this->hSocket = accept(hParentSocket, (SOCKADDR*)&clientAddr, &clientAddrLen);
 	if (this->hSocket == INVALID_SOCKET) {
 		auto errcode = getAPIError();
-		throw Lambda::Exception("Socket accept failed", errcode);
+		throw Lambda::Error("HTTP connection aborted: socket accept failed", errcode);
 	}
 	
 	auto setOptStatRX = setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutMs, sizeof(timeoutMs));
 	auto setOptStatTX = setsockopt(this->hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutMs, sizeof(timeoutMs));
 	if (setOptStatRX != 0 || setOptStatTX != 0) {
 		auto errcode = getAPIError();
-		throw Lambda::Exception("Failed to set timeouts", errcode);
+		throw Lambda::Error("HTTP connection aborted: failed to set socket timeouts", errcode);
 	}
 
 	char clientIPBuff[64];

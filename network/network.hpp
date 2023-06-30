@@ -20,10 +20,6 @@ namespace Lambda::Network {
 	static const size_t network_chunksize_body = 131072;
 	static const size_t network_chunksize_websocket = 1024;
 
-	/**
-	 * Send http response back to the client
-	 * 😵 This function throws if a fatal error has occured
-	*/
 	Lambda::Error sendHTTP(SOCKET hSocket, HTTP::Response& response);
 
 	/**
@@ -32,12 +28,26 @@ namespace Lambda::Network {
 	*/
 	HTTP::Request receiveHTTP(SOCKET hSocket);
 
+	enum WebSocketCloseCode {
+		WSCLOSE_NORMAL = 1000,
+		WSCLOSE_GOING_AWAY = 1001,
+		WSCLOSE_PROTOCOL_ERROR = 1002,
+		WSCLOSE_UNSUPPORTED_DATA = 1003,
+		WSCLOSE_NO_STATUS_RECEIVED = 1005,
+		WSCLOSE_ABNORMAL_CLOSE = 1006,
+		WSCLOSE_INVALID_PAYLOAD_DATA = 1007,
+		WSCLOSE_POLICY_VIOLATION = 1008,
+		WSCLOSE_MESSAGE_TOO_BIG = 1009,
+		WSCLOSE_MANDATORY_EXTENSION = 1010,
+		WSCLOSE_INTERNAL_SERVER_ERROR = 1011,
+		WSCLOSE_TLS_HANDSHAKE_FAILED = 1015
+	};
 
 	struct WebsocketMessage {
 		std::string message;
 		time_t timestamp = 0;
 		bool binary = false;
-		bool partial = false;
+		bool chunked = false;
 	};
 
 	class WebSocket {
@@ -45,15 +55,13 @@ namespace Lambda::Network {
 			SOCKET hSocket = INVALID_SOCKET;
 			std::vector<WebsocketMessage> rxQueue;
 			std::thread* receiveThread = nullptr;
-
-			void asyncReceive();
-
+			void asyncWsIO();
+			Lambda::Error asyncError;
 			std::mutex mtLock;
-
 			Lambda::Error _sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary);
+			uint16_t connCloseStatus = 0;
 
 		public:
-			//WebSocket(SOCKET hParentSocket);
 			WebSocket(SOCKET hTCPSocket, Lambda::HTTP::Request& initalRequest);
 			~WebSocket();
 
@@ -65,6 +73,12 @@ namespace Lambda::Network {
 			}
 			bool availableMessage() { return this->rxQueue.size() > 0; };
 			std::vector<WebsocketMessage> getMessages();
+
+			bool isAlive() { return (!this->connCloseStatus && this->hSocket != INVALID_SOCKET && !this->asyncError.isError()); };
+			Lambda::Error getError() { return this->asyncError; };
+
+			void close(WebSocketCloseCode status) { this->connCloseStatus = status; };
+			void close() { close(WSCLOSE_NORMAL); };
 	};
 
 	class HTTPConnection {
@@ -82,6 +96,7 @@ namespace Lambda::Network {
 			~HTTPConnection();
 
 			std::string clientIP() { return this->clientIPv4; }
+			bool isAlive() { return this->hSocket != INVALID_SOCKET; };
 
 			/**
 			 * Sends http response back to the client
@@ -95,6 +110,10 @@ namespace Lambda::Network {
 			*/
 			Lambda::HTTP::Request receiveMessage() { return receiveHTTP(this->hSocket); }
 
+			/**
+			 * Upgrate the connection to websocket
+			 * 😵 This function throws if a fatal error has occured
+			*/
 			WebSocket upgradeToWebsocket(Lambda::HTTP::Request& initalRequest) { return WebSocket(this->hSocket, initalRequest); }
 	};
 
@@ -111,10 +130,9 @@ namespace Lambda::Network {
 			ListenSocket(const char* listenPort);
 			~ListenSocket();
 
-			bool isAlive();
+			bool isAlive() { return this->hSocket != INVALID_SOCKET; };
 
 			HTTPConnection acceptConnection() { return HTTPConnection(this->hSocket); };
-			//WebSocket acceptWebsocket() { return WebSocket(this->hSocket); }
 	};
 
 };

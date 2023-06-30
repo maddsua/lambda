@@ -15,7 +15,7 @@ Network::ListenSocket::ListenSocket(const char* listenPort) {
 
 			WSADATA initdata;
 			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw Lambda::Exception("WSA initialization failed", getAPIError());
+				throw Lambda::Error("WSA initialization failed", getAPIError());
 		}
 		
 	} else closesocket(temp);
@@ -34,7 +34,7 @@ Network::ListenSocket::ListenSocket(const char* listenPort) {
 	if (getaddrinfo(NULL, listenPort, &addrHints, &servAddr) != 0) {
 		auto errcode = getAPIError();
 		freeaddrinfo(servAddr);
-		throw Lambda::Exception("Could not resolve localhost", errcode);
+		throw Lambda::Error("Could not resolve localhost", errcode);
 	}
 	
 	// create and bind a SOCKET
@@ -42,7 +42,7 @@ Network::ListenSocket::ListenSocket(const char* listenPort) {
 	if (this->hSocket == INVALID_SOCKET) {
 		auto errcode = getAPIError();
 		freeaddrinfo(servAddr);
-		throw Lambda::Exception("Could not resolve localhost", errcode);
+		throw Lambda::Error("Could not resolve localhost", errcode);
 	}
 
 	//	allow fast port reuse
@@ -50,7 +50,7 @@ Network::ListenSocket::ListenSocket(const char* listenPort) {
 	if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
 		auto errcode = getAPIError();
 		freeaddrinfo(servAddr);
-		throw Lambda::Exception("Failed to set socket reuse address option", errcode);
+		throw Lambda::Error("Failed to set socket reuse address option", errcode);
 	}
 	
 	//	bind socket
@@ -58,7 +58,7 @@ Network::ListenSocket::ListenSocket(const char* listenPort) {
 		auto errcode = getAPIError();
 		freeaddrinfo(servAddr);
 		closesocket(this->hSocket);
-		throw Lambda::Exception("Failed to bind socket", errcode);
+		throw Lambda::Error("Failed to bind socket", errcode);
 	}
 
 	freeaddrinfo(servAddr);
@@ -67,15 +67,11 @@ Network::ListenSocket::ListenSocket(const char* listenPort) {
 	if (listen(this->hSocket, SOMAXCONN) == SOCKET_ERROR) {
 		auto errcode = getAPIError();
 		closesocket(this->hSocket);
-		throw Lambda::Exception("Listen command failed", errcode);
+		throw Lambda::Error("Listen command failed", errcode);
 	}	
 }
 
 Network::ListenSocket::~ListenSocket() {
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
-}
-
-bool Network::ListenSocket::isAlive() {
-	return this->hSocket != INVALID_SOCKET;
 }

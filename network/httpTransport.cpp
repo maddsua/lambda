@@ -1,8 +1,6 @@
 #include "../lambda.hpp"
 #include "./network.hpp"
 #include "./tcpip.hpp"
-
-#include <array>
 #include <algorithm>
 
 using namespace Lambda;
@@ -23,18 +21,18 @@ HTTP::Request Lambda::Network::receiveHTTP(SOCKET hSocket) {
 
 	auto rawMessage = std::vector<uint8_t>();
 	auto headerEnded = rawMessage.end();
-	auto headerChunk = std::array<uint8_t, network_chunksize_header>();
+	uint8_t headerChunk[network_chunksize_header];
 
 	static const std::string patternEndHeader = "\r\n\r\n";
 
 	while (headerEnded == rawMessage.end()) {
 
-		auto bytesReceived = recv(hSocket, (char*)headerChunk.data(), headerChunk.size(), 0);
+		auto bytesReceived = recv(hSocket, (char*)headerChunk, network_chunksize_header, 0);
 
 		if (bytesReceived == 0) break;
-		else if (bytesReceived < 0) throw Lambda::Exception("Network error while receiving request header", getAPIError());
+		else if (bytesReceived < 0) throw Lambda::Error("Network error while receiving request header", getAPIError());
 
-		rawMessage.insert(rawMessage.end(), headerChunk.data(), headerChunk.data() + bytesReceived);
+		rawMessage.insert(rawMessage.end(), headerChunk, headerChunk + bytesReceived);
 		headerEnded = std::search(rawMessage.begin(), rawMessage.end(), patternEndHeader.begin(), patternEndHeader.end());
 	}
 
@@ -52,15 +50,15 @@ HTTP::Request Lambda::Network::receiveHTTP(SOCKET hSocket) {
 
 	if (request.body.size() >= bodySize) return request;
 	
-	auto bodyChunk = std::array<uint8_t, network_chunksize_body>();
+	uint8_t bodyChunk[network_chunksize_body];
 	while (request.body.size() < bodySize) {
 
-		auto bytesReceived = recv(hSocket, (char*)bodyChunk.data(), bodyChunk.size(), 0);
+		auto bytesReceived = recv(hSocket, (char*)bodyChunk, network_chunksize_body, 0);
 
 		if (bytesReceived == 0) break;
-		else if (bytesReceived < 0) throw Lambda::Exception("Network error while receiving request payload", getAPIError());
+		else if (bytesReceived < 0) throw Lambda::Error("Network error while receiving request payload", getAPIError());
 
-		request.body.insert(request.body.end(), bodyChunk.data(), bodyChunk.data() + bytesReceived);
+		request.body.insert(request.body.end(), bodyChunk, bodyChunk + bytesReceived);
 	}
 
 	return request;

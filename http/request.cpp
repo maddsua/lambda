@@ -47,7 +47,7 @@ Request::Request(std::vector<uint8_t>& httpHead) {
 			this->headers.fromHTTP(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeaderEnd));
 		
 	} catch(const std::exception& e) {
-		throw Lambda::Exception(std::string("Request parsing failed: ") + e.what());
+		throw Lambda::Error(std::string("Request parsing failed: ") + e.what());
 	}
 }
 
