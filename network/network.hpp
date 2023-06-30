@@ -47,12 +47,11 @@ namespace Lambda::Network {
 		std::string message;
 		time_t timestamp = 0;
 		bool binary = false;
-		bool chunked = false;
 	};
 
 	struct WebsocketFrameHeader {
 		size_t payloadSize;
-		uint8_t size;
+		size_t size;
 		uint8_t maskKey[4];
 		uint8_t opcode;
 		bool finbit;
