@@ -90,30 +90,30 @@ WebSocket::~WebSocket() {
 	}
 }
 
-WebsocketFrameHeader WebSocket::parseFrameHeader(const uint8_t* buffer) {
+WebsocketFrameHeader WebSocket::parseFrameHeader(const std::vector<uint8_t>& buffer) {
 
 	WebsocketFrameHeader header;
 
-	header.finbit = (buffer[0] & 0x80) >> 7;
-	header.opcode = buffer[0] & 0x0F;
+	header.finbit = (buffer.at(0) & 0x80) >> 7;
+	header.opcode = buffer.at(0) & 0x0F;
 
 	header.size = 2;
-	header.payloadSize = buffer[1] & 0x7F;
+	header.payloadSize = buffer.at(1) & 0x7F;
 
 	if (header.payloadSize == 126) {
 		header.size += 2;
-		header.payloadSize = (buffer[2] << 8) | buffer[3];
+		header.payloadSize = (buffer.at(2) << 8) | buffer.at(3);
 	} else if (header.payloadSize == 127) {
 		header.size += 8;
 		header.payloadSize = 0;
 		for (int i = 0; i < 8; i++)
-			header.payloadSize |= (buffer[2 + i] << ((7 - i) * 8));
+			header.payloadSize |= (buffer.at(2 + i) << ((7 - i) * 8));
 	}
 
-	header.mask = (buffer[1] & 0x80) >> 7;
+	header.mask = (buffer.at(1) & 0x80) >> 7;
 
-	if (header.mask) {
-		memcpy(header.maskKey, &buffer[header.size], sizeof(header.maskKey));
+	if (header.mask && buffer.size() >= header.size + sizeof(header.maskKey)) {
+		memcpy(header.maskKey, buffer.data() + header.size, sizeof(header.maskKey));
 		header.size += 4;
 	}
 
@@ -130,6 +130,7 @@ void WebSocket::asyncWsIO() {
 	}
 
 	uint8_t downloadChunk[network_chunksize_websocket];
+	std::vector<uint8_t> downloadStream;
 
 	WebsocketMessage* wsmessagetemp = nullptr;
 	size_t messageDownloadLeft = 0;
@@ -164,10 +165,11 @@ void WebSocket::asyncWsIO() {
 		//	try to receive a message
 		auto bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
 
-		//	kill this websocket if connection fails
-		if (bytesReceived == 0) continue;
-		else if (bytesReceived < 0) {
+		if (bytesReceived > 0) {
+			downloadStream.insert(downloadStream.end(), downloadChunk, downloadChunk + bytesReceived);
+		} else if (bytesReceived < 0) {
 
+			//	kill this websocket if connection fails
 			auto apierror = getAPIError();
 
 			if (apierror == ETIMEDOUT || apierror == WSAETIMEDOUT) {
@@ -179,9 +181,12 @@ void WebSocket::asyncWsIO() {
 			this->internalError = { "Connection terminated", apierror };
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 			return;
-		}
 
-		auto frameHeader = parseFrameHeader(downloadChunk);
+		} else continue;
+
+		WebsocketFrameHeader frameHeader;
+		try { frameHeader = parseFrameHeader(downloadStream); }
+			catch(...) { continue; }
 
 		//	check opcode
 		bool opcodeSupported = std::any_of(wsOpCodes.begin(), wsOpCodes.end(), [&frameHeader](auto element) {
@@ -194,8 +199,17 @@ void WebSocket::asyncWsIO() {
 			return;
 		}
 
-		size_t payloadMaxSize = (frameHeader.payloadSize < bytesReceived) ? frameHeader.payloadSize : bytesReceived;
-		auto payload = std::vector<uint8_t>(downloadChunk + frameHeader.size, downloadChunk + payloadMaxSize);
+		std::vector<uint8_t> payload;
+
+		try {
+			auto frameSize = (frameHeader.size + frameHeader.payloadSize);
+			payload = std::vector<uint8_t>(downloadStream.begin() + frameHeader.size, downloadStream.begin() + frameSize);
+			downloadStream.erase(downloadStream.begin(), downloadStream.begin() + frameSize);
+		} catch(...) {
+			this->internalError = Lambda::Error("Payload size mismatch");
+			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+			return;
+		}
 
 		if (frameHeader.mask) {
 			//	unmask the payload
