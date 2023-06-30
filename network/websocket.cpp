@@ -203,6 +203,15 @@ void WebSocket::asyncWsIO() {
 			continue;
 		}
 
+		//	now let's ensure that we have the entire frame in the buffer
+		//	I called it a stream, I don't care
+		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
+			//	and also need to tick a fragmentation counter
+			//	in case we hit this position multimple times - the connection is fucked in some way
+			puts("where is my frame lebovski");
+			continue;
+		}
+
 		//	check the mask big
 		if (!frameHeader.mask) {
 			this->internalError = Lambda::Error("Received unmasked data from the client");
