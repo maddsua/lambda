@@ -3,6 +3,9 @@
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
 
+#include <algorithm>
+#include <array>
+
 using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
@@ -14,15 +17,23 @@ static const std::string wslambdaPingPayload = "wsping/lambda";
 
 //	this implementation does not support sending partial messages
 //	if you want it to support it, contribute to the project, bc I personally don't need that functionality
-static const uint8_t ws_finBit = 0x80;
-
 enum WebsockBits {
+	WEBSOCK_BIT_FINAL = 0x80,
 	WEBSOCK_OPCODE_CONTINUE = 0x00,
 	WEBSOCK_OPCODE_TEXT = 0x01,
 	WEBSOCK_OPCODE_BINARY = 0x02,
 	WEBSOCK_OPCODE_CLOSE = 0x08,
 	WEBSOCK_OPCODE_PING = 0x09,
 	WEBSOCK_OPCODE_PONG = 0x0A
+};
+
+static const std::array<uint8_t, 6> wsOpCodes = {
+	WEBSOCK_OPCODE_CONTINUE,
+	WEBSOCK_OPCODE_TEXT,
+	WEBSOCK_OPCODE_BINARY,
+	WEBSOCK_OPCODE_CLOSE,
+	WEBSOCK_OPCODE_PING,
+	WEBSOCK_OPCODE_PONG,
 };
 
 WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
@@ -122,7 +133,6 @@ void WebSocket::asyncWsIO() {
 
 	WebsocketMessage* wsmessagetemp = nullptr;
 	size_t messageDownloadLeft = 0;
-	uint8_t maskingKey[4];
 
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
@@ -141,7 +151,7 @@ void WebSocket::asyncWsIO() {
 
 			uint8_t pingFrameHeader[2];
 
-			pingFrameHeader[0] = ws_finBit | WEBSOCK_OPCODE_PING;
+			pingFrameHeader[0] = WEBSOCK_BIT_FINAL | WEBSOCK_OPCODE_PING;
 			pingFrameHeader[1] = wslambdaPingPayload.size() & 0x7F;
 
 			//	send frame header and payload in separate calls so we don't have to copy any buffers
@@ -152,7 +162,7 @@ void WebSocket::asyncWsIO() {
 		}
 
 		//	try to receive a message
-		auto bytesReceived = recv(hSocket, (char*)downloadChunk, network_chunksize_websocket, 0);
+		auto bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
 
 		//	kill this websocket if connection fails
 		if (bytesReceived == 0) continue;
@@ -171,105 +181,89 @@ void WebSocket::asyncWsIO() {
 			return;
 		}
 
-		//	try to parse ws frame and extract the message
-		if (wsmessagetemp == nullptr) {
+		auto frameHeader = parseFrameHeader(downloadChunk);
 
-			//	parse header
-			bool mask = (downloadChunk[1] & 0x80) >> 7;
-			if (!mask) {
-				this->internalError = Lambda::Error("Websock client message does not have a mask");
-				printf("first frame bite: %02X\n", downloadChunk[1]);
-				return;
-			}
-			
-			size_t headerPayloadSize = downloadChunk[1] & 0x7F;
-			size_t headerSize = 2;
+		//	check opcode
+		bool opcodeSupported = std::any_of(wsOpCodes.begin(), wsOpCodes.end(), [&frameHeader](auto element) {
+			return element == frameHeader.opcode;
+		});
 
-			if (headerPayloadSize == 126) {
-				headerPayloadSize = (downloadChunk[2] << 8) | downloadChunk[3];
-				headerSize += 2;
-			} else if (headerPayloadSize == 127) {
-				headerPayloadSize = 0;
-				for (int i = 0; i < 8; i++)
-					headerPayloadSize |= (downloadChunk[2 + i] << ((7 - i) * 8));
-				headerSize += 8;
-			}
+		if (!opcodeSupported) {
+			this->internalError = Lambda::Error("Unsupported websocket opcode");
+			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+			return;
+		}
 
-			memcpy(maskingKey, &downloadChunk[headerSize], sizeof(maskingKey));
-			headerSize += 4;
+		size_t payloadMaxSize = (frameHeader.payloadSize < bytesReceived) ? frameHeader.payloadSize : bytesReceived;
+		auto payload = std::vector<uint8_t>(downloadChunk + frameHeader.size, downloadChunk + payloadMaxSize);
 
-			//	check header size range
-			//	need to impelemt a smarter way to validate packets, but this will do for now
-			if (headerSize > bytesReceived) {
-				this->internalError = Lambda::Error("Invalid websocket frame encountered");
-				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-				return;
-			}
-
-			auto payload = std::vector<uint8_t>(downloadChunk + headerSize, downloadChunk + bytesReceived);
-
+		if (frameHeader.mask) {
 			//	unmask the payload
 			for (size_t i = 0; i < payload.size(); i++)
-				payload[i] ^= maskingKey[i % 4];
-			
-			bool finalBit = ((downloadChunk[0] & 0x80) >> 7);
-			uint8_t opcode = downloadChunk[0] & 0x0F;
-
-			switch (opcode) {
-
-				case WEBSOCK_OPCODE_CLOSE: {
-
-					//	set connection close code
-					//	this will cause all the operation to be shut down
-					this->connCloseStatus = 1000;
-
-				} break;
-
-				case WEBSOCK_OPCODE_PONG: {
-
-					//	check that pong payload matches the ping's one
-					if (std::equal(payload.begin(), payload.end(), wslambdaPingPayload.begin(), wslambdaPingPayload.end())) {
-						lastPong = std::chrono::steady_clock::now();
-					}
-
-				} break;
-
-				case WEBSOCK_OPCODE_PING: {
-					
-					uint8_t pongFrame[2];
-
-					// set FIN bit and opcode
-					pongFrame[0] = 0x80 | WEBSOCK_OPCODE_PONG;
-					//	copy payload length from ping
-					pongFrame[1] = downloadChunk[1] & 0x7F;
-
-					//	send frame header and echo the payload
-					send(this->hSocket, (const char*)pongFrame, sizeof(pongFrame), 0);
-					send(this->hSocket, (const char*)payload.data(), payload.size(), 0);
-
-				} break;
-
-				default: {
-
-					if (opcode != WEBSOCK_OPCODE_TEXT && opcode != WEBSOCK_OPCODE_BINARY) {
-						this->internalError = Lambda::Error("Unexpected websocket opcode");
-						this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-						return;
-					}
-
-					wsmessagetemp = new WebsocketMessage;
-
-					wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
-					wsmessagetemp->timestamp = time(nullptr);
-					wsmessagetemp->binary = opcode == WEBSOCK_OPCODE_BINARY;
-					wsmessagetemp->chunked = !finalBit || opcode == WEBSOCK_OPCODE_CONTINUE;
-
-					if (payload.size() < headerPayloadSize)
-						messageDownloadLeft = headerPayloadSize - payload.size();
-
-				} break;
-			}
+				payload[i] ^= frameHeader.maskKey[i % 4];
 		}
+
+		switch (frameHeader.opcode) {
+
+			case WEBSOCK_OPCODE_CLOSE: {
+
+				//	set connection close code
+				//	this will cause all the operation to be shut down
+				this->connCloseStatus = 1000;
+
+			} break;
+
+			case WEBSOCK_OPCODE_PONG: {
+
+				//	check that pong payload matches the ping's one
+				if (std::equal(payload.begin(), payload.end(), wslambdaPingPayload.begin(), wslambdaPingPayload.end())) {
+					lastPong = std::chrono::steady_clock::now();
+				}
+
+			} break;
+
+			case WEBSOCK_OPCODE_PING: {
+				
+				uint8_t pongFrame[2];
+
+				// set FIN bit and opcode
+				pongFrame[0] = 0x80 | WEBSOCK_OPCODE_PONG;
+				//	copy payload length from ping
+				pongFrame[1] = downloadChunk[1] & 0x7F;
+
+				//	send frame header and echo the payload
+				send(this->hSocket, (const char*)pongFrame, sizeof(pongFrame), 0);
+				send(this->hSocket, (const char*)payload.data(), payload.size(), 0);
+
+			} break;
+
+			case WEBSOCK_OPCODE_CONTINUE: {
+				puts("who the fuck said that?!");
+			} break;
+
+			default: {
+
+				//WebsocketMessage temp;
+				//temp.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+
+				wsmessagetemp = new WebsocketMessage;
+
+				wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
+				wsmessagetemp->timestamp = time(nullptr);
+				wsmessagetemp->binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+
+				if (frameHeader.finbit) {
+					this->rxQueue.push_back(*wsmessagetemp);
+					delete wsmessagetemp;
+				}
+
+				//if (payload.size() < headerPayloadSize)
+				//	messageDownloadLeft = headerPayloadSize - payload.size();
+
+			} break;
+		}
+		
+		/*
 
 		//	abort if no message was extracted
 		if (wsmessagetemp == nullptr) continue;
@@ -292,7 +286,7 @@ void WebSocket::asyncWsIO() {
 			this->rxQueue.push_back(*wsmessagetemp);
 			delete wsmessagetemp;
 			wsmessagetemp = nullptr;
-		}
+		}*/
 	}
 }
 
@@ -312,7 +306,7 @@ Lambda::Error WebSocket::_sendMessage(const uint8_t* dataBuff, const size_t data
 	std::vector<uint8_t> frameHeader;
 
 	// set FIN bit and opcode
-	frameHeader.push_back(ws_finBit | (binary ? WEBSOCK_OPCODE_BINARY : WEBSOCK_OPCODE_TEXT));
+	frameHeader.push_back(WEBSOCK_BIT_FINAL | (binary ? WEBSOCK_OPCODE_BINARY : WEBSOCK_OPCODE_TEXT));
 
 	// set payload length
 	if (dataSize < 126) {
