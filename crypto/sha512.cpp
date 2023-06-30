@@ -96,7 +96,7 @@ const uint64_t sha512_k[80] = {
 struct SHA512CTX {
 	size_t length;
 	size_t blockLen;
-	uint8_t block[2 * SHA512_BLOCK_SIZE];
+	uint8_t block[2 * Crypto::sha512_block_size];
 	size_t state[8];
 };
 
@@ -143,9 +143,9 @@ void sha512_Transform(SHA512CTX* ctx, const uint8_t* message, size_t block_nb) {
 }
 
 
-std::array <uint8_t, SHA512_HASH_SIZE> Crypto::sha512Hash(std::vector<uint8_t> data) {
+std::array <uint8_t,  Crypto::sha512_hash_size> Crypto::sha512Hash(const std::vector<uint8_t>& data) {
 
-	std::array <uint8_t, SHA512_HASH_SIZE> hash;
+	std::array <uint8_t, sha512_hash_size> hash;
 
 	//	sha-512 init stage
 	SHA512CTX ctx;
@@ -164,20 +164,20 @@ std::array <uint8_t, SHA512_HASH_SIZE> Crypto::sha512Hash(std::vector<uint8_t> d
 
 	// sha-512 message update stage
 	{
-		size_t tmp_len = SHA512_BLOCK_SIZE - ctx.blockLen;
+		size_t tmp_len = sha512_block_size - ctx.blockLen;
 		size_t rem_len = (data.size() < tmp_len) ? data.size() : tmp_len;
 		size_t new_len = data.size() - rem_len;
-		size_t block_nb = new_len / SHA512_BLOCK_SIZE;
+		size_t block_nb = new_len / sha512_block_size;
 
 		memcpy(&ctx.block[ctx.blockLen], data.data(), rem_len);
 
-		if ((ctx.blockLen + data.size() >= SHA512_BLOCK_SIZE)) {
+		if ((ctx.blockLen + data.size() >= sha512_block_size)) {
 			const uint8_t* shifted_message = data.data() + rem_len;
 
 			sha512_Transform(&ctx, ctx.block, 1);
 			sha512_Transform(&ctx, shifted_message, block_nb);
 
-			rem_len = new_len % SHA512_BLOCK_SIZE;
+			rem_len = new_len % sha512_block_size;
 
 			memcpy(ctx.block, &shifted_message[block_nb << 7], rem_len);
 
@@ -189,7 +189,7 @@ std::array <uint8_t, SHA512_HASH_SIZE> Crypto::sha512Hash(std::vector<uint8_t> d
 
 	//	sha-512 final stage
 	{
-		size_t block_nb = 1 + ((SHA512_BLOCK_SIZE - 17) < (ctx.blockLen % SHA512_BLOCK_SIZE));
+		size_t block_nb = 1 + ((sha512_block_size - 17) < (ctx.blockLen % sha512_block_size));
 		size_t len_b = (ctx.length + ctx.blockLen) << 3;
 		size_t pm_len = block_nb << 7;
 

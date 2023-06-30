@@ -2,7 +2,7 @@
 LIBNAME  = lambda
 APP_DEV    = $(LIBNAME).exe
 
-FLAGS		= -std=c++20
+FLAGS		= -std=c++20 -g
 LIBS_SHARED	= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
 #	to get these static libs you need to compile brotli and zlib youself
@@ -41,13 +41,21 @@ encoding/base64.o: encoding/base64.cpp
 encoding/hex.o: encoding/hex.cpp
 	g++ -c encoding/hex.cpp -o encoding/hex.o $(FLAGS)
 
+
+#------------
+# Test: Encoding
+#------------
+
+test_encode: $(OBJECTS_ENCODING)
+	g++ tests/encoding.cpp $(OBJECTS_ENCODING) -o test_encode.exe
+
 #------------
 # Component: HTTP
 #------------
 
 COMPONENT_HTTP = obj_http
 LIBSTATIC_HTTP = lib$(LIBNAME)-http.a
-OBJECTS_HTTP = http/strings.o http/headers.o http/searchquery.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o
+OBJECTS_HTTP = http/strings.o http/headers.o http/urlsearchparams.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o
 
 $(COMPONENT_HTTP): $(OBJECTS_HTTP)
 	ar rvs $(LIBSTATIC_HTTP) $(OBJECTS_HTTP)
@@ -58,8 +66,8 @@ http/strings.o: http/strings.cpp
 http/headers.o: http/headers.cpp
 	g++ -c http/headers.cpp -o http/headers.o $(FLAGS)
 
-http/searchquery.o: http/searchquery.cpp
-	g++ -c http/searchquery.cpp -o http/searchquery.o $(FLAGS)
+http/urlsearchparams.o: http/urlsearchparams.cpp
+	g++ -c http/urlsearchparams.cpp -o http/urlsearchparams.o $(FLAGS)
 
 http/statuscode.o: http/statuscode.cpp
 	g++ -c http/statuscode.cpp -o http/statuscode.o $(FLAGS)
@@ -84,8 +92,8 @@ http/time.o: http/time.cpp
 # Test: HTTP
 #------------
 
-test_http: $(OBJECTS_HTTP)
-	g++ tests/http/http.cpp $(OBJECTS_HTTP) -o test_http.exe
+test_http: $(OBJECTS_HTTP) $(OBJECTS_ENCODING)
+	g++ tests/http.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) -o test_http.exe
 
 
 #------------
@@ -111,7 +119,7 @@ compress/brotli.o: compress/brotli.cpp
 #------------
 
 test_compress: $(OBJECTS_COMPRESS)
-	g++ tests/compress/compress.cpp $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_compress.exe
+	g++ tests/compress.cpp $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_compress.exe
 
 
 #------------
@@ -140,21 +148,27 @@ crypto/sha512.o: crypto/sha512.cpp
 
 
 #------------
-# Component: Sockets
+# Component: Network
 #------------
 
 COMPONENT_SOCKETS = obj_sockets
 LIBSTATIC_SOCKETS = lib$(LIBNAME)-sockets.a
-OBJECTS_SOCKETS = sockets/httpListenSocket.o sockets/httpClientSocket.o
+OBJECTS_SOCKETS = network/tcpListenSocket.o network/httpTransport.o network/httpConnection.o network/websocket.o
 
 $(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
 	ar rvs $(LIBSTATIC_SOCKETS) $(OBJECTS_SOCKETS)
 
-sockets/httpListenSocket.o: sockets/httpListenSocket.cpp
-	g++ -c sockets/httpListenSocket.cpp -o sockets/httpListenSocket.o $(FLAGS)
+network/tcpListenSocket.o: network/tcpListenSocket.cpp
+	g++ -c network/tcpListenSocket.cpp -o network/tcpListenSocket.o $(FLAGS)
 
-sockets/httpClientSocket.o: sockets/httpClientSocket.cpp
-	g++ -c sockets/httpClientSocket.cpp -o sockets/httpClientSocket.o $(FLAGS)
+network/httpTransport.o: network/httpTransport.cpp
+	g++ -c network/httpTransport.cpp -o network/httpTransport.o $(FLAGS)
+
+network/httpConnection.o: network/httpConnection.cpp
+	g++ -c network/httpConnection.cpp -o network/httpConnection.o $(FLAGS)
+
+network/websocket.o: network/websocket.cpp
+	g++ -c network/websocket.cpp -o network/websocket.o $(FLAGS)
 
 
 #------------
@@ -178,8 +192,8 @@ server/logs.o: server/logs.cpp
 # Test: Server
 #------------
 
-test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER)
-	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
+test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
+	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
 
 #------------

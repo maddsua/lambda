@@ -10,9 +10,9 @@ namespace Lambda::Encoding {
 	std::string encodeURIComponent(const std::string& str);
 
 	//	Decode base64 string
-	std::string b64Decode(std::string& data);
+	std::string b64Decode(const std::string& data);
 	//	Encode base64 string
-	std::string b64Encode(std::string& data);
+	std::string b64Encode(const std::string& data);
 	//	Validate base64 string
 	bool b64Validate(const std::string& encoded);
 

@@ -1,10 +1,8 @@
 #ifndef __LAMBDA_SERVER__
 #define __LAMBDA_SERVER__
 
-#include "../sockets/sockets.hpp"
+#include "../network/network.hpp"
 #include <deque>
-#include <mutex>
-#include <thread>
 
 namespace Lambda {
 
@@ -29,7 +27,7 @@ namespace Lambda {
 
 	class Server {
 		private:
-			Lambda::Socket::HTTPListenSocket* ListenSocketObj;
+			Lambda::Network::ListenSocket* ListenSocketObj;
 			std::thread* watchdogThread;
 			bool handlerDispatched;
 			bool running;
@@ -42,7 +40,7 @@ namespace Lambda {
 			void addLogRecord(std::string message, int level);
 			void addLogRecord(std::string message) { addLogRecord(message, LAMBDA_LOG); };
 
-			void (*requestCallback)(HTTP::Request&, Context&) = nullptr;
+			void (*requestCallback)(Network::HTTPConnection&, Context&) = nullptr;
 			HTTP::Response (*requestCallbackServerless)(HTTP::Request&, Context&) = nullptr;
 
 			void* instancePasstrough = nullptr;
@@ -57,7 +55,7 @@ namespace Lambda {
 			std::vector<std::string> logsText();
 			bool hasNewLogs();
 
-			void setServerCallback(void (*callback)(HTTP::Request&, Context&));
+			void setServerCallback(void (*callback)(Network::HTTPConnection&, Context&));
 			void removeServerCallback();
 			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request&, Context&));
 			void removeServerlessCallback();

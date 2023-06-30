@@ -54,7 +54,6 @@ namespace Lambda::HTTP {
 	class Request {
 		public:
 			Request(std::vector<uint8_t>& httpHead);
-			
 			std::string method;
 			std::string path;
 			URLSearchParams searchParams;

@@ -39,7 +39,7 @@ int main() {
 
 	//	create response object
 	auto response = HTTP::Response(202, {
-		{"contenty-type", "text/txt"}
+		{"contenty-type", "text/plain"}
 	}, "sample response here");
 	auto respdump = response.dump();
 	std::cout << std::string(respdump.begin(), respdump.end()) << std::endl;

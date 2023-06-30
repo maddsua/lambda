@@ -50,7 +50,7 @@ void URL::setHref(const std::string& href) {
 
 	//	search query
 	if (indexofSearchQuery != std::string::npos) {
-		this->searchParams = href.substr(indexofSearchQuery + 1);
+		this->searchParams.fromHref(href.substr(indexofSearchQuery + 1));
 	}
 
 	refresh();

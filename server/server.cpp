@@ -1,20 +1,19 @@
+#include "../lambda.hpp"
 #include "./server.hpp"
 #include "../http/http.hpp"
-#include "../lambda.hpp"
 #include <chrono>
 
 using namespace Lambda;
 
 Server::Server() {
 
-	this->ListenSocketObj = new Socket::HTTPListenSocket();
-
-	if (!ListenSocketObj->ok()) {
-		auto sockstat = ListenSocketObj->status();
-		addLogRecord("Failed to start server: Socket error:" + std::to_string(sockstat.code), LAMBDA_LOG_ERROR);
+	try {
+		this->ListenSocketObj = new Network::ListenSocket();
+	} catch(const std::exception& e) {
+		addLogRecord("Failed to start server: Socket error:" + std::string(e.what()), LAMBDA_LOG_ERROR);
 		return;
 	}
-	
+
 	running = true;
 	handlerDispatched = true;
 	watchdogThread = new std::thread(connectionWatchdog, this);
@@ -23,13 +22,15 @@ Server::Server() {
 
 Server::~Server() {
 	running = false;
-	if (watchdogThread->joinable())
-		watchdogThread->join();
+	if (this->watchdogThread != nullptr) {
+		if (watchdogThread->joinable())
+			watchdogThread->join();
+		delete watchdogThread;
+	}
 	delete ListenSocketObj;
-	delete watchdogThread;
 }
 
-void Server::setServerCallback(void (*callback)(HTTP::Request&, Context&)) {
+void Server::setServerCallback(void (*callback)(Network::HTTPConnection&, Context&)) {
 	//std::lock_guard<std::mutex>lock(mtLock);
 	this->requestCallback = callback;
 }
@@ -69,13 +70,13 @@ void Server::connectionWatchdog() {
 			continue;
 		}
 
-		if (!ListenSocketObj->ok()) {
+		/*if (!ListenSocketObj->isAlive()) {
 			auto status = ListenSocketObj->status();
 			
 			addLogRecord("Listen socket failed, code: " + std::to_string(status.code) + " Restarting...", LAMBDA_LOG_WARN);
 
 			delete ListenSocketObj;
-			ListenSocketObj = new Socket::HTTPListenSocket();
+			ListenSocketObj = new Socket::ListengSocket();
 			status = ListenSocketObj->status();
 
 			if (!ListenSocketObj->ok()) {
@@ -83,7 +84,7 @@ void Server::connectionWatchdog() {
 				addLogRecord("Failed to restart listen socket. Code " + std::to_string(status.code) + " Aborting.", LAMBDA_LOG_ERROR);
 				break;
 			}
-		}
+		}*/
 
 		lastDispatched = std::chrono::system_clock::now();
 		auto invoked = std::thread(connectionHandler, this);
@@ -97,33 +98,56 @@ void Server::connectionHandler() {
 	auto client = ListenSocketObj->acceptConnection();
 	handlerDispatched = true;
 
-	if (!client.ok()) {
-		addLogRecord(std::string("Request aborted, socket error on client: ") + client.ip());
+	/*if (!client.ok()) {
+		addLogRecord(std::string("Request aborted, socket error on client: ") + client.clientIP());
 		return;
-	}
+	}*/
 
-	// get request payload and context
-	auto request = client.receiveMessage();
+	// get request context
+	HTTP::Request* requestPtr = nullptr;
 	Context requestCTX;
-	requestCTX.clientIP = client.ip();
+	requestCTX.clientIP = client.clientIP();
 	requestCTX.passtrough = this->instancePasstrough;
 
-	//	serverfull handler. note the return statement
-	if (this->requestCallback != nullptr) {
-		this->requestCallback(request, requestCTX);
-		return;
-	}
-
+	//	hold response object ready just in case
 	auto response = HTTP::Response();
+	std::string handlerErrorMessage;
 
-	//	serverless handler
-	if (this->requestCallbackServerless != nullptr) {
-		response = (*requestCallbackServerless)(request, requestCTX);
+	try {
+
+		//	Nested trycatch in case someone throws something diffrernt from std::exception
+		//	Sadly, this is not gonna help in case of "the C error" strike...I mean segfault
+		//	zlib and other cool libs can still crash the server
+		try {
+
+			//	serverfull handler. note the return statement
+			if (this->requestCallback != nullptr) {
+				this->requestCallback(client, requestCTX);
+				return;
+			}
+
+			//	serverless handler
+			//	we read request before even trying to call handler, so we won't break http in case there's no handler
+			auto request = client.receiveMessage();
+			if (this->requestCallbackServerless != nullptr) {
+				response = (*requestCallbackServerless)(request, requestCTX);
+			} else {
+				throw std::runtime_error("No handler function assigned");
+			}
+
+		} catch(const std::exception& e) {
+			handlerErrorMessage = e.what();
+		}
+
+	} catch(...) {
+		handlerErrorMessage = "Unhandled callback error. This must be caused by your code, bc lambda only throws std::exception's, and it would be catched long before this stage";
 	}
-	//	fallback handler
-	else {
-		addLogRecord(std::string("Request handled in fallback mode. Path: " ) + request.path + ", client: " + client.ip());
-		response.setBodyText(std::string("server works. lambda v") + LAMBDAVERSION);
+
+	//	handle errors
+	if (handlerErrorMessage.size()) {
+		addLogRecord(std::string("Request failed: " ) + handlerErrorMessage + " | Client: " + client.clientIP(), LAMBDA_LOG_ERROR);
+		response.setStatusCode(500);
+		response.setBodyText(handlerErrorMessage + " | lambda v" + LAMBDAVERSION);
 	}
 
 	//	set some service headers
