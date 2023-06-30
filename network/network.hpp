@@ -50,6 +50,15 @@ namespace Lambda::Network {
 		bool chunked = false;
 	};
 
+	struct WebsocketFrameHeader {
+		size_t payloadSize;
+		uint8_t size;
+		uint8_t maskKey[4];
+		uint8_t opcode;
+		bool finbit;
+		bool mask;
+	};
+
 	class WebSocket {
 		private:
 			SOCKET hSocket = INVALID_SOCKET;
@@ -60,6 +69,7 @@ namespace Lambda::Network {
 			std::mutex mtLock;
 			Lambda::Error _sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary);
 			uint16_t connCloseStatus = 0;
+			WebsocketFrameHeader parseFrameHeader(const uint8_t* buffer);
 
 		public:
 			WebSocket(SOCKET hTCPSocket, Lambda::HTTP::Request& initalRequest);
