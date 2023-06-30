@@ -79,6 +79,36 @@ WebSocket::~WebSocket() {
 	}
 }
 
+WebsocketFrameHeader WebSocket::parseFrameHeader(const uint8_t* buffer) {
+
+	WebsocketFrameHeader header;
+
+	header.finbit = (buffer[0] & 0x80) >> 7;
+	header.opcode = buffer[0] & 0x0F;
+
+	header.size = 2;
+	header.payloadSize = buffer[1] & 0x7F;
+
+	if (header.payloadSize == 126) {
+		header.size += 2;
+		header.payloadSize = (buffer[2] << 8) | buffer[3];
+	} else if (header.payloadSize == 127) {
+		header.size += 8;
+		header.payloadSize = 0;
+		for (int i = 0; i < 8; i++)
+			header.payloadSize |= (buffer[2 + i] << ((7 - i) * 8));
+	}
+
+	header.mask = (buffer[1] & 0x80) >> 7;
+
+	if (header.mask) {
+		memcpy(header.maskKey, &buffer[header.size], sizeof(header.maskKey));
+		header.size += 4;
+	}
+
+	return header;
+}
+
 void WebSocket::asyncWsIO() {
 
 	auto setOptStatRX = setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&wsRcvTimeout, sizeof(wsRcvTimeout));
@@ -100,28 +130,25 @@ void WebSocket::asyncWsIO() {
 	while (this->hSocket != INVALID_SOCKET && !this->connCloseStatus) {
 
 		//	send ping and terminate websocket if there is no response
-		{
-			auto now = std::chrono::steady_clock::now();
+		auto now = std::chrono::steady_clock::now();
+		if ((now - lastPong) > std::chrono::milliseconds(wsMaxSkippedPings * wsPingTimeout)) {
 
-			if ((now - lastPong) > std::chrono::milliseconds(wsMaxSkippedPings * wsPingTimeout)) {
+			this->internalError = { "Didn't receive any response for pings" };
+			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+			return;
 
-				this->internalError = { "Didn't receive any response for pings" };
-				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-				return;
+		} else if ((now - lastPing) > std::chrono::milliseconds(wsPingTimeout)) {
 
-			} else if ((now - lastPing) > std::chrono::milliseconds(wsPingTimeout)) {
+			uint8_t pingFrameHeader[2];
 
-				uint8_t pingFrameHeader[2];
+			pingFrameHeader[0] = ws_finBit | WEBSOCK_OPCODE_PING;
+			pingFrameHeader[1] = wslambdaPingPayload.size() & 0x7F;
 
-				pingFrameHeader[0] = ws_finBit | WEBSOCK_OPCODE_PING;
-				pingFrameHeader[1] = wslambdaPingPayload.size() & 0x7F;
+			//	send frame header and payload in separate calls so we don't have to copy any buffers
+			send(this->hSocket, (const char*)pingFrameHeader, sizeof(pingFrameHeader), 0);
+			send(this->hSocket, (const char*)wslambdaPingPayload.data(), wslambdaPingPayload.size(), 0);
 
-				//	send frame header and payload in separate calls so we don't have to copy any buffers
-				send(this->hSocket, (const char*)pingFrameHeader, sizeof(pingFrameHeader), 0);
-				send(this->hSocket, (const char*)wslambdaPingPayload.data(), wslambdaPingPayload.size(), 0);
-
-				lastPing = std::chrono::steady_clock::now();
-			}
+			lastPing = std::chrono::steady_clock::now();
 		}
 
 		//	try to receive a message
@@ -151,6 +178,7 @@ void WebSocket::asyncWsIO() {
 			bool mask = (downloadChunk[1] & 0x80) >> 7;
 			if (!mask) {
 				this->internalError = Lambda::Error("Websock client message does not have a mask");
+				printf("first frame bite: %02X\n", downloadChunk[1]);
 				return;
 			}
 			
