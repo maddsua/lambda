@@ -10,10 +10,19 @@ using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+static const std::string wslambdaPingString = "wsping/lambda";
+
+//	The recv function blocks execution infinitely until it receives somethig,
+//	which is not optimal for this usecase.
+//	There's an overlapped io in winapi, but it's kinda ass and definitely is not portable
+//	So I'm reinventing a wheel by causing receive function to fail quite often
+//	so that at enabled the receive loop to be terminated at any time
+//	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t wsRcvTimeout = 100;
-static const time_t wsPingTimeout = 5000;
-static const unsigned short wsMaxSkippedPings = 3;
-static const std::string wslambdaPingPayload = "wsping/lambda";
+
+//	these values are used for both pings and actual receive timeouts
+static const time_t wsActTimeout = 5000;
+static const unsigned short wsMaxSkippedAttempts = 3;
 
 //	this implementation does not support sending partial messages
 //	if you want it to support it, contribute to the project, bc I personally don't need that functionality
@@ -139,22 +148,22 @@ void WebSocket::asyncWsIO() {
 
 		//	send ping and terminate websocket if there is no response
 		auto now = std::chrono::steady_clock::now();
-		if ((now - lastPong) > std::chrono::milliseconds(wsMaxSkippedPings * wsPingTimeout)) {
+		if ((now - lastPong) > std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout)) {
 
 			this->internalError = { "Didn't receive any response for pings" };
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 			return;
 
-		} else if ((now - lastPing) > std::chrono::milliseconds(wsPingTimeout)) {
+		} else if ((now - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
 
 			uint8_t pingFrameHeader[2];
 
 			pingFrameHeader[0] = WEBSOCK_BIT_FINAL | WEBSOCK_OPCODE_PING;
-			pingFrameHeader[1] = wslambdaPingPayload.size() & 0x7F;
+			pingFrameHeader[1] = wslambdaPingString.size() & 0x7F;
 
 			//	send frame header and payload in separate calls so we don't have to copy any buffers
 			send(this->hSocket, (const char*)pingFrameHeader, sizeof(pingFrameHeader), 0);
-			send(this->hSocket, (const char*)wslambdaPingPayload.data(), wslambdaPingPayload.size(), 0);
+			send(this->hSocket, (const char*)wslambdaPingString.data(), wslambdaPingString.size(), 0);
 
 			lastPing = std::chrono::steady_clock::now();
 		}
@@ -261,7 +270,7 @@ void WebSocket::asyncWsIO() {
 			case WEBSOCK_OPCODE_PONG: {
 
 				//	check that pong payload matches the ping's one
-				if (std::equal(payload.begin(), payload.end(), wslambdaPingPayload.begin(), wslambdaPingPayload.end())) {
+				if (std::equal(payload.begin(), payload.end(), wslambdaPingString.begin(), wslambdaPingString.end())) {
 					lastPong = std::chrono::steady_clock::now();
 				}
 
