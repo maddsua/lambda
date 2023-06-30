@@ -85,6 +85,7 @@ void WebSocket::asyncWsIO() {
 	if (setOptStatRX != 0) {
 		auto errcode = getAPIError();
 		this->internalError = Lambda::Error("Failed to set websocket receive timeout", errcode);
+		return;
 	}
 
 	uint8_t downloadChunk[network_chunksize_websocket];
@@ -106,7 +107,7 @@ void WebSocket::asyncWsIO() {
 
 				this->internalError = { "Didn't receive any response for pings" };
 				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-				break;
+				return;
 
 			} else if ((now - lastPing) > std::chrono::milliseconds(wsPingTimeout)) {
 
@@ -140,8 +141,7 @@ void WebSocket::asyncWsIO() {
 
 			this->internalError = { "Connection terminated", apierror };
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-
-			break;
+			return;
 		}
 
 		//	try to parse ws frame and extract the message
@@ -149,7 +149,10 @@ void WebSocket::asyncWsIO() {
 
 			//	parse header
 			bool mask = (downloadChunk[1] & 0x80) >> 7;
-			if (!mask) this->internalError = Lambda::Error("Websock client message does not have a mask");
+			if (!mask) {
+				this->internalError = Lambda::Error("Websock client message does not have a mask");
+				return;
+			}
 			
 			size_t headerPayloadSize = downloadChunk[1] & 0x7F;
 			size_t headerSize = 2;
@@ -171,7 +174,8 @@ void WebSocket::asyncWsIO() {
 			//	need to impelemt a smarter way to validate packets, but this will do for now
 			if (headerSize > bytesReceived) {
 				this->internalError = Lambda::Error("Invalid websocket frame encountered");
-				break;
+				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+				return;
 			}
 
 			auto payload = std::vector<uint8_t>(downloadChunk + headerSize, downloadChunk + bytesReceived);
@@ -219,6 +223,12 @@ void WebSocket::asyncWsIO() {
 
 				default: {
 
+					if (opcode != WEBSOCK_OPCODE_TEXT && opcode != WEBSOCK_OPCODE_BINARY) {
+						this->internalError = Lambda::Error("Unexpected websocket opcode");
+						this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+						return;
+					}
+
 					wsmessagetemp = new WebsocketMessage;
 
 					wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
@@ -228,7 +238,7 @@ void WebSocket::asyncWsIO() {
 
 					if (payload.size() < headerPayloadSize)
 						messageDownloadLeft = headerPayloadSize - payload.size();
-					
+
 				} break;
 			}
 		}
@@ -236,7 +246,7 @@ void WebSocket::asyncWsIO() {
 		//	abort if no message was extracted
 		if (wsmessagetemp == nullptr) continue;
 
-		//	download the remainig part of the message and push to queue
+		//	get the remainig part of the message and push to queue
 		if (messageDownloadLeft > 0) {
 
 			//	unmask this payload chunk too
@@ -252,7 +262,6 @@ void WebSocket::asyncWsIO() {
 		if (messageDownloadLeft == 0) {
 			std::lock_guard<std::mutex>lock(this->mtLock);
 			this->rxQueue.push_back(*wsmessagetemp);
-
 			delete wsmessagetemp;
 			wsmessagetemp = nullptr;
 		}
