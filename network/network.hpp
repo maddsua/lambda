@@ -68,7 +68,7 @@ namespace Lambda::Network {
 			std::mutex mtLock;
 			Lambda::Error _sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary);
 			uint16_t connCloseStatus = 0;
-			WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
+			WebsocketFrameHeader parseFrameHeader(const uint8_t* buffer);
 
 		public:
 			WebSocket(SOCKET hTCPSocket, Lambda::HTTP::Request& initalRequest);

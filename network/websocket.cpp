@@ -90,30 +90,30 @@ WebSocket::~WebSocket() {
 	}
 }
 
-WebsocketFrameHeader WebSocket::parseFrameHeader(const std::vector<uint8_t>& buffer) {
+WebsocketFrameHeader WebSocket::parseFrameHeader(const uint8_t* buffer) {
 
 	WebsocketFrameHeader header;
 
-	header.finbit = (buffer.at(0) & 0x80) >> 7;
-	header.opcode = buffer.at(0) & 0x0F;
+	header.finbit = (buffer[0] & 0x80) >> 7;
+	header.opcode = buffer[0] & 0x0F;
 
 	header.size = 2;
-	header.payloadSize = buffer.at(1) & 0x7F;
+	header.payloadSize = buffer[1] & 0x7F;
 
 	if (header.payloadSize == 126) {
 		header.size += 2;
-		header.payloadSize = (buffer.at(2) << 8) | buffer.at(3);
+		header.payloadSize = (buffer[2] << 8) | buffer[3];
 	} else if (header.payloadSize == 127) {
 		header.size += 8;
 		header.payloadSize = 0;
 		for (int i = 0; i < 8; i++)
-			header.payloadSize |= (buffer.at(2 + i) << ((7 - i) * 8));
+			header.payloadSize |= (buffer[2 + i] << ((7 - i) * 8));
 	}
 
-	header.mask = (buffer.at(1) & 0x80) >> 7;
+	header.mask = (buffer[1] & 0x80) >> 7;
 
-	if (header.mask && buffer.size() >= header.size + sizeof(header.maskKey)) {
-		memcpy(header.maskKey, buffer.data() + header.size, sizeof(header.maskKey));
+	if (header.mask) {
+		memcpy(header.maskKey, buffer + header.size, sizeof(header.maskKey));
 		header.size += 4;
 	}
 
@@ -130,7 +130,6 @@ void WebSocket::asyncWsIO() {
 	}
 
 	uint8_t downloadChunk[network_chunksize_websocket];
-	std::vector<uint8_t> downloadStream;
 
 	WebsocketMessage* wsmessagetemp = nullptr;
 	size_t messageDownloadLeft = 0;
@@ -165,9 +164,8 @@ void WebSocket::asyncWsIO() {
 		//	try to receive a message
 		auto bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
 
-		if (bytesReceived > 0) {
-			downloadStream.insert(downloadStream.end(), downloadChunk, downloadChunk + bytesReceived);
-		} else if (bytesReceived < 0) {
+		if (bytesReceived == 0) continue;
+		else if (bytesReceived < 0) {
 
 			//	kill this websocket if connection fails
 			auto apierror = getAPIError();
@@ -181,12 +179,9 @@ void WebSocket::asyncWsIO() {
 			this->internalError = { "Connection terminated", apierror };
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 			return;
+		}
 
-		} else continue;
-
-		WebsocketFrameHeader frameHeader;
-		try { frameHeader = parseFrameHeader(downloadStream); }
-			catch(...) { continue; }
+		auto frameHeader = parseFrameHeader(downloadChunk);
 
 		//	check opcode
 		bool opcodeSupported = std::any_of(wsOpCodes.begin(), wsOpCodes.end(), [&frameHeader](auto element) {
@@ -203,8 +198,7 @@ void WebSocket::asyncWsIO() {
 
 		try {
 			auto frameSize = (frameHeader.size + frameHeader.payloadSize);
-			payload = std::vector<uint8_t>(downloadStream.begin() + frameHeader.size, downloadStream.begin() + frameSize);
-			downloadStream.erase(downloadStream.begin(), downloadStream.begin() + frameSize);
+			payload = std::vector<uint8_t>(downloadChunk + frameHeader.size, downloadChunk + frameSize);
 		} catch(...) {
 			this->internalError = Lambda::Error("Payload size mismatch");
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
@@ -257,50 +251,32 @@ void WebSocket::asyncWsIO() {
 
 			default: {
 
-				//WebsocketMessage temp;
-				//temp.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+				if (wsmessagetemp == nullptr)
+					wsmessagetemp = new WebsocketMessage;
 
-				wsmessagetemp = new WebsocketMessage;
-
-				wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
 				wsmessagetemp->timestamp = time(nullptr);
 				wsmessagetemp->binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+				wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
 
-				if (frameHeader.finbit) {
-					this->rxQueue.push_back(*wsmessagetemp);
-					delete wsmessagetemp;
+				while (wsmessagetemp->message.size() < frameHeader.payloadSize) {
+
+					bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
+
+					for (size_t i = 0; i < bytesReceived; i++)
+						downloadChunk[i] ^= frameHeader.maskKey[i % 4];
+
+					wsmessagetemp->message.insert(wsmessagetemp->message.end(), downloadChunk, downloadChunk + bytesReceived);
 				}
 
-				//if (payload.size() < headerPayloadSize)
-				//	messageDownloadLeft = headerPayloadSize - payload.size();
+				if (frameHeader.finbit) {
+					std::lock_guard<std::mutex>lock(this->mtLock);
+					this->rxQueue.push_back(*wsmessagetemp);
+					delete wsmessagetemp;
+					wsmessagetemp = nullptr;
+				}
 
 			} break;
 		}
-		
-		/*
-
-		//	abort if no message was extracted
-		if (wsmessagetemp == nullptr) continue;
-
-		//	get the remainig part of the message and push to queue
-		if (messageDownloadLeft > 0) {
-
-			//	unmask this payload chunk too
-			for (size_t i = 0; i < bytesReceived; i++)
-				downloadChunk[i] ^= maskingKey[i % 4];
-
-			wsmessagetemp->message.insert(wsmessagetemp->message.end(), downloadChunk, downloadChunk + bytesReceived);
-			if (bytesReceived < messageDownloadLeft) messageDownloadLeft -= bytesReceived;
-				else messageDownloadLeft = 0;
-		}
-
-		//	check if the entire message was read and push it to queue
-		if (messageDownloadLeft == 0) {
-			std::lock_guard<std::mutex>lock(this->mtLock);
-			this->rxQueue.push_back(*wsmessagetemp);
-			delete wsmessagetemp;
-			wsmessagetemp = nullptr;
-		}*/
 	}
 }
 
