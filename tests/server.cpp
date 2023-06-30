@@ -34,12 +34,14 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 			for (auto& msg : messages) {
 				std::cout << msg.timestamp << ": " << msg.message << std::endl;
 			}
+
+			websock.sendMessage("got it!");
 		}
 
 		//websock.close(Lambda::Network::WSCLOSE_GOING_AWAY);
 	}
 
-	std::cout << "Websocket disconnected" << std::endl;
+	std::cout << "Websocket disconnected: " << websock.getError().what() << std::endl;
 
 }
 

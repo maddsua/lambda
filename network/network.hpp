@@ -56,7 +56,7 @@ namespace Lambda::Network {
 			std::vector<WebsocketMessage> rxQueue;
 			std::thread* receiveThread = nullptr;
 			void asyncWsIO();
-			Lambda::Error asyncError;
+			Lambda::Error internalError;
 			std::mutex mtLock;
 			Lambda::Error _sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary);
 			uint16_t connCloseStatus = 0;
@@ -74,8 +74,8 @@ namespace Lambda::Network {
 			bool availableMessage() { return this->rxQueue.size() > 0; };
 			std::vector<WebsocketMessage> getMessages();
 
-			bool isAlive() { return (!this->connCloseStatus && this->hSocket != INVALID_SOCKET && !this->asyncError.isError()); };
-			Lambda::Error getError() { return this->asyncError; };
+			bool isAlive() { return (!this->connCloseStatus && this->hSocket != INVALID_SOCKET && !this->internalError.isError()); };
+			Lambda::Error getError() { return this->internalError; };
 
 			void close(WebSocketCloseCode status) { this->connCloseStatus = status; };
 			void close() { close(WSCLOSE_NORMAL); };

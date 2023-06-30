@@ -57,15 +57,14 @@ void Server::removePasstrough() {
 
 void Server::connectionWatchdog() {
 
-	auto lastDispatched = std::chrono::system_clock::now();
+	auto lastDispatched = std::chrono::steady_clock::now();
 
 	while (running) {
 
 		if (!handlerDispatched) {
 
-			if ((std::chrono::system_clock::now() - lastDispatched) > std::chrono::milliseconds(1)) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
-				//puts(std::to_string((std::chrono::system_clock::now() - lastDispatched).count()).c_str());
+			if ((std::chrono::steady_clock::now() - lastDispatched) > std::chrono::milliseconds(1)) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 
 			continue;
@@ -87,7 +86,7 @@ void Server::connectionWatchdog() {
 			}
 		}*/
 
-		lastDispatched = std::chrono::system_clock::now();
+		lastDispatched = std::chrono::steady_clock::now();;
 		auto invoked = std::thread(connectionHandler, this);
 		handlerDispatched = false;
 		invoked.detach();
