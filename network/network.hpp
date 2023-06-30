@@ -18,7 +18,7 @@ namespace Lambda::Network {
 
 	static const size_t network_chunksize_header = 2048;
 	static const size_t network_chunksize_body = 131072;
-	static const size_t network_chunksize_websocket = 1024;
+	static const size_t network_chunksize_websocket = UINT16_MAX;
 
 	Lambda::Error sendHTTP(SOCKET hSocket, HTTP::Response& response);
 
