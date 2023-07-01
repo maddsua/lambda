@@ -297,10 +297,14 @@ void WebSocket::asyncWsIO() {
 			return;
 		}
 
-		if (frameHeader.mask) {
-			//	unmask the payload
+		//	unmask the payload
+		//	should actually use cpu intrinsics here
+		if (frameHeader.mask && multipartMessagePtr == nullptr) {
 			for (size_t i = 0; i < payload.size(); i++)
 				payload[i] ^= frameHeader.maskKey[i % 4];
+		} else if (frameHeader.mask) {
+			for (size_t i = 0; i < payload.size(); i++)
+				payload[i] ^= multipartMessageMask[i % 4];
 		}
 
 		switch (frameHeader.opcode) {
