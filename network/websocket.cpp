@@ -154,6 +154,11 @@ void WebSocket::asyncWsIO() {
 
 			this->internalError = { "Didn't receive any response for pings" };
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: someone does not respond to the ping's! GET OUT!");
+			#endif
+
 			return;
 
 		} else if ((now - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
@@ -168,6 +173,11 @@ void WebSocket::asyncWsIO() {
 			send(this->hSocket, (const char*)wslambdaPingString.data(), wslambdaPingString.size(), 0);
 
 			lastPing = std::chrono::steady_clock::now();
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: sending a ping");
+			#endif
+
 		}
 
 		//	receive all the data available
@@ -207,9 +217,15 @@ void WebSocket::asyncWsIO() {
 		try {
 			frameHeader = parseFrameHeader(downloadStream);
 		} catch(...) {
+
 			//	okay, it does not seem as a valid one
 			//	dropping the entire stream at this point
 			downloadStream.clear();
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: dropped a stream due to invalid header");
+			#endif
+
 			continue;
 		}
 
@@ -237,10 +253,20 @@ void WebSocket::asyncWsIO() {
 			//	oh yes it technically gonna fail after wsMaxSkippedAttempts + 1
 			//	I'm not replacing ">" with ">=", I'm ok with the results
 			if (framesSkipped > wsMaxSkippedAttempts) {
+
 				this->internalError = { "Wasn't able to fetch a whole websocket frame" };
 				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: failed to download the whole frame: network error or malformed message sequesnce");
+				#endif
+
 				return;
 			}
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: skipping a stream as incomplete, sus.");
+			#endif
 
 			framesSkipped++;
 			continue;
@@ -276,8 +302,14 @@ void WebSocket::asyncWsIO() {
 			payload = std::vector<uint8_t>(downloadStream.begin() + frameHeader.size, downloadStream.begin() + frameSize);
 			downloadStream.erase(downloadStream.begin(), downloadStream.begin() + frameSize);
 		} catch(...) {
+
 			this->internalError = Lambda::Error("Payload size mismatch");
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: std thrown a size expection, that's how bad the message is malformed");
+			#endif
+
 			return;
 		}
 
@@ -295,13 +327,26 @@ void WebSocket::asyncWsIO() {
 				//	this will cause all the operation to be shut down
 				this->connCloseStatus = 1000;
 
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: someone's leaving. bye!");
+				#endif
+
 			} break;
 
 			case WEBSOCK_OPCODE_PONG: {
 
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: got a pong");
+				#endif
+
 				//	check that pong payload matches the ping's one
 				if (std::equal(payload.begin(), payload.end(), wslambdaPingString.begin(), wslambdaPingString.end())) {
+
 					lastPong = std::chrono::steady_clock::now();
+
+					#ifdef LAMBDADEBUG_WS
+						puts("LAMBDA_DEBUG_WS: pong's valid. your termination is delayed.");
+					#endif
 				}
 
 			} break;
@@ -322,7 +367,11 @@ void WebSocket::asyncWsIO() {
 			} break;
 
 			case WEBSOCK_OPCODE_CONTINUE: {
-				puts("who the fuck said that?!");
+
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: partial message?!!! who the fuck said that?!");
+				#endif
+
 			} break;
 
 			default: {
@@ -333,6 +382,10 @@ void WebSocket::asyncWsIO() {
 				temp.message.insert(temp.message.end(), payload.begin(), payload.end());
 
 				this->rxQueue.push_back(temp);
+
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: chewing the message, pls wait");
+				#endif
 
 			} break;
 		}

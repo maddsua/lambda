@@ -12,6 +12,8 @@
 
 #define LAMBDAVERSION		"1.0.0"
 
+#define LAMBDADEBUG_WS
+
 #ifdef _WIN32
 	#define LAMBDA_OS_API_ERRCODE_PREFIX ". WINAPI error code: "
 #else
