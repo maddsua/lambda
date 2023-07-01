@@ -146,6 +146,9 @@ void WebSocket::asyncWsIO() {
 
 	size_t framesSkipped = 0;
 
+	WebsocketMessage* multipartMessagePtr = nullptr;
+	uint8_t multipartMessageMask[4];
+
 	while (this->hSocket != INVALID_SOCKET && !this->connCloseStatus) {
 
 		//	send ping and terminate websocket if there is no response
@@ -200,9 +203,6 @@ void WebSocket::asyncWsIO() {
 				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 				return;
 			}
-
-			//	don't really need this here
-			//std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 
 		//	skip further ops if there's no data
@@ -229,42 +229,30 @@ void WebSocket::asyncWsIO() {
 		}
 
 		//	Now let's ensure that we have the entire frame in the buffer
-		//	I called it a stream, I don't care
-		//	The entire websocket format is half-assed in my opinion, and it could've been done much better
-		//	The biggest crap points are the "message fragmentation", the fact that header can have
-		//	3 fucking separate header sizes and the copious amounts of bit shifting.
-		//	Just make it a fucking fixed size, like 32-bit int so I can just cast it!
-		//	I doubt that anyone in their rught mind would transfer more than 4GB of data in a single message,
-		//	why the fuck did you decide to reinvent TCP/IP on top of TCP/IP?
-		//	I mean, in "half-assed" protocol the first half is done right - the opcodes and initial idea;
-		//	but the second part - the message frame format is just full of shit.
-		//	I'm an fucking idiot myself, but this is beyond expert.
-		//
-		//	So I'm not even gonna try decoding a frame until it's fully downloaded
-		//
-		//	Actually, this part is not much about the websocket, but rather in case of a network failure.
-		//	It's gonna trigger in case the "stream" buffer begins with a valid ws header,
-		//	but we were unable to get the whole message with the size specified in the frame header.
-		//	But again, if those bastartds used a fixed size header with a few bagic bytes, 
-		//	it would make things sooo much easier
+		//	This should not trigger in normal opertaion, but is possible on case of network failure
+		//	And I'm definitely not trying to parse chunked messages. Get your shit together, then we'll talk.
 		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
 
 			//	oh yes it technically gonna fail after wsMaxSkippedAttempts + 1
 			//	I'm not replacing ">" with ">=", I'm ok with the results
 			if (framesSkipped > wsMaxSkippedAttempts) {
 
-				this->internalError = { "Wasn't able to fetch a whole websocket frame" };
-				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+				downloadStream.clear();
+
+				if (multipartMessagePtr != nullptr) {
+					delete multipartMessagePtr;
+					multipartMessagePtr = nullptr;
+				}
 
 				#ifdef LAMBDADEBUG_WS
-					puts("LAMBDA_DEBUG_WS: failed to download the whole frame: network error or malformed message sequesnce");
+					puts("LAMBDA_DEBUG_WS: incomplete frame stream. dropping the stream");
 				#endif
 
 				return;
 			}
 
 			#ifdef LAMBDADEBUG_WS
-				puts("LAMBDA_DEBUG_WS: skipping a stream as incomplete, sus.");
+				puts("LAMBDA_DEBUG_WS: skipping a chunk as incomplete, sus.");
 			#endif
 
 			framesSkipped++;
@@ -273,7 +261,7 @@ void WebSocket::asyncWsIO() {
 
 		framesSkipped = 0;
 
-		//	check the mask big
+		//	check the mask bit
 		if (!frameHeader.mask) {
 			this->internalError = Lambda::Error("Received unmasked data from the client");
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
@@ -290,9 +278,6 @@ void WebSocket::asyncWsIO() {
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 			return;
 		}
-
-		//	ectract the payload
-		//	fucking finally
 
 		std::vector<uint8_t> payload;
 
@@ -367,14 +352,52 @@ void WebSocket::asyncWsIO() {
 
 			case WEBSOCK_OPCODE_CONTINUE: {
 
+				if (multipartMessagePtr == nullptr) {
+					
+					downloadStream.clear();
+
+					#ifdef LAMBDADEBUG_WS
+						puts("LAMBDA_DEBUG_WS: got continue opcode but multipart mode was not enabled. dropping the stream");
+					#endif
+
+					break;
+				}
+
+				multipartMessagePtr->content.insert(multipartMessagePtr->content.end(), payload.begin(), payload.end());
+
 				#ifdef LAMBDADEBUG_WS
-					puts("LAMBDA_DEBUG_WS: partial message?!!! who the fuck said that?!");
+					puts("LAMBDA_DEBUG_WS: chewing multipart message, pls wait even more");
 				#endif
+
+				if (frameHeader.finbit) {
+
+					this->rxQueue.push_back(*multipartMessagePtr);
+					delete multipartMessagePtr;
+					multipartMessagePtr = nullptr;
+
+					#ifdef LAMBDADEBUG_WS
+						puts("LAMBDA_DEBUG_WS: oh nvm, message's done");
+					#endif
+				}
 
 			} break;
 
 			default: {
 
+				//	if it's a multipart message, pass the first part to temp object
+				if (!frameHeader.finbit) {
+
+					multipartMessagePtr = new WebsocketMessage;
+					multipartMessagePtr->timestamp = time(nullptr);
+					multipartMessagePtr->binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+					multipartMessagePtr->content.insert(multipartMessagePtr->content.end(), payload.begin(), payload.end());
+
+					memcpy(multipartMessageMask, frameHeader.maskKey, sizeof(frameHeader.maskKey));
+
+					break;
+				}
+
+				//	ok, it's not multipart, just push it to the queue
 				WebsocketMessage wsMessage;
 				wsMessage.timestamp = time(nullptr);
 				wsMessage.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
