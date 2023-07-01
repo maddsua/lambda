@@ -229,7 +229,7 @@ void WebSocket::asyncWsIO() {
 		//	So I'm not even gonna try decoding a frame until it's fully downloaded
 		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
 
-			if (framesSkipped < wsMaxSkippedAttempts) {
+			if (framesSkipped > wsMaxSkippedAttempts) {
 				this->internalError = { "Wasn't able to fetch a whole websocket frame" };
 				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 				return;
