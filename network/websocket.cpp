@@ -379,7 +379,7 @@ void WebSocket::asyncWsIO() {
 				WebsocketMessage temp;
 				temp.timestamp = time(nullptr);
 				temp.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
-				temp.message.insert(temp.message.end(), payload.begin(), payload.end());
+				temp.content.insert(temp.content.end(), payload.begin(), payload.end());
 
 				this->rxQueue.push_back(temp);
 

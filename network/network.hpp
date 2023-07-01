@@ -44,7 +44,7 @@ namespace Lambda::Network {
 	};
 
 	struct WebsocketMessage {
-		std::string message;
+		std::string content;
 		time_t timestamp = 0;
 		bool binary = false;
 	};
