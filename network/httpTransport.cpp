@@ -27,7 +27,7 @@ HTTP::Request Lambda::Network::receiveHTTP(SOCKET hSocket) {
 
 	while (headerEnded == rawMessage.end()) {
 
-		auto bytesReceived = recv(hSocket, (char*)headerChunk, network_chunksize_header, 0);
+		auto bytesReceived = recv(hSocket, (char*)headerChunk, sizeof(headerChunk), 0);
 
 		if (bytesReceived == 0) break;
 		else if (bytesReceived < 0) throw Lambda::Error("Network error while receiving request header", getAPIError());

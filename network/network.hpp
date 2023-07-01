@@ -44,10 +44,18 @@ namespace Lambda::Network {
 	};
 
 	struct WebsocketMessage {
-		std::string message;
+		std::string content;
 		time_t timestamp = 0;
 		bool binary = false;
-		bool chunked = false;
+	};
+
+	struct WebsocketFrameHeader {
+		size_t payloadSize;
+		size_t size;
+		uint8_t maskKey[4];
+		uint8_t opcode;
+		bool finbit;
+		bool mask;
 	};
 
 	class WebSocket {
@@ -60,6 +68,7 @@ namespace Lambda::Network {
 			std::mutex mtLock;
 			Lambda::Error _sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary);
 			uint16_t connCloseStatus = 0;
+			WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
 
 		public:
 			WebSocket(SOCKET hTCPSocket, Lambda::HTTP::Request& initalRequest);

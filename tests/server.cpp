@@ -12,7 +12,9 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 
 	auto request = connection.receiveMessage();
 
-	std::cout << "request headers: " << request.headers.stringify() << std::endl;
+	//std::cout << "request headers: " << request.headers.stringify() << std::endl;
+
+	std::cout << "Connecting to a web socket..." << std::endl;
 
 	auto websock = connection.upgradeToWebsocket(request);
 
@@ -32,13 +34,16 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 			auto messages = websock.getMessages();
 
 			for (auto& msg : messages) {
-				std::cout << msg.timestamp << ": " << msg.message << std::endl;
+				std::cout << msg.timestamp << ": " << msg.content << std::endl;
+
+				if (msg.content == "go away") {
+					websock.close(Lambda::Network::WSCLOSE_GOING_AWAY);
+					break;
+				}
 			}
 
 			websock.sendMessage("got it!");
 		}
-
-		//websock.close(Lambda::Network::WSCLOSE_GOING_AWAY);
 	}
 
 	std::cout << "Websocket disconnected: " << websock.getError().what() << std::endl;

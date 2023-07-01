@@ -3,26 +3,46 @@
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
 
+#include <algorithm>
+#include <array>
+
 using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+static const std::string wsPingString = "ping/lambda/ws";
+
+//	The recv function blocks execution infinitely until it receives somethig,
+//	which is not optimal for this usecase.
+//	There's an overlapped io in winapi, but it's kinda ass and definitely is not portable
+//	So I'm reinventing a wheel by causing receive function to fail quite often
+//	so that at enabled the receive loop to be terminated at any time
+//	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t wsRcvTimeout = 100;
-static const time_t wsPingTimeout = 5000;
-static const unsigned short wsMaxSkippedPings = 3;
-static const std::string wslambdaPingPayload = "wsping/lambda";
+
+//	these values are used for both pings and actual receive timeouts
+static const time_t wsActTimeout = 5000;
+static const unsigned short wsMaxSkippedAttempts = 3;
 
 //	this implementation does not support sending partial messages
 //	if you want it to support it, contribute to the project, bc I personally don't need that functionality
-static const uint8_t ws_finBit = 0x80;
-
 enum WebsockBits {
+	WEBSOCK_BIT_FINAL = 0x80,
 	WEBSOCK_OPCODE_CONTINUE = 0x00,
 	WEBSOCK_OPCODE_TEXT = 0x01,
 	WEBSOCK_OPCODE_BINARY = 0x02,
 	WEBSOCK_OPCODE_CLOSE = 0x08,
 	WEBSOCK_OPCODE_PING = 0x09,
 	WEBSOCK_OPCODE_PONG = 0x0A
+};
+
+static const std::array<uint8_t, 6> wsOpCodes = {
+	WEBSOCK_OPCODE_CONTINUE,
+	WEBSOCK_OPCODE_TEXT,
+	WEBSOCK_OPCODE_BINARY,
+	WEBSOCK_OPCODE_CLOSE,
+	WEBSOCK_OPCODE_PING,
+	WEBSOCK_OPCODE_PONG,
 };
 
 WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
@@ -79,6 +99,36 @@ WebSocket::~WebSocket() {
 	}
 }
 
+WebsocketFrameHeader WebSocket::parseFrameHeader(const std::vector<uint8_t>& buffer) {
+
+	WebsocketFrameHeader header;
+
+	header.finbit = (buffer.at(0) & 0x80) >> 7;
+	header.opcode = buffer.at(0) & 0x0F;
+
+	header.size = 2;
+	header.payloadSize = buffer.at(1) & 0x7F;
+
+	if (header.payloadSize == 126) {
+		header.size += 2;
+		header.payloadSize = (buffer.at(2) << 8) | buffer.at(3);
+	} else if (header.payloadSize == 127) {
+		header.size += 8;
+		header.payloadSize = 0;
+		for (int i = 0; i < 8; i++)
+			header.payloadSize |= (buffer.at(2 + i) << ((7 - i) * 8));
+	}
+
+	header.mask = (buffer.at(1) & 0x80) >> 7;
+
+	if (header.mask && buffer.size() >= header.size + sizeof(header.maskKey)) {
+		memcpy(header.maskKey, buffer.data() + header.size, sizeof(header.maskKey));
+		header.size += 4;
+	}
+
+	return header;
+}
+
 void WebSocket::asyncWsIO() {
 
 	auto setOptStatRX = setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&wsRcvTimeout, sizeof(wsRcvTimeout));
@@ -89,181 +139,281 @@ void WebSocket::asyncWsIO() {
 	}
 
 	uint8_t downloadChunk[network_chunksize_websocket];
-
-	WebsocketMessage* wsmessagetemp = nullptr;
-	size_t messageDownloadLeft = 0;
-	uint8_t maskingKey[4];
+	std::vector<uint8_t> downloadStream;
 
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
 
+	size_t framesSkipped = 0;
+
+	WebsocketMessage* multipartMessagePtr = nullptr;
+	uint8_t multipartMessageMask[4];
+
 	while (this->hSocket != INVALID_SOCKET && !this->connCloseStatus) {
 
 		//	send ping and terminate websocket if there is no response
-		{
-			auto now = std::chrono::steady_clock::now();
+		if ((lastPing - lastPong) > std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout)) {
 
-			if ((now - lastPong) > std::chrono::milliseconds(wsMaxSkippedPings * wsPingTimeout)) {
+			this->internalError = { "Didn't receive any response for pings" };
+			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 
-				this->internalError = { "Didn't receive any response for pings" };
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: someone does not respond to the ping's! GET OUT!");
+			#endif
+
+			return;
+
+		} else if ((std::chrono::steady_clock::now() - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
+
+			uint8_t pingFrameHeader[2];
+
+			pingFrameHeader[0] = WEBSOCK_BIT_FINAL | WEBSOCK_OPCODE_PING;
+			pingFrameHeader[1] = wsPingString.size() & 0x7F;
+
+			//	send frame header and payload in separate calls so we don't have to copy any buffers
+			send(this->hSocket, (const char*)pingFrameHeader, sizeof(pingFrameHeader), 0);
+			send(this->hSocket, (const char*)wsPingString.data(), wsPingString.size(), 0);
+
+			lastPing = std::chrono::steady_clock::now();
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: sending a ping");
+			#endif
+
+		}
+
+		//	receive all the data available
+		int32_t bytesReceived = 0;
+		//	kinda stupid control flow, but I don't feel comfortable putting an infinite loop here
+		while (bytesReceived >= 0) {
+			bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
+			if (bytesReceived <= 0) break;
+			downloadStream.insert(downloadStream.end(), downloadChunk, downloadChunk + bytesReceived);
+		}
+		
+		//	if an error occured during receiving
+		if (bytesReceived < 0) {
+
+			//	kill this websocket if it was the connection that failed
+			//	but totally ignore the timeout errors
+			//	we're gonna hit them constantly
+			auto apierror = getAPIError();
+			if (apierror != ETIMEDOUT && apierror != WSAETIMEDOUT) {
+				this->internalError = { "Connection terminated", apierror };
 				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 				return;
-
-			} else if ((now - lastPing) > std::chrono::milliseconds(wsPingTimeout)) {
-
-				uint8_t pingFrameHeader[2];
-
-				pingFrameHeader[0] = ws_finBit | WEBSOCK_OPCODE_PING;
-				pingFrameHeader[1] = wslambdaPingPayload.size() & 0x7F;
-
-				//	send frame header and payload in separate calls so we don't have to copy any buffers
-				send(this->hSocket, (const char*)pingFrameHeader, sizeof(pingFrameHeader), 0);
-				send(this->hSocket, (const char*)wslambdaPingPayload.data(), wslambdaPingPayload.size(), 0);
-
-				lastPing = std::chrono::steady_clock::now();
 			}
 		}
 
-		//	try to receive a message
-		auto bytesReceived = recv(hSocket, (char*)downloadChunk, network_chunksize_websocket, 0);
+		//	skip further ops if there's no data
+		if (downloadStream.size() < 2) continue;
 
-		//	kill this websocket if connection fails
-		if (bytesReceived == 0) continue;
-		else if (bytesReceived < 0) {
+		WebsocketFrameHeader frameHeader;
 
-			auto apierror = getAPIError();
+		//	try to parse ws frame
+		//	it should always be a valid one
+		//	but in case we receive garbage data - here is a trycatch
+		try {
+			frameHeader = parseFrameHeader(downloadStream);
+		} catch(...) {
 
-			if (apierror == ETIMEDOUT || apierror == WSAETIMEDOUT) {
-				//	nah, it's okay. we just hit the timeout. it's expected.
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				continue;
+			//	okay, it does not seem as a valid one
+			//	dropping the entire stream at this point
+			downloadStream.clear();
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: dropped a stream due to invalid header");
+			#endif
+
+			continue;
+		}
+
+		//	Now let's ensure that we have the entire frame in the buffer
+		//	This should not trigger in normal opertaion, but is possible on case of network failure
+		//	And I'm definitely not trying to parse chunked messages. Get your shit together, then we'll talk.
+		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
+
+			//	oh yes it technically gonna fail after wsMaxSkippedAttempts + 1
+			//	I'm not replacing ">" with ">=", I'm ok with the results
+			if (framesSkipped > wsMaxSkippedAttempts) {
+
+				downloadStream.clear();
+
+				if (multipartMessagePtr != nullptr) {
+					delete multipartMessagePtr;
+					multipartMessagePtr = nullptr;
+				}
+
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: incomplete frame stream. dropping the stream");
+				#endif
+
+				return;
 			}
 
-			this->internalError = { "Connection terminated", apierror };
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: skipping a chunk as incomplete, sus.");
+			#endif
+
+			framesSkipped++;
+			continue;
+		}
+
+		framesSkipped = 0;
+
+		//	check the mask bit
+		if (!frameHeader.mask) {
+			this->internalError = Lambda::Error("Received unmasked data from the client");
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 			return;
 		}
 
-		//	try to parse ws frame and extract the message
-		if (wsmessagetemp == nullptr) {
+		//	check opcode
+		bool opcodeSupported = std::any_of(wsOpCodes.begin(), wsOpCodes.end(), [&frameHeader](auto element) {
+			return element == frameHeader.opcode;
+		});
 
-			//	parse header
-			bool mask = (downloadChunk[1] & 0x80) >> 7;
-			if (!mask) {
-				this->internalError = Lambda::Error("Websock client message does not have a mask");
-				return;
-			}
-			
-			size_t headerPayloadSize = downloadChunk[1] & 0x7F;
-			size_t headerSize = 2;
+		if (!opcodeSupported) {
+			this->internalError = Lambda::Error("Unsupported websocket opcode");
+			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+			return;
+		}
 
-			if (headerPayloadSize == 126) {
-				headerPayloadSize = (downloadChunk[2] << 8) | downloadChunk[3];
-				headerSize += 2;
-			} else if (headerPayloadSize == 127) {
-				headerPayloadSize = 0;
-				for (int i = 0; i < 8; i++)
-					headerPayloadSize |= (downloadChunk[2 + i] << ((7 - i) * 8));
-				headerSize += 8;
-			}
+		std::vector<uint8_t> payload;
 
-			memcpy(maskingKey, &downloadChunk[headerSize], sizeof(maskingKey));
-			headerSize += 4;
+		try {
+			auto frameSize = (frameHeader.size + frameHeader.payloadSize);
+			payload = std::vector<uint8_t>(downloadStream.begin() + frameHeader.size, downloadStream.begin() + frameSize);
+			downloadStream.erase(downloadStream.begin(), downloadStream.begin() + frameSize);
+		} catch(...) {
 
-			//	check header size range
-			//	need to impelemt a smarter way to validate packets, but this will do for now
-			if (headerSize > bytesReceived) {
-				this->internalError = Lambda::Error("Invalid websocket frame encountered");
-				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-				return;
-			}
+			this->internalError = Lambda::Error("Payload size mismatch");
+			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 
-			auto payload = std::vector<uint8_t>(downloadChunk + headerSize, downloadChunk + bytesReceived);
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: std thrown a size expection, that's how bad the message is malformed");
+			#endif
 
-			//	unmask the payload
+			return;
+		}
+
+		//	unmask the payload
+		//	should actually use cpu intrinsics here
+		if (frameHeader.mask && multipartMessagePtr == nullptr) {
 			for (size_t i = 0; i < payload.size(); i++)
-				payload[i] ^= maskingKey[i % 4];
-			
-			bool finalBit = ((downloadChunk[0] & 0x80) >> 7);
-			uint8_t opcode = downloadChunk[0] & 0x0F;
+				payload[i] ^= frameHeader.maskKey[i % 4];
+		} else if (frameHeader.mask) {
+			for (size_t i = 0; i < payload.size(); i++)
+				payload[i] ^= multipartMessageMask[i % 4];
+		}
 
-			switch (opcode) {
+		switch (frameHeader.opcode) {
 
-				case WEBSOCK_OPCODE_CLOSE: {
+			case WEBSOCK_OPCODE_CLOSE: {
 
-					//	set connection close code
-					//	this will cause all the operation to be shut down
-					this->connCloseStatus = 1000;
+				//	set connection close code
+				//	this will cause all the operation to be shut down
+				this->connCloseStatus = 1000;
 
-				} break;
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: someone's leaving. bye!");
+				#endif
 
-				case WEBSOCK_OPCODE_PONG: {
+			} break;
 
-					//	check that pong payload matches the ping's one
-					if (std::equal(payload.begin(), payload.end(), wslambdaPingPayload.begin(), wslambdaPingPayload.end())) {
-						lastPong = std::chrono::steady_clock::now();
-					}
+			case WEBSOCK_OPCODE_PONG: {
 
-				} break;
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: got a pong");
+				#endif
 
-				case WEBSOCK_OPCODE_PING: {
+				//	check that pong payload matches the ping's one
+				if (std::equal(payload.begin(), payload.end(), wsPingString.begin(), wsPingString.end())) {
+
+					lastPong = std::chrono::steady_clock::now();
+
+					#ifdef LAMBDADEBUG_WS
+						puts("LAMBDA_DEBUG_WS: pong valid");
+					#endif
+				}
+
+			} break;
+
+			case WEBSOCK_OPCODE_PING: {
+				
+				uint8_t pongFrame[2];
+
+				// set FIN bit and opcode
+				pongFrame[0] = 0x80 | WEBSOCK_OPCODE_PONG;
+				//	copy payload length from ping
+				pongFrame[1] = downloadChunk[1] & 0x7F;
+
+				//	send frame header and echo the payload
+				send(this->hSocket, (const char*)pongFrame, sizeof(pongFrame), 0);
+				send(this->hSocket, (const char*)payload.data(), payload.size(), 0);
+
+			} break;
+
+			case WEBSOCK_OPCODE_CONTINUE: {
+
+				if (multipartMessagePtr == nullptr) {
 					
-					uint8_t pongFrame[2];
+					downloadStream.clear();
 
-					// set FIN bit and opcode
-					pongFrame[0] = 0x80 | WEBSOCK_OPCODE_PONG;
-					//	copy payload length from ping
-					pongFrame[1] = downloadChunk[1] & 0x7F;
+					#ifdef LAMBDADEBUG_WS
+						puts("LAMBDA_DEBUG_WS: got continue opcode but multipart mode was not enabled. dropping the stream");
+					#endif
 
-					//	send frame header and echo the payload
-					send(this->hSocket, (const char*)pongFrame, sizeof(pongFrame), 0);
-					send(this->hSocket, (const char*)payload.data(), payload.size(), 0);
+					break;
+				}
 
-				} break;
+				multipartMessagePtr->content.insert(multipartMessagePtr->content.end(), payload.begin(), payload.end());
 
-				default: {
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: chewing multipart message, pls wait even more");
+				#endif
 
-					if (opcode != WEBSOCK_OPCODE_TEXT && opcode != WEBSOCK_OPCODE_BINARY) {
-						this->internalError = Lambda::Error("Unexpected websocket opcode");
-						this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-						return;
-					}
+				if (frameHeader.finbit) {
 
-					wsmessagetemp = new WebsocketMessage;
+					this->rxQueue.push_back(*multipartMessagePtr);
+					delete multipartMessagePtr;
+					multipartMessagePtr = nullptr;
 
-					wsmessagetemp->message.insert(wsmessagetemp->message.end(), payload.begin(), payload.end());
-					wsmessagetemp->timestamp = time(nullptr);
-					wsmessagetemp->binary = opcode == WEBSOCK_OPCODE_BINARY;
-					wsmessagetemp->chunked = !finalBit || opcode == WEBSOCK_OPCODE_CONTINUE;
+					#ifdef LAMBDADEBUG_WS
+						puts("LAMBDA_DEBUG_WS: oh nvm, message's done");
+					#endif
+				}
 
-					if (payload.size() < headerPayloadSize)
-						messageDownloadLeft = headerPayloadSize - payload.size();
+			} break;
 
-				} break;
-			}
-		}
+			default: {
 
-		//	abort if no message was extracted
-		if (wsmessagetemp == nullptr) continue;
+				//	if it's a multipart message, pass the first part to temp object
+				if (!frameHeader.finbit) {
 
-		//	get the remainig part of the message and push to queue
-		if (messageDownloadLeft > 0) {
+					multipartMessagePtr = new WebsocketMessage;
+					multipartMessagePtr->timestamp = time(nullptr);
+					multipartMessagePtr->binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+					multipartMessagePtr->content.insert(multipartMessagePtr->content.end(), payload.begin(), payload.end());
 
-			//	unmask this payload chunk too
-			for (size_t i = 0; i < bytesReceived; i++)
-				downloadChunk[i] ^= maskingKey[i % 4];
+					memcpy(multipartMessageMask, frameHeader.maskKey, sizeof(frameHeader.maskKey));
 
-			wsmessagetemp->message.insert(wsmessagetemp->message.end(), downloadChunk, downloadChunk + bytesReceived);
-			if (bytesReceived < messageDownloadLeft) messageDownloadLeft -= bytesReceived;
-				else messageDownloadLeft = 0;
-		}
+					break;
+				}
 
-		//	check if the entire message was read and push it to queue
-		if (messageDownloadLeft == 0) {
-			std::lock_guard<std::mutex>lock(this->mtLock);
-			this->rxQueue.push_back(*wsmessagetemp);
-			delete wsmessagetemp;
-			wsmessagetemp = nullptr;
+				//	ok, it's not multipart, just push it to the queue
+				WebsocketMessage wsMessage;
+				wsMessage.timestamp = time(nullptr);
+				wsMessage.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+				wsMessage.content.insert(wsMessage.content.end(), payload.begin(), payload.end());
+
+				this->rxQueue.push_back(wsMessage);
+
+				#ifdef LAMBDADEBUG_WS
+					puts("LAMBDA_DEBUG_WS: chewing the message, pls wait");
+				#endif
+
+			} break;
 		}
 	}
 }
@@ -284,7 +434,7 @@ Lambda::Error WebSocket::_sendMessage(const uint8_t* dataBuff, const size_t data
 	std::vector<uint8_t> frameHeader;
 
 	// set FIN bit and opcode
-	frameHeader.push_back(ws_finBit | (binary ? WEBSOCK_OPCODE_BINARY : WEBSOCK_OPCODE_TEXT));
+	frameHeader.push_back(WEBSOCK_BIT_FINAL | (binary ? WEBSOCK_OPCODE_BINARY : WEBSOCK_OPCODE_TEXT));
 
 	// set payload length
 	if (dataSize < 126) {
