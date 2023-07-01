@@ -210,7 +210,6 @@ void WebSocket::asyncWsIO() {
 			//	okay, it does not seem as a valid one
 			//	dropping the entire stream at this point
 			downloadStream.clear();
-			puts("dropped a stream");
 			continue;
 		}
 
@@ -227,8 +226,16 @@ void WebSocket::asyncWsIO() {
 		//	I'm an fucking idiot myself, but this is beyond expert.
 		//
 		//	So I'm not even gonna try decoding a frame until it's fully downloaded
+		//
+		//	Actually, this part is not much about the websocket, but rather in case of a network failure.
+		//	It's gonna trigger in case the "stream" buffer begins with a valid ws header,
+		//	but we were unable to get the whole message with the size specified in the frame header.
+		//	But again, if those bastartds used a fixed size header with a few bagic bytes, 
+		//	it would make things sooo much easier
 		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
 
+			//	oh yes it technically gonna fail after wsMaxSkippedAttempts + 1
+			//	I'm not replacing ">" with ">=", I'm ok with the results
 			if (framesSkipped > wsMaxSkippedAttempts) {
 				this->internalError = { "Wasn't able to fetch a whole websocket frame" };
 				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
