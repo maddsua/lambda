@@ -10,7 +10,7 @@ using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-static const std::string wslambdaPingString = "wsping/lambda";
+static const std::string wsPingString = "ping/lambda/ws";
 
 //	The recv function blocks execution infinitely until it receives somethig,
 //	which is not optimal for this usecase.
@@ -166,11 +166,11 @@ void WebSocket::asyncWsIO() {
 			uint8_t pingFrameHeader[2];
 
 			pingFrameHeader[0] = WEBSOCK_BIT_FINAL | WEBSOCK_OPCODE_PING;
-			pingFrameHeader[1] = wslambdaPingString.size() & 0x7F;
+			pingFrameHeader[1] = wsPingString.size() & 0x7F;
 
 			//	send frame header and payload in separate calls so we don't have to copy any buffers
 			send(this->hSocket, (const char*)pingFrameHeader, sizeof(pingFrameHeader), 0);
-			send(this->hSocket, (const char*)wslambdaPingString.data(), wslambdaPingString.size(), 0);
+			send(this->hSocket, (const char*)wsPingString.data(), wsPingString.size(), 0);
 
 			lastPing = std::chrono::steady_clock::now();
 
@@ -340,12 +340,12 @@ void WebSocket::asyncWsIO() {
 				#endif
 
 				//	check that pong payload matches the ping's one
-				if (std::equal(payload.begin(), payload.end(), wslambdaPingString.begin(), wslambdaPingString.end())) {
+				if (std::equal(payload.begin(), payload.end(), wsPingString.begin(), wsPingString.end())) {
 
 					lastPong = std::chrono::steady_clock::now();
 
 					#ifdef LAMBDADEBUG_WS
-						puts("LAMBDA_DEBUG_WS: pong's valid. your termination is delayed.");
+						puts("LAMBDA_DEBUG_WS: pong valid");
 					#endif
 				}
 
