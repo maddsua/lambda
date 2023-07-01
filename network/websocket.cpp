@@ -149,8 +149,7 @@ void WebSocket::asyncWsIO() {
 	while (this->hSocket != INVALID_SOCKET && !this->connCloseStatus) {
 
 		//	send ping and terminate websocket if there is no response
-		auto now = std::chrono::steady_clock::now();
-		if ((now - lastPong) > std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout)) {
+		if ((lastPing - lastPong) > std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout)) {
 
 			this->internalError = { "Didn't receive any response for pings" };
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
@@ -161,7 +160,7 @@ void WebSocket::asyncWsIO() {
 
 			return;
 
-		} else if ((now - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
+		} else if ((std::chrono::steady_clock::now() - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
 
 			uint8_t pingFrameHeader[2];
 
