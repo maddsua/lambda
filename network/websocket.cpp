@@ -375,12 +375,12 @@ void WebSocket::asyncWsIO() {
 
 			default: {
 
-				WebsocketMessage temp;
-				temp.timestamp = time(nullptr);
-				temp.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
-				temp.content.insert(temp.content.end(), payload.begin(), payload.end());
+				WebsocketMessage wsMessage;
+				wsMessage.timestamp = time(nullptr);
+				wsMessage.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+				wsMessage.content.insert(wsMessage.content.end(), payload.begin(), payload.end());
 
-				this->rxQueue.push_back(temp);
+				this->rxQueue.push_back(wsMessage);
 
 				#ifdef LAMBDADEBUG_WS
 					puts("LAMBDA_DEBUG_WS: chewing the message, pls wait");
