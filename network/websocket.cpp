@@ -150,8 +150,6 @@ void WebSocket::asyncWsIO() {
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
 
-	size_t incompleteChunks = 0;
-
 	WebsocketMessage* multipartMessagePtr = nullptr;
 	uint8_t multipartMessageMask[4];
 
@@ -234,35 +232,11 @@ void WebSocket::asyncWsIO() {
 			continue;
 		}
 
-		//	Now let's ensure that we have the entire frame in the buffer
-		//	This should not trigger in normal opertaion, but is possible on case of network failure
-		//	And I'm definitely not trying to parse chunked messages. Get your shit together, then we'll talk.
+		//	The second-stage download loop, bc we can't rely on first-stage revc loop ⚠
 		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
-
-			//	oh yes it technically gonna fail after wsMaxSkippedAttempts + 1
-			//	I'm not replacing ">" with ">=", I'm ok with the results
-			if (incompleteChunks > wsMaxSkippedAttempts) {
-
-				downloadStream.clear();
-				clearMultipartData(&multipartMessagePtr);
-				incompleteChunks = 0;
-
-				#ifdef LAMBDADEBUG_WS
-					puts("LAMBDA_DEBUG_WS: incomplete frame stream. dropping the stream");
-				#endif
-
-				return;
-			}
-
-			#ifdef LAMBDADEBUG_WS
-				puts("LAMBDA_DEBUG_WS: skipping a chunk as incomplete, sus.");
-			#endif
-
-			incompleteChunks++;
+			//	just run the download part again
 			continue;
 		}
-
-		incompleteChunks = 0;
 
 		//	check the mask bit
 		if (!frameHeader.mask) {
