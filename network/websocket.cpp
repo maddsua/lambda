@@ -144,6 +144,8 @@ void WebSocket::asyncWsIO() {
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
 
+	size_t framesSkipped = 0;
+
 	while (this->hSocket != INVALID_SOCKET && !this->connCloseStatus) {
 
 		//	send ping and terminate websocket if there is no response
@@ -180,7 +182,7 @@ void WebSocket::asyncWsIO() {
 		//	if an error occured during receiving
 		if (bytesReceived < 0) {
 
-			//	kill this websocket if it's the connection that failed
+			//	kill this websocket if it was the connection that failed
 			//	but totally ignore the timeout errors
 			//	we're gonna hit them constantly
 			auto apierror = getAPIError();
@@ -212,14 +214,32 @@ void WebSocket::asyncWsIO() {
 			continue;
 		}
 
-		//	now let's ensure that we have the entire frame in the buffer
+		//	Now let's ensure that we have the entire frame in the buffer
 		//	I called it a stream, I don't care
+		//	The entire websocket format is half-assed in my opinion, and it could've been done much better
+		//	The biggest crap points are the "message fragmentation", the fact that header can have
+		//	3 fucking separate header sizes and the copious amounts of bit shifting.
+		//	Just make it a fucking fixed size, like 32-bit int so I can just cast it!
+		//	I doubt that anyone in their rught mind would transfer more than 4GB of data in a single message,
+		//	why the fuck did you decide to reinvent TCP/IP on top of TCP/IP?
+		//	I mean, in "half-assed" protocol the first half is done right - the opcodes and initial idea;
+		//	but the second part - the message frame format is just full of shit.
+		//	I'm an fucking idiot myself, but this is beyond expert.
+		//
+		//	So I'm not even gonna try decoding a frame until it's fully downloaded
 		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
-			//	and also need to tick a fragmentation counter
-			//	in case we hit this position multimple times - the connection is fucked in some way
-			puts("where is my frame lebovski");
+
+			if (framesSkipped < wsMaxSkippedAttempts) {
+				this->internalError = { "Wasn't able to fetch a whole websocket frame" };
+				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+				return;
+			}
+
+			framesSkipped++;
 			continue;
 		}
+
+		framesSkipped = 0;
 
 		//	check the mask big
 		if (!frameHeader.mask) {
@@ -238,6 +258,9 @@ void WebSocket::asyncWsIO() {
 			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
 			return;
 		}
+
+		//	ectract the payload
+		//	fucking finally
 
 		std::vector<uint8_t> payload;
 
