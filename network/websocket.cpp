@@ -129,6 +129,12 @@ WebsocketFrameHeader WebSocket::parseFrameHeader(const std::vector<uint8_t>& buf
 	return header;
 }
 
+void clearMultipartData(WebsocketMessage** objPtr) {
+	if (*objPtr == nullptr) return;
+	delete *objPtr;
+	*objPtr = nullptr;
+}
+
 void WebSocket::asyncWsIO() {
 
 	auto setOptStatRX = setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&wsRcvTimeout, sizeof(wsRcvTimeout));
@@ -144,7 +150,7 @@ void WebSocket::asyncWsIO() {
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
 
-	size_t framesSkipped = 0;
+	size_t incompleteChunks = 0;
 
 	WebsocketMessage* multipartMessagePtr = nullptr;
 	uint8_t multipartMessageMask[4];
@@ -194,7 +200,7 @@ void WebSocket::asyncWsIO() {
 		//	if an error occured during receiving
 		if (bytesReceived < 0) {
 
-			//	kill this websocket if it was the connection that failed
+			//	kill this websocket if the connection has failed
 			//	but totally ignore the timeout errors
 			//	we're gonna hit them constantly
 			auto apierror = getAPIError();
@@ -235,14 +241,11 @@ void WebSocket::asyncWsIO() {
 
 			//	oh yes it technically gonna fail after wsMaxSkippedAttempts + 1
 			//	I'm not replacing ">" with ">=", I'm ok with the results
-			if (framesSkipped > wsMaxSkippedAttempts) {
+			if (incompleteChunks > wsMaxSkippedAttempts) {
 
 				downloadStream.clear();
-
-				if (multipartMessagePtr != nullptr) {
-					delete multipartMessagePtr;
-					multipartMessagePtr = nullptr;
-				}
+				clearMultipartData(&multipartMessagePtr);
+				incompleteChunks = 0;
 
 				#ifdef LAMBDADEBUG_WS
 					puts("LAMBDA_DEBUG_WS: incomplete frame stream. dropping the stream");
@@ -255,17 +258,23 @@ void WebSocket::asyncWsIO() {
 				puts("LAMBDA_DEBUG_WS: skipping a chunk as incomplete, sus.");
 			#endif
 
-			framesSkipped++;
+			incompleteChunks++;
 			continue;
 		}
 
-		framesSkipped = 0;
+		incompleteChunks = 0;
 
 		//	check the mask bit
 		if (!frameHeader.mask) {
-			this->internalError = Lambda::Error("Received unmasked data from the client");
-			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-			return;
+
+			downloadStream.clear();
+			clearMultipartData(&multipartMessagePtr);
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: received unmasked data from the client");
+			#endif
+
+			continue;
 		}
 
 		//	check opcode
@@ -274,9 +283,15 @@ void WebSocket::asyncWsIO() {
 		});
 
 		if (!opcodeSupported) {
-			this->internalError = Lambda::Error("Unsupported websocket opcode");
-			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
-			return;
+
+			downloadStream.clear();
+			clearMultipartData(&multipartMessagePtr);
+
+			#ifdef LAMBDADEBUG_WS
+				puts("LAMBDA_DEBUG_WS: Unsupported websocket opcode");
+			#endif
+
+			continue;
 		}
 
 		std::vector<uint8_t> payload;
@@ -287,8 +302,8 @@ void WebSocket::asyncWsIO() {
 			downloadStream.erase(downloadStream.begin(), downloadStream.begin() + frameSize);
 		} catch(...) {
 
-			this->internalError = Lambda::Error("Payload size mismatch");
-			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+			downloadStream.clear();
+			clearMultipartData(&multipartMessagePtr);
 
 			#ifdef LAMBDADEBUG_WS
 				puts("LAMBDA_DEBUG_WS: std thrown a size expection, that's how bad the message is malformed");
@@ -359,6 +374,7 @@ void WebSocket::asyncWsIO() {
 				if (multipartMessagePtr == nullptr) {
 					
 					downloadStream.clear();
+					clearMultipartData(&multipartMessagePtr);
 
 					#ifdef LAMBDADEBUG_WS
 						puts("LAMBDA_DEBUG_WS: got continue opcode but multipart mode was not enabled. dropping the stream");
@@ -387,6 +403,9 @@ void WebSocket::asyncWsIO() {
 			} break;
 
 			default: {
+
+				//	if that's the first frame and there are multipart leftovers - remove them
+				clearMultipartData(&multipartMessagePtr);
 
 				//	if it's a multipart message, pass the first part to temp object
 				if (!frameHeader.finbit) {
