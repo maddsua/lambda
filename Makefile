@@ -56,7 +56,7 @@ test_encode: $(OBJECTS_ENCODING)
 
 COMPONENT_HTTP = obj_http
 LIBSTATIC_HTTP = lib$(LIBNAME)-http.a
-OBJECTS_HTTP = http/strings.o http/headers.o http/urlsearchparams.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o
+OBJECTS_HTTP = http/strings.o http/headers.o http/urlsearchparams.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o http/cookies.o
 
 $(COMPONENT_HTTP): $(OBJECTS_HTTP)
 	ar rvs $(LIBSTATIC_HTTP) $(OBJECTS_HTTP)
@@ -87,6 +87,9 @@ http/mimetype.o: http/mimetype.cpp
 
 http/time.o: http/time.cpp
 	g++ -c http/time.cpp -o http/time.o $(FLAGS)
+
+http/cookies.o: http/cookies.cpp
+	g++ -c http/cookies.cpp -o http/cookies.o $(FLAGS)
 
 
 #------------

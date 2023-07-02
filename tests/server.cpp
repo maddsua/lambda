@@ -2,10 +2,26 @@
 #include <iostream>
 
 using namespace Lambda;
+using namespace Lambda::HTTP;
 
-HTTP::Response callbackServerless(HTTP::Request& request, Lambda::Context& context) {
+HTTP::Response callbackServerless(Request& request, Context& context) {
+
 	std::cout << "Request to \"" << request.path << "\" from " << request.headers.get("user-agent") << std::endl;
-	return HTTP::Response({{"x-serverless", "true"}}, "success! your user-agent is: " + request.headers.get("user-agent"));
+
+	auto cookies = Cookies(request);
+
+	auto response = Response();
+	response.headers.set("x-serverless", "true");
+
+	if (!cookies.has("userid")) {
+		auto newCookies = Cookies();
+		newCookies.set("userid", "test_user_0");
+		response.headers.set("Set-Cookie", newCookies.stringify());
+	}
+
+	response.setBodyText("success! your user-agent is: " + request.headers.get("user-agent"));
+
+	return response;
 };
 
 void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& context) {
@@ -54,8 +70,8 @@ int main() {
 
 	auto server = Lambda::Server();
 
-	//server.setServerlessCallback(&callbackServerless);
-	server.setServerCallback(&callback);
+	server.setServerlessCallback(&callbackServerless);
+	//server.setServerCallback(&callback);
 
 	while (server.isAlive()) {
 		

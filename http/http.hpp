@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 namespace Lambda::HTTP {
 
@@ -12,63 +12,64 @@ namespace Lambda::HTTP {
 		std::string value;
 	};
 
-	/*
-	 * This class provides APIs to perform the necessary operations over http headers
-	*/
 	class Headers {
 		private:
 			std::vector<KVtype> data;
 
 		public:
+
+			/**
+			 * This class provides APIs to perform the necessary operations over http headers
+			*/
 			Headers() {};
 			Headers(const std::string& httpHeaders) { fromHTTP(httpHeaders); };
 
-			/*
+			/**
 			 * Construct Headers object directly from http text
 			*/
 			void fromHTTP(const std::string& httpHeaders);
 
-			/*
+			/**
 			 * Construct Headers object from key-value vector
 			*/
 			void fromEntries(const std::vector<HTTP::KVtype>& headers);
 
-			/*
+			/**
 			 * Performs check whether a header is present
 			*/
 			bool has(const std::string& key);
 
-			/*
+			/**
 			 * Retrieves a header value, or an empty string if header not present
 			*/
 			std::string get(const std::string& key);
 
-			/*
+			/**
 			 * Retrieves a vector of multivalue header values, or an empty vector if header not present
 			*/
 			std::vector<std::string> getMultiValue(const std::string& key);
 
-			/*
+			/**
 			 * Sets a header, overwriting if exists
 			*/
 			void set(const std::string& key, const std::string& value);
 
-			/*
+			/**
 			 * Adds a header without overwriting of already existant
 			*/
 			bool append(const std::string& key, const std::string& value);
 
-			/*
+			/**
 			 * Deletes a header
 			*/
 			void del(const std::string& key);
 
-			/*
+			/**
 			 * Dumps all the headers in http text form (one header per line, separated by newline)
 			*/
 			std::string stringify();
 
-			/*
+			/**
 			 * Returns const reference to internal data store
 			*/
 			const std::vector<KVtype>& entries();
@@ -76,7 +77,7 @@ namespace Lambda::HTTP {
 
 	class URLSearchParams {
 		private:
-			std::unordered_map<std::string, std::string> data;
+			std::map<std::string, std::string> data;
 
 		public:
 			URLSearchParams() {};
@@ -139,6 +140,66 @@ namespace Lambda::HTTP {
 			std::string protocol;
 			std::string pathname;
 			URLSearchParams searchParams;
+	};
+
+	class Cookies {
+		private:
+			std::map<std::string, std::string> data;
+
+		public:
+
+			/**
+			 * Cookie manipulation class
+			 * This object can represent all the cookies in form of "key-value", or a single one in form of "key-value, directive-value..."
+			*/
+			Cookies() {};
+			Cookies(const std::string& cookies) { fromString(cookies); };
+			Cookies(const Request& request) { fromRequest(request); };
+
+			/**
+			 * Construct Cookie object from a string like document.cookie
+			*/
+			void fromString(const std::string& cookies);
+
+			/**
+			 * Construct Cookie object from http request directly
+			*/
+			void fromRequest(const Request& request);
+
+			/**
+			 * Checks if cookie is present
+			*/
+			bool has(std::string key);
+
+			/**
+			 * Sets a cookie
+			*/
+			void set(std::string key, const std::string& value);
+
+			/**
+			 * Retrieves a cookie
+			*/
+			std::string get(std::string key);
+
+			/**
+			 * Removes a cookie
+			*/
+			void del(std::string key);
+
+			/**
+			 * Convert to cookie string
+			*/
+			std::string stringify();
+
+			/**
+			 * List all key-value pairs
+			*/
+			std::vector<KVtype> entries();
+
+			/**
+			 * Convert to Set-Cookie header KV struct. The whole object is considered as a single cookie for this operation
+			*/
+			KVtype toHeader();
 	};
 
 	//	Get status text for provided status code. Returns empty string if not found
