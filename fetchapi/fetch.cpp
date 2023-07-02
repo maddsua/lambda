@@ -59,8 +59,8 @@ Response Lambda::Fetch::fetch(std::string url, const RequestOptions& data) {
 	requestHeaders.fromEntries(data.headers);
 	//	add some headers
 	requestHeaders.set("Host", "http://" + requestUrl.host);
-	requestHeaders.set("User-Agent", LAMBDAUSERAGENT);
-	requestHeaders.set("Accept-Encoding", LAMBDAHTTPENCODINGS);
+	requestHeaders.set("User-Agent", LAMBDA_USERAGENT);
+	requestHeaders.set("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
 
 	//	append to request string
 	requestHeader.append(requestHeaders.stringify());
