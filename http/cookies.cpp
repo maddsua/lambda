@@ -29,21 +29,26 @@ void Cookies::fromString(const std::string& cookies) {
 	}
 }
 
-bool Cookies::has(std::string key) {
-	return this->data.find(key) != this->data.end();
+bool Cookies::has(const std::string key) {
+	auto keyNormalized = stringToLowerCase(key);
+	return this->data.find(keyNormalized) != this->data.end();
 }
 
-void Cookies::set(std::string key, const std::string& value) {
-	this->data[key] = value;
+void Cookies::set(const std::string key, const std::string& value) {
+	auto keyNormalized = stringToLowerCase(key);
+	this->data[keyNormalized] = value;
 }
 
-std::string Cookies::get(std::string key) {
-	return has(key) ? this->data[key] : std::string();
+std::string Cookies::get(const std::string key) {
+	auto keyNormalized = stringToLowerCase(key);
+	if (!has(keyNormalized)) return {};
+	return this->data[keyNormalized];
 }
 
-void Cookies::del(std::string key) {
-	if (!has(key)) return;
-	this->data.erase(key);
+void Cookies::del(const std::string key) {
+	auto keyNormalized = stringToLowerCase(key);
+	if (!has(keyNormalized)) return;
+	this->data.erase(keyNormalized);
 }
 
 std::string Cookies::stringify() {

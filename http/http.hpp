@@ -175,22 +175,22 @@ namespace Lambda::HTTP {
 			/**
 			 * Checks if cookie is present
 			*/
-			bool has(std::string key);
+			bool has(const std::string key);
 
 			/**
 			 * Sets a cookie
 			*/
-			void set(std::string key, const std::string& value);
+			void set(const std::string key, const std::string& value);
 
 			/**
 			 * Retrieves a cookie
 			*/
-			std::string get(std::string key);
+			std::string get(const std::string key);
 
 			/**
 			 * Removes a cookie
 			*/
-			void del(std::string key);
+			void del(const std::string key);
 
 			/**
 			 * Convert to cookie string
