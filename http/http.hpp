@@ -89,11 +89,11 @@ namespace Lambda::HTTP {
 			URLSearchParams() {};
 			URLSearchParams(const std::string& URLString) { fromHref(URLString); };
 			void fromHref(const std::string& URLString);
-			bool has(std::string key);
-			void set(std::string key, const std::string& value);
-			bool append(std::string key, const std::string& value);
-			std::string get(std::string key);
-			void del(std::string key);
+			bool has(const std::string key);
+			void set(const std::string key, const std::string& value);
+			bool append(const std::string key, const std::string& value);
+			std::string get(const std::string key);
+			void del(const std::string key);
 			std::string stringify();
 			std::vector<KVtype> entries();
 			size_t length();

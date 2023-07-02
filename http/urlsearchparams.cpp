@@ -22,31 +22,33 @@ void URLSearchParams::fromHref(const std::string& URLString) {
 	}
 }
 
-bool URLSearchParams::has(std::string key) {
-	stringToLowerCase(key);
-	return this->data.find(key) != this->data.end();
+bool URLSearchParams::has(const std::string key) {
+	auto keyNormalized = stringToLowerCase(key);
+	return this->data.find(keyNormalized) != this->data.end();
 }
 
-void URLSearchParams::set(std::string key, const std::string& value) {
-	stringToLowerCase(key);
-	this->data[key] = Encoding::encodeURIComponent(value);
+void URLSearchParams::set(const std::string key, const std::string& value) {
+	auto keyNormalized = stringToLowerCase(key);
+	this->data[keyNormalized] = Encoding::encodeURIComponent(value);
 }
 
-bool URLSearchParams::append(std::string key, const std::string& value) {
-	if (has(key)) return false;
-	set(key, value);
+bool URLSearchParams::append(const std::string key, const std::string& value) {
+	auto keyNormalized = stringToLowerCase(key);
+	if (has(keyNormalized)) return false;
+	set(keyNormalized, value);
 	return true;
 }
 
-std::string URLSearchParams::get(std::string key) {
-	stringToLowerCase(key);
-	return has(key) ? std::string() : this->data[key];
+std::string URLSearchParams::get(const std::string key) {
+	auto keyNormalized = stringToLowerCase(key);
+	if (!has(keyNormalized)) return {};
+	return this->data[keyNormalized];
 }
 
-void URLSearchParams::del(std::string key) {
-	stringToLowerCase(key);
-	if (!has(key)) return;
-	this->data.erase(key);
+void URLSearchParams::del(const std::string key) {
+	auto keyNormalized = stringToLowerCase(key);
+	if (!has(keyNormalized)) return;
+	this->data.erase(keyNormalized);
 }
 
 std::string URLSearchParams::stringify() {
