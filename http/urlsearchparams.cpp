@@ -8,7 +8,7 @@ void URLSearchParams::fromHref(const std::string& URLString) {
 	auto qmark = URLString.find_last_of('?');
 	auto queries = stringSplit(qmark != std::string::npos ? URLString.substr(qmark + 1) : URLString, "&");
 	
-	for (auto& item : queries) {
+	for (const auto& item : queries) {
 
 		if (item.find('=') == std::string::npos) continue;
 
