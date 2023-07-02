@@ -10,9 +10,9 @@
 #include <stdexcept>
 #include <string>
 
-#define LAMBDAVERSION		"1.0.0"
-#define LAMBDAUSERAGENT		"maddsua/lambda v" LAMBDAVERSION
-#define LAMBDAHTTPENCODINGS "br, gzip, deflate"
+#define LAMBDA_VERSION			"1.0.0"
+#define LAMBDA_USERAGENT		"maddsua/lambda v" LAMBDA_VERSION
+#define LAMBDA_HTTP_ENCODINGS	"br, gzip, deflate"
 
 //#define LAMBDADEBUG_WS
 
