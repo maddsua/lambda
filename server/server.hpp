@@ -22,7 +22,13 @@ namespace Lambda {
 
 	struct Context {
 		std::string clientIP;
-		void* passtrough;			//	A potential foot-shooter, be extremely careful when using it
+		//	A potential foot-shooter, be extremely careful when using it
+		void* passtrough;
+	};
+
+	struct Flags {
+		bool compressionUseGzip = false;
+		bool compressionUseBrotli = false;
 	};
 
 	class Server {
@@ -64,6 +70,8 @@ namespace Lambda {
 			void removeServerlessCallback();
 
 			bool isAlive() { return this->running; };
+
+			Flags flags;
 	};
 	
 }

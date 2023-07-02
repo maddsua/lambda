@@ -56,14 +56,13 @@ bool Compress::BrotliStream::compressChunk(const uint8_t* bufferIn, size_t dataI
 		compressStatus = BrotliEncoderCompressStream(instance, operation, &avail_in, &bufferIn, &avail_out, &next_out, nullptr);
 		if (!compressStatus) return false;
 
-		if (BrotliEncoderHasMoreOutput(instance)) {
-
+		while (BrotliEncoderHasMoreOutput(instance)) {
 			size_t size = 0;
-
-			auto temp = BrotliEncoderTakeOutput(instance, &size);
-			if (!temp) return false;
-
-			bufferOut->insert(bufferOut->end(), temp, temp + size);
+			do {
+				auto temp = BrotliEncoderTakeOutput(instance, &size);
+				if (!temp || !size) break;
+				bufferOut->insert(bufferOut->end(), temp, temp + size);
+			} while (size > 0);
 		}
 	}
 
@@ -121,14 +120,13 @@ bool Compress::BrotliStream::decompressChunk(const uint8_t* bufferIn, size_t dat
 
 		if (!BrotliDecoderDecompressStream(instance, &avail_in, &bufferIn, &avail_out, &next_out, nullptr)) return false;
 
-		if (BrotliDecoderHasMoreOutput(instance)) {
-
+		while (BrotliDecoderHasMoreOutput(instance)) {
 			size_t size = 0;
-
-			auto temp = BrotliDecoderTakeOutput(instance, &size);
-			if (!temp) return false;
-
-			bufferOut->insert(bufferOut->end(), temp, temp + size);
+			do {
+				auto temp = BrotliDecoderTakeOutput(instance, &size);
+				if (!temp || !size) return false;
+				bufferOut->insert(bufferOut->end(), temp, temp + size);
+			} while (size > 0);
 		}
 	}
 

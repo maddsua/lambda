@@ -29,9 +29,13 @@ bool Compress::ZlibStream::startCompression(int compression, int header) {
 	if (header != header_gz && header != header_deflate && header != header_raw) header = header_gz;
 
 	compressStream = new z_stream;
+	((z_stream*)compressStream)->zalloc = nullptr;
+	((z_stream*)compressStream)->opaque = nullptr;
+	((z_stream*)compressStream)->zfree = nullptr;
+
 	compressTemp = new uint8_t[chunkSize];
 
-	compressStatus = deflateInit2((z_stream*)compressStream, compression, Z_DEFLATED, header, 9, Z_DEFAULT_STRATEGY);
+	compressStatus = deflateInit2((z_stream*)compressStream, compression, Z_DEFLATED, header, 8, Z_DEFAULT_STRATEGY);
 	return compressStatus == Z_OK;
 }
 bool Compress::ZlibStream::startCompression(int compression) {
@@ -113,6 +117,10 @@ bool Compress::ZlibStream::compressionReset() {
 bool Compress::ZlibStream::startDecompression(int wbits) {
 
 	decompressStream = new z_stream;
+	((z_stream*)decompressStream)->zalloc = nullptr;
+	((z_stream*)decompressStream)->opaque = nullptr;
+	((z_stream*)decompressStream)->zfree = nullptr;
+
 	decompressTemp = new uint8_t[chunkSize];
 
 	decompressStatus = inflateInit2((z_stream*)decompressStream, wbits);

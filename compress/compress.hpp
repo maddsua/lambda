@@ -66,7 +66,7 @@ namespace Lambda::Compress {
 			int compressionStatus();
 			bool compressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
 			bool compressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
-			bool compressionReset();
+			//bool compressionReset();
 
 			bool startDecompression();
 			bool decompressionDone();
@@ -74,7 +74,7 @@ namespace Lambda::Compress {
 			int decompressionStatus();
 			bool decompressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
 			bool decompressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
-			bool decompressionReset();
+			//bool decompressionReset();
 
 			static const size_t chunkSize = 131072;
 			static const int expect_ratio = 4;

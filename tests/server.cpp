@@ -73,6 +73,9 @@ int main() {
 	server.setServerlessCallback(&callbackServerless);
 	//server.setServerCallback(&callback);
 
+	server.flags.compressionUseBrotli = true;
+	server.flags.compressionUseGzip = true;
+
 	while (server.isAlive()) {
 		
 		if (server.hasNewLogs()) {
