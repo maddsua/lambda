@@ -67,9 +67,10 @@ void Server::connectionHandler() {
 
 		//	set some service headers
 		{
-			response.headers.put("server", "maddsua/lambda");
-			response.headers.put("date", serverDate());
-			response.headers.put("content-type", "text/plain");
+			response.headers.append("server", "maddsua/lambda");
+			response.headers.append("date", serverDate());
+			response.headers.append("content-type", "text/plain");
+			response.headers.append("connection", "close");
 		}
 
 		//	http response body compression
