@@ -49,6 +49,7 @@ encoding/hex.o: encoding/hex.cpp
 test_encode: $(OBJECTS_ENCODING)
 	g++ tests/encoding.cpp $(OBJECTS_ENCODING) -o test_encode.exe
 
+
 #------------
 # Component: HTTP
 #------------
@@ -177,16 +178,20 @@ network/websocket.o: network/websocket.cpp
 
 COMPONENT_SERVER = obj_server
 LIBSTATIC_SERVER = lib$(LIBNAME)-server.a
-OBJECTS_SERVER = server/server.o server/logs.o
+OBJECTS_SERVER = server/service.o server/logs.o server/handler.o
 
 $(COMPONENT_SERVER): $(OBJECTS_SERVER)
 	ar rvs $(LIBSTATIC_SERVER) $(OBJECTS_SERVER)
 
-server/server.o: server/server.cpp
-	g++ -c server/server.cpp -o server/server.o $(FLAGS)
+server/service.o: server/service.cpp
+	g++ -c server/service.cpp -o server/service.o $(FLAGS)
 
 server/logs.o: server/logs.cpp
 	g++ -c server/logs.cpp -o server/logs.o $(FLAGS)
+
+server/handler.o: server/handler.cpp
+	g++ -c server/handler.cpp -o server/handler.o $(FLAGS)
+
 
 #------------
 # Test: Server
@@ -239,49 +244,3 @@ $(LIBSHARED): $(LIBFULL_OBJS) $(LIBNAME).res
 
 $(LIBNAME).res: $(LIBNAME).rc
 	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ----
-#	labmda demo/test app
-# ----
-#	regular dev app
-#$(APP_DEV): main.o $(OBJECTS)
-#	g++ main.o $(OBJECTS) $(LIBS_SHARED) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
-
-#	fully static build, version for the demo
-#static: $(LIBSTATIC) main.o
-#	g++ -static main.o -L. -l$(LIBNAME) $(LIBS_STATIC) $(LIBS_SYSTEM) $(FLAGS) -o $(APP_DEV)
-
-#	dynamically linked to all the dlls
-#dynamic: libshared main.o
-#	g++ main.o -L. -l$(LIBNAME) $(FLAGS) -o $(APP_DEV)

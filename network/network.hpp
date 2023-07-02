@@ -135,7 +135,6 @@ namespace Lambda::Network {
 			 * Constructs a listening socket for TCP stuff
 			 * 😵 This constructor throws if unable to create socket
 			*/
-			ListenSocket() : ListenSocket("8080") {};
 			ListenSocket(const char* listenPort);
 			~ListenSocket();
 

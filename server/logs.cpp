@@ -14,10 +14,6 @@ void Server::addLogRecord(std::string message, int level) {
 	this->logQueue.push_back(std::move(newRecord));
 }
 
-bool Server::hasNewLogs() {
-	return this->logQueue.size() > 0;
-}
-
 std::vector<LogEntry> Server::logs() {
 
 	if (!hasNewLogs()) return {};

@@ -57,7 +57,7 @@ int main() {
 	//server.setServerlessCallback(&callbackServerless);
 	server.setServerCallback(&callback);
 
-	while (true) {
+	while (server.isAlive()) {
 		
 		if (server.hasNewLogs()) {
 			puts(HTTP::stringJoin(server.logsText(), "\n").c_str());

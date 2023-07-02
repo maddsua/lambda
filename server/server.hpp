@@ -31,6 +31,8 @@ namespace Lambda {
 			std::thread* watchdogThread;
 			bool handlerDispatched;
 			bool running;
+			uint16_t openOnPort = 8080;
+			void init();
 
 			void connectionWatchdog();
 			void connectionHandler();
@@ -48,19 +50,20 @@ namespace Lambda {
 			void removePasstrough();
 			
 		public:
-			Server();
+			Server() { init(); };
+			Server(uint16_t port) : openOnPort(port) { init(); };
 			~Server();
 
 			std::vector<LogEntry> logs();
 			std::vector<std::string> logsText();
-			bool hasNewLogs();
+			bool hasNewLogs() { return this->logQueue.size() > 0; };
 
 			void setServerCallback(void (*callback)(Network::HTTPConnection&, Context&));
 			void removeServerCallback();
 			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request&, Context&));
 			void removeServerlessCallback();
 
-			bool ok() { return this->running; };
+			bool isAlive() { return this->running; };
 	};
 	
 }
