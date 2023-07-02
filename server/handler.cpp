@@ -62,7 +62,7 @@ void Server::connectionHandler() {
 		if (handlerErrorMessage.size()) {
 			addLogRecord(std::string("Request failed: " ) + handlerErrorMessage + " | Client: " + client.clientIP(), LAMBDA_LOG_ERROR);
 			response.setStatusCode(500);
-			response.setBodyText(handlerErrorMessage + " | lambda v" + LAMBDAVERSION);
+			response.setBodyText(handlerErrorMessage + " | lambda v" + LAMBDA_VERSION);
 		}
 
 		//	set some service headers
