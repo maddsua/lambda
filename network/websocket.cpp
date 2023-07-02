@@ -49,7 +49,6 @@ WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
 
 	this->hSocket = tcpSocket;
 
-	auto headerConnection = initalRequest.headers.get("Connection");
 	auto headerUpgrade = initalRequest.headers.get("Upgrade");
 	auto headerWsKey = initalRequest.headers.get("Sec-WebSocket-Key");
 
