@@ -150,7 +150,7 @@ namespace Lambda::HTTP {
 
 			/**
 			 * Cookie manipulation class
-			 * This object can represent all the cookies in form of "key-value", or a single one in form of "key-value, directive-value..."
+			 * This object can represent all client's cookies in form of "key-value", or a single one in form of "key-value, directive-value..."
 			*/
 			Cookies() {};
 			Cookies(const std::string& cookies) { fromString(cookies); };
