@@ -69,7 +69,7 @@ void Headers::set(const std::string& key, const std::string& value) {
 	this->data.push_back({ keyNormalized, value });
 }
 
-void Headers::put(const std::string& key, const std::string& value) {
+void Headers::append(const std::string& key, const std::string& value) {
 	auto keyNormalized = stringToTittleCase(key);
 	for (auto& item : this->data) {
 		if (item.key == keyNormalized) return;
@@ -77,7 +77,7 @@ void Headers::put(const std::string& key, const std::string& value) {
 	this->data.push_back({ keyNormalized, value });
 }
 
-bool Headers::append(const std::string& key, const std::string& value) {
+bool Headers::appendMultivalue(const std::string& key, const std::string& value) {
 	auto keyNormalized = stringToTittleCase(key);
 	this->data.push_back({ keyNormalized, value });
 	return true;

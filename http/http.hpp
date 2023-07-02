@@ -57,13 +57,13 @@ namespace Lambda::HTTP {
 			/**
 			 * Adds a header if no other with such a key is present. Tries to add without overwriting
 			*/
-			void put(const std::string& key, const std::string& value);
+			void append(const std::string& key, const std::string& value);
 
 			/**
 			 * Adds a multi-value header. Basically, just append one without any checks
 			 * Don't use for regular ones or else you might end up with a ton of duplicating headers. Use put() instead
 			*/
-			bool append(const std::string& key, const std::string& value);
+			bool appendMultivalue(const std::string& key, const std::string& value);
 
 			/**
 			 * Deletes a header. Multi-value ones too
