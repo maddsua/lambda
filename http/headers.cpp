@@ -6,7 +6,7 @@ void Headers::fromHTTP(const std::string& httpHeaders) {
 
 	auto headerLines = stringSplit(httpHeaders, "\r\n");
 
-	for (auto& item : headerLines) {
+	for (const auto& item : headerLines) {
 
 		auto kvSeparatorIdx = item.find(':');
 		if (kvSeparatorIdx == std::string::npos || kvSeparatorIdx == 0 || kvSeparatorIdx == item.size() - 1) continue;
@@ -18,58 +18,82 @@ void Headers::fromHTTP(const std::string& httpHeaders) {
 		stringTrim(value);
 		stringToTittleCase(key);
 
-		this->data[key] = value;
+		this->data.push_back({ key, value });
 	}
 }
 
 void Headers::fromEntries(const std::vector<KVtype>& headers) {
 	this->data.clear();
-	for (auto& item : headers) {
+	for (const auto& item : headers) {
 		if (!item.key.size() || !item.value.size()) continue;
 		auto key = stringToTittleCase(item.key);
-		this->data[key] = item.value;
+		this->data.push_back({ key, item.value });
 	}
 }
 
-bool Headers::has(std::string key) {
-	stringToTittleCase(key);
-	return this->data.find(key) != this->data.end();
+bool Headers::has(const std::string& key) {
+	auto keyNormalized = stringToTittleCase(key);
+	for (const auto& item : this->data) {
+		if (item.key != keyNormalized) continue;
+		return true;
+	}
+	return false;
 }
 
-void Headers::set(std::string key, const std::string& value) {
-	stringToTittleCase(key);
-	this->data[key] = value;
+std::string Headers::get(const std::string& key) {
+	auto keyNormalized = stringToTittleCase(key);
+	for (const auto& item : this->data) {
+		if (item.key != keyNormalized) continue;
+		return item.value;
+	}
+	return {};
 }
 
-bool Headers::append(std::string key, const std::string& value) {
-	if (has(key)) return false;
-	set(key, value);
-	return true;
-}
-
-std::string Headers::get(std::string key) {
-	stringToTittleCase(key);
-	return has(key) ? this->data[key] : std::string();
-}
-
-void Headers::del(std::string key) {
-	stringToTittleCase(key);
-	if (!has(key)) return;
-	this->data.erase(key);
-}
-
-std::string Headers::stringify() {
-	auto result = std::string();
-	for (auto item : this->data) {
-		result += item.first + ": " + item.second + "\r\n";
+std::vector<std::string> Headers::getMultiValue(const std::string& key) {
+	auto keyNormalized = stringToTittleCase(key);
+	std::vector<std::string> result;
+	for (const auto& item : this->data) {
+		if (item.key != keyNormalized) continue;
+		result.push_back(item.value);
 	}
 	return result;
 }
 
-std::vector<KVtype> Headers::entries() {
-	auto entries = std::vector<KVtype>();
+void Headers::set(const std::string& key, const std::string& value) {
+	auto keyNormalized = stringToTittleCase(key);
 	for (auto& item : this->data) {
-		entries.push_back({ item.first, item.second });
+		if (item.key != keyNormalized) continue;
+		item.value = value;
+		return;
 	}
-	return entries;
+	this->data.push_back({ keyNormalized, value });
+}
+
+bool Headers::append(const std::string& key, const std::string& value) {
+	stringToTittleCase(key);
+	this->data.push_back({ key, value });
+	return true;
+}
+
+void Headers::del(const std::string& key) {
+	auto keyNormalized = stringToTittleCase(key);
+	for (size_t idx = 0; idx < this->data.size();) {
+		if (this->data.at(idx).key == keyNormalized) {
+			this->data.erase(this->data.begin() + idx);
+			continue;
+		}
+		idx++;
+	}
+}
+
+std::string Headers::stringify() {
+	auto result = std::string();
+	for (const auto& item : this->data) {
+		result += item.key + ": " + item.value + "\r\n";
+	}
+	return result;
+}
+
+const std::vector<KVtype>& Headers::entries() {
+	return this->data;
 }

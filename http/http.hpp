@@ -12,30 +12,71 @@ namespace Lambda::HTTP {
 		std::string value;
 	};
 
-	typedef std::unordered_map<std::string, std::string> HeadersMap;
-	typedef std::unordered_map<std::string, std::string> SearchQueryMap;
-
+	/*
+	 * This class provides APIs to perform the necessary operations over http headers
+	*/
 	class Headers {
 		private:
-			HeadersMap data;
+			std::vector<KVtype> data;
 
 		public:
 			Headers() {};
 			Headers(const std::string& httpHeaders) { fromHTTP(httpHeaders); };
+
+			/*
+			 * Construct Headers object directly from http text
+			*/
 			void fromHTTP(const std::string& httpHeaders);
+
+			/*
+			 * Construct Headers object from key-value vector
+			*/
 			void fromEntries(const std::vector<HTTP::KVtype>& headers);
-			bool has(std::string key);
-			void set(std::string key, const std::string& value);
-			bool append(std::string key, const std::string& value);
-			std::string get(std::string key);
-			void del(std::string key);
+
+			/*
+			 * Performs check whether a header is present
+			*/
+			bool has(const std::string& key);
+
+			/*
+			 * Retrieves a header value, or an empty string if header not present
+			*/
+			std::string get(const std::string& key);
+
+			/*
+			 * Retrieves a vector of multivalue header values, or an empty vector if header not present
+			*/
+			std::vector<std::string> getMultiValue(const std::string& key);
+
+			/*
+			 * Sets a header, overwriting if exists
+			*/
+			void set(const std::string& key, const std::string& value);
+
+			/*
+			 * Adds a header without overwriting of already existant
+			*/
+			bool append(const std::string& key, const std::string& value);
+
+			/*
+			 * Deletes a header
+			*/
+			void del(const std::string& key);
+
+			/*
+			 * Dumps all the headers in http text form (one header per line, separated by newline)
+			*/
 			std::string stringify();
-			std::vector<KVtype> entries();
+
+			/*
+			 * Returns const reference to internal data store
+			*/
+			const std::vector<KVtype>& entries();
 	};
 
 	class URLSearchParams {
 		private:
-			SearchQueryMap data;
+			std::unordered_map<std::string, std::string> data;
 
 		public:
 			URLSearchParams() {};
