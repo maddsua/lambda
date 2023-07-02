@@ -124,6 +124,11 @@ namespace Lambda::Network {
 			 * 😵 This function throws if a fatal error has occured
 			*/
 			WebSocket upgradeToWebsocket(Lambda::HTTP::Request& initalRequest) { return WebSocket(this->hSocket, initalRequest); }
+
+			/**
+			 * Send raw data
+			*/
+			Lambda::Error sendRaw(std::vector<uint8_t>& data);
 	};
 
 	class ListenSocket {

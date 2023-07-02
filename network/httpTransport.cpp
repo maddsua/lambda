@@ -63,3 +63,10 @@ HTTP::Request Lambda::Network::receiveHTTP(SOCKET hSocket) {
 
 	return request;
 }
+
+Lambda::Error Lambda::Network::HTTPConnection::sendRaw(std::vector<uint8_t>& data) {
+	if (send(hSocket, (char*)data.data(), data.size(), 0) <= 0)
+		return { "Failed to send data" , getAPIError() };
+
+	return {};
+}

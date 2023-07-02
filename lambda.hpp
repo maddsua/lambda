@@ -11,6 +11,8 @@
 #include <string>
 
 #define LAMBDAVERSION		"1.0.0"
+#define LAMBDAUSERAGENT		"maddsua/lambda v" LAMBDAVERSION
+#define LAMBDAHTTPENCODINGS "br, gzip, deflate"
 
 //#define LAMBDADEBUG_WS
 
