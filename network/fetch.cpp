@@ -62,17 +62,19 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	//	cleanup
 	freeaddrinfo(hostAddr);
 
-	std::string requestHeader = data.method + requestUrl.pathname + (requestUrl.searchParams.length() ? ("?" + requestUrl.searchParams.stringify()) : "") + "HTTP/1.1\r\n";
+	std::string requestHeader = data.method + " " + requestUrl.pathname + (requestUrl.searchParams.length() ? ("?" + requestUrl.searchParams.stringify()) : "") + " HTTP/1.1\r\n";
 
 	auto requestHeaders = Headers();
 	requestHeaders.fromEntries(data.headers);
 	//	add some headers
 	requestHeaders.set("Host", "http://" + requestUrl.host);
-	requestHeaders.set("User-Agent", LAMBDA_USERAGENT);
-	requestHeaders.set("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
+	requestHeaders.append("User-Agent", LAMBDA_USERAGENT);
+	requestHeaders.append("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
 
 	//	append to request string
 	requestHeader.append(requestHeaders.stringify());
+
+	puts(requestHeader.c_str());
 
 	//	send request
 	if (send(connection, requestHeader.data(), requestHeader.size(), 0) < 0) {
