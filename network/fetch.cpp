@@ -17,7 +17,7 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	auto requestUrl = URL(url);
 
 	//	resolve host
-	dnsresolvehost:
+	dnsresolvehost:	//	yes, I'm using jumps here. deal with it.
 	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &hostAddr) != 0) {
 		auto apierror = getAPIError();
 		if (apierror == WSANOTINITIALISED) {
