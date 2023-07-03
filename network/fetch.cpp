@@ -20,12 +20,17 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	dnsresolvehost:	//	yes, I'm using jumps here. deal with it.
 	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &hostAddr) != 0) {
 		auto apierror = getAPIError();
+		#ifdef _WIN32
 		if (apierror == WSANOTINITIALISED) {
 			WSADATA initdata;
 			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw Lambda::Error("WSA initialization failed", getAPIError());
+				throw Lambda::Error("WSA initialization failed", apierror);
 			goto dnsresolvehost;
-		} else throw Lambda::Error("Failed to resolve host", getAPIError());
+		} else	//	this "else" goes to the "throw" right below, don't panic.
+		//	It looks like ass, but I fell more comfortable doing this,
+		//	than bringing Boost ASIO or some other libarary to have crossplatform sockets
+		#endif
+		throw Lambda::Error("Failed to resolve host", apierror);
 	}
 
 	struct addrinfo *ptr = nullptr;
