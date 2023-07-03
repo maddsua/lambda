@@ -19,38 +19,40 @@ const std::string URL::href() {
 
 void URL::setHref(const std::string& href) {
 
+	auto hrefNormalized = stringToLowerCase(stringTrim(href));
+
 	auto indexofStart = 0;
 
 	// get protocol
-	auto indexofProtocol = href.find("://");
+	auto indexofProtocol = hrefNormalized.find("://");
 	if (indexofProtocol != std::string::npos) {
-		indexofProtocol > 0 ? this->protocol = href.substr(0, indexofProtocol) : "http";
+		indexofProtocol > 0 ? this->protocol = hrefNormalized.substr(0, indexofProtocol) : "http";
 		indexofStart = indexofProtocol + 3;
 	}
 
 	//	hostname and port
-	auto indexofHost = href.find_first_of('/', indexofStart);
-	auto indexofPort = href.find_first_of(":", indexofStart);
+	auto indexofHost = hrefNormalized.find_first_of('/', indexofStart);
+	auto indexofPort = hrefNormalized.find_first_of(":", indexofStart);
 	if (indexofHost != std::string::npos) {
 		auto indexofHostEnd = indexofPort != std::string::npos ? indexofPort : indexofHost;
-		this->host = href.substr(indexofStart, indexofHostEnd - indexofStart);
+		this->host = hrefNormalized.substr(indexofStart, indexofHostEnd - indexofStart);
 		indexofStart = indexofHost;
 	}
 
 	//	just port
 	if (indexofPort != std::string::npos && indexofHost != std::string::npos) {
-		this->port = href.substr(indexofPort + 1, (indexofHost + 1) - indexofPort);
+		this->port = hrefNormalized.substr(indexofPort + 1, (indexofHost + 1) - indexofPort);
 	}
 
 	//	path
-	auto indexofSearchQuery = href.find_first_of('?');
+	auto indexofSearchQuery = hrefNormalized.find_first_of('?');
 	auto pathStart = indexofHost == std::string::npos ? 0 : indexofHost;
-	auto pathEnd = indexofSearchQuery == std::string::npos ? href.size() : indexofSearchQuery;
-	this->pathname = href.substr(pathStart, pathEnd - pathStart);
+	auto pathEnd = indexofSearchQuery == std::string::npos ? hrefNormalized.size() : indexofSearchQuery;
+	this->pathname = hrefNormalized.substr(pathStart, pathEnd - pathStart);
 
 	//	search query
 	if (indexofSearchQuery != std::string::npos) {
-		this->searchParams.fromHref(href.substr(indexofSearchQuery + 1));
+		this->searchParams.fromHref(hrefNormalized.substr(indexofSearchQuery + 1));
 	}
 
 	refresh();
