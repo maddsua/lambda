@@ -31,13 +31,9 @@ Request::Request(std::vector<uint8_t>& httpHeadStream) {
 		this->method = stringToUpperCase(stringTrim(static_cast<const std::string>(headerLineItems.at(0))));
 		if (httpKnownMethods.find(this->method) == httpKnownMethods.end()) throw std::runtime_error("Unknown http method");
 
-		const auto headerlinePath = stringToLowerCase(stringTrim(static_cast<const std::string>(headerLineItems.at(1))));
-		auto pathSearchQueryIdx = headerlinePath.find_first_of('?');
-		
-		if (pathSearchQueryIdx != std::string::npos) {
-			this->path = headerlinePath.substr(0, headerlinePath.find_first_of('?'));
-			this->searchParams.fromHref(headerlinePath.substr(headerlinePath.find_first_of('?') + 1));
-		} else this->path = headerlinePath;
+		auto requestURL = URL(headerLineItems.at(1));
+		this->path = requestURL.pathname;
+		this->searchParams = requestURL.searchParams;
 
 		this->headers.fromHTTP(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeadStream.end()));
 		
