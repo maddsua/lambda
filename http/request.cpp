@@ -35,6 +35,8 @@ Request::Request(std::vector<uint8_t>& httpHeadStream) {
 		this->path = requestURL.pathname;
 		this->searchParams = requestURL.searchParams;
 
+		this->httpversion = HttpVersion(headerLineItems.at(2));
+
 		this->headers.fromHTTP(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeadStream.end()));
 		
 	} catch(const std::exception& e) {

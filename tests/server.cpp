@@ -7,6 +7,8 @@ using namespace Lambda::HTTP;
 HTTP::Response callbackServerless(Request& request, Context& context) {
 
 	std::cout << "Request to \"" << request.path << "\" from " << request.headers.get("user-agent") << std::endl;
+	
+	std::cout << request.httpversion.toString() << std::endl;
 
 	auto cookies = Cookies(request);
 

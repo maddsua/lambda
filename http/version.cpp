@@ -32,5 +32,5 @@ HttpVersion::HttpVersion(const std::string& version) {
 }
 
 std::string HttpVersion::toString() {
-	return "HTTP/" + std::to_string(this->major) + (this->minor > 0 ? std::to_string(this->minor) : "");
+	return "HTTP/" + std::to_string(this->major) + (this->minor > 0 ? ("." + std::to_string(this->minor)) : "");
 }
