@@ -73,7 +73,7 @@ void Server::connectionHandler() {
 			response.headers.append("connection", "close");
 		}
 
-		//	http response body compression
+		//	setup http response body compression
 		{
 			auto compressionEnabled = this->flags.compressionUseBrotli || this->flags.compressionUseGzip;
 			//auto hasAcceptEncodingHeader = request.headers.has("accept-encoding");
@@ -89,34 +89,20 @@ void Server::connectionHandler() {
 				return;
 			}
 
-			std::vector<uint8_t> bodyCompressed;
-
 			if (this->flags.compressionUseBrotli && stringIncludes(accepEncodingHeader, "br")) {
-
-				auto brStream = Compress::BrotliStream();
-				brStream.startCompression();
-
-				if (brStream.compressBuffer(&response.body, &bodyCompressed)) {
-					response.body = bodyCompressed;
-					response.headers.set("Content-Encoding", "br");
-				} else addLogRecord("br compression failed, code: " + std::to_string(brStream.compressionStatus()));
-
+				response.headers.set("Content-Encoding", "br");
 			} else if (this->flags.compressionUseGzip && stringIncludes(accepEncodingHeader, "gzip")) {
-
-				auto gzipStream = Compress::ZlibStream();
-				gzipStream.startCompression();
-
-				if (gzipStream.compressBuffer(&response.body, &bodyCompressed)) {
-					response.body = bodyCompressed;
-					response.headers.set("Content-Encoding", "gzip");
-				} else addLogRecord("gzip compression failed, code: " + std::to_string(gzipStream.compressionStatus()));
+				response.headers.set("Content-Encoding", "gzip");
 			}
 		}
 
 		//	return server response
-		client.sendMessage(response);
+		auto sendAction = client.sendMessage(response);
+		if (sendAction.isError()) throw sendAction;
 
-	} catch(const Lambda::Error& e) {
+	} catch(const std::exception& e) {
 		addLogRecord(std::string("Request has been aborted: ") + e.what() + "; client: " + (requestCTX.clientIP.size() ? requestCTX.clientIP : "unknown"));
+	} catch(...) {
+		addLogRecord("Unhandled server error. Request aborted.");
 	}
 }

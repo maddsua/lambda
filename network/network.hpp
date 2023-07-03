@@ -93,7 +93,7 @@ namespace Lambda::Network {
 			void close() { close(WSCLOSE_NORMAL); };
 	};
 
-	class HTTPConnection {
+	class HTTPServer {
 		private:
 			SOCKET hSocket = INVALID_SOCKET;
 			std::string clientIPv4;
@@ -103,9 +103,9 @@ namespace Lambda::Network {
 			 * Constructs ready to use HTTP socket. Basically, establishes an http connection
 			 * 😵 This constructor throws if unable to establish a connection
 			*/
-			HTTPConnection(SOCKET hParentSocket, time_t timeoutMs);
-			HTTPConnection(SOCKET hParentSocket) : HTTPConnection(hParentSocket, 15000) {}
-			~HTTPConnection();
+			HTTPServer(SOCKET hParentSocket, time_t timeoutMs);
+			HTTPServer(SOCKET hParentSocket) : HTTPServer(hParentSocket, 15000) {}
+			~HTTPServer();
 
 			std::string clientIP() { return this->clientIPv4; }
 			bool isAlive() { return this->hSocket != INVALID_SOCKET; };
@@ -148,7 +148,7 @@ namespace Lambda::Network {
 
 			bool isAlive() { return this->hSocket != INVALID_SOCKET; };
 
-			HTTPConnection acceptConnection() { return HTTPConnection(this->hSocket); };
+			HTTPServer acceptConnection() { return HTTPServer(this->hSocket); };
 	};
 
 	enum FetchConstants {

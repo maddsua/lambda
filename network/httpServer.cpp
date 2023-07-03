@@ -7,7 +7,7 @@
 using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
-HTTPConnection::HTTPConnection(SOCKET hParentSocket, time_t timeoutMs) {
+HTTPServer::HTTPServer(SOCKET hParentSocket, time_t timeoutMs) {
 
 	SOCKADDR_IN clientAddr;
 	int clientAddrLen = sizeof(clientAddr);
@@ -30,7 +30,7 @@ HTTPConnection::HTTPConnection(SOCKET hParentSocket, time_t timeoutMs) {
 	
 }
 
-HTTPConnection::~HTTPConnection() {
+HTTPServer::~HTTPServer() {
 	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);

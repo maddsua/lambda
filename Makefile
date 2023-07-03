@@ -157,7 +157,7 @@ crypto/sha512.o: crypto/sha512.cpp
 
 COMPONENT_SOCKETS = obj_sockets
 LIBSTATIC_SOCKETS = lib$(LIBNAME)-sockets.a
-OBJECTS_SOCKETS = network/tcpListenSocket.o network/httpTransport.o network/httpConnection.o network/websocket.o
+OBJECTS_SOCKETS = network/tcpListenSocket.o network/httpTransport.o network/httpServer.o network/websocket.o
 
 $(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
 	ar rvs $(LIBSTATIC_SOCKETS) $(OBJECTS_SOCKETS)
@@ -168,8 +168,8 @@ network/tcpListenSocket.o: network/tcpListenSocket.cpp
 network/httpTransport.o: network/httpTransport.cpp
 	g++ -c network/httpTransport.cpp -o network/httpTransport.o $(FLAGS)
 
-network/httpConnection.o: network/httpConnection.cpp
-	g++ -c network/httpConnection.cpp -o network/httpConnection.o $(FLAGS)
+network/httpServer.o: network/httpServer.cpp
+	g++ -c network/httpServer.cpp -o network/httpServer.o $(FLAGS)
 
 network/websocket.o: network/websocket.cpp
 	g++ -c network/websocket.cpp -o network/websocket.o $(FLAGS)

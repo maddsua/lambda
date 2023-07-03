@@ -48,7 +48,7 @@ namespace Lambda {
 			void addLogRecord(std::string message, int level);
 			void addLogRecord(std::string message) { addLogRecord(message, LAMBDA_LOG); };
 
-			void (*requestCallback)(Network::HTTPConnection&, Context&) = nullptr;
+			void (*requestCallback)(Network::HTTPServer&, Context&) = nullptr;
 			HTTP::Response (*requestCallbackServerless)(HTTP::Request&, Context&) = nullptr;
 
 			void* instancePasstrough = nullptr;
@@ -64,7 +64,7 @@ namespace Lambda {
 			std::vector<std::string> logsText();
 			bool hasNewLogs() { return this->logQueue.size() > 0; };
 
-			void setServerCallback(void (*callback)(Network::HTTPConnection&, Context&));
+			void setServerCallback(void (*callback)(Network::HTTPServer&, Context&));
 			void removeServerCallback();
 			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request&, Context&));
 			void removeServerlessCallback();

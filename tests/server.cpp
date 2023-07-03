@@ -24,7 +24,7 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	return response;
 };
 
-void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& context) {
+void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context) {
 
 	auto request = connection.receiveMessage();
 

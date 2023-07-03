@@ -31,7 +31,7 @@ Server::~Server() {
 	delete ListenSocketObj;
 }
 
-void Server::setServerCallback(void (*callback)(Network::HTTPConnection&, Context&)) {
+void Server::setServerCallback(void (*callback)(Network::HTTPServer&, Context&)) {
 	//std::lock_guard<std::mutex>lock(mtLock);
 	this->requestCallback = callback;
 }

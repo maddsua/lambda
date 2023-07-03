@@ -1,6 +1,7 @@
 #include "../lambda.hpp"
 #include "./network.hpp"
 #include "./tcpip.hpp"
+#include "../compress/compress.hpp"
 #include <algorithm>
 
 using namespace Lambda;
@@ -8,6 +9,41 @@ using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
 Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
+
+	const auto compressionMethod = stringTrim(static_cast<const std::string>(response.headers.get("Content-Encoding")));
+
+	std::vector<uint8_t> bodyCompressed;
+
+	if (stringToLowerCase(compressionMethod) == "br") {
+
+		auto brStream = Compress::BrotliStream();
+		brStream.startCompression();
+
+		if (!brStream.compressBuffer(&response.body, &bodyCompressed))
+			return { "br compression failed", brStream.compressionStatus() };
+		
+		response.body = bodyCompressed;
+
+	} else if (stringToLowerCase(compressionMethod) == "gzip") {
+
+		auto zlibStream = Compress::ZlibStream();
+		zlibStream.startCompression();
+
+		if (!zlibStream.compressBuffer(&response.body, &bodyCompressed))
+			return { "gzip compression failed", zlibStream.compressionStatus() };
+
+		response.body = bodyCompressed;
+
+	} else if (stringToLowerCase(compressionMethod) == "deflate") {
+
+		auto zlibStream = Compress::ZlibStream();
+		zlibStream.startCompression(Compress::ZlibStream::header_deflate);
+
+		if (!zlibStream.compressBuffer(&response.body, &bodyCompressed))
+			return { "deflate compression failed", zlibStream.compressionStatus() };
+
+		response.body = bodyCompressed;
+	}
 
 	auto payloadSerialized = response.dump();
 
@@ -75,7 +111,7 @@ HTTP::Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
 	return request;
 }
 
-Lambda::Error Lambda::Network::HTTPConnection::sendRaw(std::vector<uint8_t>& data) {
+Lambda::Error Lambda::Network::HTTPServer::sendRaw(std::vector<uint8_t>& data) {
 	if (send(hSocket, (char*)data.data(), data.size(), 0) <= 0)
 		return { "Failed to send data" , getAPIError() };
 
