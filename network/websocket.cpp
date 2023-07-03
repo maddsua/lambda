@@ -65,7 +65,7 @@ WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
 		{ "Sec-WebSocket-Accept", Encoding::b64Encode(keyHashString) }
 	});
 
-	auto hanshakeResult = sendHTTP(this->hSocket, handshakeReponse);
+	auto hanshakeResult = sendHTTPResponse(this->hSocket, handshakeReponse);
 
 	if (hanshakeResult.isError())
 		throw Lambda::Error(std::string("Websocket handshake failed: ") + hanshakeResult.what(), hanshakeResult.errorCode());

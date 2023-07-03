@@ -7,7 +7,7 @@ using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
-Lambda::Error Lambda::Network::sendHTTP(SOCKET hSocket, Response& response) {
+Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
 	auto payloadSerialized = response.dump();
 
@@ -17,27 +17,38 @@ Lambda::Error Lambda::Network::sendHTTP(SOCKET hSocket, Response& response) {
 	return {};
 }
 
-HTTP::Request Lambda::Network::receiveHTTP(SOCKET hSocket) {
+void receiveHTTPHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::vector<uint8_t>& bodyStream) {
 
-	auto rawMessage = std::vector<uint8_t>();
-	auto headerEnded = rawMessage.end();
+	auto headerEnded = headerStream.end();
 	uint8_t headerChunk[network_chunksize_header];
 
 	static const std::string patternEndHeader = "\r\n\r\n";
 
-	while (headerEnded == rawMessage.end()) {
+	while (headerEnded == headerStream.end()) {
 
 		auto bytesReceived = recv(hSocket, (char*)headerChunk, sizeof(headerChunk), 0);
 
 		if (bytesReceived == 0) break;
 		else if (bytesReceived < 0) throw Lambda::Error("Network error while receiving request header", getAPIError());
 
-		rawMessage.insert(rawMessage.end(), headerChunk, headerChunk + bytesReceived);
-		headerEnded = std::search(rawMessage.begin(), rawMessage.end(), patternEndHeader.begin(), patternEndHeader.end());
+		headerStream.insert(headerStream.end(), headerChunk, headerChunk + bytesReceived);
+		headerEnded = std::search(headerStream.begin(), headerStream.end(), patternEndHeader.begin(), patternEndHeader.end());
 	}
 
-	auto request = Request(rawMessage);
-	request.body.insert(request.body.end(), headerEnded + patternEndHeader.size(), rawMessage.end());
+	if (headerEnded == headerStream.end()) throw Lambda::Error("Invalid http header: no trainilng sequence");
+
+	bodyStream.insert(bodyStream.end(), headerEnded + patternEndHeader.size(), headerStream.end());
+	headerStream.resize(headerEnded - headerStream.begin());
+}
+
+HTTP::Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
+
+	std::vector<uint8_t> headerStream;
+	std::vector<uint8_t> bodyStream;
+
+	receiveHTTPHeader(hSocket, headerStream, bodyStream);
+
+	auto request = Request(headerStream);
 	
 	//	download request body
 	size_t bodySize;

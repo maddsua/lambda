@@ -101,7 +101,13 @@ namespace Lambda::HTTP {
 
 	class Request {
 		public:
-			Request(std::vector<uint8_t>& httpHead);
+
+			/**
+			 * Request constructor expects to receive only the http header part, i.e. the data before \r\n\r\n sequence. Data chopping is handled by transport/receiveHTTPRequest.
+			 * @param httpHeadStream isn't really a thing that ppl commonly refer to as a stream, that's just the way I call vectors containing partial data in this project.
+			 * Just throw the http text starting from beginning an up to header end sequence
+			*/
+			Request(std::vector<uint8_t>& httpHeadStream);
 			std::string method;
 			std::string path;
 			URLSearchParams searchParams;

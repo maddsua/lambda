@@ -20,13 +20,16 @@ namespace Lambda::Network {
 	static const size_t network_chunksize_body = 131072;
 	static const size_t network_chunksize_websocket = UINT16_MAX;
 
-	Lambda::Error sendHTTP(SOCKET hSocket, HTTP::Response& response);
+	/**
+	 * Return http response to the client
+	*/
+	Lambda::Error sendHTTPResponse(SOCKET hSocket, HTTP::Response& response);
 
 	/**
 	 * Receive http request from the client
 	 * 😵 This function throws if a fatal error has occured
 	*/
-	HTTP::Request receiveHTTP(SOCKET hSocket);
+	HTTP::Request receiveHTTPRequest(SOCKET hSocket);
 
 	enum WebSocketCloseCode {
 		WSCLOSE_NORMAL = 1000,
@@ -111,13 +114,13 @@ namespace Lambda::Network {
 			 * Sends http response back to the client
 			 * 😵 This function throws if a fatal error has occured
 			*/
-			Lambda::Error sendMessage(Lambda::HTTP::Response& response) { return sendHTTP(this->hSocket, response); }
+			Lambda::Error sendMessage(Lambda::HTTP::Response& response) { return sendHTTPResponse(this->hSocket, response); }
 
 			/**
 			 * Receives http request from the client
 			 * 😵 This function throws if a fatal error has occured
 			*/
-			Lambda::HTTP::Request receiveMessage() { return receiveHTTP(this->hSocket); }
+			Lambda::HTTP::Request receiveMessage() { return receiveHTTPRequest(this->hSocket); }
 
 			/**
 			 * Upgrate the connection to websocket

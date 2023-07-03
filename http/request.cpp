@@ -21,14 +21,10 @@ static const std::set<std::string> httpKnownMethods = {
 Request::Request(std::vector<uint8_t>& httpHead) {
 
 	static const std::string patternEndline = "\r\n";
-	static const std::string patternEndHeader = "\r\n\r\n";
 
 	try {
 
 		auto httpHeaderLineEnd = std::search(httpHead.begin(), httpHead.end(), patternEndline.begin(), patternEndline.end());
-		auto httpHeaderEnd = std::search(httpHead.begin(), httpHead.end(), patternEndHeader.begin(), patternEndHeader.end());
-
-		if (httpHeaderLineEnd == httpHead.end() || httpHeaderEnd == httpHead.end()) throw std::runtime_error("Invalid http header format");
 
 		auto headerLineItems = stringSplit(std::string(httpHead.begin(), httpHeaderLineEnd), " ");
 
@@ -43,8 +39,7 @@ Request::Request(std::vector<uint8_t>& httpHead) {
 			this->searchParams.fromHref(headerlinePath.substr(headerlinePath.find_first_of('?') + 1));
 		} else this->path = headerlinePath;
 
-		if (httpHeaderLineEnd != httpHeaderEnd)
-			this->headers.fromHTTP(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeaderEnd));
+		this->headers.fromHTTP(std::string(httpHeaderLineEnd + patternEndline.size(), httpHead.end()));
 		
 	} catch(const std::exception& e) {
 		throw Lambda::Error(std::string("Request parsing failed: ") + e.what());

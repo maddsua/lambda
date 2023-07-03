@@ -16,6 +16,9 @@ void Headers::fromHTTP(const std::string& httpHeaders) {
 
 		stringTrim(key);
 		stringTrim(value);
+
+		if (!key.size() || !value.size()) continue;
+
 		stringToTittleCase(key);
 
 		this->data.push_back({ key, value });
