@@ -5,25 +5,30 @@ using namespace Lambda;
 
 int main() {
 
+	std::cout << "\r\n--- KV storage test begin --- \r\n";
+
 	auto kv = Storage::KV();
 
-	kv.set("redis", "cool");
-	kv.set("upstash", "nice");
-	kv.move("upstash", "redisflare");
-	kv.set("username", "maddsua");
-	kv.set("userid", "0");
-	kv.set("usertoken", "rooooooot");
+	kv.set("user_0_name", "johndoe");
+	kv.set("user_0_token", "xxxxx_token_content_xxxx");
+	kv.move("user_0_token", "user_0_sessionid");
+	kv.set("user_0_lastonline", "1688427615");
+	kv.set("user_0_lastip", "127.0.0.1");
 
-	std::cout << kv.get("redis").value << std::endl;
-	std::cout << kv.get("upstash").value << std::endl;
-	std::cout << kv.get("redisflare").value << std::endl;
+	std::cout << "Shoult output a string: " << kv.get("user_0_name").value << std::endl;
+	std::cout << "Shoult output nothing: " << kv.get("user_0_token").value << std::endl;
+	std::cout << "Shoult output a string: "<< kv.get("user_0_sessionid").value << std::endl;
 
-	kv.exportStore("db.db");
+	std::cout << "\r\n--- Writing to \"kvstore.db\" --- \r\n";
+	kv.exportStore("kvstore.db");
+	std::cout << "Ok" << std::endl;
 
+	std::cout << "\r\n--- Restoring from \"kvstore.db\" --- \r\n";
 	auto kv2 = Storage::KV();
-	kv2.importStore("db.db");
+	kv2.importStore("kvstore.db");
+	std::cout << std::endl;
 
-	std::cout << kv2.get("username").value << std::endl;
+	std::cout << "Shoult output a string: "<< kv.get("user_0_name").value << std::endl;
 
 	return 0;
 }
