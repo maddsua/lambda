@@ -157,7 +157,8 @@ namespace Lambda::HTTP {
 			URL() {};
 			URL(const std::string href) { setHref(href) ;};
 			void setHref(const std::string& href);
-			const std::string href();
+			std::string href();
+			std::string toHttpPath();
 			std::string host;
 			std::string port;
 			std::string protocol;
