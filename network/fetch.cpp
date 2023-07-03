@@ -7,7 +7,7 @@ using namespace Lambda::HTTP;
 Response Network::fetch(std::string url, const RequestOptions& data) {
 
 	//	create a connection
-	struct addrinfo* hostAddr = NULL;
+	struct addrinfo* resolvedAddresses = nullptr;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -19,7 +19,7 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	//	resolve host
 	bool wsaInitEcexuted = false;	//	failsafe in case WSA gets glitchy
 	dnsresolvehost:	//	yes, I'm using jumps here. deal with it.
-	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &hostAddr) != 0) {
+	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &resolvedAddresses) != 0) {
 		auto apierror = getAPIError();
 		#ifdef _WIN32
 		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
@@ -35,29 +35,28 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 		throw Lambda::Error("Failed to resolve host", apierror);
 	}
 
-	struct addrinfo *ptr = nullptr;
 	SOCKET connection = INVALID_SOCKET;
 	size_t connectAttempts = 0;
-    for (ptr = hostAddr; ptr != nullptr; ptr = ptr->ai_next) {
+    for (auto addrPtr = resolvedAddresses; addrPtr != nullptr; addrPtr = addrPtr->ai_next) {
 
 		if (connectAttempts > FETCH_MAX_ATTEMPTS) {
 			auto apierror = getAPIError();
-			freeaddrinfo(hostAddr);
+			freeaddrinfo(resolvedAddresses);
 			throw Lambda::Error("Reached max attempts without succeding", apierror);
 		}
 
 		//	create socket
-		connection = socket(hostAddr->ai_family, hostAddr->ai_socktype, hostAddr->ai_protocol);
+		connection = socket(addrPtr->ai_family, addrPtr->ai_socktype, addrPtr->ai_protocol);
 		if (connection == INVALID_SOCKET) {
 			auto apierror = getAPIError();
-			freeaddrinfo(hostAddr);
+			freeaddrinfo(resolvedAddresses);
 			throw Lambda::Error("Failed to create a socket", apierror);
 		}
 
 		//	connect
-		if (connect(connection, hostAddr->ai_addr, hostAddr->ai_addrlen) == SOCKET_ERROR) {
+		if (connect(connection, addrPtr->ai_addr, addrPtr->ai_addrlen) == SOCKET_ERROR) {
 			auto apierror = getAPIError();
-			freeaddrinfo(hostAddr);
+			freeaddrinfo(resolvedAddresses);
 			closesocket(connection);
 			throw Lambda::Error("Failed to connect", apierror);
 		}
@@ -65,9 +64,12 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
     }
 
 	if (connection == INVALID_SOCKET) {
-		freeaddrinfo(hostAddr);
+		freeaddrinfo(resolvedAddresses);
 		throw Lambda::Error("Could not resolve host address", getAPIError());
 	}
+
+	//	cleanup resolved addresses
+	freeaddrinfo(resolvedAddresses);
 
 	uint32_t connectionTimeout = 30000;
 	auto setOptStatRX = setsockopt(connection, SOL_SOCKET, SO_RCVTIMEO, (const char*)&connectionTimeout, sizeof(connectionTimeout));
@@ -77,9 +79,7 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 		throw Lambda::Error("HTTP connection aborted: failed to set socket timeouts", errcode);
 	}
 
-	//	cleanup
-	freeaddrinfo(hostAddr);
-
+	//	construct http request
 	std::string requestHeader = data.method + " " + requestUrl.toHttpPath() + " HTTP/1.1\r\n";
 
 	auto requestHeaders = Headers();
