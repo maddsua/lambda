@@ -2,7 +2,7 @@
 
 using namespace Lambda::HTTP;
 
-const std::string URL::href() {
+std::string URL::href() {
 
 	auto href = this->host.size() ? this->protocol + "://" + this->host : std::string();
 
@@ -15,6 +15,16 @@ const std::string URL::href() {
 		href += "?" + this->searchParams.stringify();
 
 	return href;
+}
+
+std::string URL::toHttpPath() {
+	
+	auto path = this->pathname;
+
+	if (this->searchParams.length())
+		path += "?" + this->searchParams.stringify();
+
+	return path;
 }
 
 void URL::setHref(const std::string& href) {
