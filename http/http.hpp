@@ -110,6 +110,23 @@ namespace Lambda::HTTP {
 			size_t length();
 	};
 
+	class URL {
+		private:
+			void refresh();
+		
+		public:
+			URL() {};
+			URL(const std::string href) { setHref(href) ;};
+			void setHref(const std::string& href);
+			std::string href();
+			std::string toHttpPath();
+			std::string host;
+			std::string port;
+			std::string protocol;
+			std::string pathname;
+			URLSearchParams searchParams;
+	};
+
 	class Request {
 		public:
 
@@ -118,14 +135,16 @@ namespace Lambda::HTTP {
 			 * @param httpHeadStream isn't really a thing that ppl commonly refer to as a stream, that's just the way I call vectors containing partial data in this project.
 			 * Just throw the http text starting from beginning an up to header end sequence
 			*/
+			Request();
 			Request(std::vector<uint8_t>& httpHeadStream);
 			std::string method;
-			std::string path;
 			HttpVersion httpversion;
-			URLSearchParams searchParams;
+			URL url;
 			Headers headers;
 			std::vector<uint8_t> body;
 			std::string text();
+			void setBodyText(const std::string& text);
+			std::vector<uint8_t> dump();
 	};
 
 	class Response {
@@ -150,23 +169,6 @@ namespace Lambda::HTTP {
 			std::vector<uint8_t> body;
 			void setBodyText(const std::string& text);
 			std::vector<uint8_t> dump();
-	};
-
-	class URL {
-		private:
-			void refresh();
-		
-		public:
-			URL() {};
-			URL(const std::string href) { setHref(href) ;};
-			void setHref(const std::string& href);
-			std::string href();
-			std::string toHttpPath();
-			std::string host;
-			std::string port;
-			std::string protocol;
-			std::string pathname;
-			URLSearchParams searchParams;
 	};
 
 	class Cookies {

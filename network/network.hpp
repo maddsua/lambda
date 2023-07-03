@@ -157,14 +157,8 @@ namespace Lambda::Network {
 		FETCH_MAX_ATTEMPTS = 5
 	};
 
-	struct RequestOptions {
-		std::string method = "GET";
-		std::vector<HTTP::KVtype> headers;
-		std::vector<uint8_t> body;
-	};
-
+	HTTP::Response fetch(const HTTP::Request& userRequest);
 	HTTP::Response fetch(std::string url);
-	HTTP::Response fetch(std::string url, const RequestOptions& data);
 
 };
 

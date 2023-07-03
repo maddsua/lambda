@@ -4,7 +4,7 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 
-Response Network::fetch(std::string url, const RequestOptions& data) {
+Response Network::fetch(const Request& userRequest) {
 
 	//	create a connection
 	struct addrinfo* resolvedAddresses = nullptr;
@@ -14,12 +14,10 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
-	auto requestUrl = URL(url);
-
 	//	resolve host
 	bool wsaInitEcexuted = false;	//	failsafe in case WSA gets glitchy
 	dnsresolvehost:	//	yes, I'm using jumps here. deal with it.
-	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &resolvedAddresses) != 0) {
+	if (getaddrinfo(userRequest.url.host.c_str(), userRequest.url.port.c_str(), &hints, &resolvedAddresses) != 0) {
 		auto apierror = getAPIError();
 		#ifdef _WIN32
 		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
@@ -79,24 +77,17 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 		throw Lambda::Error("HTTP connection aborted: failed to set socket timeouts", errcode);
 	}
 
-	//	construct http request
-	std::string requestHeader = data.method + " " + requestUrl.toHttpPath() + " HTTP/1.1\r\n";
+	//	complete http request
+	auto request = userRequest;
+	request.headers.set("Host", /*"http://" + */request.url.host);
+	request.headers.append("User-Agent", LAMBDA_USERAGENT);
+	request.headers.append("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
+	request.headers.append("Accept", "*/*");
 
-	auto requestHeaders = Headers();
-	requestHeaders.fromEntries(data.headers);
-	//	add some headers
-	requestHeaders.set("Host", /*"http://" + */requestUrl.host);
-	requestHeaders.append("User-Agent", LAMBDA_USERAGENT);
-	requestHeaders.append("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
-	requestHeaders.append("Accept", "*/*");
-
-	//	append headers to request string
-	requestHeader.append(requestHeaders.stringify());
-	//	finish the request header with \r\n sequence
-	requestHeader.append("\r\n");
+	auto requestStream = request.dump();
 
 	//	send request
-	if (send(connection, requestHeader.data(), requestHeader.size(), 0) <= 0) {
+	if (send(connection, (const char*)requestStream.data(), requestStream.size(), 0) <= 0) {
 		auto apierror = getAPIError();
 		closesocket(connection);
 		throw Lambda::Error("Failed to perform http request", apierror);
@@ -112,5 +103,7 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 }
 
 HTTP::Response Network::fetch(std::string url) {
-	return fetch(url, {});
+	auto request = Request();
+	request.url.setHref(url);
+	return fetch(request);
 }

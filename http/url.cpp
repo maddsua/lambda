@@ -46,7 +46,7 @@ void URL::setHref(const std::string& href) {
 	auto posPort = hrefNormalized.find_first_of(':', posStart);
 	auto posHostEnd = (posHost != std::string::npos) ? posHost : posPort;
 
-	this->host = (posHostEnd == std::string::npos) ? hrefNormalized.substr(posStart) : hrefNormalized.substr(posStart, posHostEnd - posStart);
+	this->host = posHost == posStart ? "localhost" : (posHostEnd == std::string::npos) ? hrefNormalized.substr(posStart) : hrefNormalized.substr(posStart, posHostEnd - posStart);
 
 	this->port = posPort == std::string::npos ? "80" : (posHost == std::string::npos ? hrefNormalized.substr(posPort + 1) : hrefNormalized.substr(posPort + 1, (posHost + 1) - posPort));
 
