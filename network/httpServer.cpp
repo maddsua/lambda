@@ -35,3 +35,30 @@ HTTPServer::~HTTPServer() {
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
+
+std::string HTTPServer::clientIP() {
+	return this->clientIPv4;
+}
+
+bool HTTPServer::isAlive() {
+	return this->hSocket != INVALID_SOCKET;
+}
+
+Lambda::Error HTTPServer::sendMessage(Lambda::HTTP::Response& response) {
+	return sendHTTPResponse(this->hSocket, response);
+}
+
+Lambda::HTTP::Request HTTPServer::receiveMessage() {
+	return receiveHTTPRequest(this->hSocket);
+}
+
+WebSocket HTTPServer::upgradeToWebsocket(Lambda::HTTP::Request& initalRequest) {
+	return WebSocket(this->hSocket, initalRequest);
+}
+
+Lambda::Error Lambda::Network::HTTPServer::sendRaw(std::vector<uint8_t>& data) {
+	if (send(hSocket, (char*)data.data(), data.size(), 0) <= 0)
+		return { "Failed to send data" , getAPIError() };
+
+	return {};
+}

@@ -3,8 +3,9 @@
 #include "./tcpip.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Network;
 
-Network::ListenSocket::ListenSocket(const char* listenPort) {
+ListenSocket::ListenSocket(const char* listenPort) {
 
 	//	initialize winsock2, windows only, obviously
 	#ifdef _WIN32
@@ -71,7 +72,15 @@ Network::ListenSocket::ListenSocket(const char* listenPort) {
 	}	
 }
 
-Network::ListenSocket::~ListenSocket() {
+ListenSocket::~ListenSocket() {
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
+}
+
+bool ListenSocket::isAlive() {
+	return this->hSocket != INVALID_SOCKET;
+}
+
+HTTPServer ListenSocket::acceptConnection() {
+	return HTTPServer(this->hSocket);
 }

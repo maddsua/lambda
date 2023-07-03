@@ -107,26 +107,26 @@ namespace Lambda::Network {
 			HTTPServer(SOCKET hParentSocket) : HTTPServer(hParentSocket, 15000) {}
 			~HTTPServer();
 
-			std::string clientIP() { return this->clientIPv4; }
-			bool isAlive() { return this->hSocket != INVALID_SOCKET; };
+			std::string clientIP();
+			bool isAlive();
 
 			/**
 			 * Sends http response back to the client
 			 * 😵 This function throws if a fatal error has occured
 			*/
-			Lambda::Error sendMessage(Lambda::HTTP::Response& response) { return sendHTTPResponse(this->hSocket, response); }
+			Lambda::Error sendMessage(Lambda::HTTP::Response& response);
 
 			/**
 			 * Receives http request from the client
 			 * 😵 This function throws if a fatal error has occured
 			*/
-			Lambda::HTTP::Request receiveMessage() { return receiveHTTPRequest(this->hSocket); }
+			Lambda::HTTP::Request receiveMessage();
 
 			/**
 			 * Upgrate the connection to websocket
 			 * 😵 This function throws if a fatal error has occured
 			*/
-			WebSocket upgradeToWebsocket(Lambda::HTTP::Request& initalRequest) { return WebSocket(this->hSocket, initalRequest); }
+			WebSocket upgradeToWebsocket(Lambda::HTTP::Request& initalRequest);
 
 			/**
 			 * Send raw data
@@ -146,9 +146,9 @@ namespace Lambda::Network {
 			ListenSocket(const char* listenPort);
 			~ListenSocket();
 
-			bool isAlive() { return this->hSocket != INVALID_SOCKET; };
+			bool isAlive();
 
-			HTTPServer acceptConnection() { return HTTPServer(this->hSocket); };
+			HTTPServer acceptConnection();
 	};
 
 	enum FetchConstants {

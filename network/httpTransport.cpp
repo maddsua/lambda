@@ -53,6 +53,9 @@ Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& respon
 	return {};
 }
 
+/**
+ * Passing body stream here is important because we can't know the header size for sure and it's very likely that we'll fetch some part of the body too
+*/
 void receiveHTTPHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::vector<uint8_t>& bodyStream) {
 
 	auto headerEnded = headerStream.end();
@@ -77,6 +80,30 @@ void receiveHTTPHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::
 	headerStream.resize(headerEnded - headerStream.begin());
 }
 
+void receiveHTTPBody(SOCKET hSocket, std::vector<uint8_t>& bodyStream, const std::string& contentSizeHeader) {
+
+	size_t bodySize;
+	try {
+		bodySize = std::stoi(contentSizeHeader);
+	} catch(...) {
+		bodySize = 0;
+		return;
+	}
+
+	if (bodyStream.size() >= bodySize) return;
+	
+	uint8_t bodyChunk[network_chunksize_body];
+	while (bodyStream.size() < bodySize) {
+
+		auto bytesReceived = recv(hSocket, (char*)bodyChunk, network_chunksize_body, 0);
+
+		if (bytesReceived == 0) break;
+		else if (bytesReceived < 0) throw Lambda::Error("Network error while receiving request payload", getAPIError());
+
+		bodyStream.insert(bodyStream.end(), bodyChunk, bodyChunk + bytesReceived);
+	}
+}
+
 HTTP::Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
 
 	std::vector<uint8_t> headerStream;
@@ -87,33 +114,8 @@ HTTP::Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
 	auto request = Request(headerStream);
 	
 	//	download request body
-	size_t bodySize;
-	try {
-		bodySize = std::stoi(request.headers.get("Content-Length"));
-	} catch(...) {
-		bodySize = 0;
-		return request;
-	}
-
-	if (request.body.size() >= bodySize) return request;
-	
-	uint8_t bodyChunk[network_chunksize_body];
-	while (request.body.size() < bodySize) {
-
-		auto bytesReceived = recv(hSocket, (char*)bodyChunk, network_chunksize_body, 0);
-
-		if (bytesReceived == 0) break;
-		else if (bytesReceived < 0) throw Lambda::Error("Network error while receiving request payload", getAPIError());
-
-		request.body.insert(request.body.end(), bodyChunk, bodyChunk + bytesReceived);
-	}
+	receiveHTTPBody(hSocket, bodyStream, request.headers.get("Content-Length"));
+	request.body = bodyStream;
 
 	return request;
-}
-
-Lambda::Error Lambda::Network::HTTPServer::sendRaw(std::vector<uint8_t>& data) {
-	if (send(hSocket, (char*)data.data(), data.size(), 0) <= 0)
-		return { "Failed to send data" , getAPIError() };
-
-	return {};
 }
