@@ -16,11 +16,11 @@ Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& respon
 
 	if (stringToLowerCase(compressionMethod) == "br") {
 
-		auto brStream = Compress::BrotliStream();
-		brStream.startCompression();
+		auto compressor = Compress::BrotliStream();
+		compressor.startCompression();
 
-		if (!brStream.compressBuffer(&response.body, &bodyCompressed))
-			return { "br compression failed", brStream.compressionStatus() };
+		if (!compressor.compressBuffer(&response.body, &bodyCompressed))
+			return { "br compression failed", compressor.compressionStatus() };
 		
 		response.body = bodyCompressed;
 
@@ -36,11 +36,11 @@ Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& respon
 
 	} else if (stringToLowerCase(compressionMethod) == "deflate") {
 
-		auto zlibStream = Compress::ZlibStream();
-		zlibStream.startCompression(Compress::ZlibStream::header_deflate);
+		auto compressor = Compress::ZlibStream();
+		compressor.startCompression(Compress::ZlibStream::header_deflate);
 
-		if (!zlibStream.compressBuffer(&response.body, &bodyCompressed))
-			return { "deflate compression failed", zlibStream.compressionStatus() };
+		if (!compressor.compressBuffer(&response.body, &bodyCompressed))
+			return { "deflate compression failed", compressor.compressionStatus() };
 
 		response.body = bodyCompressed;
 	}
@@ -127,6 +127,44 @@ HTTP::Response receiveHTTPResponse(SOCKET hSocket) {
 
 	auto response = Response(headerStream);
 	receiveHTTPBody(hSocket, bodyStream, response.headers.get("Content-Length"));
+
+	auto contentEncoding = response.headers.get("Content-Encoding");
+	if (!contentEncoding.size()) {
+		response.body = bodyStream;
+		return response;
+	}
+
+	auto compressionLayers = stringSplit(static_cast<const std::string>(response.headers.get("Content-Encoding")), ",");
+	std::vector<uint8_t> bodyDecompressed;
+
+	for (auto&& encoding : compressionLayers) {
+
+		stringTrim(encoding);
+
+		if (encoding == "br") {
+
+			auto decompressor = Compress::BrotliStream();
+			decompressor.startDecompression();
+
+			if (!decompressor.decompressBuffer(&bodyStream, &bodyDecompressed))
+				throw Lambda::Error("brotli decompression failed", decompressor.compressionStatus());
+
+			response.body = bodyDecompressed;
+			response.headers.del("Content-Encoding");
+
+		} else if (encoding == "gzip" || encoding == "deflate") {
+
+			auto decompressor = Compress::ZlibStream();
+			decompressor.startDecompression();
+
+			if (!decompressor.decompressBuffer(&bodyStream, &bodyDecompressed))
+				throw Lambda::Error("zlib decompression failed", decompressor.compressionStatus());
+
+			response.body = bodyDecompressed;
+			response.headers.del("Content-Encoding");
+		}
+	}
+
 	response.body = bodyStream;
 
 	return response;
