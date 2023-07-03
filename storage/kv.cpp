@@ -21,8 +21,8 @@ struct StoreMainHeader {
 struct StoreRecordHeader {
 	uint64_t created;
 	uint64_t modified;
+	uint32_t valueSize;
 	uint16_t keySize;
-	uint16_t valueSize;
 	uint8_t type;
 };
 
@@ -49,6 +49,9 @@ std::string KV::getValue(const std::string& key) {
 }
 
 void KV::set(const std::string& key, const std::string& value) {
+
+	if (key.size() >= UINT16_MAX) throw Lambda::Error("Failed to set record: key size is too large (max: UINT16_MAX)");
+	if (value.size() >= UINT32_MAX) throw Lambda::Error("Failed to set record: value size is too large (max: UINT32_MAX)");
 
 	KVMapEntry newEntry;
 	newEntry.value = value;
@@ -97,10 +100,10 @@ std::vector<KVEntry> KV::entries() {
 	return result;
 }
 
-Lambda::Error KV::exportStore(const char* filepath) {
+void KV::exportStore(const char* filepath) {
 
 	auto localfile = std::ofstream(filepath, std::ios::binary);
-	if (!localfile.is_open()) return { std::string("Could not open file \"") + filepath + "\" for write" };
+	if (!localfile.is_open()) throw Lambda::Error(std::string("Could not open file \"") + filepath + "\" for write");
 
 	//	write file header
 	StoreFileHeader fHeader;
@@ -131,13 +134,12 @@ Lambda::Error KV::exportStore(const char* filepath) {
 	}
 
 	localfile.close();
-	return {};
 }
 
-Lambda::Error KV::importStore(const char* filepath) {
+void KV::importStore(const char* filepath) {
 
 	auto localfile = std::ifstream(filepath, std::ios::binary);
-	if (!localfile.is_open()) return { std::string("Could not open file \"") + filepath + "\" for read" };
+	if (!localfile.is_open()) throw Lambda::Error(std::string("Could not open file \"") + filepath + "\" for read");
 
 	StoreFileHeader fHeader;
 	memset(&fHeader, 0, sizeof(fHeader));
@@ -147,11 +149,14 @@ Lambda::Error KV::importStore(const char* filepath) {
 	memset(&mHeader, 0, sizeof(mHeader));
 	localfile.read((char*)&mHeader, fHeader.headerSize > sizeof(mHeader) ? sizeof(mHeader) : fHeader.headerSize);
 
-	if (fHeader.headerSize > sizeof(mHeader)) return { "Unsupported bundle version" };
+	if (fHeader.headerSize > sizeof(mHeader)) throw Lambda::Error("Unsupported bundle version");
 
 	while (!localfile.eof()) {
 		StoreRecordHeader rheader;
 		localfile.read((char*)&rheader, sizeof(rheader));
+
+		if (rheader.keySize > UINT16_MAX || rheader.valueSize > UINT32_MAX)
+			throw Lambda::Error("KV storage stream is damaged or otherwise invalid");
 
 		std::string entryKey;
 		entryKey.resize(rheader.keySize);
@@ -165,6 +170,4 @@ Lambda::Error KV::importStore(const char* filepath) {
 		localfile.read((char*)entry.value.data(), rheader.valueSize);
 		this->data[entryKey] = entry;
 	}
-
-	return {};
 }
