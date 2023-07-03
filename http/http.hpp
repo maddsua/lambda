@@ -12,12 +12,15 @@ namespace Lambda::HTTP {
 		std::string value;
 	};
 
-	struct HttpVersion {
-		HttpVersion() {};
-		HttpVersion(const std::string& version);
+	class HttpVersion {
+		public:
+			HttpVersion() {};
+			HttpVersion(const std::string& version);
 
-		uint16_t major = 0;
-		uint16_t minor = 0;
+			std::string toString();
+
+			uint16_t major = 1;
+			uint16_t minor = 1;
 	};
 
 	class Headers {
@@ -118,7 +121,7 @@ namespace Lambda::HTTP {
 			Request(std::vector<uint8_t>& httpHeadStream);
 			std::string method;
 			std::string path;
-			//HttpVersion httpversion;
+			HttpVersion httpversion;
 			URLSearchParams searchParams;
 			Headers headers;
 			std::vector<uint8_t> body;
