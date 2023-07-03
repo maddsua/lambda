@@ -17,12 +17,14 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	auto requestUrl = URL(url);
 
 	//	resolve host
+	dnsresolvehost:
 	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &hostAddr) != 0) {
 		auto apierror = getAPIError();
 		if (apierror == WSANOTINITIALISED) {
 			WSADATA initdata;
 			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
 				throw Lambda::Error("WSA initialization failed", getAPIError());
+			goto dnsresolvehost;
 		} else throw Lambda::Error("Failed to resolve host", getAPIError());
 	}
 
