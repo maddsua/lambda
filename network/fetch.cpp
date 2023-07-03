@@ -78,9 +78,10 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	auto requestHeaders = Headers();
 	requestHeaders.fromEntries(data.headers);
 	//	add some headers
-	requestHeaders.set("Host", "http://" + requestUrl.host);
+	requestHeaders.set("Host", /*"http://" + */requestUrl.host);
 	requestHeaders.append("User-Agent", LAMBDA_USERAGENT);
 	requestHeaders.append("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
+	requestHeaders.append("Accept", "*/*");
 
 	//	append headers to request string
 	requestHeader.append(requestHeaders.stringify());
