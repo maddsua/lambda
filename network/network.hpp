@@ -151,6 +151,19 @@ namespace Lambda::Network {
 			HTTPConnection acceptConnection() { return HTTPConnection(this->hSocket); };
 	};
 
+	enum FetchConstants {
+		FETCH_MAX_ATTEMPTS = 5
+	};
+
+	struct RequestOptions {
+		std::string method = "GET";
+		std::vector<HTTP::KVtype> headers;
+		std::vector<uint8_t> body;
+	};
+
+	HTTP::Response fetch(std::string url);
+	HTTP::Response fetch(std::string url, const RequestOptions& data);
+
 };
 
 #endif
