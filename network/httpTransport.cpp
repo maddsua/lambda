@@ -35,7 +35,7 @@ void receiveHTTPHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::
 		headerEnded = std::search(headerStream.begin(), headerStream.end(), patternEndHeader.begin(), patternEndHeader.end());
 	}
 
-	if (headerEnded == headerStream.end()) throw Lambda::Error("Invalid http header: no trainilng sequence");
+	if (headerEnded == headerStream.end()) throw Lambda::Error("Invalid http header: no trailing sequence");
 
 	bodyStream.insert(bodyStream.end(), headerEnded + patternEndHeader.size(), headerStream.end());
 	headerStream.resize(headerEnded - headerStream.begin());
