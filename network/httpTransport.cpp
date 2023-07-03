@@ -104,7 +104,7 @@ void receiveHTTPBody(SOCKET hSocket, std::vector<uint8_t>& bodyStream, const std
 	}
 }
 
-HTTP::Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
+Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
 
 	std::vector<uint8_t> headerStream;
 	std::vector<uint8_t> bodyStream;
@@ -118,7 +118,7 @@ HTTP::Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
 	return request;
 }
 
-HTTP::Response receiveHTTPResponse(SOCKET hSocket) {
+Response receiveHTTPResponse(SOCKET hSocket) {
 
 	std::vector<uint8_t> headerStream;
 	std::vector<uint8_t> bodyStream;
