@@ -7,7 +7,7 @@ using namespace Lambda::HTTP;
 Response Network::fetch(std::string url, const RequestOptions& data) {
 
 	//	create a connection
-	struct addrinfo *hostAddr = NULL;
+	struct addrinfo* hostAddr = NULL;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -57,7 +57,18 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 		break;
     }
 
-	if (connection == INVALID_SOCKET) throw Lambda::Error("Could not resolve host address", getAPIError());
+	if (connection == INVALID_SOCKET) {
+		freeaddrinfo(hostAddr);
+		throw Lambda::Error("Could not resolve host address", getAPIError());
+	}
+
+	uint32_t connectionTimeout = 30000;
+	auto setOptStatRX = setsockopt(connection, SOL_SOCKET, SO_RCVTIMEO, (const char*)&connectionTimeout, sizeof(connectionTimeout));
+	auto setOptStatTX = setsockopt(connection, SOL_SOCKET, SO_SNDTIMEO, (const char*)&connectionTimeout, sizeof(connectionTimeout));
+	if (setOptStatRX != 0 || setOptStatTX != 0) {
+		auto errcode = getAPIError();
+		throw Lambda::Error("HTTP connection aborted: failed to set socket timeouts", errcode);
+	}
 
 	//	cleanup
 	freeaddrinfo(hostAddr);
@@ -71,13 +82,13 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	requestHeaders.append("User-Agent", LAMBDA_USERAGENT);
 	requestHeaders.append("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
 
-	//	append to request string
+	//	append headers to request string
 	requestHeader.append(requestHeaders.stringify());
-
-	puts(requestHeader.c_str());
+	//	finish the request header with \r\n sequence
+	requestHeader.append("\r\n");
 
 	//	send request
-	if (send(connection, requestHeader.data(), requestHeader.size(), 0) < 0) {
+	if (send(connection, requestHeader.data(), requestHeader.size(), 0) <= 0) {
 		auto apierror = getAPIError();
 		closesocket(connection);
 		throw Lambda::Error("Failed to perform http request", apierror);
