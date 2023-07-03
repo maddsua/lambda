@@ -72,7 +72,7 @@ Response Lambda::Network::fetch(std::string url, const RequestOptions& data) {
 	}
 	
 	//	get response
-	//auto response = Network::receiveHTTP(connection);
+	auto response = Network::receiveHTTPResponse(connection);
 
 	//	cleanup
 	closesocket(connection);
@@ -114,5 +114,5 @@ Response Lambda::Network::fetch(std::string url, const RequestOptions& data) {
 		result.errors += "Unsupported encoding;";
 	}*/
 
-	//return response;
+	return response;
 }

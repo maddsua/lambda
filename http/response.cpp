@@ -1,34 +1,54 @@
+#include "../lambda.hpp"
 #include "./http.hpp"
-#include <cstdio>
+#include <algorithm>
 
-Lambda::HTTP::Response::Response() {
-	//	do nothing again
+using namespace Lambda;
+using namespace Lambda::HTTP;
+
+Response::Response(const std::vector<uint8_t>& httpHeadStream) {
+
+	static const std::string patternEndline = "\r\n";
+
+	try {
+
+		auto httpHeaderLineEnd = std::search(httpHeadStream.begin(), httpHeadStream.end(), patternEndline.begin(), patternEndline.end());
+
+		auto headerLineItems = stringSplit(std::string(httpHeadStream.begin(), httpHeaderLineEnd), " ");
+
+		this->setStatusCode(std::stoi(headerLineItems.at(1)));
+
+		this->headers.fromHTTP(std::string(httpHeaderLineEnd + patternEndline.size(), httpHeadStream.end()));
+		
+	} catch(const std::exception& e) {
+		throw Lambda::Error(std::string("Request parsing failed: ") + e.what());
+	}
 }
-Lambda::HTTP::Response::Response(const uint16_t statusCode) {
+
+Response::Response(const uint16_t statusCode) {
 	setStatusCode(statusCode);
 }
-Lambda::HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers) {
+Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers) {
 	setStatusCode(statusCode);
 	this->headers.fromEntries(headers);
 }
-Lambda::HTTP::Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body) {
+Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body) {
 	setStatusCode(statusCode);
 	this->headers.fromEntries(headers);
 	setBodyText(body);
 }
-Lambda::HTTP::Response::Response(const std::vector<KVtype>& headers, const std::string& body) {
+Response::Response(const std::vector<KVtype>& headers, const std::string& body) {
 	this->headers.fromEntries(headers);
 	setBodyText(body);
 }
 
-Lambda::HTTP::Response& Lambda::HTTP::Response::operator = (const Lambda::HTTP::Request& right) {
+Response& Response::operator = (const Request& right) {
 	auto request = right;
 	this->body = request.body;
 	this->headers = request.headers;
 	return *this;
 }
 
-std::vector<uint8_t> Lambda::HTTP::Response::dump() {
+std::vector<uint8_t> Response::dump() {
 
 	auto frame = "HTTP/1.1 " + std::to_string(this->_statusCode) + " " + this->_status + "\r\n";
 	if (this->body.size()) this->headers.append("content-size", std::to_string(this->body.size()));
@@ -39,17 +59,17 @@ std::vector<uint8_t> Lambda::HTTP::Response::dump() {
 	return std::vector<uint8_t>(frame.begin(), frame.end());
 }
 
-void Lambda::HTTP::Response::setStatusCode(const uint16_t code) {
+void Response::setStatusCode(const uint16_t code) {
 	auto status = statusText(code);
 	if (!status.size()) return;
 	this->_statusCode = code;
 	this->_status = status;
 }
 
-uint16_t Lambda::HTTP::Response::statusCode() {
+uint16_t Response::statusCode() {
 	return this->_statusCode;
 }
 
-void Lambda::HTTP::Response::setBodyText(const std::string& text) {
+void Response::setBodyText(const std::string& text) {
 	this->body = std::vector<uint8_t>(text.begin(), text.end());
 }

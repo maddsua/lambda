@@ -31,6 +31,8 @@ namespace Lambda::Network {
 	*/
 	HTTP::Request receiveHTTPRequest(SOCKET hSocket);
 
+	HTTP::Response receiveHTTPResponse(SOCKET hSocket);
+
 	enum WebSocketCloseCode {
 		WSCLOSE_NORMAL = 1000,
 		WSCLOSE_GOING_AWAY = 1001,

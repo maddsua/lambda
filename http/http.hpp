@@ -131,11 +131,13 @@ namespace Lambda::HTTP {
 			std::string _status = "OK";
 
 		public:
-			Response();
+			Response() {};
 			Response(const uint16_t statusCode);
 			Response(const std::vector<KVtype>& headers, const std::string& body);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers);
 			Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body);
+
+			Response(const std::vector<uint8_t>& httpHeadStream);
 
 			Response& operator = (const Request& right);
 

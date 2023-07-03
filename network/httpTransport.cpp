@@ -111,11 +111,23 @@ HTTP::Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
 
 	receiveHTTPHeader(hSocket, headerStream, bodyStream);
 
-	auto request = Request(headerStream);
-	
-	//	download request body
+	auto request = Request(headerStream);	
 	receiveHTTPBody(hSocket, bodyStream, request.headers.get("Content-Length"));
 	request.body = bodyStream;
 
 	return request;
+}
+
+HTTP::Response receiveHTTPResponse(SOCKET hSocket) {
+
+	std::vector<uint8_t> headerStream;
+	std::vector<uint8_t> bodyStream;
+
+	receiveHTTPHeader(hSocket, headerStream, bodyStream);
+
+	auto response = Response(headerStream);
+	receiveHTTPBody(hSocket, bodyStream, response.headers.get("Content-Length"));
+	response.body = bodyStream;
+
+	return response;
 }
