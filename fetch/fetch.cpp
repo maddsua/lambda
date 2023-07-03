@@ -1,10 +1,11 @@
-#include "./tcpip.hpp"
-#include "./network.hpp"
+#include "./fetch.hpp"
+#include "../network/tcpip.hpp"
+#include "../network/network.hpp"
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
 
-Response Network::fetch(const Request& userRequest) {
+Response Fetch::fetch(const Request& userRequest) {
 
 	//	create a connection
 	struct addrinfo* resolvedAddresses = nullptr;
@@ -18,7 +19,9 @@ Response Network::fetch(const Request& userRequest) {
 	bool wsaInitEcexuted = false;	//	failsafe in case WSA gets glitchy
 	dnsresolvehost:	//	yes, I'm using jumps here. deal with it.
 	if (getaddrinfo(userRequest.url.host.c_str(), userRequest.url.port.c_str(), &hints, &resolvedAddresses) != 0) {
+
 		auto apierror = getAPIError();
+
 		#ifdef _WIN32
 		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
 			wsaInitEcexuted = true;
@@ -30,6 +33,7 @@ Response Network::fetch(const Request& userRequest) {
 		//	It looks like ass, but I fell more comfortable doing this,
 		//	than bringing Boost ASIO or some other libarary to have crossplatform sockets
 		#endif
+		
 		throw Lambda::Error("Failed to resolve host", apierror);
 	}
 
@@ -81,7 +85,7 @@ Response Network::fetch(const Request& userRequest) {
 	auto request = userRequest;
 	request.headers.set("Host", /*"http://" + */request.url.host);
 	request.headers.append("User-Agent", LAMBDA_USERAGENT);
-	request.headers.append("Accept-Encoding", LAMBDA_HTTP_ENCODINGS);
+	request.headers.append("Accept-Encoding", LAMBDA_FETCH_ENCODINGS);
 	request.headers.append("Accept", "*/*");
 
 	auto requestStream = request.dump();
@@ -102,7 +106,7 @@ Response Network::fetch(const Request& userRequest) {
 	return response;
 }
 
-HTTP::Response Network::fetch(std::string url) {
+HTTP::Response Fetch::fetch(std::string url) {
 	auto request = Request();
 	request.url.setHref(url);
 	return fetch(request);

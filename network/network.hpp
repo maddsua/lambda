@@ -153,13 +153,6 @@ namespace Lambda::Network {
 			HTTPServer acceptConnection();
 	};
 
-	enum FetchConstants {
-		FETCH_MAX_ATTEMPTS = 5
-	};
-
-	HTTP::Response fetch(const HTTP::Request& userRequest);
-	HTTP::Response fetch(std::string url);
-
 };
 
 #endif
