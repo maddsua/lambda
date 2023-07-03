@@ -4,7 +4,7 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 
-Response Lambda::Network::fetch(std::string url, const RequestOptions& data) {
+Response Network::fetch(std::string url, const RequestOptions& data) {
 
 	//	create a connection
 	struct addrinfo *hostAddr = NULL;
@@ -17,8 +17,14 @@ Response Lambda::Network::fetch(std::string url, const RequestOptions& data) {
 	auto requestUrl = URL(url);
 
 	//	resolve host
-	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &hostAddr) != 0)
-		throw Lambda::Error("Failed to resolve host", getAPIError());
+	if (getaddrinfo(requestUrl.host.c_str(), requestUrl.port.c_str(), &hints, &hostAddr) != 0) {
+		auto apierror = getAPIError();
+		if (apierror == WSANOTINITIALISED) {
+			WSADATA initdata;
+			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
+				throw Lambda::Error("WSA initialization failed", getAPIError());
+		} else throw Lambda::Error("Failed to resolve host", getAPIError());
+	}
 
 	struct addrinfo *ptr = nullptr;
 	SOCKET connection = INVALID_SOCKET;
@@ -49,6 +55,8 @@ Response Lambda::Network::fetch(std::string url, const RequestOptions& data) {
 		break;
     }
 
+	if (connection == INVALID_SOCKET) throw Lambda::Error("Could not resolve host address", getAPIError());
+
 	//	cleanup
 	freeaddrinfo(hostAddr);
 
@@ -78,4 +86,8 @@ Response Lambda::Network::fetch(std::string url, const RequestOptions& data) {
 	closesocket(connection);
 
 	return response;
+}
+
+HTTP::Response Network::fetch(std::string url) {
+	return fetch(url, {});
 }
