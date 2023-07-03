@@ -54,7 +54,7 @@ Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& respon
 }
 
 /**
- * Passing body stream here is important because we can't know the header size for sure and it's very likely that we'll fetch some part of the body too
+ * Passing body stream here is important because we can't know the header size for sure and it's very likely that we'll download some part of the body along with the headers too
 */
 void receiveHTTPHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::vector<uint8_t>& bodyStream) {
 
