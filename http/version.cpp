@@ -26,9 +26,11 @@ HttpVersion::HttpVersion(const std::string& version) {
 	}
 
 	try {
-		if (tmpBuffMajor.size()) this->major = std::stoi(tmpBuffMajor);
-		if (tmpBuffMinor.size()) this->minor = std::stoi(tmpBuffMinor);
-	} catch(...) {
-		//	whatever
-	}
+		this->major = tmpBuffMajor.size() ? std::stoi(tmpBuffMajor) : 1;
+		this->minor = tmpBuffMinor.size() ? std::stoi(tmpBuffMajor) : 0;
+	} catch(...) { /* whatever*/ }
+}
+
+std::string HttpVersion::toString() {
+	return "HTTP/" + std::to_string(this->major) + (this->minor > 0 ? std::to_string(this->minor) : "");
 }
