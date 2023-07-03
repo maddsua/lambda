@@ -34,8 +34,8 @@ namespace Lambda::Storage {
 			bool del(const std::string& key);
 			std::vector<KVEntry> entries();
 
-			Lambda::Error exportStore(const char* filepath);
-			Lambda::Error importStore(const char* filepath);
+			void exportStore(const char* filepath);
+			void importStore(const char* filepath);
 	};
 };
 
