@@ -6,7 +6,7 @@ using namespace Lambda;
 using namespace Lambda::Storage;
 
 
-const char magicString[] = "lambda kv bundle";
+const char magicString[] = "lambda kv store";
 
 struct StoreFileHeader {
 	char magicbytes[sizeof(magicString)];
@@ -144,6 +144,9 @@ void KV::importStore(const char* filepath) {
 	StoreFileHeader fHeader;
 	memset(&fHeader, 0, sizeof(fHeader));
 	localfile.read((char*)&fHeader, sizeof(fHeader));
+
+	if (strcmp(fHeader.magicbytes, magicString))
+		throw Lambda::Error("The file does not appear to be a valid KV store file");
 
 	StoreMainHeader mHeader;
 	memset(&mHeader, 0, sizeof(mHeader));
