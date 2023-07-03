@@ -217,33 +217,33 @@ test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SO
 
 
 #------------
-# Component: KV Storage
+# Component: Storage
 #------------
 
-COMPONENT_KVSTORAGE = obj_kvstorage
-LIBSTATIC_KVSTORAGE = lib$(LIBNAME)-kvstorage.a
-OBJECTS_KVSTORAGE = storage/kvstorage.o
+COMPONENT_STORAGE = obj_storage
+LIBSTATIC_STORAGE = lib$(LIBNAME)-storage.a
+OBJECTS_STORAGE = storage/kv.o
 
-$(COMPONENT_KVSTORAGE): $(OBJECTS_KVSTORAGE)
-	ar rvs $(LIBSTATIC_KVSTORAGE) $(OBJECTS_KVSTORAGE)
+$(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
+	ar rvs $(LIBSTATIC_STORAGE) $(OBJECTS_STORAGE)
 
-storage/kvstorage.o: storage/kvstorage.cpp
-	g++ -c storage/kvstorage.cpp -o storage/kvstorage.o $(FLAGS)
+storage/kv.o: storage/kv.cpp
+	g++ -c storage/kv.cpp -o storage/kv.o $(FLAGS)
 
 
 #------------
 # Test: KV Storage
 #------------
 
-test_kvstorage: $(OBJECTS_KVSTORAGE)
-	g++ tests/kvstorage.cpp $(OBJECTS_KVSTORAGE) -o test_kvstorage.exe
+test_kv: $(OBJECTS_STORAGE)
+	g++ tests/kv.cpp $(OBJECTS_STORAGE) -o test_kv.exe
 
 
 #------------
 # Full library
 #------------
 
-LIBFULL_OBJS  = $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_KVSTORAGE)
+LIBFULL_OBJS  = $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_STORAGE)
 LIBSTATIC     = lib$(LIBNAME).a
 LIBSHARED     = $(LIBNAME).dll
 
