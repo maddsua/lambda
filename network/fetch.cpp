@@ -62,7 +62,7 @@ Response Network::fetch(std::string url, const RequestOptions& data) {
 	//	cleanup
 	freeaddrinfo(hostAddr);
 
-	std::string requestHeader = data.method + " " + requestUrl.pathname + (requestUrl.searchParams.length() ? ("?" + requestUrl.searchParams.stringify()) : "") + " HTTP/1.1\r\n";
+	std::string requestHeader = data.method + " " + requestUrl.toHttpPath() + " HTTP/1.1\r\n";
 
 	auto requestHeaders = Headers();
 	requestHeaders.fromEntries(data.headers);
