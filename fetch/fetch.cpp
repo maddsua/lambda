@@ -87,6 +87,7 @@ Response Fetch::fetch(const Request& userRequest) {
 	request.headers.append("User-Agent", LAMBDA_USERAGENT);
 	request.headers.append("Accept-Encoding", LAMBDA_FETCH_ENCODINGS);
 	request.headers.append("Accept", "*/*");
+	request.headers.append("Connection", "close");
 
 	auto requestStream = request.dump();
 
