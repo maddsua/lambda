@@ -8,7 +8,7 @@ using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::Network;
 
-Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
+Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
 	const auto compressionMethod = stringTrim(static_cast<const std::string>(response.headers.get("Content-Encoding")));
 
@@ -104,7 +104,7 @@ void receiveHTTPBody(SOCKET hSocket, std::vector<uint8_t>& bodyStream, const std
 	}
 }
 
-Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
+Request Network::receiveHTTPRequest(SOCKET hSocket) {
 
 	std::vector<uint8_t> headerStream;
 	std::vector<uint8_t> bodyStream;
@@ -118,7 +118,7 @@ Request Lambda::Network::receiveHTTPRequest(SOCKET hSocket) {
 	return request;
 }
 
-Response receiveHTTPResponse(SOCKET hSocket) {
+Response Network::receiveHTTPResponse(SOCKET hSocket) {
 
 	std::vector<uint8_t> headerStream;
 	std::vector<uint8_t> bodyStream;
