@@ -26,29 +26,24 @@ void URL::setHref(const std::string& href) {
 	// get protocol
 	auto indexofProtocol = hrefNormalized.find("://");
 	if (indexofProtocol != std::string::npos) {
-		indexofProtocol > 0 ? this->protocol = hrefNormalized.substr(0, indexofProtocol) : "http";
+		this->protocol = indexofProtocol > 0 ? hrefNormalized.substr(0, indexofProtocol) : "http";
+		//hrefNormalized = hrefNormalized.substr(indexofProtocol + 3);
 		indexofStart = indexofProtocol + 3;
 	}
 
 	//	hostname and port
 	auto indexofHost = hrefNormalized.find_first_of('/', indexofStart);
 	auto indexofPort = hrefNormalized.find_first_of(":", indexofStart);
-	if (indexofHost != std::string::npos) {
-		auto indexofHostEnd = indexofPort != std::string::npos ? indexofPort : indexofHost;
-		this->host = hrefNormalized.substr(indexofStart, indexofHostEnd - indexofStart);
-		indexofStart = indexofHost;
-	}
 
-	//	just port
-	if (indexofPort != std::string::npos && indexofHost != std::string::npos) {
-		this->port = hrefNormalized.substr(indexofPort + 1, (indexofHost + 1) - indexofPort);
-	}
+	this->host = indexofHost == std::string::npos ? hrefNormalized.substr(indexofStart) : hrefNormalized.substr(indexofStart, indexofPort == std::string::npos ? indexofHost : indexofPort);
+
+	this->port = indexofPort == std::string::npos ? "8080" : (indexofHost == std::string::npos ? hrefNormalized.substr(indexofPort + 1) : hrefNormalized.substr(indexofPort + 1, (indexofHost + 1) - indexofPort));
 
 	//	path
 	auto indexofSearchQuery = hrefNormalized.find_first_of('?');
-	auto pathStart = indexofHost == std::string::npos ? 0 : indexofHost;
+	auto pathStart = indexofHost == std::string::npos ? indexofStart : indexofHost;
 	auto pathEnd = indexofSearchQuery == std::string::npos ? hrefNormalized.size() : indexofSearchQuery;
-	this->pathname = hrefNormalized.substr(pathStart, pathEnd - pathStart);
+	this->pathname = indexofHost == std::string::npos ? "/" : hrefNormalized.substr(pathStart, pathEnd - pathStart);
 
 	//	search query
 	if (indexofSearchQuery != std::string::npos) {
