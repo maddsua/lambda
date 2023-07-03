@@ -26,11 +26,11 @@ Lambda::Error Lambda::Network::sendHTTPResponse(SOCKET hSocket, Response& respon
 
 	} else if (stringToLowerCase(compressionMethod) == "gzip") {
 
-		auto zlibStream = Compress::ZlibStream();
-		zlibStream.startCompression();
+		auto compressor = Compress::ZlibStream();
+		compressor.startCompression();
 
-		if (!zlibStream.compressBuffer(&response.body, &bodyCompressed))
-			return { "gzip compression failed", zlibStream.compressionStatus() };
+		if (!compressor.compressBuffer(&response.body, &bodyCompressed))
+			return { "gzip compression failed", compressor.compressionStatus() };
 
 		response.body = bodyCompressed;
 
