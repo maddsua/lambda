@@ -77,42 +77,5 @@ Response Lambda::Network::fetch(std::string url, const RequestOptions& data) {
 	//	cleanup
 	closesocket(connection);
 
-	//	account for possible multiple layers of encoding
-	//	idk why but http allows that
-	/*for (auto enc : encodings) {
-
-		trimString(&enc);
-		std::string decompressed;
-
-		if (enc == "br") {
-
-			decompressed = brDecompress(&serverResponse.body);
-			
-			if (decompressed.size()) {
-				serverResponse.body = decompressed;
-				continue;
-
-			} else {
-				result.errors += "brotli decompression error;";
-				break;
-			}
-
-		} else if (enc == "gzip" || enc == "deflate") {
-
-			decompressed = gzDecompress(&serverResponse.body);
-
-			if (decompressed.size()) {
-				serverResponse.body = decompressed;
-				continue;
-
-			} else {
-				result.errors += "zlib decompression error;";
-				break;
-			}
-		}
-
-		result.errors += "Unsupported encoding;";
-	}*/
-
 	return response;
 }
