@@ -37,7 +37,7 @@ void URL::setHref(const std::string& href) {
 
 	this->host = indexofHost == std::string::npos ? hrefNormalized.substr(indexofStart) : hrefNormalized.substr(indexofStart, indexofPort == std::string::npos ? indexofHost : indexofPort);
 
-	this->port = indexofPort == std::string::npos ? "8080" : (indexofHost == std::string::npos ? hrefNormalized.substr(indexofPort + 1) : hrefNormalized.substr(indexofPort + 1, (indexofHost + 1) - indexofPort));
+	this->port = indexofPort == std::string::npos ? "80" : (indexofHost == std::string::npos ? hrefNormalized.substr(indexofPort + 1) : hrefNormalized.substr(indexofPort + 1, (indexofHost + 1) - indexofPort));
 
 	//	path
 	auto indexofSearchQuery = hrefNormalized.find_first_of('?');
