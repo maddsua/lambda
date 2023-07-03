@@ -31,29 +31,30 @@ void URL::setHref(const std::string& href) {
 
 	auto hrefNormalized = stringToLowerCase(stringTrim(href));
 
-	auto indexofStart = 0;
+	auto posStart = 0;
 
 	// get protocol
-	auto indexofProtocol = hrefNormalized.find("://");
-	if (indexofProtocol != std::string::npos) {
-		this->protocol = indexofProtocol > 0 ? hrefNormalized.substr(0, indexofProtocol) : "http";
+	auto posProtocol = hrefNormalized.find("://");
+	if (posProtocol != std::string::npos) {
+		this->protocol = posProtocol > 0 ? hrefNormalized.substr(0, posProtocol) : "http";
 		//hrefNormalized = hrefNormalized.substr(indexofProtocol + 3);
-		indexofStart = indexofProtocol + 3;
+		posStart = posProtocol + 3;
 	}
 
 	//	hostname and port
-	auto indexofHost = hrefNormalized.find_first_of('/', indexofStart);
-	auto indexofPort = hrefNormalized.find_first_of(":", indexofStart);
+	auto posHost = hrefNormalized.find_first_of('/', posStart);
+	auto posPort = hrefNormalized.find_first_of(':', posStart);
+	auto posHostEnd = (posHost != std::string::npos) ? posHost : posPort;
 
-	this->host = indexofHost == std::string::npos ? hrefNormalized.substr(indexofStart) : hrefNormalized.substr(indexofStart, indexofPort == std::string::npos ? indexofHost : indexofPort);
+	this->host = (posHostEnd == std::string::npos) ? hrefNormalized.substr(posStart) : hrefNormalized.substr(posStart, posHostEnd - posStart);
 
-	this->port = indexofPort == std::string::npos ? "80" : (indexofHost == std::string::npos ? hrefNormalized.substr(indexofPort + 1) : hrefNormalized.substr(indexofPort + 1, (indexofHost + 1) - indexofPort));
+	this->port = posPort == std::string::npos ? "80" : (posHost == std::string::npos ? hrefNormalized.substr(posPort + 1) : hrefNormalized.substr(posPort + 1, (posHost + 1) - posPort));
 
 	//	path
 	auto indexofSearchQuery = hrefNormalized.find_first_of('?');
-	auto pathStart = indexofHost == std::string::npos ? indexofStart : indexofHost;
+	auto pathStart = posHost == std::string::npos ? posStart : posHost;
 	auto pathEnd = indexofSearchQuery == std::string::npos ? hrefNormalized.size() : indexofSearchQuery;
-	this->pathname = indexofHost == std::string::npos ? "/" : hrefNormalized.substr(pathStart, pathEnd - pathStart);
+	this->pathname = posHost == std::string::npos ? "/" : hrefNormalized.substr(pathStart, pathEnd - pathStart);
 
 	//	search query
 	if (indexofSearchQuery != std::string::npos) {
