@@ -12,6 +12,14 @@ namespace Lambda::HTTP {
 		std::string value;
 	};
 
+	struct HttpVersion {
+		HttpVersion() {};
+		HttpVersion(const std::string& version);
+
+		uint16_t major = 0;
+		uint16_t minor = 0;
+	};
+
 	class Headers {
 		private:
 			std::vector<KVtype> data;
@@ -110,6 +118,7 @@ namespace Lambda::HTTP {
 			Request(std::vector<uint8_t>& httpHeadStream);
 			std::string method;
 			std::string path;
+			//HttpVersion httpversion;
 			URLSearchParams searchParams;
 			Headers headers;
 			std::vector<uint8_t> body;
