@@ -117,7 +117,7 @@ bool Compress::ZlibStream::startDecompression(int wbits) {
 	if (decompressStream != nullptr || decompressStream != nullptr) return false;
 
 	decompressStream = new z_stream;
-	memset(compressStream, 0, sizeof(z_stream));
+	memset(decompressStream, 0, sizeof(z_stream));
 
 	decompressTemp = new uint8_t[chunkSize];
 
