@@ -24,7 +24,6 @@ namespace Lambda::Crypto {
 			void reset();
 			void update(const std::vector<uint8_t>& data);
 			std::array <uint8_t, Crypto::SHA1_BLOCK_SIZE> digest();
-			std::array <uint8_t, SHA1_BLOCK_SIZE> hashBuffer(const std::vector<uint8_t>& data);
 	};
 
 	std::vector <uint64_t> randomSequence(const size_t cap, const size_t length);

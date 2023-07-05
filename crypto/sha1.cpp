@@ -104,10 +104,10 @@ void SHA1::update(const std::vector<uint8_t>& data) {
 	}
 }
 
-std::array <uint8_t, Crypto::SHA1_BLOCK_SIZE> SHA1::digest() {
+std::array <uint8_t, SHA1_BLOCK_SIZE> SHA1::digest() {
 
 	auto ctx = (SHA1_CTX*)this->hashctx;
-	std::array <uint8_t, Crypto::SHA1_BLOCK_SIZE> hash;
+	std::array <uint8_t, SHA1_BLOCK_SIZE> hash;
 	uint32_t i = ctx->datalen;
 
 	// Pad whatever data is left in the buffer.
@@ -145,10 +145,4 @@ std::array <uint8_t, Crypto::SHA1_BLOCK_SIZE> SHA1::digest() {
 	}
 
 	return hash;
-}
-
-std::array <uint8_t, SHA1_BLOCK_SIZE> SHA1::hashBuffer(const std::vector<uint8_t>& data) {
-	auto ctx = (SHA1_CTX*)this->hashctx;
-	this->update(data);
-	return this->digest();
 }

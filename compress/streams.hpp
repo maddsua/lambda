@@ -5,6 +5,19 @@
 #include <brotli/decode.h>
 #include <zlib.h>
 
+class BrotliCompressStream {
+	public:
+		BrotliEncoderState* stream = nullptr;
+		static const size_t chunk = (128 * 1024);
+
+		BrotliCompressStream() {
+			this->stream = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
+		}
+		~BrotliCompressStream() {
+			BrotliEncoderDestroyInstance(this->stream);
+		}
+};
+
 class BrotliDecompressStream {
 	public:
 		BrotliDecoderState* stream = nullptr;
@@ -18,16 +31,37 @@ class BrotliDecompressStream {
 		}
 };
 
-class BrotliCompressStream {
+class ZlibCompressStream {
 	public:
-		BrotliEncoderState* stream = nullptr;
+		z_stream* stream = nullptr;
 		static const size_t chunk = (128 * 1024);
 
-		BrotliCompressStream() {
-			this->stream = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
+		ZlibCompressStream(int compression, int winbits) {
+			this->stream = new z_stream;
+			memset(this->stream, 0, sizeof(z_stream));
+			auto initResult = deflateInit2(stream, compression, Z_DEFLATED, winbits, 8, Z_DEFAULT_STRATEGY);
+			if (initResult != Z_OK) throw Lambda::Error("Could not initialize deflate", initResult);
 		}
-		~BrotliCompressStream() {
-			BrotliEncoderDestroyInstance(this->stream);
+		~ZlibCompressStream() {
+			(void)deflateEnd(this->stream);
+			delete this->stream;
+		}
+};
+
+class ZlibDecompressStream {
+	public:
+		z_stream* stream = nullptr;
+		static const size_t chunk = (128 * 1024);
+
+		ZlibDecompressStream(int winbits) {
+			this->stream = new z_stream;
+			memset(this->stream, 0, sizeof(z_stream));
+			auto initResult = inflateInit2(stream, winbits);
+			if (initResult != Z_OK) throw Lambda::Error("Could not initialize inflate", initResult);
+		}
+		~ZlibDecompressStream() {
+			(void)inflateEnd(this->stream);
+			delete this->stream;
 		}
 };
 
