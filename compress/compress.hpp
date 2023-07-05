@@ -3,8 +3,16 @@
 
 #include <stdint.h>
 #include <vector>
+#include "../lambda.hpp"
 
 namespace Lambda::Compress {
+	
+
+	Lambda::Error brotliCompressBuffer(const std::vector<uint8_t>& input, std::vector<uint8_t>& output, int quality);
+	Lambda::Error brotliCompressBuffer(const std::vector<uint8_t>& input, std::vector<uint8_t>& output);
+
+	Lambda::Error brotliDecompressBuffer(const std::vector<uint8_t>& input, std::vector<uint8_t>& output);
+
 
 	class ZlibStream {
 		private:
@@ -46,38 +54,6 @@ namespace Lambda::Compress {
 			static const int header_raw = -15;
 			static const int winbit_auto = 32;
 			static const int winbit_gzip = 16;
-	};
-
-	class BrotliStream {
-		private:
-			void* compressStream = nullptr;
-			int compressStatus;
-			void* decompressStream = nullptr;
-			int decompressStatus;
-
-		public:
-			BrotliStream();
-			~BrotliStream();
-
-			bool startCompression(int quality);
-			bool startCompression();
-			bool compressionDone();
-			bool compressionError();
-			int compressionStatus();
-			bool compressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut, bool finish);
-			bool compressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
-			//bool compressionReset();
-
-			bool startDecompression();
-			bool decompressionDone();
-			bool decompressionError();
-			int decompressionStatus();
-			bool decompressChunk(const uint8_t* bufferIn, size_t dataInSize, std::vector <uint8_t>* bufferOut);
-			bool decompressBuffer(const std::vector<uint8_t>* bufferIn, std::vector<uint8_t>* bufferOut);
-			//bool decompressionReset();
-
-			static const size_t chunkSize = 131072;
-			static const int expect_ratio = 4;
 	};
 
 };

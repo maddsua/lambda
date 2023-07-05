@@ -8,6 +8,8 @@
 #include <vector>
 #include <mutex>
 
+#define LAMBDAKV_VERSION 	(1)
+
 namespace Lambda::Storage {
 
 	struct KVMapEntry {
@@ -20,9 +22,16 @@ namespace Lambda::Storage {
 		std::string key;
 	};
 
+	enum KVStoreCompress {
+		KVSTORE_COMPRESS_NONE = 0,
+		KVSTORE_COMPRESS_BR = 1,
+	};
+
+	typedef std::unordered_map<std::string, KVMapEntry> KVMap;
+
 	class KV {
 		private:
-			std::unordered_map<std::string, KVMapEntry> data;
+			KVMap data;
 			std::mutex threadLock;
 
 		public:
@@ -34,7 +43,10 @@ namespace Lambda::Storage {
 			bool del(const std::string& key);
 			std::vector<KVEntry> entries();
 
-			void exportStore(const char* filepath);
+			void exportStore(const char* filepath, KVStoreCompress compression);
+			void exportStore(const char* filepath) {
+				exportStore(filepath, KVSTORE_COMPRESS_NONE);
+			}
 			void importStore(const char* filepath);
 	};
 };

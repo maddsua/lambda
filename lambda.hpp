@@ -17,12 +17,6 @@
 
 //#define LAMBDADEBUG_WS
 
-#ifdef _WIN32
-	#define LAMBDA_OS_API_ERRCODE_PREFIX ". WINAPI error code: "
-#else
-	#define LAMBDA_OS_API_ERRCODE_PREFIX ". OS error code: "
-#endif
-
 namespace Lambda {
 
 	class Error : public std::exception {
@@ -32,7 +26,7 @@ namespace Lambda {
 			bool error = false;
 
 			void formatMessage() {
-				msg = (this->code ? (this->msg + LAMBDA_OS_API_ERRCODE_PREFIX + std::to_string(this->code)) : this->msg);
+				msg = (this->code ? (this->msg + "Error code: " + std::to_string(this->code)) : this->msg);
 			}
 
 		public:

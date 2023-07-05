@@ -16,12 +16,10 @@ Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
 	if (stringToLowerCase(compressionMethod) == "br") {
 
-		auto compressor = Compress::BrotliStream();
-		compressor.startCompression();
+		auto compressStatus = Compress::brotliCompressBuffer(response.body, bodyCompressed);
+		if (compressStatus.isError())
+			return { std::string("br compression failed") + compressStatus.what() };
 
-		if (!compressor.compressBuffer(&response.body, &bodyCompressed))
-			return { "br compression failed", compressor.compressionStatus() };
-		
 		response.body = bodyCompressed;
 
 	} else if (stringToLowerCase(compressionMethod) == "gzip") {
@@ -143,11 +141,9 @@ Response Network::receiveHTTPResponse(SOCKET hSocket) {
 
 		if (encoding == "br") {
 
-			auto decompressor = Compress::BrotliStream();
-			decompressor.startDecompression();
-
-			if (!decompressor.decompressBuffer(&bodyStream, &bodyDecompressed))
-				throw Lambda::Error("brotli decompression failed", decompressor.compressionStatus());
+			auto decompressStatus = Compress::brotliDecompressBuffer(bodyStream, bodyDecompressed);
+			if (decompressStatus.isError())
+				throw Lambda::Error(std::string("br compression failed") + decompressStatus.what());
 
 			response.body = bodyDecompressed;
 			response.headers.del("Content-Encoding");
