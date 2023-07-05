@@ -40,21 +40,17 @@ Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
 	} else if (stringToLowerCase(compressionMethod) == "gzip") {
 
-		auto compressor = Compress::ZlibStream();
-		compressor.startCompression();
-
-		if (!compressor.compressBuffer(&response.body, &bodyCompressed))
-			return { "gzip compression failed", compressor.compressionStatus() };
+		auto compressStatus = Compress::zlibCompressBuffer(response.body, bodyCompressed);
+		if (compressStatus.isError())
+			return { std::string("gzip compression failed") + compressStatus.what() };
 
 		response.body = bodyCompressed;
 
 	} else if (stringToLowerCase(compressionMethod) == "deflate") {
 
-		auto compressor = Compress::ZlibStream();
-		compressor.startCompression(Compress::ZlibStream::header_deflate);
-
-		if (!compressor.compressBuffer(&response.body, &bodyCompressed))
-			return { "deflate compression failed", compressor.compressionStatus() };
+		auto compressStatus = Compress::zlibCompressBuffer(response.body, bodyCompressed, 5, Compress::ZLIB_HEADER_DEFLATE);
+		if (compressStatus.isError())
+			return { std::string("deflate compression failed") + compressStatus.what() };
 
 		response.body = bodyCompressed;
 		
@@ -155,18 +151,16 @@ Response Network::receiveHTTPResponse(SOCKET hSocket) {
 
 			auto decompressStatus = Compress::brotliDecompressBuffer(bodyStream, bodyDecompressed);
 			if (decompressStatus.isError())
-				throw Lambda::Error(std::string("br compression failed") + decompressStatus.what());
+				throw Lambda::Error(std::string("brotli compression failed: ") + decompressStatus.what());
 
 			response.body = bodyDecompressed;
 			response.headers.del("Content-Encoding");
 
 		} else if (encoding == "gzip" || encoding == "deflate") {
 
-			auto decompressor = Compress::ZlibStream();
-			decompressor.startDecompression();
-
-			if (!decompressor.decompressBuffer(&bodyStream, &bodyDecompressed))
-				throw Lambda::Error("zlib decompression failed", decompressor.compressionStatus());
+			auto decompressResult = Compress::zlibDecompressBuffer(bodyStream, bodyDecompressed);
+			if (decompressResult.isError())
+				throw Lambda::Error(std::string("zlib decompression failed: ") + decompressResult.what());
 
 			response.body = bodyDecompressed;
 			response.headers.del("Content-Encoding");

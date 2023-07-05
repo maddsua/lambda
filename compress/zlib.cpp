@@ -1,7 +1,6 @@
 #include "./compress.hpp"
 #include "./streams.hpp"
 #include <zlib.h>
-#include <array>
 
 using namespace Lambda;
 using namespace Lambda::Compress;
@@ -22,11 +21,10 @@ Lambda::Error Compress::zlibCompressBuffer(const std::vector<uint8_t>& input, st
 	auto zlib = ZlibCompressStream(quality, header);
 
 	size_t cursor_in = 0;
+	size_t cursor_out = 0;
 	bool eob = false;
 	int opres = Z_OK;
 
-	std::array<uint8_t, zlib.chunk> tempBuff;
-	
 	do {
 
 		eob = cursor_in + zlib.chunk >= input.size();
@@ -36,20 +34,24 @@ Lambda::Error Compress::zlibCompressBuffer(const std::vector<uint8_t>& input, st
 
 		do {
 
-			zlib.stream->avail_out = tempBuff.size();
-			zlib.stream->next_out = tempBuff.data();
+			zlib.stream->avail_out = zlib.chunk;
+			if ((output.size() - cursor_out) < zlib.stream->avail_out)
+				output.resize(output.size() + zlib.stream->avail_out);
+			zlib.stream->next_out = output.data() + cursor_out;
 
 			opres = deflate(zlib.stream, eob ? Z_FINISH : Z_NO_FLUSH);
 			if (opres < 0) return Lambda::Error("deflate stream error", opres);
 
-			auto out_size = zlib.chunk - zlib.stream->avail_out;
-			if (out_size) output.insert(output.end(), tempBuff.begin(), tempBuff.begin() + out_size);
+			cursor_out += zlib.chunk - zlib.stream->avail_out;
 
 		} while (zlib.stream->avail_out == 0);
 
 	} while (!eob);
 
 	if (opres != Z_STREAM_END) return Lambda::Error("deflate stream failed to properly finish", opres);
+
+	output.resize(cursor_out);
+	output.shrink_to_fit();
 	
 	return {};
 }
@@ -62,11 +64,10 @@ Lambda::Error Compress::zlibDecompressBuffer(const std::vector<uint8_t>& input, 
 	auto zlib = ZlibDecompressStream(ZLIB_OPEN_AUTO);
 
 	size_t cursor_in = 0;
+	size_t cursor_out = 0;
 	bool eob = false;
 	int opres = Z_OK;
 
-	std::array<uint8_t, zlib.chunk> tempBuff;
-	
 	do {
 
 		eob = cursor_in + zlib.chunk >= input.size();
@@ -76,21 +77,24 @@ Lambda::Error Compress::zlibDecompressBuffer(const std::vector<uint8_t>& input, 
 
 		do {
 
-			zlib.stream->avail_out = tempBuff.size();
-			zlib.stream->next_out = tempBuff.data();
+			zlib.stream->avail_out = zlib.chunk;
+			if ((output.size() - cursor_out) < zlib.stream->avail_out)
+				output.resize(output.size() + zlib.stream->avail_out);
+			zlib.stream->next_out = output.data() + cursor_out;
 
 			opres = inflate(zlib.stream, Z_NO_FLUSH);
 			if (opres < Z_OK || opres > Z_STREAM_END) return Lambda::Error("inflate stream error", opres);
 
-			auto out_size = zlib.chunk - zlib.stream->avail_out;
-			if (out_size) output.insert(output.end(), tempBuff.begin(), tempBuff.begin() + out_size);
+			cursor_out += zlib.chunk - zlib.stream->avail_out;
 
 		} while (zlib.stream->avail_out == 0);
 
-	} while (!eob);
+	} while (!eob && opres != Z_STREAM_END);
 
 	if (opres != Z_STREAM_END) return Lambda::Error("inflate stream failed to properly finish", opres);
+
+	output.resize(cursor_out);
+	output.shrink_to_fit();
 	
 	return {};
-
 }

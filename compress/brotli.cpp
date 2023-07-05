@@ -2,7 +2,6 @@
 #include "./streams.hpp"
 #include <brotli/encode.h>
 #include <brotli/decode.h>
-#include <array>
 
 using namespace Lambda;
 
@@ -24,41 +23,43 @@ Lambda::Error Compress::brotliCompressBuffer(const std::vector<uint8_t>& input, 
 			return { "Failed to set compression quality" };
 	}
 	
-	std::array<uint8_t, br.chunk> buffOut;
-
-	size_t slider_in = 0;
+	size_t cursor_in = 0;
+	size_t cursor_out = 0;
 	bool eob = false;
 
-	auto next_in = input.data() + slider_in;
+	auto next_in = input.data() + cursor_in;
 	size_t available_in = 0;
 
-	auto next_out = buffOut.data();
-	size_t available_out = buffOut.size();
+	auto next_out = output.data() + cursor_out;
+	size_t available_out = 0;
 
 	while (true) {
 
 		if (available_in == 0 && !eob) {
-			eob = (slider_in + br.chunk) >= input.size();
-			next_in = input.data() + slider_in;
-			available_in = eob ? input.size() - slider_in : br.chunk;
-			slider_in += available_in;
+			eob = (cursor_in + br.chunk) >= input.size();
+			next_in = input.data() + cursor_in;
+			available_in = eob ? input.size() - cursor_in : br.chunk;
+			cursor_in += available_in;
+		}
+
+		if (available_out == 0) {
+			available_out = br.chunk;
+			if (output.size() - cursor_out < available_out)
+				output.resize(output.size() + available_out);
+			next_out = output.data() + cursor_out;
+			cursor_out += available_out;
+		}
+
+		if (BrotliEncoderIsFinished(br.stream)) {
+			output.resize(cursor_out - available_out);
+			output.shrink_to_fit();
+			available_out = 0;
+			available_in = 0;
+			return {};
 		}
 
 		if (!BrotliEncoderCompressStream(br.stream, eob ? BROTLI_OPERATION_FINISH : BROTLI_OPERATION_PROCESS, &available_in, &next_in, &available_out, &next_out, nullptr)) {
 			throw Lambda::Error("brotli encoder failed");
-		}
-
-		if (available_out == 0) {
-			output.insert(output.end(), buffOut.begin(), buffOut.end());
-			next_out = buffOut.data();
-			available_out = buffOut.size();
-		}
-
-		if (BrotliEncoderIsFinished(br.stream)) {
-			output.insert(output.end(), buffOut.begin(), buffOut.begin() + (buffOut.size() - available_out));
-			available_out = 0;
-			available_in = 0;
-			return {};
 		}
 	}
 
@@ -73,20 +74,17 @@ Error Compress::brotliDecompressBuffer(const std::vector<uint8_t>& input, std::v
 	BrotliDecompressStream br;
 	auto streamStatus = BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT;
 
-	std::array<uint8_t, br.chunk> buffOut;
-
-	size_t slider_in = 0;
+	size_t cursor_in = 0;
+	size_t cursor_out = 0;
 	bool eob = false;
 
-	auto next_in = input.data() + slider_in;
+	auto next_in = input.data() + cursor_in;
 	size_t available_in = br.chunk;
 
-	auto next_out = buffOut.data();
-	size_t available_out = buffOut.size();
+	auto next_out = output.data() + cursor_out;
+	size_t available_out = 0;
 
 	while (true) {
-
-		auto currOutSize = buffOut.size() - available_out;
 
 		switch (streamStatus) {
 
@@ -94,29 +92,32 @@ Error Compress::brotliDecompressBuffer(const std::vector<uint8_t>& input, std::v
 
 				if (eob) return { "Incomplete brotli stream" };
 
-				next_in = input.data() + slider_in;
-				eob = (slider_in + br.chunk) >= input.size();
-				available_in = eob ? input.size() - slider_in : br.chunk;
-				slider_in += available_in;
+				next_in = input.data() + cursor_in;
+				eob = (cursor_in + br.chunk) >= input.size();
+				available_in = eob ? input.size() - cursor_in : br.chunk;
+				cursor_in += available_in;
 
 			} break;
 
 			case BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT: {
 
-				output.insert(output.end(), buffOut.begin(), buffOut.begin() + currOutSize);
-				next_out = buffOut.data();
-				available_out = buffOut.size();
+				available_out = br.chunk;
+				if (output.size() - cursor_out < available_out)
+					output.resize(output.size() + available_out);
+				next_out = output.data() + cursor_out;
+				cursor_out += available_out;
 
 			} break;
 
 			case BROTLI_DECODER_RESULT_SUCCESS: {
 
-				output.insert(output.end(), buffOut.begin(), buffOut.begin() + currOutSize);
+				output.resize(cursor_out - available_out);
+				output.shrink_to_fit();
 
 				available_in = 0;
 				available_out = 0;
 
-				if (slider_in < input.size()) return { "Unused data after brotli stream" };
+				if (cursor_in < input.size()) return { "Unused data after brotli stream" };
 				return {};
 
 			} break;
