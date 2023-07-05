@@ -10,7 +10,23 @@ using namespace Lambda::Network;
 
 Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
-	const auto compressionMethod = stringTrim(static_cast<const std::string>(response.headers.get("Content-Encoding")));
+	auto sendResponseContent = [hSocket, &response](){
+		auto payloadSerialized = response.dump();
+		if (send(hSocket, (char*)payloadSerialized.data(), payloadSerialized.size(), 0) <= 0)
+			return Lambda::Error("Failed to send http response" , getAPIError());
+		return Lambda::Error();
+	};
+
+	const auto contentEncodingHeader = response.headers.get("Content-Encoding");
+
+	if (!contentEncodingHeader.size()) return sendResponseContent();
+
+	if (!response.body.size()) {
+		response.headers.del("Content-Encoding");
+		return sendResponseContent();
+	}
+
+	const auto compressionMethod = stringTrim(contentEncodingHeader);
 
 	std::vector<uint8_t> bodyCompressed;
 
@@ -41,14 +57,10 @@ Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 			return { "deflate compression failed", compressor.compressionStatus() };
 
 		response.body = bodyCompressed;
-	}
+		
+	} else response.headers.del("Content-Encoding");
 
-	auto payloadSerialized = response.dump();
-
-	if (send(hSocket, (char*)payloadSerialized.data(), payloadSerialized.size(), 0) <= 0)
-		return { "Failed to send http response" , getAPIError() };
-
-	return {};
+	return sendResponseContent();
 }
 
 /**
