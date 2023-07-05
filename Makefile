@@ -125,7 +125,7 @@ compress/brotli.o: compress/brotli.cpp
 
 COMPONENT_CRYPTO = obj_crypto
 LIBSTATIC_CRYPTO = lib$(LIBNAME)-crypto.a
-OBJECTS_CRYPTO = crypto/random.o crypto/sha1.o crypto/sha256.o crypto/sha512.o
+OBJECTS_CRYPTO = crypto/random.o crypto/sha1.o
 
 $(COMPONENT_CRYPTO): $(OBJECTS_CRYPTO)
 	ar rvs $(LIBSTATIC_CRYPTO) $(OBJECTS_CRYPTO)
@@ -135,12 +135,6 @@ crypto/random.o: crypto/random.cpp
 
 crypto/sha1.o: crypto/sha1.cpp
 	g++ -c crypto/sha1.cpp -o crypto/sha1.o $(CFLAGS)
-
-crypto/sha256.o: crypto/sha256.cpp
-	g++ -c crypto/sha256.cpp -o crypto/sha256.o $(CFLAGS)
-
-crypto/sha512.o: crypto/sha512.cpp
-	g++ -c crypto/sha512.cpp -o crypto/sha512.o $(CFLAGS)
 
 
 #------------

@@ -56,7 +56,10 @@ WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
 		throw Lambda::Error("Websocket initialization aborted: no valid handshake headers present");
 
 	auto combinedKey = headerWsKey + wsMagicString;
-	auto keyHash = Crypto::sha1Hash(std::vector<uint8_t>(combinedKey.begin(), combinedKey.end()));
+
+	auto sha1hash = Crypto::SHA1();
+	sha1hash.update(std::vector<uint8_t>(combinedKey.begin(), combinedKey.end()));
+	auto keyHash = sha1hash.digest();
 	auto keyHashString = std::string(keyHash.begin(), keyHash.end());
 
 	auto handshakeReponse = Response(101, {
@@ -193,7 +196,7 @@ void WebSocket::asyncWsIO() {
 			if (bytesReceived <= 0) break;
 			downloadStream.insert(downloadStream.end(), downloadChunk, downloadChunk + bytesReceived);
 		}
-		
+
 		//	if an error occured during receiving
 		if (bytesReceived < 0) {
 
@@ -328,7 +331,7 @@ void WebSocket::asyncWsIO() {
 			} break;
 
 			case WEBSOCK_OPCODE_PING: {
-				
+
 				uint8_t pongFrame[2];
 
 				// set FIN bit and opcode
@@ -345,7 +348,7 @@ void WebSocket::asyncWsIO() {
 			case WEBSOCK_OPCODE_CONTINUE: {
 
 				if (multipartMessagePtr == nullptr) {
-					
+
 					downloadStream.clear();
 					clearMultipartData(&multipartMessagePtr);
 
