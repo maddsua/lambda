@@ -191,13 +191,19 @@ server/handler.o: server/handler.cpp
 
 COMPONENT_STORAGE = obj_storage
 LIBSTATIC_STORAGE = lib$(LIBNAME)-storage.a
-OBJECTS_STORAGE = storage/kv.o
+OBJECTS_STORAGE = storage/kv.o storage/vfs.o storage/vfs_format_tar.o
 
 $(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
 	ar rvs $(LIBSTATIC_STORAGE) $(OBJECTS_STORAGE)
 
 storage/kv.o: storage/kv.cpp
 	g++ -c storage/kv.cpp -o storage/kv.o $(CFLAGS)
+
+storage/vfs.o: storage/vfs.cpp
+	g++ -c storage/vfs.cpp -o storage/vfs.o $(CFLAGS)
+
+storage/vfs_format_tar.o: storage/vfs_format_tar.cpp
+	g++ -c storage/vfs_format_tar.cpp -o storage/vfs_format_tar.o $(CFLAGS)
 
 
 #------------
@@ -286,3 +292,5 @@ test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SO
 test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
 	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_kv.exe
 
+test_vfs: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
+	g++ tests/vfs.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_vfs.exe

@@ -6,6 +6,7 @@
 #include <array>
 
 using namespace Lambda;
+using namespace Lambda::Compress;
 using namespace Lambda::Storage;
 
 
@@ -167,7 +168,8 @@ void KV::exportStore(const char* filepath, KVStoreCompress compression) {
 					tempBuff.clear();
 
 					for (available_in == 0; mapIterator != this->data.end() && tempBuff.size() < br.chunk; mapIterator++) {
-						auto item = *mapIterator;
+						
+						const auto& item = *mapIterator;
 						auto rHeader = mkStoreRecord(item);
 						auto rHeaderStructPtr = (uint8_t*)&rHeader;
 
