@@ -1,4 +1,3 @@
-#include "../lambda.hpp"
 #include "./server.hpp"
 #include "../http/http.hpp"
 #include <chrono>

@@ -1,7 +1,7 @@
 #ifndef __LAMBDA_VFS__
 #define __LAMBDA_VFS__
 
-#include "../lambda.hpp"
+#include "../lambda_private.hpp"
 
 #include <unordered_map>
 #include <string>

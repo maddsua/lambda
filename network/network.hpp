@@ -1,7 +1,7 @@
 #ifndef __LAMBDA_SOCKETS__
 #define __LAMBDA_SOCKETS__
 
-#include "../lambda.hpp"
+#include "../lambda_private.hpp"
 #include "../http/http.hpp"
 #include <thread>
 #include <mutex>

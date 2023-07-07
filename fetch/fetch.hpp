@@ -8,7 +8,6 @@
 #ifndef __LAMBDA_FETCHAPI__
 #define __LAMBDA_FETCHAPI__
 
-#include "../lambda.hpp"
 #include "../http/http.hpp"
 
 namespace Lambda::Fetch {

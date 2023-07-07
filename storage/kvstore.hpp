@@ -1,7 +1,7 @@
 #ifndef __LAMBDA_STORE_KV__
 #define __LAMBDA_STORE_KV__
 
-#include "../lambda.hpp"
+#include "../lambda_private.hpp"
 
 #include <unordered_map>
 #include <string>

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
-#include "../lambda.hpp"
+#include "../lambda_private.hpp"
 
 namespace Lambda::Compress {
 	

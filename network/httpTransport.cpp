@@ -1,4 +1,3 @@
-#include "../lambda.hpp"
 #include "./network.hpp"
 #include "./tcpip.hpp"
 #include "../compress/compress.hpp"
