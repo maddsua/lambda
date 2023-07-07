@@ -6,6 +6,8 @@ using namespace Lambda::Encoding;
 
 int main() {
 
+	std::cout << "\r\n--- base64 encoding/decoding test begin --- \r\n";
+
 	std::vector<uint8_t> binaryData = {
 		0xC9,
 		0xD0,
@@ -31,15 +33,11 @@ int main() {
 
 	auto binDataAsString = std::string(binaryData.begin(), binaryData.end());
 
-	//auto sourceString = std::string("this is a test string that must be encoded into base64..");
-	auto sourceString = std::string("this is a test string.");
-	//auto sourceString = std::string(binDataAsString);
+	auto sourceString = std::string("this is a test string that must be encoded into base64..");
 
-	//auto encoded = b64Encode(sourceString);
+	auto encoded = b64Encode(sourceString);
 
-	auto encoded = std::string("dGhpcyBpcyBhIHRlc3Qgc3RyaW5nL=");
-
-	std::cout << std::endl << "Original" << std::endl;
+	std::cout << std::endl << "Original: " << sourceString << std::endl;
 	for (auto& c : sourceString) {
 		printf("%02X ", (uint8_t)c);
 	}
@@ -47,16 +45,12 @@ int main() {
 	
 
 	std::cout << std::endl << "Encoded" << std::endl;
-	/*for (auto& c : encoded) {
-		printf(" %c ", c);
-	}
-	printf("\n");*/
 
 	std::cout << encoded << std::endl;
 
 	auto decoded = b64Decode(encoded);
 
-	std::cout << std::endl << "Decoded" << std::endl;
+	std::cout << std::endl << "Decoded: " << decoded << std::endl;
 
 	for (auto& c : decoded) {
 		printf("%02X ", (uint8_t)c);

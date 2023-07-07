@@ -13,7 +13,8 @@ LIB_BR_STATIC		= -L./deps/ -l:libbrotli-static.a
 LIB_ZLIB_SHARED		= -lz
 LIB_ZLIB_STATIC		= -L./deps/ -l:libz-static.a
 
-LIBS_SYSTEM	= -lws2_32
+LIBS_SYSTEM			= -lws2_32
+
 
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
@@ -196,7 +197,7 @@ server/handler.o: server/handler.cpp
 
 COMPONENT_STORAGE = obj_storage
 LIBSTATIC_STORAGE = lib$(LIBNAME)-storage.a
-OBJECTS_STORAGE = storage/kv.o storage/vfs.o storage/vfs_format_tar.o storage/vfs_format_lvfs2.o
+OBJECTS_STORAGE = storage/kv.o storage/kv_file_db.o storage/vfs.o storage/vfs_file_tar.o storage/vfs_file_lvfs2.o
 
 $(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
 	ar rvs $(LIBSTATIC_STORAGE) $(OBJECTS_STORAGE)
@@ -204,14 +205,17 @@ $(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
 storage/kv.o: storage/kv.cpp
 	g++ -c storage/kv.cpp -o storage/kv.o $(CFLAGS)
 
+storage/kv_file_db.o: storage/kv_file_db.cpp
+	g++ -c storage/kv_file_db.cpp -o storage/kv_file_db.o $(CFLAGS)
+
 storage/vfs.o: storage/vfs.cpp
 	g++ -c storage/vfs.cpp -o storage/vfs.o $(CFLAGS)
 
-storage/vfs_format_tar.o: storage/vfs_format_tar.cpp
-	g++ -c storage/vfs_format_tar.cpp -o storage/vfs_format_tar.o $(CFLAGS)
+storage/vfs_file_tar.o: storage/vfs_file_tar.cpp
+	g++ -c storage/vfs_file_tar.cpp -o storage/vfs_file_tar.o $(CFLAGS)
 	
-storage/vfs_format_lvfs2.o: storage/vfs_format_lvfs2.cpp
-	g++ -c storage/vfs_format_lvfs2.cpp -o storage/vfs_format_lvfs2.o $(CFLAGS)
+storage/vfs_file_lvfs2.o: storage/vfs_file_lvfs2.cpp
+	g++ -c storage/vfs_file_lvfs2.cpp -o storage/vfs_file_lvfs2.o $(CFLAGS)
 
 
 
@@ -294,7 +298,7 @@ test_zlib: $(OBJECTS_COMPRESS_ZLIB)
 #------------
 
 test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
-	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_server.exe
+	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
 
 #------------
@@ -302,7 +306,7 @@ test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_S
 #------------
 
 test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
-	g++ tests/fetch.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIBS_SHARED) $(LIBS_SYSTEM) -o test_fetch.exe
+	g++ tests/fetch.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_fetch.exe
 
 
 #------------
@@ -310,7 +314,7 @@ test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SO
 #------------
 
 test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
-	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_kv.exe
+	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_kv.exe
 
 test_vfs: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
-	g++ tests/vfs.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIBS_SHARED) -o test_vfs.exe
+	g++ tests/vfs.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_vfs.exe

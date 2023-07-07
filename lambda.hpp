@@ -11,7 +11,7 @@
 
 #include "./server/server.hpp"
 #include "./http/http.hpp"
-#include "./storage/kvstore.hpp"
+#include "./storage/kv.hpp"
 #include "./storage/vfs.hpp"
 
 #endif
