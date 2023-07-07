@@ -39,7 +39,7 @@ int main(int argc, char const *argv[]) {
 		std::cout << "Original size: " << binData.size() << ", compressed: " << compressed.size() << ", delta: " << ((double)compressed.size() / (double)binData.size()) << std::endl;
 
 		std::vector<uint8_t> restored;
-
+		
 		auto decompressResult = Lambda::Compress::brotliDecompressBuffer(compressed, restored);
 		if (decompressResult.isError()) std::cout << decompressResult.what() << std::endl;
 

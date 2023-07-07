@@ -40,6 +40,9 @@ namespace Lambda::Storage {
 			void importTar(std::ifstream& filestream);
 			void exportTar(std::ofstream& filestream, TarCompressionLayer compression);
 
+			void importLvfs2(std::ifstream& filestream);
+			void exportLvfs2(std::ofstream& filestream);
+
 		public:
 			Lambda::Error read(const std::string& path, std::vector <uint8_t>& content);
 			Lambda::Error write(const std::string& path, const std::vector <uint8_t>& content);

@@ -191,7 +191,7 @@ server/handler.o: server/handler.cpp
 
 COMPONENT_STORAGE = obj_storage
 LIBSTATIC_STORAGE = lib$(LIBNAME)-storage.a
-OBJECTS_STORAGE = storage/kv.o storage/vfs.o storage/vfs_format_tar.o
+OBJECTS_STORAGE = storage/kv.o storage/vfs.o storage/vfs_format_tar.o storage/vfs_format_lvfs2.o
 
 $(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
 	ar rvs $(LIBSTATIC_STORAGE) $(OBJECTS_STORAGE)
@@ -204,6 +204,9 @@ storage/vfs.o: storage/vfs.cpp
 
 storage/vfs_format_tar.o: storage/vfs_format_tar.cpp
 	g++ -c storage/vfs_format_tar.cpp -o storage/vfs_format_tar.o $(CFLAGS)
+	
+storage/vfs_format_lvfs2.o: storage/vfs_format_lvfs2.cpp
+	g++ -c storage/vfs_format_lvfs2.cpp -o storage/vfs_format_lvfs2.o $(CFLAGS)
 
 
 #------------

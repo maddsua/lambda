@@ -96,11 +96,17 @@ Lambda::Error VFS::loadSnapshot(const std::string& path) {
 	if (!filestream.is_open()) return { "Could not open the file \"" + path + "\"" };
 
 	try {
-		importTar(filestream);
+
+		if (path.ends_with(".tar") || path.ends_with(".tar.gz") || path.ends_with(".tgz")) {
+			importTar(filestream);
+		} else {
+			importLvfs2(filestream);
+		}
+
 	} catch(const std::exception& e) {
-		return { std::string("Tar import failed: ") + e.what() };
+		return { std::string("VFS import failed: ") + e.what() };
 	} catch(...) {
-		return { "Unhandled tar import error" };
+		return { "Unhandled VFS import error" };
 	}
 
 	return {};
@@ -113,16 +119,22 @@ Lambda::Error VFS::saveSnapshot(const std::string& path) {
 
 	try {
 
-		auto compression = TARCOMPRESS_NONE;
+		if (path.ends_with(".tar") || path.ends_with(".tar.gz") || path.ends_with(".tgz")) {
 
-		if (path.ends_with(".gz")) compression = TARCOMPRESS_GZIP;
+			auto compression = TARCOMPRESS_NONE;
 
-		exportTar(filestream, compression);
+			if (path.ends_with("gz")) compression = TARCOMPRESS_GZIP;
+
+			exportTar(filestream, compression);
+
+		} else {
+			exportLvfs2(filestream);
+		}
 
 	} catch(const std::exception& e) {
-		return { std::string("Tar export failed: ") + e.what() };
+		return { std::string("VFS export failed: ") + e.what() };
 	} catch(...) {
-		return { "Unhandled tar export error" };
+		return { "Unhandled VFS export error" };
 	}
 
 	return {};

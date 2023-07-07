@@ -20,7 +20,7 @@ int main(int argc, char const *argv[]) {
 		std::cout << "File: " << record.name << " | Size: " << record.size << std::endl;
 	}
 
-	auto exportResult = vfs.saveSnapshot("tests/data/simpletar1.tar.gz");
+	auto exportResult = vfs.saveSnapshot("tests/data/simpletar.lvfs2");
 	if (exportResult.isError()) std::cout << importResult.what() << std::endl;
 
 	return 0;

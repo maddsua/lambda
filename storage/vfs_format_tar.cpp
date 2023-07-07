@@ -4,7 +4,6 @@
 
 #include <fstream>
 #include <cstring>
-#include <map>
 #include <array>
 
 using namespace Lambda;
@@ -105,7 +104,12 @@ TarBasicHeader decodeHeader(const TarPosixHeader& posixHeader) {
 
 	TarBasicHeader header;
 
-	header.name = std::string(posixHeader.name, sizeof(posixHeader.name) - 1);
+	//	this is not required by the tar standard,
+	//	but lambda is not a cli archive tool, and I don't want it
+	//	to crash in case of a corrupted tar file
+	auto nameSize = posixHeader.name[sizeof(posixHeader.name) - 1] == 0 ? strlen(posixHeader.name) : sizeof(posixHeader.name);
+
+	header.name = std::string(posixHeader.name, nameSize);
 	header.type = posixHeader.typeflag;
 
 	//	decode file size
