@@ -1,8 +1,8 @@
 #include <windows.h>
 
 1 VERSIONINFO
-FILEVERSION 1,0,0
-PRODUCTVERSION 1,0,0
+FILEVERSION ${version_comma}
+PRODUCTVERSION ${version_comma}
 FILETYPE VFT_DLL
 {
 	BLOCK "StringFileInfo"
@@ -10,14 +10,14 @@ FILETYPE VFT_DLL
 		BLOCK "040904E4"
 		{
 			VALUE "CompanyName", "maddsua/dev"
-			VALUE "FileVersion", "1.0.0"
-			VALUE "FileDescription", "lambda server framework"
-			VALUE "InternalName", "lambda"
+			VALUE "FileVersion", "${version}"
+			VALUE "FileDescription", "${description}"
+			VALUE "InternalName", "${product}"
 			VALUE "LegalCopyright", "https://github.com/maddsua"
-			VALUE "LegalTrademarks", "2023 maddsua/dev"
+			VALUE "LegalTrademarks", "${year} maddsua"
 			VALUE "OriginalFilename", "lambda"
-			VALUE "ProductName", "lambda framework"
-			VALUE "ProductVersion", "1.0.0"
+			VALUE "ProductName", "${product}"
+			VALUE "ProductVersion", "${version}"
 		}
 	}
 	BLOCK "VarFileInfo"

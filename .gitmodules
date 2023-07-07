@@ -1,0 +1,6 @@
+[submodule "deps/brotli"]
+	path = deps/brotli
+	url = https://github.com/google/brotli
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/madler/zlib

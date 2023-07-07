@@ -2,22 +2,27 @@
 LIBNAME			= lambda
 APP_DEV			= $(LIBNAME).exe
 CFLAGS			= -std=c++20 -g
-LIBS_SHARED		= -lz -lbrotlicommon -lbrotlidec -lbrotlienc
+MAINTARGET		= libshared
 
-#	to get these static libs you need to compile brotli and zlib youself
-#	it's basically just compiling all source files to objects
-#	and then putting all of them into .a static lib
-LIBS_STATIC	= -l:libz.a -l:libbrotli.a
-LIBS_SYSTEM	= -lws2_32 -lwinmm
-
+#	To get static libs you need to compile brotli and zlib youself.
+#	Head to deps dir, "run npm run build", then "make",
+#	NodeJS is required for this build step
 
 LIB_BR_SHARED		= -lbrotlicommon -lbrotlidec -lbrotlienc
+LIB_BR_STATIC		= -L./deps/ -l:libbrotli-static.a
 LIB_ZLIB_SHARED		= -lz
+LIB_ZLIB_STATIC		= -L./deps/ -l:libz-static.a
+
+LIBS_SYSTEM	= -lws2_32
 
 #	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lpthread -Wl,-Bdynamic
 
 .PHONY: all all-before all-after action-custom
-all: all-before $(APP_DEV) all-after
+all: all-before $(MAINTARGET) all-after
+
+#------------
+#	Utils
+#------------
 
 clean: action-custom
 	del /S *.o *.exe *.a *.dll *.res
@@ -209,26 +214,38 @@ storage/vfs_format_lvfs2.o: storage/vfs_format_lvfs2.cpp
 	g++ -c storage/vfs_format_lvfs2.cpp -o storage/vfs_format_lvfs2.o $(CFLAGS)
 
 
-#------------
-# Full library
-#------------
 
-LIBFULL_OBJS  = $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_STORAGE)
-LIBSTATIC     = lib$(LIBNAME).a
-LIBSHARED     = $(LIBNAME).dll
+#--------------------------------
+#--------------------------------
+#
+#	Full library build
+#
+#--------------------------------
+#--------------------------------
+
+LIB_DEPS		= $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED)
+LIB_RCFILE		= res/$(LIBNAME).rc
+LIBFULL_OBJS	= $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_STORAGE)
+LIBSTATIC		= lib$(LIBNAME).a
+LIBSHARED		= $(LIBNAME).dll
+
+libshared: $(LIBSHARED)
+
+$(LIBSHARED): $(LIBFULL_OBJS) $(LIBNAME).res
+	g++ $(LIBFULL_OBJS) $(LIBNAME).res $(LIB_DEPS) $(LIBS_SYSTEM) $(CFLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
+
+$(LIBNAME).res: $(LIB_RCFILE)
+	windres -i $(LIB_RCFILE) --input-format=rc -o $(LIBNAME).res -O coff
+
+$(LIB_RCFILE): res/template.rc
+	node res/update.mjs
+
 
 libstatic: $(LIBSTATIC)
 
 $(LIBSTATIC): $(LIBFULL_OBJS)
 	ar rvs $(LIBSTATIC) $(LIBFULL_OBJS)
 
-libshared: $(LIBSHARED)
-
-$(LIBSHARED): $(LIBFULL_OBJS) $(LIBNAME).res
-	g++ $(LIBFULL_OBJS) $(LIBNAME).res $(LIBS_SHARED) $(LIBS_SYSTEM) $(CFLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
-
-$(LIBNAME).res: $(LIBNAME).rc
-	windres -i $(LIBNAME).rc --input-format=rc -o $(LIBNAME).res -O coff 
 
 
 #--------------------------------

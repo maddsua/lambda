@@ -1,0 +1,8 @@
+{
+	"dependencies": {
+		"glob": "^10.3.1"
+	},
+	"scripts": {
+		"build": "node gen.mjs"
+	}
+}

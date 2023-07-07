@@ -5,9 +5,9 @@
 .vscode
 *.dll
 *.def
-*.db
 *.res
 
 **/node_modules/**
 **/dist/**
 
+deps/build/package-lock.json
