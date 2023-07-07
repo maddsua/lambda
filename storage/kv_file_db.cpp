@@ -9,19 +9,19 @@ using namespace Lambda;
 using namespace Lambda::Compress;
 using namespace Lambda::Storage;
 
-const char magicString[] = "lambda kv store";
+const char magicString[] = "lambda kv snapshot";
 
-struct StoreFileHeader {
+struct SnapshotFileHeader {
 	char magicbytes[sizeof(magicString)];
 	uint32_t headerSize;
 };
 
-struct StoreMainHeader {
+struct SnapshotMainHeader {
 	uint16_t version;
 	uint8_t compression;
 };
 
-struct StoreRecordHeader {
+struct SnapshotRecordHeader {
 	uint64_t created;
 	uint64_t modified;
 	uint32_t valueSize;
@@ -29,19 +29,19 @@ struct StoreRecordHeader {
 	uint8_t type;
 };
 
-enum StoreRecordType {
+enum SnapshotRecordType {
 	KVENTRY_DATA = 0,
 	KVENTRY_META = 1,
 };
 
-bool validateHeader(const StoreRecordHeader& header) {
+bool validateHeader(const SnapshotRecordHeader& header) {
 	auto sizeErrorEmpty = !header.keySize || !header.valueSize;
 	auto sizeErrorTooBig = header.keySize > UINT16_MAX || header.valueSize > UINT32_MAX;
 	return !(sizeErrorEmpty || sizeErrorTooBig);
 }
 
-StoreRecordHeader mkStoreRecord(const std::pair<const std::string, KVMapEntry>& mapEntry) {
-	StoreRecordHeader temp;
+SnapshotRecordHeader mkSnapshotRecord(const std::pair<const std::string, KVMapEntry>& mapEntry) {
+	SnapshotRecordHeader temp;
 	temp.created = mapEntry.second.created;
 	temp.modified = mapEntry.second.modified;
 	temp.keySize = mapEntry.first.size();
@@ -50,28 +50,28 @@ StoreRecordHeader mkStoreRecord(const std::pair<const std::string, KVMapEntry>& 
 	return temp;
 }
 
-void KV::exportStore(const char* filepath, KVStoreCompress compression) {
+Lambda::Error KV::exportSnapshot(const char* filepath, KVSnapshotCompress compression) {
 
 	auto localfile = std::ofstream(filepath, std::ios::binary);
-	if (!localfile.is_open()) throw Lambda::Error(std::string("Could not open file \"") + filepath + "\" for write");
+	if (!localfile.is_open()) return Lambda::Error(std::string("Could not open file \"") + filepath + "\" for write");
 
 	//	write file header
-	StoreFileHeader fHeader;
-	fHeader.headerSize = sizeof(StoreMainHeader);
+	SnapshotFileHeader fHeader;
+	fHeader.headerSize = sizeof(SnapshotMainHeader);
 	memcpy(fHeader.magicbytes, magicString, sizeof(magicString));
 	localfile.write((const char*)&fHeader, sizeof(fHeader));
 
-	StoreMainHeader mHeader;
+	SnapshotMainHeader mHeader;
 	mHeader.version = LAMBDAKV_VERSION;
 	mHeader.compression = compression;
 	localfile.write((const char*)&mHeader, sizeof(mHeader));
 
-	//	lock data store and begin export
+	//	lock the data state and begin export
 	std::lock_guard<std::mutex>lock(threadLock);
 
 	switch (compression) {
 
-		case KVSTORE_COMPRESS_BR: {
+		case KVSNAP_COMPRESS_BR: {
 
 			BrotliCompressStream br;
 
@@ -98,7 +98,7 @@ void KV::exportStore(const char* filepath, KVStoreCompress compression) {
 					for (available_in == 0; mapIterator != this->data.end() && tempBuff.size() < br.chunk; mapIterator++) {
 						
 						const auto& item = *mapIterator;
-						auto rHeader = mkStoreRecord(item);
+						auto rHeader = mkSnapshotRecord(item);
 						auto rHeaderStructPtr = (uint8_t*)&rHeader;
 
 						tempBuff.insert(tempBuff.end(), rHeaderStructPtr, rHeaderStructPtr + sizeof(rHeader));
@@ -111,7 +111,7 @@ void KV::exportStore(const char* filepath, KVStoreCompress compression) {
 				}
 
 				if (!BrotliEncoderCompressStream(br.stream, mapIterator == this->data.end() ? BROTLI_OPERATION_FINISH : BROTLI_OPERATION_PROCESS, &available_in, (const uint8_t**)&next_in, &available_out, &next_out, nullptr)) {
-					throw Lambda::Error("brotli encoder failed");
+					return Lambda::Error("brotli encoder failed");
 				}
 
 				if (available_out == 0) {
@@ -133,7 +133,7 @@ void KV::exportStore(const char* filepath, KVStoreCompress compression) {
 		default: {
 
 			for (const auto& item : this->data) {
-				auto rHeader = mkStoreRecord(item);
+				auto rHeader = mkSnapshotRecord(item);
 				localfile.write((const char*)&rHeader, sizeof(rHeader));
 				localfile.write(item.first.data(), item.first.size());
 				localfile.write(item.second.value.data(), item.second.value.size());
@@ -143,19 +143,21 @@ void KV::exportStore(const char* filepath, KVStoreCompress compression) {
 	}
 
 	localfile.close();
+
+	return {};
 }
 
-bool decodeStoreBrRecord(std::vector<uint8_t>& buffer, KVMap& map) {
+bool decodeSnapshotBrRecord(std::vector<uint8_t>& buffer, KVMap& map) {
 
 	auto slider = 0;
-	auto sliderNext = sizeof(StoreRecordHeader);
+	auto sliderNext = sizeof(SnapshotRecordHeader);
 	if (buffer.size() < sliderNext) return false;
 
-	StoreRecordHeader rheader;
+	SnapshotRecordHeader rheader;
 	memcpy(&rheader, buffer.data(), sliderNext);
 
 	if (!validateHeader(rheader))
-		throw Lambda::Error("KV store stream is damaged");
+		throw Lambda::Error("KV snapshot stream is damaged");
 
 	KVMapEntry entry;
 	entry.created = rheader.created;
@@ -180,35 +182,35 @@ bool decodeStoreBrRecord(std::vector<uint8_t>& buffer, KVMap& map) {
 	return true;
 }
 
-void KV::importStore(const char* filepath) {
+Lambda::Error KV::importSnapshot(const char* filepath) {
 
 	auto localfile = std::ifstream(filepath, std::ios::binary);
-	if (!localfile.is_open()) throw Lambda::Error(std::string("Could not open file \"") + filepath + "\" for read");
+	if (!localfile.is_open()) return Lambda::Error(std::string("Could not open file \"") + filepath + "\" for read");
 
-	StoreFileHeader fHeader;
+	SnapshotFileHeader fHeader;
 	memset(&fHeader, 0, sizeof(fHeader));
 	localfile.read((char*)&fHeader, sizeof(fHeader));
 
 	if (strcmp(fHeader.magicbytes, magicString))
-		throw Lambda::Error("Cannot identify the file as a valid KV store file");
+		return Lambda::Error("Cannot identify the file as a valid KV snapshot file");
 
-	if (fHeader.headerSize > sizeof(StoreMainHeader))
-		throw Lambda::Error("Unsupported KV store version");
+	if (fHeader.headerSize > sizeof(SnapshotMainHeader))
+		return Lambda::Error("Unsupported KV snapshot version");
 
-	StoreMainHeader mHeader;
+	SnapshotMainHeader mHeader;
 	memset(&mHeader, 0, sizeof(mHeader));
 	localfile.read((char*)&mHeader, fHeader.headerSize > sizeof(mHeader) ? sizeof(mHeader) : fHeader.headerSize);
 
 	if (mHeader.version > LAMBDAKV_VERSION)
-		throw Lambda::Error("Unsupported version, trying to open v" + std::to_string(mHeader.version) + ", but only v" + std::to_string(LAMBDAKV_VERSION) + " is supported");
+		return Lambda::Error("Unsupported version, trying to open v" + std::to_string(mHeader.version) + ", but only v" + std::to_string(LAMBDAKV_VERSION) + " is supported");
 
 	std::lock_guard<std::mutex>lock(threadLock);
 
 	switch (mHeader.compression) {
 
-		case KVSTORE_COMPRESS_BR: {
+		case KVSNAP_COMPRESS_BR: {
 
-			std::vector<uint8_t> storeBuff;
+			std::vector<uint8_t> snapBuff;
 
 			BrotliDecompressStream br;
 			auto streamStatus = BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT;
@@ -230,7 +232,7 @@ void KV::importStore(const char* filepath) {
 
 					case BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT: {
 
-						if (localfile.eof()) throw Lambda::Error("Incomplete brotli stream");
+						if (localfile.eof()) return Lambda::Error("Incomplete brotli stream");
 
 						localfile.read((char*)buffIn.data(), buffIn.size());
 
@@ -241,29 +243,35 @@ void KV::importStore(const char* filepath) {
 
 					case BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT: {
 
-						storeBuff.insert(storeBuff.end(), buffOut.begin(), buffOut.begin() + currOutSize);
+						snapBuff.insert(snapBuff.end(), buffOut.begin(), buffOut.begin() + currOutSize);
 						next_out = buffOut.data();
 						available_out = buffOut.size();
-						while (decodeStoreBrRecord(storeBuff, this->data));
+
+						try { while (decodeSnapshotBrRecord(snapBuff, this->data)); } catch (const std::exception& e) {
+							return Lambda::Error(std::string("Could not parse db snapshot: ") + e.what());
+						}
 
 					} break;
 
 					case BROTLI_DECODER_RESULT_SUCCESS: {
 
-						if (currOutSize) storeBuff.insert(storeBuff.end(), buffOut.begin(), buffOut.begin() + currOutSize);
-						while (decodeStoreBrRecord(storeBuff, this->data));
-
+						if (currOutSize) snapBuff.insert(snapBuff.end(), buffOut.begin(), buffOut.begin() + currOutSize);
+						
+						try { while (decodeSnapshotBrRecord(snapBuff, this->data)); } catch (const std::exception& e) {
+							return Lambda::Error(std::string("Could not parse db snapshot: ") + e.what());
+						}
+						
 						available_in = 0;
 						available_out = 0;
 
-						return;
+						return {};
 
 					} break;
 
 					default: {
 
 						auto errcode = BrotliDecoderGetErrorCode(br.stream);
-						throw Lambda::Error(std::string("Brotli decompressor: ") + BrotliDecoderErrorString(errcode), errcode);
+						return Lambda::Error(std::string("Brotli decompressor: ") + BrotliDecoderErrorString(errcode), errcode);
 
 					} break;
 				}
@@ -277,12 +285,12 @@ void KV::importStore(const char* filepath) {
 
 			while (!localfile.eof()) {
 
-				StoreRecordHeader rheader;
+				SnapshotRecordHeader rheader;
 				localfile.read((char*)&rheader, sizeof(rheader));
 				if (localfile.eof()) break;
 
 				if (!validateHeader(rheader))
-					throw Lambda::Error("KV store stream is damaged");
+					return Lambda::Error("KV snapshot stream is damaged");
 
 				std::string entryKey;
 				entryKey.resize(rheader.keySize);
@@ -302,4 +310,6 @@ void KV::importStore(const char* filepath) {
 
 		} break;
 	}
+
+	return {};
 }

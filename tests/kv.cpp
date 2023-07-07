@@ -30,12 +30,12 @@ int main() {
 	std::cout << "String expected: "<< kv.get("user_0_sessionid").value << std::endl;
 
 	std::cout << "\r\n--- Writing to \"kvstore.db\" --- \r\n";
-	kv.exportStore("kvstore.db", Storage::KVSTORE_COMPRESS_BR);
+	kv.exportSnapshot("kvstore.db", Storage::KVSNAP_COMPRESS_BR);
 	std::cout << "Ok" << std::endl;
 
 	std::cout << "\r\n--- Restoring from \"kvstore.db\" --- \r\n";
 	auto kv2 = Storage::KV();
-	kv2.importStore("kvstore.db");
+	kv2.importSnapshot("kvstore.db");
 	std::cout << std::endl;
 
 	std::cout << "String expected: "<< kv2.get("user_0_name").value << std::endl;
