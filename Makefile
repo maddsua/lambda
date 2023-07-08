@@ -256,7 +256,6 @@ $(LIBSTATIC): $(LIBFULL_OBJS)
 	ar rvs $(LIBSTATIC) $(LIBFULL_OBJS)
 
 
-
 #--------------------------------
 #--------------------------------
 #
@@ -331,3 +330,19 @@ test_vfs: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
 
 test_json: encoding/json.o
 	g++ tests/json.cpp encoding/json.o -o test_json.exe
+
+
+#--------------------------------
+#--------------------------------
+#
+#	Example programs
+#
+#--------------------------------
+#--------------------------------
+
+#------------
+# Simple http server demo
+#------------
+
+example_api_server: $(LIBSHARED)
+	g++ examples/api_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_api_server.exe
