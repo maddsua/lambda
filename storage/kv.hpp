@@ -48,6 +48,9 @@ namespace Lambda::Storage {
 				return exportSnapshot(filepath, KVSNAP_COMPRESS_NONE);
 			}
 			Lambda::Error importSnapshot(const char* filepath);
+
+			Lambda::Error exportJSON(const char* filepath);
+			Lambda::Error importJSON(const char* filepath);
 	};
 };
 

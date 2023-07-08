@@ -45,7 +45,7 @@ clean: action-custom
 
 COMPONENT_ENCODING = obj_encoding
 LIBSTATIC_ENCODING = lib$(LIBNAME)-encoding.a
-OBJECTS_ENCODING = encoding/urlencode.o encoding/base64.o encoding/hex.o
+OBJECTS_ENCODING = encoding/urlencode.o encoding/base64.o encoding/hex.o encoding/json.o
 
 $(COMPONENT_ENCODING): $(OBJECTS_ENCODING)
 	ar rvs $(LIBSTATIC_ENCODING) $(OBJECTS_ENCODING)
@@ -59,6 +59,8 @@ encoding/base64.o: encoding/base64.cpp
 encoding/hex.o: encoding/hex.cpp
 	g++ -c encoding/hex.cpp -o encoding/hex.o $(CFLAGS)
 
+encoding/json.o: encoding/json.cpp
+	g++ -c encoding/json.cpp -o encoding/json.o $(CFLAGS)
 
 #------------
 # Component: HTTP
@@ -197,7 +199,7 @@ server/handler.o: server/handler.cpp
 
 COMPONENT_STORAGE = obj_storage
 LIBSTATIC_STORAGE = lib$(LIBNAME)-storage.a
-OBJECTS_STORAGE = storage/kv.o storage/kv_file_db.o storage/vfs.o storage/vfs_file_tar.o storage/vfs_file_lvfs2.o
+OBJECTS_STORAGE = storage/kv.o storage/kv_file_db.o storage/kv_file_json.o storage/vfs.o storage/vfs_file_tar.o storage/vfs_file_lvfs2.o
 
 $(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
 	ar rvs $(LIBSTATIC_STORAGE) $(OBJECTS_STORAGE)
@@ -207,6 +209,9 @@ storage/kv.o: storage/kv.cpp
 
 storage/kv_file_db.o: storage/kv_file_db.cpp
 	g++ -c storage/kv_file_db.cpp -o storage/kv_file_db.o $(CFLAGS)
+
+storage/kv_file_json.o: storage/kv_file_json.cpp
+	g++ -c storage/kv_file_json.cpp -o storage/kv_file_json.o $(CFLAGS)
 
 storage/vfs.o: storage/vfs.cpp
 	g++ -c storage/vfs.cpp -o storage/vfs.o $(CFLAGS)
@@ -313,8 +318,16 @@ test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SO
 # Test: KV Storage
 #------------
 
-test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
-	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_kv.exe
+test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING)
+	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_kv.exe
 
 test_vfs: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
 	g++ tests/vfs.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_vfs.exe
+
+
+#------------
+# Test: JSON
+#------------
+
+test_json: encoding/json.o
+	g++ tests/json.cpp encoding/json.o -o test_json.exe

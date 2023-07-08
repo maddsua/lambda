@@ -1,0 +1,39 @@
+{
+	"entries": [
+		{
+			"base64": false,
+			"created": 1688801457,
+			"key": "user_0_lastip",
+			"key_base64": false,
+			"modified": 1688801457,
+			"value": "127.0.0.1"
+		},
+		{
+			"base64": false,
+			"created": 1688801457,
+			"key": "user_0_lastonline",
+			"key_base64": false,
+			"modified": 1688801457,
+			"value": "1688427615"
+		},
+		{
+			"base64": false,
+			"created": 1688801457,
+			"key": "user_0_sessionid",
+			"key_base64": false,
+			"modified": 1688801457,
+			"value": "xxxxx_token_content_xxxx"
+		},
+		{
+			"base64": false,
+			"created": 1688801457,
+			"key": "user_0_name",
+			"key_base64": false,
+			"modified": 1688801457,
+			"value": "johndoe"
+		}
+	],
+	"export_time": 1688801457,
+	"type": "lambda kv json export",
+	"version": "1.0.0"
+}

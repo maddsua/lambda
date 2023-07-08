@@ -162,7 +162,6 @@ bool decodeSnapshotBrRecord(std::vector<uint8_t>& buffer, KVMap& map) {
 	KVMapEntry entry;
 	entry.created = rheader.created;
 	entry.modified = rheader.modified;
-	entry.value.resize(rheader.valueSize);
 
 	slider = sliderNext;
 	sliderNext += rheader.keySize;
