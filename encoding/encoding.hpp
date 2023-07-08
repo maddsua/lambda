@@ -64,8 +64,8 @@ namespace Lambda::Encoding {
 			void push(JSON_Object& object);
 			void push(JSON_Array& object);
 
-			void remove(size_t index);
-			void remove(size_t index, size_t elements);
+			//void remove(size_t index);
+			//void remove(size_t index, size_t elements);
 
 			std::string stringify();
 
