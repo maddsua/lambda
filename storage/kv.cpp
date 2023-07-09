@@ -6,18 +6,18 @@ using namespace Lambda::Storage;
 
 
 bool KV::has(const std::string& key) {
-	return this->data.find(key) != this->data.end();
+	return this->data.contains(key);
 }
 
 KVMapEntry KV::get(const std::string& key) {
 	std::lock_guard<std::mutex>lock(threadLock);
-	if (!this->has(key)) return {};
+	if (!this->data.contains(key)) return {};
 	return this->data.at(key);
 }
 
 std::string KV::getValue(const std::string& key) {
 	std::lock_guard<std::mutex>lock(threadLock);
-	if (!this->has(key)) return {};
+	if (!this->data.contains(key)) return {};
 	return this->data.at(key).value;
 }
 
@@ -35,23 +35,23 @@ void KV::set(const std::string& key, const std::string& value) {
 
 	std::lock_guard<std::mutex>lock(threadLock);
 
-	if (this->has(key)) {
-		newEntry.created = get(key).created;
+	if (this->data.contains(key)) {
+		newEntry.created = this->data.at(key).created;
 	} else newEntry.created = newEntry.modified;
 
-	this->data[key] = std::move(newEntry);
+	this->data[key] = newEntry;
 }
 
 bool KV::del(const std::string& key) {
 	std::lock_guard<std::mutex>lock(threadLock);
-	if (!this->has(key)) return false;
+	if (!this->data.contains(key)) return false;
 	this->data.erase(key);
 	return true;
 }
 
 bool KV::move(const std::string& key, const std::string& newKey) {
 	std::lock_guard<std::mutex>lock(threadLock);
-	if (!this->has(key)) return false;
+	if (!this->data.contains(key)) return false;
 	this->data[newKey] = this->data.extract(key).mapped();
 	return true;
 }
