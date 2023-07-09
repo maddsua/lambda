@@ -16,6 +16,21 @@ struct ServerPass {
 	KV* kvstore = nullptr;
 };
 
+const std::string kv_help_message = R"(
+	Commands are: GET, SET, DEL
+
+	Usage examples:
+
+	SET user_2_name maddsua
+	>> OK
+	
+	GET user_2_name
+	>> maddsua
+
+	DEL user_2_name
+	>> OK
+)";
+
 void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context) {
 
 	auto request = connection.receiveMessage();
@@ -88,7 +103,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 
 			if (command == "help") {
 
-				websock.sendMessage("help message text here");
+				websock.sendMessage(kv_help_message);
 
 			} else if (command == "get") {
 
@@ -116,6 +131,23 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 
 				websock.sendMessage("ok");
 
+			} else if (command == "del") {
+
+				if (msgtokens.size() < 2) {
+					websock.sendMessage("second argument should me record id");
+					continue;
+				}
+
+				auto recordPresent = kv->has(msgtokens.at(1));
+				if (!recordPresent) {
+					websock.sendMessage("[record wasn't even present]");
+					continue;
+				}
+
+				kv->del(msgtokens.at(1));
+				
+				websock.sendMessage("ok");
+				
 			} else {
 				websock.sendMessage("unknown command");
 			}
