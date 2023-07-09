@@ -167,12 +167,13 @@ int main() {
 	server.flags.compressionUseGzip = true;
 
 	ServerPass passthough;
-	passthough.vfs = new VFS();
 	passthough.kvstore = new KV();
 	server.enablePasstrough(&passthough);
 
+	auto vfs = new VFS();
 	auto vfsload = passthough.vfs->loadSnapshot("demo/dist.tar.gz");
 	if (vfsload.isError()) std::cout << "Failed to load VFS: " << vfsload.what() << std::endl;
+	else passthough.vfs = vfs;
 
 	std::cout << "Server started at http://localhost:" + std::to_string(port) << std::endl;
 
