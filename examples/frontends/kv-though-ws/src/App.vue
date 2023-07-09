@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import Kvcmd from './components/kvcmd.vue';
+import KvWidget from './components/kv-widget.vue';
 </script>
 
 <template>
 
-	<Kvcmd />
-
+	<KvWidget />
 
 </template>

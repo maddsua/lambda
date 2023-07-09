@@ -1,8 +1,3 @@
-/**
- * This is a web server example app using Lambda
- * It just serves static content. Probably a Vercel killer of some sort lol
-*/
-
 #include "../lambda.hpp"
 #include <iostream>
 
