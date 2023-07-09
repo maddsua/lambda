@@ -1,3 +1,7 @@
+## WARNING: Docs (and comments too) are in undefined state untill version 1.0 is finished
+
+---
+
 # A request-isolating multi thread HTTP/1.1 web server framework
 
 \* At the moment lambda uses M$ Windows implementation of sockets, so in order to build it for Linux you will need to do some work replacing them. I'll probably do it myself in the future, but for not it is what it is.

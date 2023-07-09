@@ -5,14 +5,9 @@
 .vscode
 *.dll
 *.def
-*.db
 *.res
-
-# tests stuff
-tests/*.gz
 
 **/node_modules/**
 **/dist/**
-tests/vfs/**.tar.gz
-tests/vfs/**.tar
-tests/vfs/**.tgz
+
+deps/build/package-lock.json
