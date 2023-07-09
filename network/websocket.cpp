@@ -367,7 +367,9 @@ void WebSocket::asyncWsIO() {
 
 				if (frameHeader.finbit) {
 
+					std::lock_guard<std::mutex>lock(this->mtLock);
 					this->rxQueue.push_back(*multipartMessagePtr);
+
 					delete multipartMessagePtr;
 					multipartMessagePtr = nullptr;
 
@@ -402,6 +404,7 @@ void WebSocket::asyncWsIO() {
 				wsMessage.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
 				wsMessage.content.insert(wsMessage.content.end(), payload.begin(), payload.end());
 
+				std::lock_guard<std::mutex>lock(this->mtLock);
 				this->rxQueue.push_back(wsMessage);
 
 				#ifdef LAMBDADEBUG_WS
