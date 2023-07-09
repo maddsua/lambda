@@ -1,6 +1,6 @@
 /**
- * In this simple demo we return some json to the client
- * Check the code below to find out more!
+ * This is a web server example app using Lambda
+ * It just serves static content. Probably a Vercel killer of some sort lol
 */
 
 #include "../lambda.hpp"
@@ -41,35 +41,6 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	auto pathExtIdx = filepath.find_last_of('.');
 	if (pathExtIdx != std::string::npos)
 		response.headers.append("content-type", getExtMimetype(filepath.substr(pathExtIdx)));
-
-	/*//	just setting a custom header
-	response.headers.set("x-serverless", "true");
-
-	//	get search query "user" param
-	//	try opening url as http://localhost:8080/?user=maddsua
-	auto username = request.url.searchParams.get("user");
-	
-	//	check if user visited before by a cookie
-	auto cookies = Cookies(request);
-	bool isFirstFisit = false;
-
-	if (!cookies.has("userid")) {
-		auto newCookies = Cookies();
-		newCookies.set("userid", "test_user_0");
-		response.headers.set("Set-Cookie", newCookies.stringify());
-		isFirstFisit = true;
-	}
-
-	//	create response json
-	auto responseBody = JSON_Object();
-
-	responseBody.addString("timestamp", serverDate());
-	responseBody.addString("user", username.size() ? username : "anonymous");
-	responseBody.addString("useragent", request.headers.get("user-agent"));
-	responseBody.addBool("first_visit", isFirstFisit);
-
-	response.setBodyText(responseBody.stringify());
-	response.headers.append("content-type", "application/json");*/
 
 	return response;
 };
