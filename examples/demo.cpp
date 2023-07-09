@@ -73,7 +73,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 	}
 
 	//	websocket part
-	std::cout << "Connecting to a web socket..." << std::endl;
+	std::cout << "Conntected a websocket" << std::endl;
 
 	auto websock = connection.upgradeToWebsocket(request);
 
