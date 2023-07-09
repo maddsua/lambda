@@ -12,6 +12,12 @@ Lambda::Error VFS::read(const std::string& path, std::vector <uint8_t>& content)
 	return {};
 }
 
+std::vector <uint8_t> VFS::read(const std::string& path) {
+	std::lock_guard <std::mutex> lock(threadLock);
+	if (!this->vfs.contains(path)) return { };
+	return this->vfs.at(path).content;
+}
+
 Lambda::Error VFS::write(const std::string& path, const std::vector <uint8_t>& content) {
 
 	VirtualFile vfile;

@@ -47,10 +47,10 @@ void Server::removeServerlessCallback() {
 	this->requestCallbackServerless = nullptr;
 }
 
-void Server::setPasstrough(void* object) {
+void Server::enablePasstrough(void* object) {
 	this->instancePasstrough = object;
 }
-void Server::removePasstrough() {
+void Server::disablePasstrough() {
 	this->instancePasstrough = nullptr;
 }
 

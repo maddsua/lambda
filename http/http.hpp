@@ -270,10 +270,10 @@ namespace Lambda::HTTP {
 	std::vector<std::string> stringSplit(const std::string& str, const char* token);
 
 	//	Get mimetype for file extension
-	std::string getExtMimetype(const std::string mimetype);
+	std::string getExtMimetype(const std::string& mimetype);
 
 	//	Get file extension for mimetype
-	std::string getMimetypeExt(const std::string mimetype);
+	std::string getMimetypeExt(const std::string& mimetype);
 
 	//	Get server date and time
 	std::string serverDate();

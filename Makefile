@@ -341,8 +341,15 @@ test_json: encoding/json.o
 #--------------------------------
 
 #------------
-# Simple http server demo
+# Simple api server demo
 #------------
 
 example_api_server: $(LIBSHARED)
 	g++ examples/api_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_api_server.exe
+
+#------------
+# Simple web server demo
+#------------
+
+example_web_server: $(LIBSHARED)
+	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server.exe

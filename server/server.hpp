@@ -52,8 +52,6 @@ namespace Lambda {
 			HTTP::Response (*requestCallbackServerless)(HTTP::Request&, Context&) = nullptr;
 
 			void* instancePasstrough = nullptr;
-			void setPasstrough(void* object);
-			void removePasstrough();
 			
 		public:
 			Server() { init(); };
@@ -68,6 +66,9 @@ namespace Lambda {
 			void removeServerCallback();
 			void setServerlessCallback(HTTP::Response (*callback)(HTTP::Request&, Context&));
 			void removeServerlessCallback();
+
+			void enablePasstrough(void* object);
+			void disablePasstrough();
 
 			bool isAlive() { return this->running; };
 

@@ -45,6 +45,7 @@ namespace Lambda::Storage {
 
 		public:
 			Lambda::Error read(const std::string& path, std::vector <uint8_t>& content);
+			std::vector <uint8_t> read(const std::string& path);
 			Lambda::Error write(const std::string& path, const std::vector <uint8_t>& content);
 			Lambda::Error remove(const std::string& path);
 			Lambda::Error rename(const std::string& path, const std::string& newPath);
