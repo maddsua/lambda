@@ -88,4 +88,11 @@ span {
         }
     }
 }
+
+@media (max-width: 720px) {
+    .demo {
+        width: auto;
+        margin: 0 20px 0 5px;
+    }
+}
 </style>
