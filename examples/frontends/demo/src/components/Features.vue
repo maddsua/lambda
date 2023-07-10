@@ -56,9 +56,12 @@ h2 {
 }
 
 .features-link {
-    display: grid;
-    grid-template-columns: repeat(5, 180px);
-    grid-column-gap: 45px;
+    display: flex;
     justify-content: center;
+    align-items: flex-start;
+    align-content: flex-start;
+    gap: 45px;
+    align-self: stretch;
+    flex-wrap: wrap;
 }
 </style>

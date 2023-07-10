@@ -14,6 +14,8 @@ const props = defineProps({
 
 <style lang="scss" scoped>
 .features-list {
+    width: 200px;
+
     img {
         display: flex;
         margin: 0 auto;
