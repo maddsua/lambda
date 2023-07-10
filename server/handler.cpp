@@ -18,11 +18,11 @@ void Server::connectionHandler() {
 
 	try {
 
-		auto client = ListenSocketObj->acceptConnection();
+		auto server = ListenSocketObj->acceptConnection();
 		handlerDispatched = true;
 
 		// get request context
-		requestCTX.clientIP = client.clientIP();
+		requestCTX.clientIP = server.clientIP();
 		requestCTX.passtrough = this->instancePasstrough;
 
 		//	hold response object ready just in case
@@ -37,13 +37,13 @@ void Server::connectionHandler() {
 
 			//	serverfull handler. note the return statement
 			if (this->requestCallback != nullptr) {
-				this->requestCallback(client, requestCTX);
+				this->requestCallback(server, requestCTX);
 				return;
 			}
 
 			//	serverless handler
 			//	we read request before even trying to call handler, so we won't break http in case there's no handler
-			auto request = client.receiveMessage();
+			auto request = server.receiveMessage();
 			accepEncodingHeader = request.headers.get("accept-encoding");
 			if (this->requestCallbackServerless != nullptr) {
 				response = (*requestCallbackServerless)(request, requestCTX);
@@ -59,7 +59,7 @@ void Server::connectionHandler() {
 
 		//	handle errors
 		if (handlerErrorMessage.size()) {
-			addLogRecord(std::string("Request failed: " ) + handlerErrorMessage + " | Client: " + client.clientIP(), LAMBDA_LOG_ERROR);
+			addLogRecord(std::string("Request failed: " ) + handlerErrorMessage + " | Client: " + server.clientIP(), LAMBDA_LOG_ERROR);
 			response.setStatusCode(500);
 			response.setBodyText(handlerErrorMessage + " | lambda v" + LAMBDA_VERSION);
 		}
@@ -77,14 +77,14 @@ void Server::connectionHandler() {
 			auto compressionEnabled = this->flags.compressionUseBrotli || this->flags.compressionUseGzip;
 			//auto hasAcceptEncodingHeader = request.headers.has("accept-encoding");
 			if (!compressionEnabled || !accepEncodingHeader.size()) {
-				client.sendMessage(response);
+				server.sendMessage(response);
 				return;
 			}
 
 			auto contentTypeHeader = response.headers.get("content-type");
 			auto isSupportedType = stringIncludes(contentTypeHeader, compressibleFileTypes);
 			if (!isSupportedType) {
-				client.sendMessage(response);
+				server.sendMessage(response);
 				return;
 			}
 
@@ -96,7 +96,7 @@ void Server::connectionHandler() {
 		}
 
 		//	return server response
-		auto sendAction = client.sendMessage(response);
+		auto sendAction = server.sendMessage(response);
 		if (sendAction.isError()) throw sendAction;
 
 	} catch(const std::exception& e) {

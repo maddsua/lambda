@@ -199,7 +199,7 @@ server/handler.o: server/handler.cpp
 
 COMPONENT_STORAGE = obj_storage
 LIBSTATIC_STORAGE = lib$(LIBNAME)-storage.a
-OBJECTS_STORAGE = storage/kv.o storage/kv_file_db.o storage/kv_file_json.o storage/vfs.o storage/vfs_file_tar.o storage/vfs_file_lvfs2.o
+OBJECTS_STORAGE = storage/kv.o storage/kv_db.o storage/kv_json.o storage/vfs.o storage/vfs_tar.o storage/vfs_lvfs2.o
 
 $(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
 	ar rvs $(LIBSTATIC_STORAGE) $(OBJECTS_STORAGE)
@@ -207,20 +207,20 @@ $(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
 storage/kv.o: storage/kv.cpp
 	g++ -c storage/kv.cpp -o storage/kv.o $(CFLAGS)
 
-storage/kv_file_db.o: storage/kv_file_db.cpp
-	g++ -c storage/kv_file_db.cpp -o storage/kv_file_db.o $(CFLAGS)
+storage/kv_db.o: storage/kv_db.cpp
+	g++ -c storage/kv_db.cpp -o storage/kv_db.o $(CFLAGS)
 
-storage/kv_file_json.o: storage/kv_file_json.cpp
-	g++ -c storage/kv_file_json.cpp -o storage/kv_file_json.o $(CFLAGS)
+storage/kv_json.o: storage/kv_json.cpp
+	g++ -c storage/kv_json.cpp -o storage/kv_json.o $(CFLAGS)
 
 storage/vfs.o: storage/vfs.cpp
 	g++ -c storage/vfs.cpp -o storage/vfs.o $(CFLAGS)
 
-storage/vfs_file_tar.o: storage/vfs_file_tar.cpp
-	g++ -c storage/vfs_file_tar.cpp -o storage/vfs_file_tar.o $(CFLAGS)
+storage/vfs_tar.o: storage/vfs_tar.cpp
+	g++ -c storage/vfs_tar.cpp -o storage/vfs_tar.o $(CFLAGS)
 	
-storage/vfs_file_lvfs2.o: storage/vfs_file_lvfs2.cpp
-	g++ -c storage/vfs_file_lvfs2.cpp -o storage/vfs_file_lvfs2.o $(CFLAGS)
+storage/vfs_lvfs2.o: storage/vfs_lvfs2.cpp
+	g++ -c storage/vfs_lvfs2.cpp -o storage/vfs_lvfs2.o $(CFLAGS)
 
 
 
@@ -353,3 +353,10 @@ example_api_server: $(LIBSHARED)
 
 example_web_server: $(LIBSHARED)
 	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server.exe
+
+#------------
+# Demo app
+#------------
+
+example_demo: $(LIBSHARED)
+	g++ examples/demo.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_demo.exe
