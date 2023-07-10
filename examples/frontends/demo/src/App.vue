@@ -2,6 +2,7 @@
 import Header from './components/Header.vue';
 import Features from './components/Features.vue';
 import Console from './components/Console.vue';
+import Footer from './components/Footer.vue';
 </script>
 
 <template>
@@ -12,4 +13,7 @@ import Console from './components/Console.vue';
     <Features/>
     <Console/>
   </main>
+  <footer>
+    <Footer/>
+  </footer>
 </template>
