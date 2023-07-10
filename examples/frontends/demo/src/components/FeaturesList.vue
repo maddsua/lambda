@@ -15,21 +15,20 @@ const props = defineProps({
 <style lang="scss" scoped>
 .features-list {
     width: 200px;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    gap: 10px;
 
     img {
-        display: flex;
-        margin: 0 auto;
         width: 60px;
         height: 60px;
-        margin-bottom: 15px;
     }
 
     p {
         color: #4696E5;
         text-align: center;
         font-size: 20px;
-        font-weight: medium;
-        margin-bottom: 15px;
     }
 
     span {

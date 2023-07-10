@@ -22,7 +22,7 @@
 
 <style lang="scss" scoped>
 .console {
-    margin-top: 75px;
+    margin: 75px 0 50px 0;
 }
 
 h2 {
@@ -41,6 +41,7 @@ span {
 .demo {
     margin-top: 50px;
     width: 720px;
+    max-width: 100%;
     height: 380px;
     background: #0F172A;
     border-radius: 25px;
@@ -86,13 +87,6 @@ span {
                 background: inherit;
             }
         }
-    }
-}
-
-@media (max-width: 720px) {
-    .demo {
-        width: auto;
-        margin: 0 20px 0 5px;
     }
 }
 </style>

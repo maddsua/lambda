@@ -18,6 +18,7 @@ import HeaderButton from './HeaderButton.vue';
 <style lang="scss" scoped>
 .header-container {
     width: 945px;
+    max-width: 100%;
     margin: 85px auto 30px;
     display: flex;
     align-items: center;
@@ -46,12 +47,6 @@ import HeaderButton from './HeaderButton.vue';
         color: #141414;
         font-size: 22px;
         font-weight: 300;
-    }
-}
-
-@media (max-width: 945px) {
-    .header-container {
-        width: auto;
     }
 }
 
