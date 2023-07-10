@@ -12,7 +12,7 @@ import HeaderButton from './HeaderButton.vue';
             <p>Written in C++ from scratch, empowered by OS-native APIs, Websockets, KV storage and virtual file system</p>
         </div>
     </div>
-    <HeaderButton/>
+    <HeaderButton />
 </template>
 
 <style lang="scss" scoped>
@@ -24,7 +24,7 @@ import HeaderButton from './HeaderButton.vue';
 }
 
 .header-logo {
-    margin: 0 auto;
+    margin-right: 20px;
 
     img {
         width: 220px;
@@ -33,9 +33,9 @@ import HeaderButton from './HeaderButton.vue';
 }
 
 .header-title {
+    margin-right: 30px;
 
     h1 {
-        width: 680px;
         font-size: 45px;
         color: #4696E5;
         font-weight: 500;
@@ -43,10 +43,33 @@ import HeaderButton from './HeaderButton.vue';
     }
 
     p {
-        width: 650px;
         color: #141414;
         font-size: 22px;
         font-weight: 300;
+    }
+}
+
+@media (max-width: 945px) {
+    .header-container {
+        width: auto;
+    }
+}
+
+@media (max-width: 525px) {
+    .header-logo {
+        margin-right: 5px;
+    }
+    .header-title {
+        margin-right: 5px;
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 15px;
+        }
     }
 }
 </style>
