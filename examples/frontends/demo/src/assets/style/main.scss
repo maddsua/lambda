@@ -34,6 +34,8 @@ aside {
 html,
 body {
     background: url(/background.jpg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     background-size: cover;
     font-family: 'Inter', sans-serif;
     width: 100%;

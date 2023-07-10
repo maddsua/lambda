@@ -9,6 +9,7 @@
 .click-to-action {
     display: flex;
     justify-content: center;
+    margin-bottom: 75px;
 }
 
 button {
