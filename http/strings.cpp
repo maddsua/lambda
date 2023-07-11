@@ -12,7 +12,7 @@ void Lambda::HTTP::stringToLowerCase(std::string& str) {
 std::string Lambda::HTTP::stringToLowerCase(const std::string& str) {
 	auto temp = str;
 	stringToLowerCase(temp);
-	return temp;
+	return std::move(temp);
 }
 
 void Lambda::HTTP::stringToUpperCase(std::string& str) {
@@ -24,7 +24,7 @@ void Lambda::HTTP::stringToUpperCase(std::string& str) {
 std::string Lambda::HTTP::stringToUpperCase(const std::string& str) {
 	auto temp = str;
 	stringToUpperCase(temp);
-	return temp;
+	return std::move(temp);
 }
 
 void Lambda::HTTP::stringToTittleCase(std::string& str) {
@@ -38,7 +38,7 @@ void Lambda::HTTP::stringToTittleCase(std::string& str) {
 std::string Lambda::HTTP::stringToTittleCase(const std::string& str) {
 	auto temp = str;
 	stringToTittleCase(temp);
-	return temp;
+	return std::move(temp);
 }
 
 bool Lambda::HTTP::stringIncludes(const std::string& str, const std::string& substr) {
@@ -86,7 +86,7 @@ void Lambda::HTTP::stringTrim(std::string& str) {
 std::string Lambda::HTTP::stringTrim(const std::string& str) {
 	auto temp = str;
 	stringTrim(temp);
-	return temp;
+	return std::move(temp);
 }
 
 std::string Lambda::HTTP::stringJoin(const std::vector<std::string>& strs, const char* token) {
@@ -95,7 +95,7 @@ std::string Lambda::HTTP::stringJoin(const std::vector<std::string>& strs, const
 		if (result.size() > 0) result += token;
 		result += str;
 	}
-	return result;
+	return std::move(result);
 }
 
 std::vector<std::string> Lambda::HTTP::stringSplit(const std::string& str, const char* token) {
@@ -122,5 +122,5 @@ std::vector<std::string> Lambda::HTTP::stringSplit(const std::string& str, const
 	//	push the remaining part
 	if (str.size() - startpos) result.push_back(str.substr(startpos));
 
-	return result;
+	return std::move(result);
 }

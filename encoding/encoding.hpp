@@ -41,7 +41,6 @@ namespace Lambda::Encoding {
 			void addFltArray(const std::string& key, const std::vector<double> value);
 			void addBoolArray(const std::string& key, const std::vector<bool> value);
 
-			void addObject(const std::string& key, std::string objectString);
 			void addObject(const std::string& key, JSON_Object& object);
 			void addObject(const std::string& key, JSON_Array& object);
 

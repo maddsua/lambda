@@ -4,6 +4,13 @@
 using namespace Lambda;
 using namespace Lambda::Encoding;
 
+static const std::vector<std::pair<std::string, std::string>> encodeTable = {
+	{ "\n", "\\\\n" },
+	{ "\r", "\\\\r" },
+	{ "\t", "\\\\t" },
+	{ "\"", "\\\"" }
+};
+
 void tabLeftpad(std::string& content) {
 
 	std::vector<size_t> linebreaks;
@@ -32,8 +39,48 @@ void tabLeftpad(std::string& content) {
 	}
 }
 
+void stringEncode(std::string& content) {
+
+	for (size_t i = 0; i < content.size(); i++) {
+
+		for (const auto& ec : encodeTable) {
+
+			if (ec.first[0] != content.at(i)) continue;
+			else if (i > 0 && content.at(i - 1) == '\\') continue;
+
+			content.replace(i, 1, ec.second);
+			i += ec.second.size() - 1;
+			break;
+		}
+	}
+}
+
+std::string stringEncode(const std::string& content) {
+	auto temp = content;
+	stringEncode(temp);
+	return std::move(temp);
+}
+
+void stringDecode(std::string& content) {
+
+	for (const auto& ec : encodeTable) {
+
+		auto found = std::string::npos;
+
+		while ((found = content.find(ec.second)) != std::string::npos) {
+			content.replace(found, ec.second.size(), ec.first);
+		}
+	}
+}
+
+std::string stringDecode(const std::string& content) {
+	auto temp = content;
+	stringDecode(temp);
+	return std::move(temp);
+}
+
 void JSON_Object::addString(const std::string& key, const std::string& value) {
-	this->data[key] = "\"" + value + "\"";
+	this->data[key] = "\"" + stringEncode(value) + "\"";
 }
 
 void JSON_Object::addInt(const std::string& key, const int64_t value) {
@@ -60,7 +107,7 @@ void JSON_Object::addStringArray(const std::string& key, const std::vector<std::
 	std::string temp;
 	for (const auto& item : value) {
 		if (temp.size() > 0) temp += ", ";
-		temp += "\"" + item + "\"";
+		temp += "\"" + stringEncode(item) + "\"";
 	}
 	this->data[key] = "[" + temp + "]";
 }
@@ -93,26 +140,16 @@ void JSON_Object::addBoolArray(const std::string& key, const std::vector<bool> v
 	this->data[key] = "[" + temp + "]";
 }
 
-void JSON_Object::addObject(const std::string& key, std::string objectString) {
+void JSON_Object::addObject(const std::string& key, JSON_Object& object) {
+	auto objectString = object.stringify();
 	tabLeftpad(objectString);
 	this->data[key] = objectString;
 }
 
-void JSON_Object::addObject(const std::string& key, JSON_Object& object) {
-	addObject(key, object.stringify());
-}
-
 void JSON_Object::addObject(const std::string& key, JSON_Array& object) {
-	addObject(key, object.stringify());
-}
-
-std::string JSON_Object::stringify() {
-	std::string temp;
-	for (const auto& item : this->data) {
-		if (temp.size() > 0) temp += ",\n";
-		temp += "\t\"" + item.first + "\": " + item.second;
-	}
-	return "{\n" + temp + "\n}";
+	auto objectString = object.stringify();
+	tabLeftpad(objectString);
+	this->data[key] = objectString;
 }
 
 void JSON_Object::addNull(const std::string& key) {
@@ -120,8 +157,18 @@ void JSON_Object::addNull(const std::string& key) {
 }
 
 void JSON_Object::removeKey(const std::string& key) {
-	if (!this->data.contains(key)) return;
-	this->data.erase(key);
+	auto keyEscaped = key;
+	if (!this->data.contains(keyEscaped)) return;
+	this->data.erase(keyEscaped);
+}
+
+std::string JSON_Object::stringify() {
+	std::string temp;
+	for (const auto& item : this->data) {
+		if (temp.size() > 0) temp += ",\n";
+		temp += "\t\"" + stringEncode(item.first) + "\": " + item.second;
+	}
+	return "{\n" + temp + "\n}";
 }
 
 JSON_Object JSON_Object::operator+=(const JSON_Object& b) {
@@ -136,7 +183,7 @@ JSON_Object JSON_Object::operator+=(const JSON_Object& b) {
 
 
 void JSON_Array::pushString(const std::string& value) {
-	this->data.push_back("\"" + value + "\"");
+	this->data.push_back("\"" + stringEncode(value) + "\"");
 }
 
 void JSON_Array::pushInt(int64_t value) {
@@ -162,13 +209,13 @@ void JSON_Array::pushBool(bool value) {
 void JSON_Array::push(JSON_Object& object) {
 	auto temp = object.stringify();
 	tabLeftpad(temp);
-	this->data.push_back(temp);
+	this->data.push_back(std::move(temp));
 }
 
 void JSON_Array::push(JSON_Array& object) {
 	auto temp = object.stringify();
 	tabLeftpad(temp);
-	this->data.push_back(temp);
+	this->data.push_back(std::move(temp));
 }
 
 
@@ -224,7 +271,7 @@ JSONParser::JSONParser(const std::string& json) {
 
 size_t JSONParser::findPropNext(const std::string& key) {
 
-	std::string pattern = "\"" + key + "\"";
+	std::string pattern = "\"" + stringEncode(key) + "\"";
 
 	size_t searchIdx = std::string::npos;
 	size_t searchStart = 0;
@@ -232,7 +279,7 @@ size_t JSONParser::findPropNext(const std::string& key) {
 	while (searchIdx == std::string::npos) {
 
 		auto tempIdx = this->data.find(pattern, searchStart);
-		if (tempIdx == searchIdx) throw Lambda::Error("Prop \"" + key + "\" not found");
+		if (tempIdx == searchIdx) throw Lambda::Error("Prop \"" + stringEncode(key) + "\" not found");
 		
 		for (const auto& holdout : this->mask) {
 
@@ -338,9 +385,9 @@ std::string JSONParser::getStringProp(const std::string& key) {
 		const auto& c = this->data.at(i);
 
 		if (pos_start != std::string::npos) {
-
+			
 			if (c == '\"' &&  this->data.at(i - 1) != '\\')
-				return this->data.substr(pos_start, i - pos_start);
+				return stringDecode(static_cast<const std::string>(this->data.substr(pos_start, i - pos_start)));
 
 		} else if (flagPropSeparator) {
 			if (c == ' ') continue;
@@ -525,10 +572,9 @@ std::vector<std::string> JSONParser::getStringArrayProp(const std::string& key) 
 			continue;
 		}
 
-		result.push_back(arrayProp.substr(pos_start, i - pos_start));
+		result.push_back(stringDecode(static_cast<const std::string>(arrayProp.substr(pos_start, i - pos_start))));
 		pos_start = std::string::npos;
 	}
-	
 
 	return result;
 }

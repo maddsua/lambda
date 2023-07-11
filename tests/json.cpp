@@ -16,11 +16,11 @@ int main(void) {
 	array.pushInt(44);
 	array.pushFlt(44.2);
 	array.pushBool(false);
-	array.pushString("test");
+	array.pushString("test\"more\ntests");
 
 
 	std::vector<int64_t> graph = {8,45,11,35};
-	std::vector<std::string> tags = {"seo","web","landing","lead"};
+	std::vector<std::string> tags = {"seo: \"search engine optimization\"","web","landing","lead"};
 
 	json2.addString("metadata", "false");
 	json2.addIntArray("graph", graph);
@@ -42,7 +42,7 @@ int main(void) {
 
 	std::string datajson = R"(
 		{
-			"value": "test text here"
+			"value": "test\\ttext here"
 			"number": 4575889,
 			"float": 16.4,
 			"booolean": true,
@@ -66,5 +66,13 @@ int main(void) {
 	auto parsed = JSONParser(datajson);
 
 	std::cout << "Bool vaue: " << parsed.getBoolProp("booolean") << std::endl;
+	std::cout << "String vaue: " << parsed.getStringProp("value") << std::endl;
+	std::cout << "String array:" << std::endl;
 
+	auto stringarray = parsed.getStringArrayProp("strings");
+	for (auto item : stringarray) {
+		std::cout << item << std::endl;
+	}
+
+	return 0;
 }
