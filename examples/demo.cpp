@@ -30,7 +30,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 
 	auto request = connection.receiveMessage();
 
-	std::cout << "Request to \"" << request.url.pathname << std::endl;
+	std::cout << "Serving \"" << request.url.pathname << "\"" << std::endl;
 
 	//	handle regular http requests
 	if (!request.url.pathname.starts_with("/ws")) {
@@ -149,7 +149,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 		}
 	}
 
-	std::cout << "Websocket disconnected ?: " << websock.getError().what() << std::endl;
+	std::cout << "Websocket disconnected" << std::endl;
 }
 
 int main() {
@@ -166,7 +166,7 @@ int main() {
 	server.enablePasstrough(&passthough);
 
 	auto vfs = new VFS();
-	auto vfsload = passthough.vfs->loadSnapshot("demo/dist.tar.gz");
+	auto vfsload = vfs->loadSnapshot("demo.dist.tar.gz");
 	if (vfsload.isError()) std::cout << "Failed to load VFS: " << vfsload.what() << std::endl;
 	else passthough.vfs = vfs;
 
