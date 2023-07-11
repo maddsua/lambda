@@ -353,3 +353,10 @@ example_api_server: $(LIBSHARED)
 
 example_web_server: $(LIBSHARED)
 	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server.exe
+
+#------------
+# Demo app
+#------------
+
+example_demo: $(LIBSHARED)
+	g++ examples/demo.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_demo.exe
