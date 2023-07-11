@@ -37,13 +37,13 @@ import HeaderButton from './HeaderButton.vue';
 	max-width: 100%;
 	flex-direction: column;
 	align-items: center;
-	gap: 3.125rem;
+	gap: 3em;
 
 	.intro {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: 3rem;
+		gap: 3em;
 		align-self: stretch;
 
 		.logo {
@@ -86,7 +86,7 @@ import HeaderButton from './HeaderButton.vue';
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: 1.25rem;
+		gap: 1.25em;
 	}
 }
 
