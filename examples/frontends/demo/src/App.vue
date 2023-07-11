@@ -2,7 +2,7 @@
 
 import Header from './components/Header.vue';
 import Features from './components/Features.vue';
-import Console from './components/Console.vue';
+import Kvdemo from './components/kvdemo.vue';
 import Footer from './components/Footer.vue';
 
 </script>
@@ -11,7 +11,7 @@ import Footer from './components/Footer.vue';
 	<main>
 		<Header />
 		<Features/>
-		<Console/>
+		<Kvdemo/>
 	</main>
 	<Footer/>
 </template>
@@ -26,8 +26,7 @@ main {
 	width: 80rem;
 	max-width: 100%;
 	padding: 0 2em;
-	margin: auto;
-	margin-top: 4em;
+	margin: 4em auto;
 }
 
 </style>

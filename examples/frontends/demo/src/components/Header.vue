@@ -6,7 +6,7 @@ import HeaderButton from './HeaderButton.vue';
 	<header class="header-container">
 
 		<div class="intro">
-			<img class="logo" src="/logo.png" alt="Logo">
+			<img class="logo" src="/logo.svg" alt="Logo">
 
 			<div class="content">
 				<h1>
