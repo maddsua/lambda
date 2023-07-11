@@ -1,34 +1,43 @@
 <template>
-    <div class="coopyright">
-        <span>2023 maddsua</span>
-        <a href="https://github.com/maddsua/lambda/tree/main">Github</a>
-    </div>
+
+    <footer>
+
+		<div class="copyright">
+			<div>2023 maddsua</div>
+			<a href="https://github.com/maddsua/lambda/tree/main">Github</a>
+		</div>
+
+    </footer>
+
 </template>
 
 <style lang="scss" scoped>
-.coopyright {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80px;
-    background: rgba(240, 240, 240, 0.40);
 
-    span,
-    a {
-        font-weight: 300;
-    }
+footer {
+	display: flex;
+	padding: 1.5em;
+	flex-direction: column;
+	align-items: center;
+	gap: 2rem;
+	background: rgba(240, 240, 240, 0.40);
+	backdrop-filter: blur(2px);
 
-    span {
-        margin-right: 10px;
-    }
+	.copyright {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 1.25rem;
+		font-weight: 300;
 
-    a {
-        color: #4696E5;
-        transition: .1s ease-in-out;
+		a {
+			color: var(--app-accent);
+			transition: .1s ease-in-out;
 
-        &:hover {
-            color: #111;
-        }
-    }
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+	}
 }
+
 </style>
