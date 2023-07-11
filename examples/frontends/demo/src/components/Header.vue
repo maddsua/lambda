@@ -16,18 +16,49 @@ import HeaderButton from './HeaderButton.vue';
 </template>
 
 <style lang="scss">
-.hidden {
-    opacity: 0;
-}
-
 .click-to-action {
     opacity: 1;
     animation: ani 2s forwards;
 }
 
 .header-container {
+    width: 945px;
+    max-width: 100%;
+    margin: 85px auto 30px;
+    display: flex;
+    align-items: center;
+    gap: 45px;
     opacity: 1;
     animation: ani 2s forwards;
+}
+
+.header-logo {
+    img {
+        width: 220px;
+        height: 230px;
+    }
+}
+
+.header-title {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    h1 {
+        font-size: 45px;
+        color: #4696E5;
+        font-weight: 500;
+    }
+
+    p {
+        color: #141414;
+        font-size: 22px;
+        font-weight: 300;
+    }
+}
+
+.hidden {
+    opacity: 0;
 }
 
 @keyframes ani {
@@ -40,56 +71,12 @@ import HeaderButton from './HeaderButton.vue';
     }
 }
 
-.header-container {
-    width: 945px;
-    max-width: 100%;
-    margin: 85px auto 30px;
-    display: flex;
-    align-items: center;
-}
 
-.header-logo {
-    margin-right: 20px;
-
-    img {
-        width: 220px;
-        height: 230px;
-    }
-}
-
-.header-title {
-    margin-right: 30px;
-
-    h1 {
-        font-size: 45px;
-        color: #4696E5;
-        font-weight: 500;
-        margin-bottom: 14px;
-    }
-
-    p {
-        color: #141414;
-        font-size: 22px;
-        font-weight: 300;
-    }
-}
-
-@media (max-width: 525px) {
-    .header-logo {
-        margin-right: 5px;
-    }
-
-    .header-title {
-        margin-right: 5px;
-
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        p {
-            font-size: 15px;
-        }
+@media (max-width: 725px) {
+    .header-container {
+        display: block;
+        text-align: center;
+        padding: 0 20px;
     }
 }
 </style>
