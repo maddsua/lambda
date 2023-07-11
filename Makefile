@@ -1,6 +1,5 @@
 
 LIBNAME			= lambda
-APP_DEV			= $(LIBNAME).exe
 CFLAGS			= -std=c++20 -g
 MAINTARGET		= libshared
 
