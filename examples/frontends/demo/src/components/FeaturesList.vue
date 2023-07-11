@@ -1,14 +1,21 @@
 <script setup lang="ts">
-const props = defineProps({
-    featurelist: { type: Object }
-})
+
+interface Props {
+	item: {
+		img: string;
+		title: string;
+		desc: string;
+	};
+}
+const { item } = defineProps<Props>();
+
 </script>
 
 <template>
     <div class="features-list">
-        <img :src="featurelist.img" alt="img">
-        <p>{{ featurelist.title }}</p>
-        <span>{{ featurelist.subtitle }}</span>
+        <img :src="item.img" alt="img">
+        <p>{{ item.title }}</p>
+        <span>{{ item.desc }}</span>
     </div>
 </template>
 

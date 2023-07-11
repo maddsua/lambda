@@ -6,14 +6,18 @@ import Footer from './components/Footer.vue';
 </script>
 
 <template>
-  <header>
-    <Header />
-  </header>
-  <main>
-    <Features/>
-    <Console/>
-  </main>
-  <footer>
-    <Footer/>
-  </footer>
+	<main>
+		<Header />
+		<Features/>
+		<Console/>
+	</main>
+	<Footer/>
 </template>
+
+<style scoped>
+
+main {
+	padding: 2em;
+}
+
+</style>

@@ -1,38 +1,34 @@
 <script lang="ts" setup>
+
 import FeaturesList from './FeaturesList.vue';
 
 const features = [
     {
-        id: '01',
         title: 'Custom JSON',
-        subtitle: 'Lambda’s JSON parser and serializer were created with a priority of being super simple to use, without sacrificing the performance',
+        desc: 'Lambda’s JSON parser and serializer were created with a priority of being super simple to use, without sacrificing the performance',
         img: '/svg/json.svg'
     },
     {
-        id: '02',
         title: 'KV storage',
-        subtitle: 'Key-value storages offer fast read and write operations, making them suitable for scenarios where quick access to data is crucial',
+        desc: 'Key-value storages offer fast read and write operations, making them suitable for scenarios where quick access to data is crucial',
         img: '/svg/data.svg'
     },
     {
-        id: '03',
         title: 'Virtual file system',
-        subtitle: 'Deploy all the frontend code from a single archive file, use lambda’s own lvfs2 format to gain extra speed',
+        desc: 'Deploy all the frontend code from a single archive file, use lambda’s own lvfs2 format to gain extra speed',
         img: '/svg/targs.svg'
     },
     {
-        id: '04',
         title: 'Websockets',
-        subtitle: 'Deploy all the frontend code from a single archive file, use lambda’s own lvfs2 format to gain extra speed',
+        desc: 'Deploy all the frontend code from a single archive file, use lambda’s own lvfs2 format to gain extra speed',
         img: '/svg/ws.svg'
     },
     {
-        id: '05',
         title: 'Host OS API',
-        subtitle: "Full access to Windows or other OS native API.Do any crazy shit you want to. It’s C++ bro, there’s noting to scream at you 😈",
+        desc: "Full access to Windows or other OS native API.Do any crazy shit you want to. It’s C++ bro, there’s noting to scream at you",
         img: '/svg/os.svg'
     },
-]
+];
 </script>
 
 <template>
@@ -40,7 +36,7 @@ const features = [
         <div class="features-container">
             <h2>Features</h2>
             <div class="features-link">
-                <FeaturesList v-for="featurelist in features" :key="featurelist.id" v-bind:featurelist="featurelist" />
+                <FeaturesList v-for="item of features" :item="item" />
             </div>
         </div>
     </section>
