@@ -1,9 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
+:root {
+	--app-accent: #4696E5;
+}
+
+html, body {
+	font-size: 16px;
+	overflow-x: hidden;
+}
+
 
 * {
     padding: 0;
     margin: 0;
     border: 0;
+	box-sizing: border-box;
 }
 
 *,
@@ -24,12 +33,6 @@ a:active {
     outline: none;
 }
 
-header,
-footer,
-nav,
-aside {
-    display: block;
-}
 
 html,
 body {
@@ -37,15 +40,9 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-    font-family: 'Inter', sans-serif;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     width: 100%;
     font-size: inherit;
-}
-
-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2em;
 }
 
 a,

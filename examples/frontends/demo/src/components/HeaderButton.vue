@@ -1,49 +1,40 @@
+<script setup lang="ts">
+
+interface Props {
+	href: string;
+	outline?: boolean;
+}
+const { href, outline } = defineProps<Props>();
+
+</script>
+
 <template>
-    <div class="click-to-action">
-        <button>Download</button>
-        <button>Learn More</button>
-    </div>
+	<a :href="href" :class="{ outline }">
+		<slot>
+			[Link text]
+		</slot>
+	</a>
 </template>
 
 <style lang="scss" scoped>
-.click-to-action {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    margin-bottom: 75px;
-    opacity: 1;
-    animation: ani 2s forwards;
+
+a {
+	display: flex;
+	padding: 0.625rem 1.25rem;
+	justify-content: center;
+	align-items: center; 
+	border-radius: 0.625rem;
+	background: var(--app-accent);
+	color: white;
+	text-align: center;
+	font-size: 1rem;
+	font-weight: 500;
+
+	&.outline {
+		border: 2px solid var(--app-accent);
+		background-color: transparent;
+		color: var(--app-accent);
+	}
 }
 
-button {
-    padding: 14px 22px;
-    width: 142px;
-    height: 51px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: .2s ease-in-out;
-    font-size: 15px;
-
-    &:first-child {
-        color: white;
-        background: #4696E5;
-        border: 2px solid #4696E5;
-
-        &:hover {
-            color: #4696E5;
-            background: inherit;
-        }
-    }
-
-    &:last-child {
-        color: #4696E5;
-        background: inherit;
-        border: 2px solid #4696E5;
-
-        &:hover {
-            color: white;
-            background: #4696E5;
-        }
-    }
-}
 </style>

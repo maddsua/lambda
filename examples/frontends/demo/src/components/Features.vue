@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import FeaturesList from './FeaturesList.vue';
+import FeaturesItem from './FeaturesItem.vue';
 
 const features = [
     {
@@ -33,12 +33,17 @@ const features = [
 
 <template>
     <section class="features">
+
         <div class="features-container">
+
             <h2>Features</h2>
+
             <div class="features-link">
-                <FeaturesList v-for="item of features" :item="item" />
+                <FeaturesItem v-for="item of features" :item="item" />
             </div>
+
         </div>
+
     </section>
 </template>
 
