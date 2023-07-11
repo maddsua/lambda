@@ -64,4 +64,23 @@ h2 {
     align-self: stretch;
     flex-wrap: wrap;
 }
+
+.hidden {
+    opacity: 0;
+}
+
+.features {
+    opacity: 1;
+    animation: ani 2s forwards;
+}
+
+@keyframes ani {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
 </style>

@@ -15,7 +15,31 @@ import HeaderButton from './HeaderButton.vue';
     <HeaderButton />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+.hidden {
+    opacity: 0;
+}
+
+.click-to-action {
+    opacity: 1;
+    animation: ani 2s forwards;
+}
+
+.header-container {
+    opacity: 1;
+    animation: ani 2s forwards;
+}
+
+@keyframes ani {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
 .header-container {
     width: 945px;
     max-width: 100%;
@@ -54,6 +78,7 @@ import HeaderButton from './HeaderButton.vue';
     .header-logo {
         margin-right: 5px;
     }
+
     .header-title {
         margin-right: 5px;
 

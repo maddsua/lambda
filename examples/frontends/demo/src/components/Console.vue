@@ -1,5 +1,28 @@
+<script lang="ts" setup>
+function isElementInViewport(el: Element): boolean {
+    const rect = el.getBoundingClientRect();
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+}
+
+function handleScroll(): void {
+    const console = document.querySelectorAll('.console');
+    console.forEach((element) => {
+        if (isElementInViewport(element)) {
+            element.classList.add('visible');
+        }
+    });
+}
+
+window.addEventListener('scroll', handleScroll);
+</script>
+
 <template>
-    <section class="console">
+    <section class="console hidden">
         <h2>
             This demo uses websockets to manipulate KV storage
         </h2>
@@ -21,6 +44,15 @@
 </template>
 
 <style lang="scss" scoped>
+.hidden {
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.visible {
+    opacity: 1;
+}
+
 .console {
     margin: 75px 0 50px 0;
 }
