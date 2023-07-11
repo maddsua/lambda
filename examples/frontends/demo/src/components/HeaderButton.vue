@@ -9,6 +9,7 @@
 .click-to-action {
     display: flex;
     justify-content: center;
+    gap: 25px;
     margin-bottom: 75px;
 }
 
@@ -19,15 +20,12 @@ button {
     border-radius: 10px;
     cursor: pointer;
     transition: .2s ease-in-out;
+    font-size: 15px;
 
     &:first-child {
         color: white;
         background: #4696E5;
         border: 2px solid #4696E5;
-
-        &:not(:last-child) {
-            margin-right: 27px;
-        }
 
         &:hover {
             color: #4696E5;
