@@ -14,7 +14,7 @@ const props = defineProps({
 
 <style lang="scss" scoped>
 .features-list {
-    width: 200px;
+    width: 180px;
     display: flex;
     flex-flow: column;
     align-items: center;
