@@ -166,7 +166,7 @@ int main() {
 	server.enablePasstrough(&passthough);
 
 	auto vfs = new VFS();
-	auto vfsload = vfs->loadSnapshot("demo.dist.tar.gz");
+	auto vfsload = vfs->loadSnapshot("examples/content/demo.dist.tar.gz");
 	if (vfsload.isError()) std::cout << "Failed to load VFS: " << vfsload.what() << std::endl;
 	else passthough.vfs = vfs;
 
