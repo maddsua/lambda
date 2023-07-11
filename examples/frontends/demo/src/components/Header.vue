@@ -16,11 +16,6 @@ import HeaderButton from './HeaderButton.vue';
 </template>
 
 <style lang="scss">
-.click-to-action {
-    opacity: 1;
-    animation: ani 2s forwards;
-}
-
 .header-container {
     width: 945px;
     max-width: 100%;
