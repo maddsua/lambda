@@ -25,6 +25,9 @@ namespace Lambda::Storage {
 		size_t size;
 	};
 
+	/**
+	 * Tar compression options
+	*/
 	enum TarCompressionLayer {
 		TARCOMPRESS_NONE = 0,
 		TARCOMPRESS_GZIP = 1,
@@ -32,6 +35,9 @@ namespace Lambda::Storage {
 
 	typedef std::unordered_map <std::string, VirtualFile> VFSFS;
 
+	/**
+	 * Virtual filesystem class
+	*/
 	class VFS {
 		private:
 			VFSFS vfs;
@@ -44,16 +50,54 @@ namespace Lambda::Storage {
 			void exportLvfs2(std::ofstream& filestream);
 
 		public:
+
+			/**
+			 * Get file contents, errors will be returned as a return value
+			*/
 			Lambda::Error read(const std::string& path, std::vector <uint8_t>& content);
+
+			/**
+			 * Get file contents suppressing error, in case of an error the size of returned vector will be zero
+			*/
 			std::vector <uint8_t> read(const std::string& path);
+
+			/**
+			 * Save, add or owerwrite file in the VFS
+			*/
 			Lambda::Error write(const std::string& path, const std::vector <uint8_t>& content);
+
+			/**
+			 * Delete a file
+			*/
 			Lambda::Error remove(const std::string& path);
+
+			/**
+			 * Rename a file
+			*/
 			Lambda::Error rename(const std::string& path, const std::string& newPath);
 
+			/**
+			 * List all stored files
+			*/
 			std::vector<VirtualFileInfo> listAll();
+
+			/**
+			 * Get single file metadata
+			*/
 			VirtualFileInfo fileInfo(const std::string& path);
 
+			/**
+			 * Load VFS image.
+			 * 
+			 * Supported formats are: .tar, .tar.gz, .tgz, lvfs2
+			*/
 			Lambda::Error loadSnapshot(const std::string& path);
+
+			/**
+			 * Save VFS image.
+			 * 
+			 * Supported formats are: .tar, .tar.gz, .tgz, lvfs2
+			*/
 			Lambda::Error saveSnapshot(const std::string& path);
 	};
 

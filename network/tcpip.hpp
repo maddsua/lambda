@@ -1,3 +1,8 @@
+/*
+	This header provides more or less a way to use sockets on bow Windows an Linux
+	Should work in theory. If it does not, well, something is wrong 🗿🚬
+*/
+
 #ifndef __LAMBDA_NETWORK_APIS__
 #define __LAMBDA_NETWORK_APIS__
 

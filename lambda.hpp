@@ -4,8 +4,8 @@
  * 2023 maddsua, https://github.com/maddsua
 */
 
-#ifndef __LIB_MADDSUA_LAMBDA__
-#define __LIB_MADDSUA_LAMBDA__
+#ifndef __LIB_MADDSUA_LAMBDA_ENTRYPOINT__
+#define __LIB_MADDSUA_LAMBDA_ENTRYPOINT__
 
 #include "./lambda_version.hpp"
 

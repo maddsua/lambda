@@ -5,6 +5,10 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 
+enum Constants {
+	FETCH_MAX_ATTEMPTS = 5
+};
+
 Response Fetch::fetch(const Request& userRequest) {
 
 	//	create a connection
@@ -44,7 +48,7 @@ Response Fetch::fetch(const Request& userRequest) {
 		if (connectAttempts > FETCH_MAX_ATTEMPTS) {
 			auto apierror = getAPIError();
 			freeaddrinfo(resolvedAddresses);
-			throw Lambda::Error("Reached max attempts without succeding", apierror);
+			throw Lambda::Error("Reached max attempts (" + std::to_string(FETCH_MAX_ATTEMPTS)  +") without succeding", apierror);
 		}
 
 		//	create socket

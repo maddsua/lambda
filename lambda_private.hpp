@@ -6,7 +6,8 @@
  * Or at least, it apperas to be
  * 2023 maddsua, https://github.com/maddsua
  * 
- * Include "lambda.hpp" for entry point. Or the specific component header itself
+ * This file is not the entrypoint.
+ * Include lambda.hpp instead
 */
 
 #ifndef __LIB_MADDSUA_LAMBDA_PRIVATE__

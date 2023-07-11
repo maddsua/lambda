@@ -12,10 +12,13 @@
 
 namespace Lambda::Fetch {
 
-	enum Constants {
-		FETCH_MAX_ATTEMPTS = 5
-	};
-
+	/**
+	 * Fetch some http resource. Works similar to JS Fetch API
+	 * 
+	 * https is not supported so it's only useful to interact with local services.
+	 * 
+	 * Use libcurl for connecting to the world wide web
+	*/
 	HTTP::Response fetch(const HTTP::Request& userRequest);
 	HTTP::Response fetch(std::string url);
 
