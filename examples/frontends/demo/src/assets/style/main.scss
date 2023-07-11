@@ -2,12 +2,6 @@
 	--app-accent: #4696E5;
 }
 
-html, body {
-	font-size: 16px;
-	overflow-x: hidden;
-}
-
-
 * {
     padding: 0;
     margin: 0;
@@ -23,6 +17,21 @@ html, body {
     box-sizing: border-box;
 }
 
+html, body {
+	font-size: 16px;
+	overflow-x: hidden;
+	font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: url('/background.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    width: 100%;
+    font-size: inherit;
+}
+
 :focus,
 :active {
     outline: none;
@@ -31,18 +40,6 @@ html, body {
 a:focus,
 a:active {
     outline: none;
-}
-
-
-html,
-body {
-    background: url(/background.jpg);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-size: cover;
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    width: 100%;
-    font-size: inherit;
 }
 
 a,
