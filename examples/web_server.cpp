@@ -17,7 +17,7 @@ struct ServerPass {
 
 HTTP::Response callbackServerless(Request& request, Context& context) {
 
-	std::cout << "Request to \"" << request.url.pathname << "\" from " << request.headers.get("user-agent") << std::endl;
+	std::cout << "Request to \"" << request.url.pathname << "\" from " << context.clientIP << std::endl;
 
 	if (context.passtrough == nullptr) {
 		return Response(500, {}, "HTTP/500 Error: VFS unavailable");
@@ -57,7 +57,7 @@ int main() {
 	ServerPass passthough;
 	passthough.vfs = new VFS();
 
-	auto vfsload = passthough.vfs->loadSnapshot("demo/dist.tar.gz");
+	auto vfsload = passthough.vfs->loadSnapshot("examples/content/website.dist.tar.gz");
 	if (vfsload.isError()) std::cout << "Failed to load VFS: " << vfsload.what() << std::endl;
 		else server.enablePasstrough(&passthough);
 
