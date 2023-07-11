@@ -29,59 +29,45 @@ const features = [
         img: '/svg/os.svg'
     },
 ];
+
 </script>
 
 <template>
-    <section class="features">
+    <section>
 
-        <div class="features-container">
+		<h2>Features</h2>
 
-            <h2>Features</h2>
-
-            <div class="features-link">
-                <FeaturesItem v-for="item of features" :item="item" />
-            </div>
-
-        </div>
+		<div class="features-list">
+			<FeaturesItem v-for="item of features" :item="item" />
+		</div>
 
     </section>
 </template>
 
 <style lang="scss" scoped>
-h2 {
-    color: #4696E5;
-    font-size: 45px;
-    font-weight: 500;
-    text-align: center;
-    margin-bottom: 50px;
+
+section {
+	display: flex;
+	max-width: 90rem;
+	flex-direction: column;
+	align-items: center;
+	gap: 3.5rem;
+
+	h2 {
+		color: var(--app-accent);
+		text-align: center;
+		font-size: 2.5rem;
+		font-weight: 400;
+	}
+
+	.features-list {
+		display: flex;
+		justify-content: center;
+		align-items: flex-start;
+		align-content: flex-start;
+		gap: 2.8rem;
+		flex-wrap: wrap;
+	}
 }
 
-.features-link {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    align-content: flex-start;
-    gap: 45px;
-    align-self: stretch;
-    flex-wrap: wrap;
-}
-
-.hidden {
-    opacity: 0;
-}
-
-.features {
-    opacity: 1;
-    animation: ani 2s forwards;
-}
-
-@keyframes ani {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
 </style>

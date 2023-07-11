@@ -12,35 +12,40 @@ const { item } = defineProps<Props>();
 </script>
 
 <template>
-    <div class="features-list">
-        <img :src="item.img" alt="img">
-        <p>{{ item.title }}</p>
-        <span>{{ item.desc }}</span>
+    <div class="feature-item">
+        <img class="icon" :src="item.img" alt="img">
+		<div class="title">{{ item.title }}</div>
+        <p>{{ item.desc }}</p>
     </div>
 </template>
 
 <style lang="scss" scoped>
-.features-list {
-    width: 180px;
-    display: flex;
-    flex-flow: column;
-    align-items: center;
-    gap: 10px;
 
-    img {
-        width: 60px;
-        height: 60px;
-    }
+.feature-item {
+	display: flex;
+	min-width: 10rem;
+	max-width: 12rem;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 1em;
 
-    p {
-        color: #4696E5;
-        text-align: center;
-        font-size: 20px;
-    }
+	.icon {
+		width: 4em;
+		height: 4em;
+	}
 
-    span {
-        font-size: 15px;
-        font-weight: 300;
-    }
+	.title {
+		color: var(--app-accent);
+		text-align: center;
+		font-size: 1.25rem;
+		font-weight: 500;
+	}
+
+	p {
+		font-size: 0.95em;
+		font-weight: 300;
+	}
 }
+
 </style>
