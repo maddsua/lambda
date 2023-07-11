@@ -11,6 +11,8 @@
     justify-content: center;
     gap: 25px;
     margin-bottom: 75px;
+    opacity: 1;
+    animation: ani 2s forwards;
 }
 
 button {
