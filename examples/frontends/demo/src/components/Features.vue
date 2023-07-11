@@ -25,7 +25,7 @@ const features = [
     },
     {
         title: 'Host OS API',
-        desc: "Full access to Windows or other OS native API.Do any crazy shit you want to. It’s C++ bro, there’s noting to scream at you",
+        desc: "Full access to Windows or other OS native API. Do whatever crazy shit you want to. It’s C++ bro, there’s noting to scream at you",
         img: '/svg/os.svg'
     },
 ];
