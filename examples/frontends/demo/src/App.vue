@@ -10,10 +10,10 @@ import Footer from './components/Footer.vue';
 <template>
 	<main>
 		<Header />
-		<Features/>
-		<Kvdemo/>
+		<Features />
+		<Kvdemo />
 	</main>
-	<Footer/>
+	<Footer />
 </template>
 
 <style scoped>
