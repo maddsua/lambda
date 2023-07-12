@@ -11,8 +11,6 @@ Does it sound like a deal? It does to me.
 
 It was very similar to AWS lambda before 1.0, that's why the name. I didn't spend a second thinking of it. A true engineer move, let the marketing department fix it later.
 
-<br>
-
 **Here, a Vue project is being served by lambda for no reason at all**
 
 <img src="docs/what-have-i-done.png">
@@ -35,6 +33,8 @@ On windows you can get the compiler from [msys2](https://packages.msys2.org/pack
 Oh and yes, Visual Studio can go touch grass itself.
 
 ### Compiling library
+
+If the mix of nodejs and python for generating secondary source files scares you, it really shouldn't, the resulting files are included in this repo, you don’t have to think about it at all. I just can't decide which one to use.
 
 `make` command will produce `liblambda.dll.a` and `lambda.dll`. Never it was simpler than that.
 
