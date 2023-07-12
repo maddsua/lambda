@@ -45,6 +45,15 @@ static const std::array<uint8_t, 6> wsOpCodes = {
 	WEBSOCK_OPCODE_PONG,
 };
 
+struct WebsocketFrameHeader {
+	size_t payloadSize;
+	size_t size;
+	uint8_t maskKey[4];
+	uint8_t opcode;
+	bool finbit;
+	bool mask;
+};
+
 WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
 
 	this->hSocket = tcpSocket;
@@ -101,7 +110,7 @@ WebSocket::~WebSocket() {
 	}
 }
 
-WebsocketFrameHeader WebSocket::parseFrameHeader(const std::vector<uint8_t>& buffer) {
+WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer) {
 
 	WebsocketFrameHeader header;
 
