@@ -210,7 +210,7 @@ $(LIBNAME).res: $(LIB_RCFILE)
 	windres -i $(LIB_RCFILE) --input-format=rc -o $(LIBNAME).res -O coff
 
 $(LIB_RCFILE): resources/lib/template.rc
-	node update_dll_info.mjs
+	node autogen_dll_info.mjs
 
 
 libstatic: $(LIBSTATIC)
