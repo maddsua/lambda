@@ -2,7 +2,7 @@
 
 using namespace Lambda;
 
-void Server::addLogRecord(std::string message, int level) {
+void Server::addLogRecord(std::string message, LogLevel level) {
 
 	LogEntry newRecord;
 		newRecord.message = message;
@@ -45,6 +45,10 @@ std::vector<std::string> Server::logsText() {
 
 			case LAMBDA_LOG_INFO: {
 				loglevelstring = "INFO";
+			} break;
+
+			case LAMBDA_LOG_CRITICAL: {
+				loglevelstring = "CRITICAL";
 			} break;
 			
 			default:{
