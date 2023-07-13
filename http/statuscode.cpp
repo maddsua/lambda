@@ -1,7 +1,8 @@
 #include "./http.hpp"
+#include "../lambda_private.hpp"
 #include <map>
 
-const std::map <uint16_t, std::string> statusCodeTable = {
+static const std::map <uint16_t, std::string> statusCodeTable = {
 	{ 100, "Continue" },
 	{ 101, "Switching Protocols" },
 	{ 102, "Processing" },
@@ -61,6 +62,6 @@ const std::map <uint16_t, std::string> statusCodeTable = {
 };
 
 std::string Lambda::HTTP::statusText(const uint16_t statusCode) {
-	if (statusCodeTable.find(statusCode) == statusCodeTable.end()) return {};
+	if (!statusCodeTable.contains(statusCode)) throw Lambda::Error("Provided status code is unknown");
 	return statusCodeTable.at(statusCode);
 }
