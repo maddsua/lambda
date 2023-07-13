@@ -163,7 +163,7 @@ namespace Lambda::HTTP {
 
 			Response& operator = (const Request& right);
 
-			void setStatusCode(const uint16_t statusCode);
+			bool setStatusCode(const uint16_t statusCode);
 			void setCustomStatus(const uint16_t statusCode, const std::string& statusText);
 			uint16_t statusCode();
 			Headers headers;
