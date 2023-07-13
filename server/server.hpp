@@ -49,6 +49,7 @@ namespace Lambda {
 
 			std::mutex mtLock;
 			std::deque<LogEntry> logQueue;
+			std::string logTime(time_t epoch_time);
 			void addLogRecord(std::string message, LogLevel level);
 			void addLogRecord(std::string message) { addLogRecord(message, LAMBDA_LOG); };
 
