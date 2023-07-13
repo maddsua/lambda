@@ -33,8 +33,8 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	//	find file in vfs
 	auto file = vfs->read(filepath);
 	if (!file.size()) return serviceResponse(404, "Resource \"" + request.url.pathname + "\" does not exist");
+	
 	auto response = Response();
-
 	response.body = file;
 
 	auto pathExtIdx = filepath.find_last_of('.');
