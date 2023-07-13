@@ -9,11 +9,9 @@ FLAGS = -std=c11
 
 libs: deps/libbrotli-static.a deps/libz-static.a
 
-clean: action-custom
-	del /S *.o *.exe *.a *.dll *.res
-
-deps/libbrotli-static.a: deps/brotli/c/common/constants.o deps/brotli/c/common/context.o deps/brotli/c/common/dictionary.o deps/brotli/c/common/platform.o deps/brotli/c/common/transform.o deps/brotli/c/dec/bit_reader.o deps/brotli/c/dec/decode.o deps/brotli/c/dec/huffman.o deps/brotli/c/dec/state.o deps/brotli/c/enc/backward_references.o deps/brotli/c/enc/backward_references_hq.o deps/brotli/c/enc/bit_cost.o deps/brotli/c/enc/block_splitter.o deps/brotli/c/enc/brotli_bit_stream.o deps/brotli/c/enc/cluster.o deps/brotli/c/enc/command.o deps/brotli/c/enc/compress_fragment.o deps/brotli/c/enc/compress_fragment_two_pass.o deps/brotli/c/enc/dictionary_hash.o deps/brotli/c/enc/encode.o deps/brotli/c/enc/encoder_dict.o deps/brotli/c/enc/entropy_encode.o deps/brotli/c/enc/fast_log.o deps/brotli/c/enc/histogram.o deps/brotli/c/enc/literal_cost.o deps/brotli/c/enc/memory.o deps/brotli/c/enc/metablock.o deps/brotli/c/enc/static_dict.o deps/brotli/c/enc/utf8_util.o
-	ar rvs deps/libbrotli-static.a deps/temp/brotli/*.o
+OBJECTS_BROTLI_STATIC = deps/brotli/c/common/constants.o deps/brotli/c/common/context.o deps/brotli/c/common/dictionary.o deps/brotli/c/common/platform.o deps/brotli/c/common/transform.o deps/brotli/c/dec/bit_reader.o deps/brotli/c/dec/decode.o deps/brotli/c/dec/huffman.o deps/brotli/c/dec/state.o deps/brotli/c/enc/backward_references.o deps/brotli/c/enc/backward_references_hq.o deps/brotli/c/enc/bit_cost.o deps/brotli/c/enc/block_splitter.o deps/brotli/c/enc/brotli_bit_stream.o deps/brotli/c/enc/cluster.o deps/brotli/c/enc/command.o deps/brotli/c/enc/compress_fragment.o deps/brotli/c/enc/compress_fragment_two_pass.o deps/brotli/c/enc/dictionary_hash.o deps/brotli/c/enc/encode.o deps/brotli/c/enc/encoder_dict.o deps/brotli/c/enc/entropy_encode.o deps/brotli/c/enc/fast_log.o deps/brotli/c/enc/histogram.o deps/brotli/c/enc/literal_cost.o deps/brotli/c/enc/memory.o deps/brotli/c/enc/metablock.o deps/brotli/c/enc/static_dict.o deps/brotli/c/enc/utf8_util.o
+deps/libbrotli-static.a: $(OBJECTS_BROTLI_STATIC)
+	ar rvs deps/libbrotli-static.a $(OBJECTS_BROTLI_STATIC)
 
 deps/brotli/c/common/constants.o: deps/brotli/c/common/constants.c
 	$(CC) -c deps/brotli/c/common/constants.c -o deps/brotli/c/common/constants.o $(FLAGS)
@@ -103,8 +101,9 @@ deps/brotli/c/enc/utf8_util.o: deps/brotli/c/enc/utf8_util.c
 	$(CC) -c deps/brotli/c/enc/utf8_util.c -o deps/brotli/c/enc/utf8_util.o $(FLAGS)
 
 
-deps/libz-static.a: deps/zlib/adler32.o deps/zlib/compress.o deps/zlib/crc32.o deps/zlib/deflate.o deps/zlib/gzclose.o deps/zlib/gzlib.o deps/zlib/gzread.o deps/zlib/gzwrite.o deps/zlib/infback.o deps/zlib/inffast.o deps/zlib/inflate.o deps/zlib/inftrees.o deps/zlib/trees.o deps/zlib/uncompr.o deps/zlib/zutil.o
-	ar rvs deps/libz-static.a deps/temp/zlib/*.o
+OBJECTS_Z_STATIC = deps/zlib/adler32.o deps/zlib/compress.o deps/zlib/crc32.o deps/zlib/deflate.o deps/zlib/gzclose.o deps/zlib/gzlib.o deps/zlib/gzread.o deps/zlib/gzwrite.o deps/zlib/infback.o deps/zlib/inffast.o deps/zlib/inflate.o deps/zlib/inftrees.o deps/zlib/trees.o deps/zlib/uncompr.o deps/zlib/zutil.o
+deps/libz-static.a: $(OBJECTS_Z_STATIC)
+	ar rvs deps/libz-static.a $(OBJECTS_Z_STATIC)
 
 deps/zlib/adler32.o: deps/zlib/adler32.c
 	$(CC) -c deps/zlib/adler32.c -o deps/zlib/adler32.o $(FLAGS)
