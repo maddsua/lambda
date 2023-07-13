@@ -20,6 +20,13 @@ It was very similar to AWS lambda before 1.0, that's why the name. I didn't spen
 
 You might not like my JSON implementation (I had a reason to put it here), so you might want to try [JSON for Modern C++ ](https://github.com/nlohmann/json) as a replacement. My implementation will still be used under the hood where performance is desirable.
 
+## Error handling/exceptions
+
+By default, lambda utilizes std::exception and its derived classes for where no additional error codes are present. In the presence of error codes (like winapi error or errno), or if the error is not thrown but is returned by a function the Lambda::Error shall be used. Lambda::Error is derived from std::exception base class an can be caught as one.
+
+The reason for that is simple: to not have different functions return different error objects. And the name “exception” just does not sound right for an object that may be returned by a function.
+
+
 ## Building a server app with lambda
 
 ### Requirements
