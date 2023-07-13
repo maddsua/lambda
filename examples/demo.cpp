@@ -38,7 +38,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 		const auto vfs = ((ServerPass*)context.passtrough)->vfs;
 		
 		if (vfs == nullptr) {
-			auto response = Response(500, {}, "HTTP/500 Error: VFS unavailable");
+			auto response = serviceResponse(500, "HTTP/500 Error: VFS unavailable");;
 			connection.sendMessage(response);
 			return;
 		}
@@ -51,7 +51,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 		//	find file in vfs
 		auto file = vfs->read(filepath);
 		if (!file.size()) {
-			auto response = Response(404, {}, "HTTP/404 Error: File not found");
+			auto response = serviceResponse(404, "Resource \"" + request.url.pathname + "\" does not exist");
 			connection.sendMessage(response);
 			return;
 		}

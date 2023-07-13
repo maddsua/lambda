@@ -4,7 +4,7 @@
 #include <time.h>
 
 std::string Lambda::HTTP::serverDate(time_t epoch_time) {
-	char timebuff[128];
+	char timebuff[64];
 	tm tms = *gmtime(&epoch_time);
 	strftime(timebuff, sizeof(timebuff), "%a, %d %b %Y %H:%M:%S GMT", &tms);
 	return timebuff;
