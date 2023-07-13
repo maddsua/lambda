@@ -59,11 +59,14 @@ std::vector<uint8_t> Response::dump() {
 	return std::vector<uint8_t>(stream.begin(), stream.end());
 }
 
-void Response::setStatusCode(const uint16_t code) {
-	auto status = statusText(code);
-	if (!status.size()) return;
-	this->_statusCode = code;
-	this->_statusText = status;
+bool Response::setStatusCode(const uint16_t code) {
+	try {
+		this->_statusText = statusText(code);
+		this->_statusCode = code;
+	} catch(...) {
+		return false;
+	}
+	return true;
 }
 
 void Response::setCustomStatus(const uint16_t statusCode, const std::string& statusText) {
