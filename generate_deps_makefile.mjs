@@ -36,10 +36,12 @@ const recepies = inputs.map(lib => {
 	let files = lib.srcdirs.map(dir => findSourceFiles(dir)).flat();
 	if (lib?.filter) files = files.filter(item => !lib.filter.test(item));
 
+	const objname = 'OBJECTS_' + lib.target.replace(/^.+lib/, '').replace(/\.a$/, '').replaceAll('-', '_').toUpperCase();
+
 	const objects = files.map(fpath => fpath.replace(/\.c$/, '.o')).join(' ');
 
-	let block = lib.target + ': ' + objects;
-	block += `\n\tar rvs ${lib.target} ${lib.objdir.replace(/[\\\/]+$/, '')}/*.o\n`;
+	let block = `${objname} = ${objects}\n${lib.target}: $(${objname})`;
+	block += `\n\tar rvs ${lib.target} $(${objname})\n`;
 
 	return `\n${block}\n` + files.map(fpath => {
 		const opath = fpath.replace(/\.c$/, '.o');
@@ -55,11 +57,8 @@ const contentBefore = [
 	'FLAGS = -std=c11',
 	'\n.PHONY: all all-before all-after action-custom',
 	`\nlibs: ${inputs.map(item => item.target).join(' ')}`,
-	'\nclean: action-custom',
-	'\tdel /S *.o *.exe *.a *.dll *.res'
 ];
 
 fs.writeFileSync('deps.mk', [contentBefore, recepies].flat().join('\n'))
 
-console.log('>>> makefile generated');
-console.log('Now, run "make -f deps.mk" to compile static dependencies libs');
+console.log('Now, run "make -f deps.mk" to compile static dependency libs');
