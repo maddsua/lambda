@@ -20,7 +20,7 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	std::cout << "Request to \"" << request.url.pathname << "\" from " << context.clientIP << std::endl;
 
 	if (context.passtrough == nullptr) {
-		return Responses::serviceResponse(500, "HTTP/500 Error: VFS unavailable");
+		return serviceResponse(500, "HTTP/500 Error: VFS unavailable");
 	}
 
 	const auto vfs = ((ServerPass*)context.passtrough)->vfs;
@@ -32,8 +32,7 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 
 	//	find file in vfs
 	auto file = vfs->read(filepath);
-	if (!file.size()) return Response(404, {}, "HTTP/404 Error: File not found");
-
+	if (!file.size()) return serviceResponse(404, "Resource \"" + request.url.pathname + "\" does not exist");
 	auto response = Response();
 
 	response.body = file;
