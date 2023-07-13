@@ -20,7 +20,7 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	std::cout << "Request to \"" << request.url.pathname << "\" from " << context.clientIP << std::endl;
 
 	if (context.passtrough == nullptr) {
-		return Response(500, {}, "HTTP/500 Error: VFS unavailable");
+		return Responses::serviceResponse(500, "HTTP/500 Error: VFS unavailable");
 	}
 
 	const auto vfs = ((ServerPass*)context.passtrough)->vfs;
