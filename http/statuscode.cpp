@@ -62,6 +62,6 @@ static const std::map <uint16_t, std::string> statusCodeTable = {
 };
 
 std::string Lambda::HTTP::statusText(const uint16_t statusCode) {
-	if (!statusCodeTable.contains(statusCode)) throw Lambda::Error("Provided status code is unknown");
+	if (!statusCodeTable.contains(statusCode)) throw Lambda::Error("Unknown status code");
 	return statusCodeTable.at(statusCode);
 }
