@@ -1,5 +1,11 @@
 import re
 import glob
+import os
+import sys
+
+if not os.getcwd().endswith("deps"):
+	print("The paths for this script are relative to `deps/` directory, so `cd deps` and run this script over there")
+	sys.exit(0)
 
 warningMsg = [
 	'#	This is an automatically generated file',
@@ -61,3 +67,5 @@ with open('template.mk', 'r') as makefileTemplate:
 	makefileResult = open("makefile", 'w')
 	makefileResult.write(makefileTemplate)
 	makefileResult.close()
+
+print(">>> makefile generated")

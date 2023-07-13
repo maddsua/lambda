@@ -1,7 +1,7 @@
 
 #	This is an automatically generated file
-#	Don't edit it directly - it may be overwritten by gen.js
-#	Modify template.mk to add something on top, or gen.js to change automatic imports
+#	Don't edit it directly - it may be overwritten by gen.py
+#	Modify template.mk to add something on top, or gen.py to change automatic imports
 
 CC		= gcc
 FLAGS	= -std=c11
