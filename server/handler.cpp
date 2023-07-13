@@ -54,14 +54,13 @@ void Server::connectionHandler() {
 		} catch(const std::exception& e) {
 			handlerErrorMessage = e.what();
 		} catch(...) {
-			handlerErrorMessage = "Unhandled callback error. This must be caused by your code, bc lambda only throws std::exception's, and it would be catched long before this stage";
+			handlerErrorMessage = "Unhandled callback error";
 		}
 
 		//	handle errors
 		if (handlerErrorMessage.size()) {
 			addLogRecord(std::string("Request failed: " ) + handlerErrorMessage + " | Client: " + server.clientIP(), LAMBDA_LOG_ERROR);
-			response.setStatusCode(500);
-			response.setBodyText(handlerErrorMessage + " | lambda v" + LAMBDA_VERSION);
+			response = serviceResponse(500, handlerErrorMessage);
 		}
 
 		//	set some service headers
@@ -100,8 +99,8 @@ void Server::connectionHandler() {
 		if (sendAction.isError()) throw sendAction;
 
 	} catch(const std::exception& e) {
-		addLogRecord(std::string("Request has been aborted: ") + e.what() + "; client: " + (requestCTX.clientIP.size() ? requestCTX.clientIP : "unknown"));
+		addLogRecord(std::string("Handler error: ") + e.what() + "; client: " + (requestCTX.clientIP.size() ? requestCTX.clientIP : "unknown"), LAMBDA_LOG_CRITICAL);
 	} catch(...) {
-		addLogRecord("Unhandled server error. Request aborted.");
+		addLogRecord("Unhandled server error. Request aborted.", LAMBDA_LOG_CRITICAL);
 	}
 }

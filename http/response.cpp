@@ -50,7 +50,7 @@ Response& Response::operator = (const Request& right) {
 
 std::vector<uint8_t> Response::dump() {
 
-	auto stream = "HTTP/1.1 " + std::to_string(this->_statusCode) + " " + this->_status + "\r\n";
+	auto stream = "HTTP/1.1 " + std::to_string(this->_statusCode) + " " + this->_statusText + "\r\n";
 	if (this->body.size()) this->headers.append("content-size", std::to_string(this->body.size()));
 	stream += this->headers.stringify();
 	stream += "\r\n";
@@ -59,11 +59,19 @@ std::vector<uint8_t> Response::dump() {
 	return std::vector<uint8_t>(stream.begin(), stream.end());
 }
 
-void Response::setStatusCode(const uint16_t code) {
-	auto status = statusText(code);
-	if (!status.size()) return;
-	this->_statusCode = code;
-	this->_status = status;
+bool Response::setStatusCode(const uint16_t code) {
+	try {
+		this->_statusText = statusText(code);
+		this->_statusCode = code;
+	} catch(...) {
+		return false;
+	}
+	return true;
+}
+
+void Response::setCustomStatus(const uint16_t statusCode, const std::string& statusText) {
+	this->_statusCode = statusCode;
+	this->_statusText = statusText;
 }
 
 uint16_t Response::statusCode() {

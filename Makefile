@@ -41,13 +41,7 @@ clean: action-custom
 #------------
 # Component: Encoding
 #------------
-
-COMPONENT_ENCODING = obj_encoding
-LIBSTATIC_ENCODING = lib$(LIBNAME)-encoding.a
 OBJECTS_ENCODING = encoding/urlencode.o encoding/base64.o encoding/hex.o encoding/json.o
-
-$(COMPONENT_ENCODING): $(OBJECTS_ENCODING)
-	ar rvs $(LIBSTATIC_ENCODING) $(OBJECTS_ENCODING)
 
 encoding/urlencode.o: encoding/urlencode.cpp
 	g++ -c encoding/urlencode.cpp -o encoding/urlencode.o $(CFLAGS)
@@ -64,13 +58,7 @@ encoding/json.o: encoding/json.cpp
 #------------
 # Component: HTTP
 #------------
-
-COMPONENT_HTTP = obj_http
-LIBSTATIC_HTTP = lib$(LIBNAME)-http.a
 OBJECTS_HTTP = http/strings.o http/headers.o http/urlsearchparams.o http/statuscode.o http/response.o http/request.o http/url.o http/mimetype.o http/time.o http/cookies.o http/version.o
-
-$(COMPONENT_HTTP): $(OBJECTS_HTTP)
-	ar rvs $(LIBSTATIC_HTTP) $(OBJECTS_HTTP)
 	
 http/strings.o: http/strings.cpp
 	g++ -c http/strings.cpp -o http/strings.o $(CFLAGS)
@@ -109,15 +97,9 @@ http/version.o: http/version.cpp
 #------------
 # Component: Compression
 #------------
-
-COMPONENT_COMPRESS		= obj_compress
-LIBSTATIC_COMPRESS		= lib$(LIBNAME)-compress.a
 OBJECTS_COMPRESS_BR		= compress/brotli.o
 OBJECTS_COMPRESS_ZLIB	= compress/zlib.o
 OBJECTS_COMPRESS		= $(OBJECTS_COMPRESS_ZLIB) $(OBJECTS_COMPRESS_BR)
-
-$(COMPONENT_COMPRESS): $(OBJECTS_COMPRESS)
-	ar rvs $(LIBSTATIC_COMPRESS) $(OBJECTS_COMPRESS)
 
 compress/zlib.o: compress/zlib.cpp
 	g++ -c compress/zlib.cpp -o compress/zlib.o $(CFLAGS)
@@ -129,13 +111,7 @@ compress/brotli.o: compress/brotli.cpp
 #------------
 # Component: Crypto
 #------------
-
-COMPONENT_CRYPTO = obj_crypto
-LIBSTATIC_CRYPTO = lib$(LIBNAME)-crypto.a
 OBJECTS_CRYPTO = crypto/random.o crypto/sha1.o
-
-$(COMPONENT_CRYPTO): $(OBJECTS_CRYPTO)
-	ar rvs $(LIBSTATIC_CRYPTO) $(OBJECTS_CRYPTO)
 
 crypto/random.o: crypto/random.cpp
 	g++ -c crypto/random.cpp -o crypto/random.o $(CFLAGS)
@@ -147,13 +123,7 @@ crypto/sha1.o: crypto/sha1.cpp
 #------------
 # Component: Network
 #------------
-
-COMPONENT_SOCKETS = obj_sockets
-LIBSTATIC_SOCKETS = lib$(LIBNAME)-sockets.a
 OBJECTS_SOCKETS = network/tcpListenSocket.o network/httpTransport.o network/httpServer.o network/websocket.o fetch/fetch.o
-
-$(COMPONENT_SOCKETS): $(OBJECTS_SOCKETS)
-	ar rvs $(LIBSTATIC_SOCKETS) $(OBJECTS_SOCKETS)
 
 network/tcpListenSocket.o: network/tcpListenSocket.cpp
 	g++ -c network/tcpListenSocket.cpp -o network/tcpListenSocket.o $(CFLAGS)
@@ -174,13 +144,8 @@ fetch/fetch.o: fetch/fetch.cpp
 #------------
 # Component: Server
 #------------
-
-COMPONENT_SERVER = obj_server
-LIBSTATIC_SERVER = lib$(LIBNAME)-server.a
-OBJECTS_SERVER = server/service.o server/logs.o server/handler.o
-
-$(COMPONENT_SERVER): $(OBJECTS_SERVER)
-	ar rvs $(LIBSTATIC_SERVER) $(OBJECTS_SERVER)
+SRC_RES_SVCPAGE = resources/static/html/servicepage
+OBJECTS_SERVER = server/service.o server/logs.o server/handler.o $(SRC_RES_SVCPAGE).res server/responses.o
 
 server/service.o: server/service.cpp
 	g++ -c server/service.cpp -o server/service.o $(CFLAGS)
@@ -191,17 +156,17 @@ server/logs.o: server/logs.cpp
 server/handler.o: server/handler.cpp
 	g++ -c server/handler.cpp -o server/handler.o $(CFLAGS)
 
+server/responses.o: server/responses.cpp
+	g++ -c server/responses.cpp -o server/responses.o $(CFLAGS)
+
+$(SRC_RES_SVCPAGE).res: $(SRC_RES_SVCPAGE).html
+	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 $(SRC_RES_SVCPAGE).html $(SRC_RES_SVCPAGE).res
+
 
 #------------
 # Component: Storage
 #------------
-
-COMPONENT_STORAGE = obj_storage
-LIBSTATIC_STORAGE = lib$(LIBNAME)-storage.a
 OBJECTS_STORAGE = storage/kv.o storage/kv_db.o storage/kv_json.o storage/vfs.o storage/vfs_tar.o storage/vfs_lvfs2.o
-
-$(COMPONENT_STORAGE): $(OBJECTS_STORAGE)
-	ar rvs $(LIBSTATIC_STORAGE) $(OBJECTS_STORAGE)
 
 storage/kv.o: storage/kv.cpp
 	g++ -c storage/kv.cpp -o storage/kv.o $(CFLAGS)
@@ -220,7 +185,6 @@ storage/vfs_tar.o: storage/vfs_tar.cpp
 	
 storage/vfs_lvfs2.o: storage/vfs_lvfs2.cpp
 	g++ -c storage/vfs_lvfs2.cpp -o storage/vfs_lvfs2.o $(CFLAGS)
-
 
 
 #--------------------------------
@@ -267,7 +231,6 @@ $(LIBSTATIC): $(LIBFULL_OBJS)
 #------------
 # Test: Encoding
 #------------
-
 test_encode: $(OBJECTS_ENCODING)
 	g++ tests/encoding.cpp $(OBJECTS_ENCODING) -o test_encode.exe
 
@@ -275,7 +238,6 @@ test_encode: $(OBJECTS_ENCODING)
 #------------
 # Test: HTTP
 #------------
-
 test_http: $(OBJECTS_HTTP) $(OBJECTS_ENCODING)
 	g++ tests/http.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) -o test_http.exe
 
@@ -283,7 +245,6 @@ test_http: $(OBJECTS_HTTP) $(OBJECTS_ENCODING)
 #------------
 # Test: Brotli
 #------------
-
 test_brotli: $(OBJECTS_COMPRESS_BR)
 	g++ tests/brotli.cpp $(OBJECTS_COMPRESS_BR) $(LIB_BR_SHARED) -o test_brotli.exe
 
@@ -291,7 +252,6 @@ test_brotli: $(OBJECTS_COMPRESS_BR)
 #------------
 # Test: zlib
 #------------
-
 test_zlib: $(OBJECTS_COMPRESS_ZLIB)
 	g++ tests/zlib.cpp $(OBJECTS_COMPRESS_ZLIB) $(LIB_ZLIB_SHARED) -o test_zlib.exe
 
@@ -299,7 +259,6 @@ test_zlib: $(OBJECTS_COMPRESS_ZLIB)
 #------------
 # Test: Server
 #------------
-
 test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
 	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
@@ -307,7 +266,6 @@ test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_S
 #------------
 # Test: Fetch
 #------------
-
 test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
 	g++ tests/fetch.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_fetch.exe
 
@@ -315,7 +273,6 @@ test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SO
 #------------
 # Test: KV Storage
 #------------
-
 test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING)
 	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_kv.exe
 
@@ -326,7 +283,6 @@ test_vfs: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
 #------------
 # Test: JSON
 #------------
-
 test_json: encoding/json.o
 	g++ tests/json.cpp encoding/json.o -o test_json.exe
 
@@ -342,20 +298,17 @@ test_json: encoding/json.o
 #------------
 # Simple api server demo
 #------------
-
 example_api_server: $(LIBSHARED)
 	g++ examples/api_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_api_server.exe
 
 #------------
 # Simple web server demo
 #------------
-
 example_web_server: $(LIBSHARED)
 	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server.exe
 
 #------------
 # Demo app
 #------------
-
 example_demo: $(LIBSHARED)
 	g++ examples/demo.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_demo.exe

@@ -150,7 +150,7 @@ namespace Lambda::HTTP {
 	class Response {
 		private:
 			uint16_t _statusCode = 200;
-			std::string _status = "OK";
+			std::string _statusText = "OK";
 
 		public:
 			Response() {};
@@ -163,7 +163,8 @@ namespace Lambda::HTTP {
 
 			Response& operator = (const Request& right);
 
-			void setStatusCode(const uint16_t statusCode);
+			bool setStatusCode(const uint16_t statusCode);
+			void setCustomStatus(const uint16_t statusCode, const std::string& statusText);
 			uint16_t statusCode();
 			Headers headers;
 			std::vector<uint8_t> body;
@@ -231,7 +232,11 @@ namespace Lambda::HTTP {
 			KVtype toHeader();
 	};
 
-	//	Get status text for provided status code. Returns empty string if not found
+	/**
+	 * Get status text for provided status code. Returns empty string if not found
+	 * 
+	 * Will throw an error if status code is not valid or is unknown
+	 */	
 	std::string statusText(const uint16_t statusCode);
 
 	//	Set all string characters to lower case
