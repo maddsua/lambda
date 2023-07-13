@@ -2,7 +2,6 @@
 #define __LAMBDA_SERVER__
 
 #include "../network/network.hpp"
-#include "./responses.hpp"
 #include <deque>
 
 namespace Lambda {
@@ -125,6 +124,11 @@ namespace Lambda {
 			*/
 			Flags flags;
 	};
+
+	/**
+	 * Styled status/error page generator
+	*/
+	HTTP::Response serviceResponse(uint16_t httpStatus, const std::string& text);
 	
 }
 
