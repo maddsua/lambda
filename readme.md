@@ -2,10 +2,9 @@
 
 ## Why?
 
-I wanna have the power of C++ on my server apps, but I really don't like the APIs that the vast majority of C/C++ server libs provide. I like Deno and it's APIs, but you cant easily make it work with windows-specific APIs/some socially awkward devices/cryptic af dlls from 1995 and some other crazy stuff I work with.
+I wanna have the power of C++ on my server apps, but I could not find any server library or framework that would fit my workflow and code style. Deno is very close to be a perfect fit, but it's a JavaScript runtime so good luck have fun making it work with windows-specific APIs, some socially awkward devices or cryptic AF DLLs from 1995... I mean, just the usual stuff I work with.
 
 Does it sound like a deal? It does to me.
-
 
 ## Why lambda?
 
@@ -52,10 +51,10 @@ Go see [some examples or smthng](/examples)
 ### OS support
 
 - Any modern linux
-- Windows 7+ (might actually work on 7, but is not tested and I don't care about it anyway)
+- Windows 7+ (might actually work on 7, let me know if it does)
 
 ### Compiler version
 
-Use GCC 10 or never. The project uses a few of the c++20 features, and is not gonna compile under GCC's older version.
+Use GCC 10 or never. The project uses a few of the c++20 features, and it might not compile with GCC's older versions.
 
-Other compilers are not tested, the reason being that I don't care. Contribute to the project if you do.
+Other compilers are not \*officially\* supported, but there aren't any super-GCC-specific tricks employed in this project, so theoretically with some tweaking it should compile anywhere.
