@@ -2,6 +2,7 @@
 #define __LAMBDA_SERVER__
 
 #include "../network/network.hpp"
+#include "./responses.hpp"
 #include <deque>
 
 namespace Lambda {
