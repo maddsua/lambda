@@ -1,9 +1,10 @@
 #ifndef __LAMBDA_COMPRESSION_STREAMS__
 #define __LAMBDA_COMPRESSION_STREAMS__
 
-#include <brotli/encode.h>
-#include <brotli/decode.h>
-#include <zlib.h>
+#include <cstring>
+#include "../deps/brotli/c/include/brotli/encode.h"
+#include "../deps/brotli/c/include/brotli/decode.h"
+#include "../deps/zlib/zlib.h"
 
 namespace Lambda::Compress {
 
