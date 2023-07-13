@@ -66,3 +66,9 @@ Go see [some examples or smthng](/examples)
 Use GCC 10 or never. The project uses a few of the c++20 features, and it might not compile with GCC's older versions.
 
 Other compilers are not \*officially\* supported, but there aren't any super-GCC-specific tricks employed in this project, so theoretically with some tweaking it should compile anywhere.
+
+## Sample project architecture
+
+**For those, who scrolled all the way here, here is a diagram of the project lambda was created for:**
+
+<img src="docs/lambda_server_diagram.figjam.png">
