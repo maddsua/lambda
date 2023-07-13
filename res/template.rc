@@ -11,10 +11,10 @@ FILETYPE VFT_DLL
 		{
 			VALUE "CompanyName", "maddsua/dev"
 			VALUE "FileVersion", "${version}"
-			VALUE "FileDescription", "${description}"
+			VALUE "FileDescription", "HTTP and Websocket server library"
 			VALUE "InternalName", "${product}"
 			VALUE "LegalCopyright", "https://github.com/maddsua"
-			VALUE "LegalTrademarks", "${year} maddsua"
+			VALUE "LegalTrademarks", "${released} maddsua"
 			VALUE "OriginalFilename", "lambda"
 			VALUE "ProductName", "${product}"
 			VALUE "ProductVersion", "${version}"
