@@ -34,5 +34,5 @@ HTTP::Response Responses::serviceResponse(uint16_t httpStatus, const std::string
 		{ "${html_svcpage_message_text}", text }
 	};
 
-	return HTTP::Response(httpStatus, {}, populateTemplate(content));
+	return HTTP::Response(httpStatus, { { "Content-Type", "text/html" } }, populateTemplate(content));
 }
