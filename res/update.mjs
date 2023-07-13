@@ -31,16 +31,12 @@ const replaces = [
 		data: dataImported.version
 	},
 	{
-		variable: 'year',
+		variable: 'released',
 		data: new Date().getFullYear()
 	},
 	{
 		variable: 'product',
 		data: dataImported.product
-	},
-	{
-		variable: 'description',
-		data: 'HTTP and Websocket server library'
 	}
 ];
 
