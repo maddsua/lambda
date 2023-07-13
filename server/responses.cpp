@@ -3,11 +3,11 @@
 using namespace Lambda;
 
 //	these variables (pointers, whatever, I'm too dumb for C++ anyway) should be imported from servicepage.html (servicepage.o)
-extern char _binary_resources_static_html_servicepage_html_start;
-extern char _binary_resources_static_html_servicepage_html_end;
+extern char _binary_resources_html_servicepage_html_start;
+extern char _binary_resources_html_servicepage_html_end;
 
-static const auto template_start = &_binary_resources_static_html_servicepage_html_start;
-static const auto template_end = &_binary_resources_static_html_servicepage_html_end;
+static const auto template_start = &_binary_resources_html_servicepage_html_start;
+static const auto template_end = &_binary_resources_html_servicepage_html_end;
 static const auto pageTemplate = std::string(template_start, template_end - template_start);
 
 typedef std::vector<std::pair<std::string, std::string>> TemplateContent;

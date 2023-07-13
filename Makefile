@@ -144,7 +144,7 @@ fetch/fetch.o: fetch/fetch.cpp
 #------------
 # Component: Server
 #------------
-SRC_RES_SVCPAGE = resources/static/html/servicepage
+SRC_RES_SVCPAGE = resources/html/servicepage
 OBJECTS_SERVER = server/service.o server/logs.o server/handler.o $(SRC_RES_SVCPAGE).res server/responses.o
 
 server/service.o: server/service.cpp
@@ -196,7 +196,7 @@ storage/vfs_lvfs2.o: storage/vfs_lvfs2.cpp
 #--------------------------------
 
 LIB_DEPS		= $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED)
-LIB_RCFILE		= res/$(LIBNAME).rc
+LIB_RCFILE		= resources/lib/$(LIBNAME).rc
 LIBFULL_OBJS	= $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_STORAGE)
 LIBSTATIC		= lib$(LIBNAME).a
 LIBSHARED		= $(LIBNAME).dll
@@ -209,8 +209,8 @@ $(LIBSHARED): $(LIBFULL_OBJS) $(LIBNAME).res
 $(LIBNAME).res: $(LIB_RCFILE)
 	windres -i $(LIB_RCFILE) --input-format=rc -o $(LIBNAME).res -O coff
 
-$(LIB_RCFILE): res/template.rc
-	node res/update.mjs
+$(LIB_RCFILE): resources/lib/template.rc
+	node update_dll_info.mjs
 
 
 libstatic: $(LIBSTATIC)
