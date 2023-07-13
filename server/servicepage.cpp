@@ -7,7 +7,7 @@ std::string pageTemplate = R"(
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>403 Forbidden</title>
+		<title>${htmlpage_title}</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -58,16 +58,14 @@ std::string pageTemplate = R"(
 	</head>
 	<body>
 		<div class="message">
-		<div class="status-code">403</div>
-	
-		<div class="content">
-			<div class="message-title">Forbidden</div>
-	
-			<div class="message-content">
-			You don't have a permission to access this page or resource
+			<div class="status-code">${htmlpage_code}</div>
+		
+			<div class="content">
+				<div class="message-title">${htmlpage_msg_title}</div>
+				<div class="message-content">${htmlpage_msg_text}</div>
 			</div>
-		</div>
-		</div>  
+		</div> 
 	</body>
 </html>
 )";
+
