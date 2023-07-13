@@ -18,6 +18,7 @@ namespace Lambda {
 		LAMBDA_LOG_ERROR = 1,
 		LAMBDA_LOG_WARN = 2,
 		LAMBDA_LOG_INFO = 3,
+		LAMBDA_LOG_CRITICAL = 4,
 	};
 
 	struct Context {
@@ -48,7 +49,7 @@ namespace Lambda {
 
 			std::mutex mtLock;
 			std::deque<LogEntry> logQueue;
-			void addLogRecord(std::string message, int level);
+			void addLogRecord(std::string message, LogLevel level);
 			void addLogRecord(std::string message) { addLogRecord(message, LAMBDA_LOG); };
 
 			void (*requestCallback)(Network::HTTPServer&, Context&) = nullptr;
@@ -129,7 +130,7 @@ namespace Lambda {
 	 * Styled status/error page generator
 	*/
 	HTTP::Response serviceResponse(uint16_t httpStatus, const std::string& text);
-	
+
 }
 
 #endif
