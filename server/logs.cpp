@@ -2,12 +2,19 @@
 
 using namespace Lambda;
 
+std::string Server::logTime(time_t epoch_time) {
+	char timebuff[64];
+	tm tms = *gmtime(&epoch_time);
+	strftime(timebuff, sizeof(timebuff), "%d %b %Y, %H:%M:%S", &tms);
+	return timebuff;
+}
+
 void Server::addLogRecord(std::string message, LogLevel level) {
 
 	LogEntry newRecord;
 		newRecord.message = message;
 		newRecord.timestamp = time(nullptr);
-		newRecord.datetime = HTTP::serverDate(newRecord.timestamp);
+		newRecord.datetime = logTime(newRecord.timestamp);
 		newRecord.loglevel = level;
 
 	std::lock_guard<std::mutex>lock(mtLock);
