@@ -1,7 +1,5 @@
 #include "./compress.hpp"
 #include "./streams.hpp"
-#include <brotli/encode.h>
-#include <brotli/decode.h>
 
 using namespace Lambda;
 

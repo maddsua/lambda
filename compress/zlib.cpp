@@ -1,6 +1,5 @@
 #include "./compress.hpp"
 #include "./streams.hpp"
-#include <zlib.h>
 
 using namespace Lambda;
 using namespace Lambda::Compress;
