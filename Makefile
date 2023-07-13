@@ -145,7 +145,7 @@ fetch/fetch.o: fetch/fetch.cpp
 # Component: Server
 #------------
 SRC_RES_SVCPAGE = resources/static/html/servicepage
-OBJECTS_SERVER = server/service.o server/logs.o server/handler.o $(SRC_RES_SVCPAGE).res server/servicepage.o
+OBJECTS_SERVER = server/service.o server/logs.o server/handler.o $(SRC_RES_SVCPAGE).res server/responses.o
 
 server/service.o: server/service.cpp
 	g++ -c server/service.cpp -o server/service.o $(CFLAGS)
