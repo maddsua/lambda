@@ -1,4 +1,4 @@
-#include "./responses.hpp"
+#include "./server.hpp"
 
 using namespace Lambda;
 
@@ -26,12 +26,12 @@ std::string populateTemplate(const TemplateContent& content) {
 	return result;
 }
 
-HTTP::Response Responses::serviceResponse(uint16_t httpStatus, const std::string& text) {
+HTTP::Response Lambda::serviceResponse(uint16_t httpStatus, const std::string& text) {
 
 	TemplateContent content = {
 		{ "${html_svcpage_statuscode}", std::to_string(httpStatus) },
 		{ "${html_svcpage_statustext}", HTTP::statusText(httpStatus) },
-		{ "${html_svcpage_message_text}", text }
+		{ "${html_svcpage_message_text}", (text.size() ? text : "That's all we know.") }
 	};
 
 	return HTTP::Response(httpStatus, { { "Content-Type", "text/html" } }, populateTemplate(content));
