@@ -196,20 +196,20 @@ storage/vfs_lvfs2.o: storage/vfs_lvfs2.cpp
 #--------------------------------
 
 LIB_DEPS		= $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED)
-LIB_RCFILE		= resources/lib/$(LIBNAME).rc
+LIB_DLLINFO		= resources/lib/$(LIBNAME)
 LIBFULL_OBJS	= $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_STORAGE)
 LIBSTATIC		= lib$(LIBNAME).a
 LIBSHARED		= $(LIBNAME).dll
 
 libshared: $(LIBSHARED)
 
-$(LIBSHARED): $(LIBFULL_OBJS) $(LIBNAME).res
-	g++ $(LIBFULL_OBJS) $(LIBNAME).res $(LIB_DEPS) $(LIBS_SYSTEM) $(CFLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
+$(LIBSHARED): $(LIBFULL_OBJS) $(LIB_DLLINFO).res
+	g++ $(LIBFULL_OBJS) $(LIB_DLLINFO).res $(LIB_DEPS) $(LIBS_SYSTEM) $(CFLAGS) -s -shared -o $(LIBSHARED) -Wl,--out-implib,lib$(LIBSHARED).a
 
-$(LIBNAME).res: $(LIB_RCFILE)
-	windres -i $(LIB_RCFILE) --input-format=rc -o $(LIBNAME).res -O coff
+$(LIB_DLLINFO).res: $(LIB_DLLINFO).rc
+	windres -i $(LIB_DLLINFO).rc --input-format=rc -o $(LIB_DLLINFO).res -O coff
 
-$(LIB_RCFILE): resources/lib/template.rc
+$(LIB_DLLINFO): resources/lib/template.rc
 	node autogen_dll_info.mjs
 
 
