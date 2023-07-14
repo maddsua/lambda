@@ -14,7 +14,7 @@ It was very similar to AWS lambda before 1.0, that's why the name. I didn't spen
 
 <img src="docs/what-have-i-done.png">
 
-<br>
+Please note that lambda is not an "nginx killer", so you probably don’t wanna use it for high bandwidth loads (some sort of CDN or alike). It’s meant to be used as a middleman between the stuff that does not work with modern web APIs and the stuff that does.
 
 ## JSON
 
