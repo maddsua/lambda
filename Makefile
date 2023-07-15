@@ -123,7 +123,7 @@ crypto/sha1.o: crypto/sha1.cpp
 #------------
 # Component: Network
 #------------
-OBJECTS_SOCKETS = network/tcpListenSocket.o network/httpTransport.o network/httpServer.o network/websocket.o fetch/fetch.o
+OBJECTS_NETWORK = network/tcpListenSocket.o network/httpTransport.o network/httpServer.o network/websocket.o network/address.o fetch/fetch.o
 
 network/tcpListenSocket.o: network/tcpListenSocket.cpp
 	g++ -c network/tcpListenSocket.cpp -o network/tcpListenSocket.o $(CFLAGS)
@@ -136,6 +136,9 @@ network/httpServer.o: network/httpServer.cpp
 
 network/websocket.o: network/websocket.cpp
 	g++ -c network/websocket.cpp -o network/websocket.o $(CFLAGS)
+
+network/address.o: network/address.cpp
+	g++ -c network/address.cpp -o network/address.o $(CFLAGS)
 
 fetch/fetch.o: fetch/fetch.cpp
 	g++ -c fetch/fetch.cpp -o fetch/fetch.o $(CFLAGS)
@@ -197,7 +200,7 @@ storage/vfs_lvfs2.o: storage/vfs_lvfs2.cpp
 
 LIB_DEPS		= $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED)
 LIB_DLLINFO		= resources/lib/$(LIBNAME)
-LIBFULL_OBJS	= $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_STORAGE)
+LIBFULL_OBJS	= $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(OBJECTS_STORAGE)
 LIBSTATIC		= lib$(LIBNAME).a
 LIBSHARED		= $(LIBNAME).dll
 
@@ -259,15 +262,15 @@ test_zlib: $(OBJECTS_COMPRESS_ZLIB)
 #------------
 # Test: Server
 #------------
-test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
-	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_server.exe
+test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
+	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_server.exe
 
 
 #------------
 # Test: Fetch
 #------------
-test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
-	g++ tests/fetch.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_SOCKETS) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_fetch.exe
+test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
+	g++ tests/fetch.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_fetch.exe
 
 
 #------------

@@ -13,7 +13,7 @@
 namespace Lambda::Fetch {
 
 	/**
-	 * Fetch some http resource. Works similar to JS Fetch API
+	 * Fetch a web resource. Works similar to JS Fetch API
 	 * 
 	 * https is not supported so it's only useful to interact with local services.
 	 * 

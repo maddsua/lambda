@@ -19,6 +19,7 @@ namespace Lambda::Network {
 	static const size_t network_chunksize_header = 2048;
 	static const size_t network_chunksize_body = 131072;
 	static const size_t network_chunksize_websocket = UINT16_MAX;
+	static const size_t network_dnsresolve_attempts = 5;
 
 	/**
 	 * Return http response to the client
@@ -143,6 +144,13 @@ namespace Lambda::Network {
 			HTTPServer acceptConnection();
 	};
 
+	enum ConnectionProtocol {
+		CREATECONN_TCP = 0,
+		CREATECONN_UDP = 1,
+	};
+
+	SOCKET resolveAndConnect(const char* host, const char* port,ConnectionProtocol proto);
+	SOCKET resolveAndConnect(const char* host, const char* port);
 };
 
 #endif
