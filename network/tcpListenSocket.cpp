@@ -4,7 +4,7 @@
 using namespace Lambda;
 using namespace Lambda::Network;
 
-ListenSocket::ListenSocket(const char* listenPort) {
+ListenSocket::ListenSocket(uint16_t listenPort) {
 
 	//	initialize winsock2, windows only, obviously
 	#ifdef _WIN32
@@ -20,28 +20,17 @@ ListenSocket::ListenSocket(const char* listenPort) {
 		
 	} else closesocket(temp);
 	#endif
-	
-	//	some network hints
-	struct addrinfo* servAddr = NULL;
-	struct addrinfo addrHints;
-	memset(&addrHints, 0, sizeof(addrHints));
-	addrHints.ai_family = AF_INET;
-	addrHints.ai_socktype = SOCK_STREAM;
-	addrHints.ai_protocol = IPPROTO_TCP;
-	addrHints.ai_flags = AI_PASSIVE;
 
-	//	resolve server address
-	if (getaddrinfo(NULL, listenPort, &addrHints, &servAddr) != 0) {
-		auto errcode = getAPIError();
-		freeaddrinfo(servAddr);
-		throw Lambda::Error("Could not resolve localhost", errcode);
-	}
+	//	server address
+	sockaddr_in serverInfo;
+	serverInfo.sin_family = AF_INET;
+	serverInfo.sin_addr.s_addr = inet_addr("127.0.0.1");
+	serverInfo.sin_port = htons(listenPort);
 	
 	// create and bind a SOCKET
-	this->hSocket = socket(servAddr->ai_family, servAddr->ai_socktype, servAddr->ai_protocol);
+	this->hSocket = socket(serverInfo.sin_family, SOCK_STREAM, IPPROTO_TCP);
 	if (this->hSocket == INVALID_SOCKET) {
 		auto errcode = getAPIError();
-		freeaddrinfo(servAddr);
 		throw Lambda::Error("Could not resolve localhost", errcode);
 	}
 
@@ -49,25 +38,21 @@ ListenSocket::ListenSocket(const char* listenPort) {
 	uint32_t sockoptReuseaddr = 1;
 	if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
 		auto errcode = getAPIError();
-		freeaddrinfo(servAddr);
 		throw Lambda::Error("Failed to set socket reuse address option", errcode);
 	}
 	
 	//	bind socket
-	if (bind(this->hSocket, servAddr->ai_addr, (int)servAddr->ai_addrlen) == SOCKET_ERROR) {
+	if (bind(this->hSocket, (sockaddr*)&serverInfo, sizeof(serverInfo)) == SOCKET_ERROR) {
 		auto errcode = getAPIError();
-		freeaddrinfo(servAddr);
 		closesocket(this->hSocket);
 		throw Lambda::Error("Failed to bind socket", errcode);
 	}
-
-	freeaddrinfo(servAddr);
 
 	//	listen for incoming connections
 	if (listen(this->hSocket, SOMAXCONN) == SOCKET_ERROR) {
 		auto errcode = getAPIError();
 		closesocket(this->hSocket);
-		throw Lambda::Error("Listen command failed", errcode);
+		throw Lambda::Error("Socket listen failed", errcode);
 	}	
 }
 

@@ -136,7 +136,7 @@ namespace Lambda::Network {
 			 * Constructs a listening socket for TCP stuff
 			 * 😵 This constructor throws if unable to create socket
 			*/
-			ListenSocket(const char* listenPort);
+			ListenSocket(uint16_t listenPort);
 			~ListenSocket();
 
 			bool isAlive();
@@ -149,7 +149,7 @@ namespace Lambda::Network {
 		CREATECONN_UDP = 1,
 	};
 
-	SOCKET resolveAndConnect(const char* host, const char* port,ConnectionProtocol proto);
+	SOCKET resolveAndConnect(const char* host, const char* port, ConnectionProtocol proto);
 	SOCKET resolveAndConnect(const char* host, const char* port);
 };
 
