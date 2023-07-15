@@ -123,7 +123,7 @@ crypto/sha1.o: crypto/sha1.cpp
 #------------
 # Component: Network
 #------------
-OBJECTS_NETWORK = network/tcpListenSocket.o network/httpTransport.o network/httpServer.o network/websocket.o network/address.o fetch/fetch.o
+OBJECTS_NETWORK = network/tcpListenSocket.o network/httpTransport.o network/httpServer.o network/websocket.o network/address.o client/fetch.o
 
 network/tcpListenSocket.o: network/tcpListenSocket.cpp
 	g++ -c network/tcpListenSocket.cpp -o network/tcpListenSocket.o $(CFLAGS)
@@ -140,8 +140,8 @@ network/websocket.o: network/websocket.cpp
 network/address.o: network/address.cpp
 	g++ -c network/address.cpp -o network/address.o $(CFLAGS)
 
-fetch/fetch.o: fetch/fetch.cpp
-	g++ -c fetch/fetch.cpp -o fetch/fetch.o $(CFLAGS)
+client/fetch.o: client/fetch.cpp
+	g++ -c client/fetch.cpp -o client/fetch.o $(CFLAGS)
 
 
 #------------

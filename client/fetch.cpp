@@ -1,15 +1,11 @@
-#include "./fetch.hpp"
+#include "./client.hpp"
 #include "../network/tcpip.hpp"
 #include "../network/network.hpp"
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
 
-enum Constants {
-	FETCH_MAX_ATTEMPTS = 5
-};
-
-Response Fetch::fetch(const Request& userRequest) {
+Response Client::fetch(const Request& userRequest) {
 
 	SOCKET connection;
 
@@ -53,7 +49,7 @@ Response Fetch::fetch(const Request& userRequest) {
 	return response;
 }
 
-HTTP::Response Fetch::fetch(std::string url) {
+HTTP::Response Client::fetch(std::string url) {
 	auto request = Request();
 	request.url.setHref(url);
 	return fetch(request);

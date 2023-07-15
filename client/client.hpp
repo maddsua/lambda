@@ -5,12 +5,12 @@
  * is oriented towards making network work in the first place, not pulling REST API or something
 */
 
-#ifndef __LAMBDA_FETCHAPI__
-#define __LAMBDA_FETCHAPI__
+#ifndef __LAMBDA_CLIENT__
+#define __LAMBDA_CLIENT__
 
 #include "../http/http.hpp"
 
-namespace Lambda::Fetch {
+namespace Lambda::Client {
 
 	/**
 	 * Fetch a web resource. Works similar to JS Fetch API
