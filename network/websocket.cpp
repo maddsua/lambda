@@ -58,31 +58,34 @@ WebSocket::WebSocket(HTTPConnection& connection, Request& initalRequest) {
 
 	this->hSocket = connection.getHandle();
 
-	auto headerUpgrade = initalRequest.headers.get("Upgrade");
-	auto headerWsKey = initalRequest.headers.get("Sec-WebSocket-Key");
+	try {
 
-	if (headerUpgrade != "websocket" || !headerWsKey.size())
-		throw Lambda::Error("Websocket initialization aborted: no valid handshake headers present");
+		auto headerUpgrade = initalRequest.headers.get("Upgrade");
+		auto headerWsKey = initalRequest.headers.get("Sec-WebSocket-Key");
 
-	auto combinedKey = headerWsKey + wsMagicString;
+		if (headerUpgrade != "websocket" || !headerWsKey.size())
+			throw Lambda::Error("No valid handshake headers present");
 
-	auto sha1hash = Crypto::SHA1();
-	sha1hash.update(std::vector<uint8_t>(combinedKey.begin(), combinedKey.end()));
-	auto keyHash = sha1hash.digest();
-	auto keyHashString = std::string(keyHash.begin(), keyHash.end());
+		auto combinedKey = headerWsKey + wsMagicString;
 
-	auto handshakeReponse = Response(101, {
-		{ "Upgrade", "websocket" },
-		{ "Connection", "Upgrade" },
-		{ "Sec-WebSocket-Accept", Encoding::b64Encode(keyHashString) }
-	});
+		auto sha1hash = Crypto::SHA1();
+		sha1hash.update(std::vector<uint8_t>(combinedKey.begin(), combinedKey.end()));
+		auto keyHash = sha1hash.digest();
+		auto keyHashString = std::string(keyHash.begin(), keyHash.end());
 
-	auto hanshakeResult = connection.sendResponse(handshakeReponse);
+		auto handshakeReponse = Response(101, {
+			{ "Upgrade", "websocket" },
+			{ "Connection", "Upgrade" },
+			{ "Sec-WebSocket-Accept", Encoding::b64Encode(keyHashString) }
+		});
 
-	if (hanshakeResult.isError())
-		throw Lambda::Error(std::string("Websocket handshake failed: ") + hanshakeResult.what(), hanshakeResult.errorCode());
+		connection.sendResponse(handshakeReponse);
 
-	this->receiveThread = new std::thread(asyncWsIO, this);
+	} catch(const std::exception& e) {
+		throw Lambda::Error("Websocket request aborted", e);
+	}
+
+	this->receiveThread = std::thread(asyncWsIO, this);
 }
 
 WebSocket::~WebSocket() {
@@ -103,11 +106,8 @@ WebSocket::~WebSocket() {
 		send(this->hSocket, (const char*)closeFrame, sizeof(closeFrame), 0);
 	}
 
-	if (this->receiveThread != nullptr) {
-		if (this->receiveThread->joinable())
-			this->receiveThread->join();
-		delete this->receiveThread;
-	}
+	if (this->receiveThread.joinable())
+		this->receiveThread.join();
 }
 
 WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer) {
@@ -291,7 +291,7 @@ void WebSocket::asyncWsIO() {
 			clearMultipartData(&multipartMessagePtr);
 
 			#ifdef LAMBDADEBUG_WS
-				puts("LAMBDA_DEBUG_WS: std thrown a size expection, that's how bad the message is malformed");
+				puts("LAMBDA_DEBUG_WS: std thrown a size exception, that's how bad the message is malformed");
 			#endif
 
 			return;

@@ -55,8 +55,8 @@ void BaseConnection::resolveAndConnect(const char* host, const char* port, Conne
 		throw Lambda::Error("Failed to resolve host", apierror);
 	}
 
-	SOCKET clientSocket = socket(hints.ai_family, hints.ai_socktype, hints.ai_protocol);
-	if (clientSocket == INVALID_SOCKET) {
+	this->hSocket = socket(hints.ai_family, hints.ai_socktype, hints.ai_protocol);
+	if (this->hSocket == INVALID_SOCKET) {
 		auto apierror = getAPIError();
 		freeaddrinfo(resolvedAddresses);
 		throw Lambda::Error("Failed to create a socket", apierror);
@@ -74,7 +74,7 @@ void BaseConnection::resolveAndConnect(const char* host, const char* port, Conne
 		}
 
 		//	return socket if it's good
-		if (connect(clientSocket, addrPtr->ai_addr, addrPtr->ai_addrlen) != SOCKET_ERROR) {
+		if (connect(this->hSocket, addrPtr->ai_addr, addrPtr->ai_addrlen) != SOCKET_ERROR) {
 			freeaddrinfo(resolvedAddresses);
 			return;
 		}
@@ -82,12 +82,13 @@ void BaseConnection::resolveAndConnect(const char* host, const char* port, Conne
 		lastError = getAPIError();
     }
 
+	//	could not connect to any host;
 	//	cleanup resolved addresses
 	freeaddrinfo(resolvedAddresses);
 
-	//	kill socket if open
-	if (clientSocket != INVALID_SOCKET)
-		closesocket(clientSocket);
+	//	and kill socket if is open
+	if (this->hSocket != INVALID_SOCKET)
+		closesocket(this->hSocket);
 
 	throw Lambda::Error("Could not connect to the server", lastError);
 }
@@ -99,19 +100,18 @@ BaseConnection::~BaseConnection() {
 	}
 }
 
-Lambda::Error BaseConnection::setTimeouts(uint32_t timeoutMs) {
+void BaseConnection::setTimeouts(uint32_t timeoutMs) {
 
 	if (timeoutMs == 0 || timeoutMs == -1) timeoutMs = network_connection_timeout;
 
-	auto setOptStatRX = setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutMs, sizeof(timeoutMs));
-	auto setOptStatTX = setsockopt(this->hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutMs, sizeof(timeoutMs));
-	if (setOptStatRX != 0 || setOptStatTX != 0)
-		return Lambda::Error("Connection aborted: failed to set socket timeouts", getAPIError());
+	if (setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutMs, sizeof(timeoutMs)) != 0)
+		throw Lambda::Error("Failed to set socket RX timeout", getAPIError());
 
-	return {};
+	if (setsockopt(this->hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutMs, sizeof(timeoutMs)) != 0)
+		throw Lambda::Error("Failed to set socket TX timeout", getAPIError());
 }
 
-SOCKET BaseConnection::getHandle() {
+SOCKET BaseConnection::getHandle() noexcept {
 	return this->hSocket;
 }
 
@@ -126,6 +126,6 @@ BaseConnection::BaseConnection(BaseConnection&& other) noexcept {
 	other.hSocket = INVALID_SOCKET;
 }
 
-const std::string& BaseConnection::getPeerIPv4() {
+const std::string& BaseConnection::getPeerIPv4() noexcept {
 	return this->peerIPv4;
 }

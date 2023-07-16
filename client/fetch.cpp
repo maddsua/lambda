@@ -8,28 +8,27 @@ using namespace Lambda::Network;
 
 Response Client::fetch(const Request& userRequest) {
 
-	HTTPConnection connection;
-
 	try {
-		connection = std::move(HTTPConnection(userRequest.url));
-	} catch(const Lambda::Error& e) {
-		throw Lambda::Error(std::string("Fetch failed: ") + e.what());
+
+		auto connection = HTTPConnection(userRequest.url);
+		
+		//	complete http request
+		auto request = userRequest;
+		request.headers.set("Host", /*"http://" + */request.url.host);
+		request.headers.append("User-Agent", LAMBDA_USERAGENT);
+		request.headers.append("Accept-Encoding", LAMBDA_FETCH_ENCODINGS);
+		request.headers.append("Accept", "*/*");
+		request.headers.append("Connection", "close");
+
+		connection.sendRequest(request);
+
+		auto requestStream = request.dump();
+
+		return connection.receiveResponse();
+
+	} catch(const std::exception& error) {
+		throw Lambda::Error("Fetch failed", error);
 	}
-
-	//	complete http request
-	auto request = userRequest;
-	request.headers.set("Host", /*"http://" + */request.url.host);
-	request.headers.append("User-Agent", LAMBDA_USERAGENT);
-	request.headers.append("Accept-Encoding", LAMBDA_FETCH_ENCODINGS);
-	request.headers.append("Accept", "*/*");
-	request.headers.append("Connection", "close");
-
-	auto rqSendResult = connection.sendRequest(request);
-	if (rqSendResult.isError()) throw rqSendResult;
-
-	auto requestStream = request.dump();
-
-	return connection.receiveResponse();
 }
 
 HTTP::Response Client::fetch(std::string url) {

@@ -31,14 +31,14 @@ void ListenSocket::create(uint16_t listenPort, ConnectionProtocol proto) {
 	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	serverAddr.sin_port = htons(listenPort);
 	
-	// create and bind a SOCKET
-
+	// create and bind a socket
 	#ifdef _WIN32
 	bool wsaInitEcexuted = false;
 	#endif
 
 	sockcreate:
 	this->hSocket = socket(serverInfo.family, serverInfo.type, serverInfo.protocol);
+
 	if (this->hSocket == INVALID_SOCKET) {
 
 		auto apierror = getAPIError();
@@ -92,7 +92,11 @@ bool ListenSocket::isAlive() {
 
 
 TCPListenSocket::TCPListenSocket(uint16_t listenPort) {
-	this->create(listenPort, ConnectionProtocol::TCP);
+	try {
+		this->create(listenPort, ConnectionProtocol::TCP);
+	} catch(const std::exception& e) {
+		throw Lambda::Error("Could not create listen socket", e);
+	}
 }
 
 HTTPConnection TCPListenSocket::acceptConnection() {

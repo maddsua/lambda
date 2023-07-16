@@ -57,7 +57,7 @@ Lambda::Error Compress::brotliCompressBuffer(const std::vector<uint8_t>& input, 
 		}
 
 		if (!BrotliEncoderCompressStream(br.stream, eob ? BROTLI_OPERATION_FINISH : BROTLI_OPERATION_PROCESS, &available_in, &next_in, &available_out, &next_out, nullptr)) {
-			throw Lambda::Error("brotli encoder failed");
+			return Lambda::Error("brotli encoder failed");
 		}
 	}
 

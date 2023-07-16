@@ -63,14 +63,14 @@ namespace Lambda::Network {
 			BaseConnection() {};
 			~BaseConnection();
 
-			Lambda::Error setTimeouts(uint32_t timeoutMs);
-			SOCKET getHandle();
+			void setTimeouts(uint32_t timeoutMs);
+			SOCKET getHandle() noexcept;
 
 			BaseConnection& operator= (const BaseConnection& other) = delete;
 			BaseConnection& operator= (BaseConnection&& other) noexcept;
 			BaseConnection(BaseConnection&& other) noexcept;
 
-			const std::string& getPeerIPv4();
+			const std::string& getPeerIPv4() noexcept;
 	};
 
 	class HTTPConnection : public BaseConnection {
@@ -82,12 +82,12 @@ namespace Lambda::Network {
 			/**
 			 * Return http response to the client
 			*/
-			Lambda::Error sendResponse(HTTP::Response& response);
+			void sendResponse(HTTP::Response& response);
 
 			/**
 			 * Send http request to the server
 			*/
-			Lambda::Error sendRequest(HTTP::Request& request);
+			void sendRequest(HTTP::Request& request);
 
 			/**
 			 * Receive http request from the client
@@ -133,7 +133,7 @@ namespace Lambda::Network {
 		private:
 			SOCKET hSocket = INVALID_SOCKET;
 			std::vector<WebsocketMessage> rxQueue;
-			std::thread* receiveThread = nullptr;
+			std::thread receiveThread;
 			void asyncWsIO();
 			Lambda::Error internalError;
 			std::mutex mtLock;

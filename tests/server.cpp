@@ -68,7 +68,11 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 
 int main() {
 
-	auto server = Lambda::Server();
+	auto port = 8080;
+
+	auto server = Lambda::Server(port);
+
+	std::cout << "Server started at http://localhost:" + std::to_string(port) << std::endl;
 
 	server.setServerlessCallback(&callbackServerless);
 	//server.setServerCallback(&callback);

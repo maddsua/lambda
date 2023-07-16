@@ -95,11 +95,10 @@ void Server::connectionHandler() {
 		}
 
 		//	return server response
-		auto sendAction = server.sendResponse(response);
-		if (sendAction.isError()) throw sendAction;
+		server.sendResponse(response);
 
 	} catch(const std::exception& e) {
-		addLogRecord(std::string("Handler error: ") + e.what() + "; client: " + (requestCTX.clientIP.size() ? requestCTX.clientIP : "unknown"), LAMBDA_LOG_CRITICAL);
+		addLogRecord(std::string("Handler error: ") + e.what() + " | Client: " + (requestCTX.clientIP.size() ? requestCTX.clientIP : "unknown"), LAMBDA_LOG_CRITICAL);
 	} catch(...) {
 		addLogRecord("Unhandled server error. Request aborted.", LAMBDA_LOG_CRITICAL);
 	}

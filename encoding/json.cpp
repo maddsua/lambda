@@ -279,7 +279,7 @@ size_t JSONParser::findPropNext(const std::string& key) {
 	while (searchIdx == std::string::npos) {
 
 		auto tempIdx = this->data.find(pattern, searchStart);
-		if (tempIdx == searchIdx) throw Lambda::Error("Prop \"" + stringEncode(key) + "\" not found");
+		if (tempIdx == searchIdx) throw Lambda::Error("JSON prop \"" + stringEncode(key) + "\" not found");
 		
 		for (const auto& holdout : this->mask) {
 
