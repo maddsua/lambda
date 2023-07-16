@@ -26,9 +26,9 @@ const std::string kv_help_message = R"(
 	>> OK
 )";
 
-void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context) {
+void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& context) {
 
-	auto request = connection.receiveMessage();
+	auto request = connection.receiveRequest();
 
 	std::cout << "Serving \"" << request.url.pathname << "\"" << std::endl;
 
@@ -39,7 +39,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 		
 		if (vfs == nullptr) {
 			auto response = serviceResponse(500, "HTTP/500 Error: VFS unavailable");;
-			connection.sendMessage(response);
+			connection.sendResponse(response);
 			return;
 		}
 
@@ -52,7 +52,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 		auto file = vfs->read(filepath);
 		if (!file.size()) {
 			auto response = serviceResponse(404, "Resource \"" + request.url.pathname + "\" does not exist");
-			connection.sendMessage(response);
+			connection.sendResponse(response);
 			return;
 		}
 
@@ -63,7 +63,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 		if (pathExtIdx != std::string::npos)
 			response.headers.append("content-type", getExtMimetype(filepath.substr(pathExtIdx)));
 		
-		connection.sendMessage(response);
+		connection.sendResponse(response);
 		return;
 	}
 

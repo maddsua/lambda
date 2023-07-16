@@ -54,9 +54,9 @@ struct WebsocketFrameHeader {
 	bool mask;
 };
 
-WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
+WebSocket::WebSocket(HTTPConnection& connection, Request& initalRequest) {
 
-	this->hSocket = tcpSocket;
+	this->hSocket = connection.getHandle();
 
 	auto headerUpgrade = initalRequest.headers.get("Upgrade");
 	auto headerWsKey = initalRequest.headers.get("Sec-WebSocket-Key");
@@ -77,7 +77,7 @@ WebSocket::WebSocket(SOCKET tcpSocket, Request& initalRequest) {
 		{ "Sec-WebSocket-Accept", Encoding::b64Encode(keyHashString) }
 	});
 
-	auto hanshakeResult = sendHTTPResponse(this->hSocket, handshakeReponse);
+	auto hanshakeResult = connection.sendResponse(handshakeReponse);
 
 	if (hanshakeResult.isError())
 		throw Lambda::Error(std::string("Websocket handshake failed: ") + hanshakeResult.what(), hanshakeResult.errorCode());
@@ -170,7 +170,7 @@ void WebSocket::asyncWsIO() {
 		if ((lastPing - lastPong) > std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout)) {
 
 			this->internalError = { "Didn't receive any response for pings" };
-			this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+			this->connCloseStatus =  static_cast<std::underlying_type<WebSocketCloseCode>::type>(WebSocketCloseCode::protocol_error);
 
 			#ifdef LAMBDADEBUG_WS
 				puts("LAMBDA_DEBUG_WS: someone does not respond to the ping's! GET OUT!");
@@ -215,7 +215,7 @@ void WebSocket::asyncWsIO() {
 			auto apierror = getAPIError();
 			if (apierror != ETIMEDOUT && apierror != WSAETIMEDOUT) {
 				this->internalError = { "Connection terminated", apierror };
-				this->connCloseStatus = WSCLOSE_PROTOCOL_ERROR;
+				this->connCloseStatus =  static_cast<std::underlying_type<WebSocketCloseCode>::type>(WebSocketCloseCode::protocol_error);
 				return;
 			}
 		}
@@ -432,7 +432,7 @@ std::vector<WebsocketMessage> WebSocket::getMessages() {
 	return temp;
 }
 
-Lambda::Error WebSocket::_sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary) {
+Lambda::Error WebSocket::sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary) {
 
 	if (this->connCloseStatus) return Lambda::Error("Websocket connection closed and cannot be reused");
 	if (this->hSocket == INVALID_SOCKET) return Lambda::Error("Socket closed | Invalid socket error");
@@ -469,4 +469,27 @@ Lambda::Error WebSocket::_sendMessage(const uint8_t* dataBuff, const size_t data
 	};
 
 	return {};
+}
+
+Lambda::Error WebSocket::sendMessage(const std::string& message) {
+	return sendMessage((const uint8_t*)message.data(), message.size(), false);
+}
+
+bool WebSocket::availableMessage() {
+	return this->rxQueue.size() > 0;
+}
+
+bool WebSocket::isAlive() {
+	return (!this->connCloseStatus && this->hSocket != INVALID_SOCKET && !this->internalError.isError());
+}
+Lambda::Error WebSocket::getError() {
+	return this->internalError;
+}
+
+void WebSocket::close() {
+	this->connCloseStatus = static_cast<std::underlying_type<WebSocketCloseCode>::type>(WebSocketCloseCode::normal);
+}
+
+void WebSocket::close(WebSocketCloseCode reason) {
+	this->connCloseStatus = static_cast<std::underlying_type<WebSocketCloseCode>::type>(reason);
 }

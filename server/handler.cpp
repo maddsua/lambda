@@ -22,7 +22,7 @@ void Server::connectionHandler() {
 		handlerDispatched = true;
 
 		// get request context
-		requestCTX.clientIP = server.clientIP();
+		requestCTX.clientIP = server.getPeerIPv4();
 		requestCTX.passtrough = this->instancePasstrough;
 
 		//	hold response object ready just in case
@@ -43,7 +43,7 @@ void Server::connectionHandler() {
 
 			//	serverless handler
 			//	we read request before even trying to call handler, so we won't break http in case there's no handler
-			auto request = server.receiveMessage();
+			auto request = server.receiveRequest();
 			accepEncodingHeader = request.headers.get("accept-encoding");
 			if (this->requestCallbackServerless != nullptr) {
 				response = (*requestCallbackServerless)(request, requestCTX);
@@ -59,7 +59,7 @@ void Server::connectionHandler() {
 
 		//	handle errors
 		if (handlerErrorMessage.size()) {
-			addLogRecord(std::string("Request failed: " ) + handlerErrorMessage + " | Client: " + server.clientIP(), LAMBDA_LOG_ERROR);
+			addLogRecord(std::string("Request failed: " ) + handlerErrorMessage + " | Client: " + requestCTX.clientIP, LAMBDA_LOG_ERROR);
 			response = serviceResponse(500, handlerErrorMessage);
 		}
 
@@ -76,14 +76,14 @@ void Server::connectionHandler() {
 			auto compressionEnabled = this->flags.compressionUseBrotli || this->flags.compressionUseGzip;
 			//auto hasAcceptEncodingHeader = request.headers.has("accept-encoding");
 			if (!compressionEnabled || !accepEncodingHeader.size()) {
-				server.sendMessage(response);
+				server.sendResponse(response);
 				return;
 			}
 
 			auto contentTypeHeader = response.headers.get("content-type");
 			auto isSupportedType = stringIncludes(contentTypeHeader, compressibleFileTypes);
 			if (!isSupportedType) {
-				server.sendMessage(response);
+				server.sendResponse(response);
 				return;
 			}
 
@@ -95,7 +95,7 @@ void Server::connectionHandler() {
 		}
 
 		//	return server response
-		auto sendAction = server.sendMessage(response);
+		auto sendAction = server.sendResponse(response);
 		if (sendAction.isError()) throw sendAction;
 
 	} catch(const std::exception& e) {

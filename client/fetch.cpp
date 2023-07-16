@@ -4,23 +4,16 @@
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
+using namespace Lambda::Network;
 
 Response Client::fetch(const Request& userRequest) {
 
-	SOCKET connection;
+	HTTPConnection connection;
 
 	try {
-		connection = Network::resolveAndConnect(userRequest.url.host.c_str(), userRequest.url.port.c_str());
+		connection = std::move(HTTPConnection(userRequest.url));
 	} catch(const Lambda::Error& e) {
-		throw Lambda::Error(std::string("Failed to resolve host: ") + e.what());
-	}
-
-	uint32_t connectionTimeout = 30000;
-	auto setOptStatRX = setsockopt(connection, SOL_SOCKET, SO_RCVTIMEO, (const char*)&connectionTimeout, sizeof(connectionTimeout));
-	auto setOptStatTX = setsockopt(connection, SOL_SOCKET, SO_SNDTIMEO, (const char*)&connectionTimeout, sizeof(connectionTimeout));
-	if (setOptStatRX != 0 || setOptStatTX != 0) {
-		auto errcode = getAPIError();
-		throw Lambda::Error("HTTP connection aborted: failed to set socket timeouts", errcode);
+		throw Lambda::Error(std::string("Fetch failed: ") + e.what());
 	}
 
 	//	complete http request
@@ -31,22 +24,12 @@ Response Client::fetch(const Request& userRequest) {
 	request.headers.append("Accept", "*/*");
 	request.headers.append("Connection", "close");
 
+	auto rqSendResult = connection.sendRequest(request);
+	if (rqSendResult.isError()) throw rqSendResult;
+
 	auto requestStream = request.dump();
 
-	//	send request
-	if (send(connection, (const char*)requestStream.data(), requestStream.size(), 0) <= 0) {
-		auto apierror = getAPIError();
-		closesocket(connection);
-		throw Lambda::Error("Failed to perform http request", apierror);
-	}
-	
-	//	get response
-	auto response = Network::receiveHTTPResponse(connection);
-
-	//	cleanup
-	closesocket(connection);
-
-	return response;
+	return connection.receiveResponse();
 }
 
 HTTP::Response Client::fetch(std::string url) {

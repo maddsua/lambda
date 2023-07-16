@@ -6,12 +6,39 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::Network;
+using namespace Lambda::Compress;
 
-Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
+HTTPConnection::HTTPConnection(HTTP::URL remoteUrl) {
 
-	auto sendResponseContent = [hSocket, &response](){
+	resolveAndConnect(remoteUrl.host.c_str(), remoteUrl.port.c_str(), ConnectionProtocol::TCP);
+
+	auto opResult = setTimeouts(network_connection_timeout);
+	if (opResult.isError())	throw opResult;
+}
+
+HTTPConnection::HTTPConnection(SOCKET hParentSocket) {
+
+	sockaddr_in clientAddr;
+	int clientAddrLen = sizeof(clientAddr);
+
+	this->hSocket = accept(hParentSocket, (sockaddr*)&clientAddr, &clientAddrLen);
+
+	if (this->hSocket == INVALID_SOCKET)
+		throw Lambda::Error("Connection aborted: socket accept failed", getAPIError());
+
+	auto setTimeoutResult = setTimeouts(network_connection_timeout);
+	if (setTimeoutResult.isError())	throw setTimeoutResult;
+
+	char tempbuffIPv4[64];
+	if (inet_ntop(AF_INET, &clientAddr.sin_addr, tempbuffIPv4, sizeof(tempbuffIPv4)) != nullptr)
+		peerIPv4 = tempbuffIPv4;
+}
+
+Lambda::Error HTTPConnection::sendResponse(Response& response) {
+
+	auto sendResponseContent = [this, &response](){
 		auto payloadSerialized = response.dump();
-		if (send(hSocket, (char*)payloadSerialized.data(), payloadSerialized.size(), 0) <= 0)
+		if (send(this->hSocket, (char*)payloadSerialized.data(), payloadSerialized.size(), 0) <= 0)
 			return Lambda::Error("Failed to send http response" , getAPIError());
 		return Lambda::Error();
 	};
@@ -31,7 +58,7 @@ Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
 	if (stringToLowerCase(compressionMethod) == "br") {
 
-		auto compressStatus = Compress::brotliCompressBuffer(response.body, bodyCompressed);
+		auto compressStatus = brotliCompressBuffer(response.body, bodyCompressed);
 		if (compressStatus.isError())
 			return { std::string("br compression failed") + compressStatus.what() };
 
@@ -39,7 +66,7 @@ Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
 	} else if (stringToLowerCase(compressionMethod) == "gzip") {
 
-		auto compressStatus = Compress::zlibCompressBuffer(response.body, bodyCompressed);
+		auto compressStatus = zlibCompressBuffer(response.body, bodyCompressed);
 		if (compressStatus.isError())
 			return { std::string("gzip compression failed") + compressStatus.what() };
 
@@ -47,7 +74,7 @@ Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 
 	} else if (stringToLowerCase(compressionMethod) == "deflate") {
 
-		auto compressStatus = Compress::zlibCompressBuffer(response.body, bodyCompressed, 5, Compress::ZLIB_HEADER_DEFLATE);
+		auto compressStatus = zlibCompressBuffer(response.body, bodyCompressed, 5, Compress::ZLIB_HEADER_DEFLATE);
 		if (compressStatus.isError())
 			return { std::string("deflate compression failed") + compressStatus.what() };
 
@@ -58,10 +85,23 @@ Lambda::Error Network::sendHTTPResponse(SOCKET hSocket, Response& response) {
 	return sendResponseContent();
 }
 
+Lambda::Error HTTPConnection::sendRequest(HTTP::Request& request) {
+
+	auto requestStream = request.dump();
+
+	//	send request
+	if (send(this->hSocket, (const char*)requestStream.data(), requestStream.size(), 0) <= 0) {
+		auto apierror = getAPIError();
+		return Lambda::Error("Failed to send http request", apierror);
+	}
+
+	return {};
+}
+
 /**
  * Passing body stream here is important because we can't know the header size for sure and it's very likely that we'll download some part of the body along with the headers too
 */
-void receiveHTTPHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::vector<uint8_t>& bodyStream) {
+void receiveHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::vector<uint8_t>& bodyStream) {
 
 	auto headerEnded = headerStream.end();
 	uint8_t headerChunk[network_chunksize_header];
@@ -85,7 +125,7 @@ void receiveHTTPHeader(SOCKET hSocket, std::vector<uint8_t>& headerStream, std::
 	headerStream.resize(headerEnded - headerStream.begin());
 }
 
-void receiveHTTPBody(SOCKET hSocket, std::vector<uint8_t>& bodyStream, const std::string& contentSizeHeader) {
+void receiveBody(SOCKET hSocket, std::vector<uint8_t>& bodyStream, const std::string& contentSizeHeader) {
 
 	size_t bodySize;
 	try {
@@ -109,29 +149,29 @@ void receiveHTTPBody(SOCKET hSocket, std::vector<uint8_t>& bodyStream, const std
 	}
 }
 
-Request Network::receiveHTTPRequest(SOCKET hSocket) {
+Request HTTPConnection::receiveRequest() {
 
 	std::vector<uint8_t> headerStream;
 	std::vector<uint8_t> bodyStream;
 
-	receiveHTTPHeader(hSocket, headerStream, bodyStream);
+	receiveHeader(this->hSocket, headerStream, bodyStream);
 
 	auto request = Request(headerStream);	
-	receiveHTTPBody(hSocket, bodyStream, request.headers.get("Content-Length"));
+	receiveBody(this->hSocket, bodyStream, request.headers.get("Content-Length"));
 	request.body = bodyStream;
 
 	return request;
 }
 
-Response Network::receiveHTTPResponse(SOCKET hSocket) {
+Response HTTPConnection::receiveResponse() {
 
 	std::vector<uint8_t> headerStream;
 	std::vector<uint8_t> bodyStream;
 
-	receiveHTTPHeader(hSocket, headerStream, bodyStream);
+	receiveHeader(this->hSocket, headerStream, bodyStream);
 
 	auto response = Response(headerStream);
-	receiveHTTPBody(hSocket, bodyStream, response.headers.get("Content-Length"));
+	receiveBody(this->hSocket, bodyStream, response.headers.get("Content-Length"));
 
 	auto contentEncoding = response.headers.get("Content-Encoding");
 	if (!contentEncoding.size()) {
@@ -169,4 +209,8 @@ Response Network::receiveHTTPResponse(SOCKET hSocket) {
 	response.body = bodyStream;
 
 	return response;
+}
+
+WebSocket HTTPConnection::upgradeToWebsocket(Lambda::HTTP::Request& initalRequest) {
+	return WebSocket(*this, initalRequest);
 }

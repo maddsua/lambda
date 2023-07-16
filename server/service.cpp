@@ -8,7 +8,7 @@ using namespace Lambda::Network;
 void Server::init() {
 
 	try {
-		this->ListenSocketObj = new Network::ListenSocket(this->openOnPort);
+		this->ListenSocketObj = new Network::TCPListenSocket(this->openOnPort);
 	} catch(const std::exception& e) {
 		addLogRecord(std::string("Failed to start server: Listen socket error: ") + e.what(), LAMBDA_LOG_ERROR);
 		return;
@@ -30,7 +30,7 @@ Server::~Server() {
 	delete ListenSocketObj;
 }
 
-void Server::setServerCallback(void (*callback)(Network::HTTPServer&, Context&)) {
+void Server::setServerCallback(void (*callback)(Network::HTTPConnection&, Context&)) {
 	//std::lock_guard<std::mutex>lock(mtLock);
 	this->requestCallback = callback;
 }
@@ -76,7 +76,7 @@ void Server::connectionWatchdog() {
 			delete this->ListenSocketObj;
 
 			try {
-				this->ListenSocketObj = new Network::ListenSocket(this->openOnPort);
+				this->ListenSocketObj = new Network::TCPListenSocket(this->openOnPort);
 			} catch(const std::exception& e) {
 				addLogRecord(std::string("Failed to restart the listen socket: ") + e.what() + "Server shut down.", LAMBDA_LOG_ERROR);
 				this->running = false;

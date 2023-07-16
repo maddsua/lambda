@@ -123,22 +123,19 @@ crypto/sha1.o: crypto/sha1.cpp
 #------------
 # Component: Network
 #------------
-OBJECTS_NETWORK = network/tcpListenSocket.o network/httpTransport.o network/httpServer.o network/websocket.o network/address.o client/fetch.o
+OBJECTS_NETWORK = network/listenSocket.o network/baseConnection.o network/httpConnection.o network/websocket.o client/fetch.o
 
-network/tcpListenSocket.o: network/tcpListenSocket.cpp
-	g++ -c network/tcpListenSocket.cpp -o network/tcpListenSocket.o $(CFLAGS)
+network/listenSocket.o: network/listenSocket.cpp
+	g++ -c network/listenSocket.cpp -o network/listenSocket.o $(CFLAGS)
 
-network/httpTransport.o: network/httpTransport.cpp
-	g++ -c network/httpTransport.cpp -o network/httpTransport.o $(CFLAGS)
+network/baseConnection.o: network/baseConnection.cpp
+	g++ -c network/baseConnection.cpp -o network/baseConnection.o $(CFLAGS)
 
-network/httpServer.o: network/httpServer.cpp
-	g++ -c network/httpServer.cpp -o network/httpServer.o $(CFLAGS)
+network/httpConnection.o: network/httpConnection.cpp
+	g++ -c network/httpConnection.cpp -o network/httpConnection.o $(CFLAGS)
 
 network/websocket.o: network/websocket.cpp
 	g++ -c network/websocket.cpp -o network/websocket.o $(CFLAGS)
-
-network/address.o: network/address.cpp
-	g++ -c network/address.cpp -o network/address.o $(CFLAGS)
 
 client/fetch.o: client/fetch.cpp
 	g++ -c client/fetch.cpp -o client/fetch.o $(CFLAGS)

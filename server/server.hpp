@@ -37,7 +37,7 @@ namespace Lambda {
 	*/
 	class Server {
 		private:
-			Lambda::Network::ListenSocket* ListenSocketObj;
+			Lambda::Network::TCPListenSocket* ListenSocketObj;
 			std::thread* watchdogThread;
 			bool handlerDispatched;
 			bool running;
@@ -53,7 +53,7 @@ namespace Lambda {
 			void addLogRecord(std::string message, LogLevel level);
 			void addLogRecord(std::string message) { addLogRecord(message, LAMBDA_LOG); };
 
-			void (*requestCallback)(Network::HTTPServer&, Context&) = nullptr;
+			void (*requestCallback)(Network::HTTPConnection&, Context&) = nullptr;
 			HTTP::Response (*requestCallbackServerless)(HTTP::Request&, Context&) = nullptr;
 
 			void* instancePasstrough = nullptr;
@@ -91,7 +91,7 @@ namespace Lambda {
 			 * 
 			 * Use this to setup websocket connection or something even more overcomplicated
 			*/
-			void setServerCallback(void (*callback)(Network::HTTPServer&, Context&));
+			void setServerCallback(void (*callback)(Network::HTTPConnection&, Context&));
 			void removeServerCallback();
 
 			/**

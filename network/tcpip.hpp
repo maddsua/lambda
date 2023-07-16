@@ -3,8 +3,8 @@
 	Should work in theory. If it does not, well, something is wrong 🗿🚬
 */
 
-#ifndef __LAMBDA_NETWORK_APIS__
-#define __LAMBDA_NETWORK_APIS__
+#ifndef __LAMBDA_NETWORK_TCPIP__
+#define __LAMBDA_NETWORK_TCPIP__
 
 #include <stdint.h>
 

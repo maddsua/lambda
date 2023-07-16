@@ -24,9 +24,9 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	return response;
 };
 
-void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context) {
+void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& context) {
 
-	auto request = connection.receiveMessage();
+	auto request = connection.receiveRequest();
 
 	//std::cout << "request headers: " << request.headers.stringify() << std::endl;
 
@@ -53,7 +53,7 @@ void callback(Lambda::Network::HTTPServer& connection, Lambda::Context& context)
 				std::cout << msg.timestamp << ": " << msg.content << std::endl;
 
 				if (msg.content == "go away") {
-					websock.close(Lambda::Network::WSCLOSE_GOING_AWAY);
+					websock.close(Network::WebSocketCloseCode::normal);
 					break;
 				}
 			}

@@ -33,7 +33,7 @@ namespace Lambda {
 			bool error = false;
 
 			void formatMessage() {
-				msg = (this->code ? (this->msg + "Error code: " + std::to_string(this->code)) : this->msg);
+				msg = (this->code ? (this->msg + "; Error code: " + std::to_string(this->code)) : this->msg);
 			}
 
 		public:
