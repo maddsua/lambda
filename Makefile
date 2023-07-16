@@ -209,7 +209,7 @@ $(LIBSHARED): $(LIBFULL_OBJS) $(LIB_DLLINFO).res
 $(LIB_DLLINFO).res: $(LIB_DLLINFO).rc
 	windres -i $(LIB_DLLINFO).rc --input-format=rc -o $(LIB_DLLINFO).res -O coff
 
-$(LIB_DLLINFO): resources/lib/template.rc
+$(LIB_DLLINFO).rc: resources/lib/template.rc lambda_version.hpp
 	node autogen_dll_info.mjs
 
 
