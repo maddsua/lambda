@@ -111,6 +111,7 @@ const handleInput = () => {
 			width: 100%;
 			height: 20em;
 			overflow-y: scroll;
+			scrollbar-width: thin;
 
 			div {
 				font-size: 1rem;
