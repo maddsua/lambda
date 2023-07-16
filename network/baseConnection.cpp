@@ -121,11 +121,6 @@ BaseConnection& BaseConnection::operator= (BaseConnection&& other) noexcept {
 	return *this;
 }
 
-BaseConnection::BaseConnection(BaseConnection&& other) noexcept {
-	this->hSocket = other.hSocket;
-	other.hSocket = INVALID_SOCKET;
-}
-
 const std::string& BaseConnection::getPeerIPv4() noexcept {
 	return this->peerIPv4;
 }
