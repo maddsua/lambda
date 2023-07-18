@@ -11,6 +11,6 @@
 #define __LIB_MADDSUA_LAMBDA_VERSION__
 
 #define LAMBDA_PRODUCT			"maddsua/lambda"
-#define LAMBDA_VERSION			"1.2.21"
+#define LAMBDA_VERSION			"1.3.0"
 
 #endif
