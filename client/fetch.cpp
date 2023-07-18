@@ -10,11 +10,13 @@ Response Client::fetch(const Request& userRequest) {
 
 	try {
 
-		auto connection = HTTPConnection(userRequest.url);
+		auto isWww = !(userRequest.url.pathname == "localhost" || userRequest.url.pathname == "127.0.0.01") && userRequest.url.pathname.starts_with("http");
+
+		auto connection = isWww ? HTTPConnection(userRequest.url) : HTTPConnection((uint16_t)std::stoi(userRequest.url.port));
 		
 		//	complete http request
 		auto request = userRequest;
-		request.headers.set("Host", /*"http://" + */request.url.host);
+		if (isWww) request.headers.set("Host", request.url.host);
 		request.headers.append("User-Agent", LAMBDA_USERAGENT);
 		request.headers.append("Accept-Encoding", LAMBDA_FETCH_ENCODINGS);
 		request.headers.append("Accept", "*/*");

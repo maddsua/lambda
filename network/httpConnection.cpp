@@ -37,6 +37,11 @@ HTTPConnection::HTTPConnection(SOCKET hParentSocket) {
 		peerIPv4 = tempbuffIPv4;
 }
 
+HTTPConnection::HTTPConnection(uint16_t servicePort) {
+	connectLocalSerivce(servicePort, ConnectionProtocol::TCP);
+	setTimeouts(network_connection_timeout);
+}
+
 void HTTPConnection::sendResponse(Response& response) {
 
 	try {

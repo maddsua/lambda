@@ -94,6 +94,63 @@ void BaseConnection::resolveAndConnect(const char* host, const char* port, Conne
 	throw Lambda::Error("Could not connect to the server", lastError);
 }
 
+void BaseConnection::connectLocalSerivce(uint16_t servicePort, ConnectionProtocol proto) {
+
+	struct {
+		int family = AF_INET;
+		int type = 0;
+		int protocol = 0;
+	} lhInfo;
+
+	switch (proto) {
+
+		case ConnectionProtocol::UDP: {
+			lhInfo.type = SOCK_DGRAM;
+			lhInfo.protocol = IPPROTO_UDP;
+		} break;
+	
+		default: {
+			lhInfo.type = SOCK_STREAM;
+			lhInfo.protocol = IPPROTO_TCP;
+		} break;
+	}
+
+	sockaddr_in serverAddr;
+	serverAddr.sin_family = lhInfo.family;
+	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	serverAddr.sin_port = htons(servicePort);
+	
+	// create and bind a socket
+	#ifdef _WIN32
+	bool wsaInitEcexuted = false;
+	#endif
+
+	sockcreate:
+	this->hSocket = socket(lhInfo.family, lhInfo.type, lhInfo.protocol);
+
+	if (this->hSocket == INVALID_SOCKET) {
+
+		auto apierror = getAPIError();
+
+		#ifdef _WIN32
+		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
+
+			wsaInitEcexuted = true;
+			WSADATA initdata;
+			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
+				throw Lambda::Error("WSA initialization failed", apierror);
+			goto sockcreate;
+
+		} else
+		#endif
+		
+		throw Lambda::Error("Failed to create listen socket", apierror);
+	}
+ 
+	auto connectResult = connect(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+	if (connectResult == SOCKET_ERROR) throw Lambda::Error("Socket failed to connect", getAPIError());
+}
+
 BaseConnection::~BaseConnection() {
 	if (this->hSocket != INVALID_SOCKET) {
 		shutdown(this->hSocket, SD_BOTH);

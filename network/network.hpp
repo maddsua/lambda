@@ -88,6 +88,8 @@ namespace Lambda::Network {
 			*/
 			void resolveAndConnect(const char* host, const char* port, ConnectionProtocol proto);
 
+			void connectLocalSerivce(uint16_t servicePort, ConnectionProtocol proto);
+
 		public:
 			/**
 			 * Network connection base class
@@ -145,6 +147,13 @@ namespace Lambda::Network {
 			 * 😵 This constructor throws if unable to create connection
 			*/
 			HTTPConnection(HTTP::URL remoteUrl);
+
+			/**
+			 * Create HTTP connection to a service running on the same machine
+			 * 
+			 * 😵 This constructor throws if unable to create connection
+			*/
+			HTTPConnection(uint16_t servicePort);
 
 			/**
 			 * Return http response to the client
