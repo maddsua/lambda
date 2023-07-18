@@ -5,23 +5,23 @@
 
 int main(int argc, char const *argv[]) {
 
-	std::cout << "\r\n--- VFS file load test begin --- \r\n";
-
+	puts("VFS file load test begin...");
 	auto vfs = Lambda::Storage::VFS();
-
 	auto importResult = vfs.loadSnapshot("tests/data/simpletar.tar.gz");
-	if (importResult.isError()) std::cout << importResult.what() << std::endl;
+	if (importResult.isError()) throw std::runtime_error(importResult.what());
+	puts("Ok\n");
 
-	std::cout << "\r\n--- Listing loaded files --- \r\n";
-
+	puts("Listing loaded files...");
 	auto listing = vfs.listAll();
-
 	for (auto& record : listing) {
 		std::cout << "File: " << record.name << " | Size: " << record.size << std::endl;
 	}
+	puts("\n");
 
+	puts("VFS file save test begin...");
 	auto exportResult = vfs.saveSnapshot("tests/data/simpletar.lvfs2");
-	if (exportResult.isError()) std::cout << importResult.what() << std::endl;
+	if (exportResult.isError()) throw std::runtime_error(exportResult.what());
+	puts("Ok\n");
 
 	return 0;
 }

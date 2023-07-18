@@ -1,0 +1,26 @@
+name: VFS component test
+
+on:
+  push:
+    branches: ['main']
+    paths: ['storage/vfs*', 'tests/vfs.cpp']
+
+jobs:
+
+  build_and_test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Git Sumbodule Update
+        run: git submodule update
+
+      - name: build test
+        run: make test_vfs
+        
+      - name: run test
+        run: chmod +x test_vfs && ./test_vfs
