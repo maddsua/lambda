@@ -58,9 +58,7 @@
 	#define closesocket(socketHandle) close(socketHandle)
 	#define SD_BOTH (SHUT_RDWR)
 
-	static inline bool wsaWakeUp(int64_t initrqcode) {
-		return false;
-	}
+	#define wsaWakeUp(initrqcode) (false)
 
 #endif
 
