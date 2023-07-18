@@ -1,5 +1,5 @@
 #include "./network.hpp"
-#include "./tcpip.hpp"
+#include "./sysnetw.hpp"
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
 

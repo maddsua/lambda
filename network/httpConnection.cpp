@@ -1,5 +1,5 @@
 #include "./network.hpp"
-#include "./tcpip.hpp"
+#include "./sysnetw.hpp"
 #include "../compress/compress.hpp"
 #include <algorithm>
 

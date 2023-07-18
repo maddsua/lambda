@@ -13,8 +13,24 @@
 	#define WIN32_LEAN_AND_MEAN
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
+	#include "../lambda_private.hpp"
 
 	#define getAPIError() GetLastError()
+
+	inline bool wsaWakeUp(int64_t initrqcode) {
+
+		if (initrqcode != WSANOTINITIALISED) return false;
+
+		static bool wsaInitCalled = false;
+		if (wsaInitCalled) return false;
+		wsaInitCalled = true;
+
+		WSADATA initdata;
+		if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
+			throw Lambda::Error("WSA initialization failed", getAPIError());
+
+		return true;
+	}
 	
 #else
 
@@ -41,6 +57,10 @@
 
 	#define closesocket(socketHandle) close(socketHandle)
 	#define SD_BOTH (SHUT_RDWR)
+
+	static inline bool wsaWakeUp(int64_t initrqcode) {
+		return false;
+	}
 
 #endif
 

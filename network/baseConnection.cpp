@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cstring>
 #include "./network.hpp"
-#include "./tcpip.hpp"
+#include "./sysnetw.hpp"
 #include "../compress/compress.hpp"
 
 using namespace Lambda::HTTP;
@@ -29,31 +29,11 @@ void BaseConnection::resolveAndConnect(const char* host, const char* port, Conne
 	}
 	
 	//	resolve host
-	//	failsafe in case WSA gets glitchy
-	#ifdef _WIN32
-	bool wsaInitEcexuted = false;
-	#endif
-
 	dnsresolvehost:	//	yes, I'm using jumps here. deal with it.
 	if (getaddrinfo(host, port, &hints, &resolvedAddresses) != 0) {
-
 		auto apierror = getAPIError();
-
-		#ifdef _WIN32
-		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
-
-			wsaInitEcexuted = true;
-			WSADATA initdata;
-			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw Lambda::Error("WSA initialization failed", apierror);
-			goto dnsresolvehost;
-
-		} else	//	this "else" goes to the "return" right below, don't panic.
-		//	It looks like ass, but I fell more comfortable doing this,
-		//	than bringing Boost ASIO or some other libarary to have crossplatform sockets
-		#endif
-
-		throw Lambda::Error("Failed to resolve host", apierror);
+		if (wsaWakeUp(apierror)) goto dnsresolvehost;
+			else throw Lambda::Error("Failed to resolve host", apierror);
 	}
 
 	this->hSocket = socket(hints.ai_family, hints.ai_socktype, hints.ai_protocol);

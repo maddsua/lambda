@@ -1,5 +1,5 @@
 #include "./client.hpp"
-#include "../network/tcpip.hpp"
+#include "../network/sysnetw.hpp"
 #include "../network/network.hpp"
 
 using namespace Lambda;
