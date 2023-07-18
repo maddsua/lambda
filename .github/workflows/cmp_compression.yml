@@ -1,4 +1,4 @@
-name: Compress component test
+name: Compression component test
 
 on:
   push:
