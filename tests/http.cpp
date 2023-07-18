@@ -1,54 +1,78 @@
 #include "../http/http.hpp"
-#include <iostream>
+#include <cstdio>
+#include <exception>
+#include <stdexcept>
 
 using namespace Lambda;
 
 int main() {
 
-	std::cout << "\r\n--- HTTP component test begin --- \r\n\r\n";
+	puts("Search query generation test...");
+	auto searchQuery = HTTP::URLSearchParams();
 
-	//	create simple search query
-	auto searchQuery = HTTP::URLSearchParams("userid=0007&hl=en");
-	searchQuery.append("state", "ua");
-	searchQuery.set("userid", "0008");
-	std::cout << "Search query entry \"hl\": " << searchQuery.get("hl") << std::endl;
-	std::cout << "Complete search query: " << searchQuery.stringify() << std::endl;
-	std::cout << std::endl;
+	searchQuery.set("id", "12345");
+	searchQuery.set("hl", "en");
+	searchQuery.set("state", "de");
 
-	//	create headers object
-	auto header = HTTP::Headers();
-	header.set("content-type", "application/json");
-	header.set("auTHoRiZaTiOn", "Bearer token-xxxxxx");
-	std::cout << header.stringify() << std::endl;
-	std::cout << std::endl;
+	if (searchQuery.stringify() != "hl=en&id=12345&state=de")
+		throw std::runtime_error("Search query generation failed, result: " + searchQuery.stringify());
+	puts("Ok\n");
 
-	//	create url object
-	auto url = HTTP::URL("/api");
-	url.searchParams = searchQuery;
-	url.searchParams.set("session", "new");
-	std::cout << url.href() << std::endl;
-	std::cout << std::endl;
 
-	//	create request object
-	auto reqtext = std::string("GET /test HTTP/1.1\r\nTest-header    :    lambda\r\n\r\n");
-	auto reqbin = std::vector<uint8_t>(reqtext.begin(), reqtext.end());
-	auto req = HTTP::Request(reqbin);
-	std::cout << req.method << ":" << req.url.pathname << std::endl;
-	std::cout << req.url.searchParams.stringify() << std::endl;
-	std::cout << std::endl;
+	puts("URL generation test...");
+	auto urladdress = HTTP::URL();
 
-	//	create response object
+	urladdress.setHref("http://localhost/test");
+	urladdress.searchParams = searchQuery;
+
+	if (urladdress.href() != "http://localhost/test?hl=en&id=12345&state=de")
+		throw std::runtime_error("URL generation failed, result: " + urladdress.href());
+	puts("Ok\n");
+
+
+	puts("Request parsing test...");
+	auto reqtext = std::string("GET /test HTTP/1.1\r\nTest-header    :    lambda\r\ncontent-size: 14\r\n\r\n");
+	auto req = HTTP::Request(std::vector<uint8_t>(reqtext.begin(), reqtext.end()));
+
+	if (req.headers.get("test-header") != "lambda")
+		throw std::runtime_error("failed to get 'test-header', got: " + req.headers.get("test-header"));
+
+	if (req.headers.get("content-size") != "14")
+		throw std::runtime_error("failed to get 'content-size', got: " + req.headers.get("content-size"));
+
+	if (req.method != "GET")
+		throw std::runtime_error("failed to get request method, got: " + req.method);
+
+	if (req.url.pathname != "/test")
+		throw std::runtime_error("failed to get request url, got: " + req.url.pathname);
+
+	puts("Ok\n");
+
+
+	puts("Response composition test...");
 	auto response = HTTP::Response(202, {
 		{"contenty-type", "text/plain"}
 	}, "sample response here");
 	auto respdump = response.dump();
-	std::cout << std::string(respdump.begin(), respdump.end()) << std::endl;
-	std::cout << std::endl;
+	auto dumpTextVerify = "HTTP/1.1 202 Accepted\r\nContenty-Type: text/plain\r\nContent-Size: 20\r\n\r\nsample response here";
+	auto dumpText = std::string(respdump.begin(), respdump.end());
 
-	//	test mimetypes
-	std::cout << HTTP::getMimetypeExt("image/jpeg") << std::endl;
-	std::cout << HTTP::getExtMimetype("json") << std::endl;
-	std::cout << std::endl;
+	if (dumpText != dumpTextVerify)
+		throw std::runtime_error("HTTP text mismatch, got: " + dumpText);
+
+	puts("Ok\n");
+
+
+	puts("MimeType matching test...");
+
+	if (HTTP::getMimetypeExt("image/jpeg") != "jpeg")
+		throw std::runtime_error("Incorrect mimetype for 'image/jpeg', got: " + HTTP::getMimetypeExt("image/jpeg"));
+
+	if (HTTP::getMimetypeExt("application/json") != "json")
+		throw std::runtime_error("Incorrect mimetype for 'application/json', got: " + HTTP::getMimetypeExt("application/json"));
+
+	puts("Ok\n");
+
 
 	return 0;
 }

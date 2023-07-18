@@ -22,7 +22,7 @@ Request::Request() {
 	this->method = "GET";
 }
 
-Request::Request(std::vector<uint8_t>& httpHeadStream) {
+Request::Request(const std::vector<uint8_t>& httpHeadStream) {
 
 	static const std::string patternEndline = "\r\n";
 

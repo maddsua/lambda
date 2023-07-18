@@ -121,9 +121,9 @@ namespace Lambda::HTTP {
 			std::string href();
 			std::string toHttpPath();
 			std::string host;
-			std::string port;
+			std::string port = "80";
 			std::string protocol;
-			std::string pathname;
+			std::string pathname = "/";
 			URLSearchParams searchParams;
 	};
 
@@ -136,7 +136,7 @@ namespace Lambda::HTTP {
 			 * Just throw the http text starting from beginning an up to header end sequence
 			*/
 			Request();
-			Request(std::vector<uint8_t>& httpHeadStream);
+			Request(const std::vector<uint8_t>& httpHeadStream);
 			std::string method;
 			HttpVersion httpversion;
 			URL url;
