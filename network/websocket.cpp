@@ -85,7 +85,7 @@ WebSocket::WebSocket(HTTPConnection& connection, Request& initalRequest) {
 		throw Lambda::Error("Websocket request aborted", e);
 	}
 
-	this->receiveThread = std::thread(asyncWsIO, this);
+	this->receiveThread = std::thread(&WebSocket::asyncWsIO, this);
 }
 
 WebSocket::~WebSocket() {

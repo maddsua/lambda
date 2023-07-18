@@ -16,7 +16,7 @@ void Server::init() {
 
 	running = true;
 	handlerDispatched = true;
-	watchdogThread = new std::thread(connectionWatchdog, this);
+	watchdogThread = new std::thread(&Server::connectionWatchdog, this);
 	addLogRecord("Server start successful", LAMBDA_LOG_INFO);
 }
 
@@ -87,7 +87,7 @@ void Server::connectionWatchdog() {
 		}
 
 		lastDispatched = std::chrono::steady_clock::now();;
-		auto invoked = std::thread(connectionHandler, this);
+		auto invoked = std::thread(&Server::connectionHandler, this);
 		handlerDispatched = false;
 		invoked.detach();
 	}

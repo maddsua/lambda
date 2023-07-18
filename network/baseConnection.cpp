@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstring>
 #include "./network.hpp"
 #include "./tcpip.hpp"
 #include "../compress/compress.hpp"

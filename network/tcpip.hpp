@@ -25,10 +25,22 @@
 	#include <arpa/inet.h>
 	#include <cerrno>
 
-	static const int INVALID_SOCKET = -1;
-	static const int SOCKET_ERROR   = -1;
+	#ifndef INVALID_SOCKET
+	#define INVALID_SOCKET (-1)
+	#endif
+
+	#ifndef SOCKET_ERROR
+	#define SOCKET_ERROR (-1)
+	#endif
+
+	#ifndef WSAETIMEDOUT
+	#define WSAETIMEDOUT (ETIMEDOUT)
+	#endif
 
 	#define getAPIError() errno
+
+	#define closesocket(socketHandle) close(socketHandle)
+	#define SD_BOTH (SHUT_RDWR)
 
 #endif
 

@@ -20,7 +20,7 @@ HTTPConnection::HTTPConnection(HTTP::URL remoteUrl) {
 HTTPConnection::HTTPConnection(SOCKET hParentSocket) {
 
 	sockaddr_in clientAddr;
-	int clientAddrLen = sizeof(clientAddr);
+	socklen_t clientAddrLen = sizeof(clientAddr);
 
 	this->hSocket = accept(hParentSocket, (sockaddr*)&clientAddr, &clientAddrLen);
 
