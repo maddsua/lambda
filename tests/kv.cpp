@@ -5,7 +5,7 @@ using namespace Lambda;
 
 int main() {
 
-	std::cout << "\r\n--- KV storage test begin --- \r\n";
+	puts("KV storage test\n");
 
 	auto kv = Storage::KV();
 
@@ -16,27 +16,29 @@ int main() {
 	kv.set("user_0_lastip", "127.0.0.1");
 
 
-	std::cout << "String expected: " << kv.get("user_0_name").value << std::endl;
-	std::cout << "Empty string expected: " << kv.get("user_0_token").value << std::endl;
-	std::cout << "String expected: "<< kv.get("user_0_sessionid").value << std::endl;
-
-	std::cout << "\r\n--- Exporting to json --- \r\n";
+	puts("Exporting to json...");
 	auto exportresult = kv.exportJSON("tests/data/kv_export.json");
-	if (exportresult.isError()) std::cout << "Error: " << exportresult.what() << std::endl;
-		else std::cout << "Ok" << std::endl;
+	if (exportresult.isError()) throw std::runtime_error(exportresult.what());
+	puts("Ok\n");
 
-	std::cout << "\r\n--- Restoring from json --- \r\n";
+	puts("Restoring from json...");
 	auto kv2 = Storage::KV();
 	auto importresult = kv2.importJSON("tests/data/kv_export.json");
-	if (importresult.isError()) std::cout << "Error: " << exportresult.what() << std::endl;
-		else std::cout << "Ok" << std::endl;
+	if (importresult.isError()) throw std::runtime_error(importresult.what());
+	puts("Ok\n");
 
-	std::cout << "\r\n--- List of all records: --- \r\n";
+	if (kv.get("user_0_name").value != "johndoe")
+		throw std::runtime_error("Failed to retrieve 'user_0_name' record");
 
-	auto listing = kv2.entries();
-	for (auto item : listing) {
-		std::cout << item.key << " : " << item.value << std::endl;
-	}
+	if (kv.get("user_0_sessionid").value != "xxxxx_token_content_xxxx")
+		throw std::runtime_error("Failed to retrieve 'user_0_name' record");
+
+	if (kv.get("user_0_lastonline").value != "1688427615")
+		throw std::runtime_error("Failed to retrieve 'user_0_name' record");
+
+	if (kv.get("user_0_lastip").value != "127.0.0.1")
+		throw std::runtime_error("Failed to retrieve 'user_0_name' record");
+
 
 	return 0;
 }
