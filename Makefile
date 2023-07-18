@@ -231,60 +231,60 @@ $(LIBSTATIC): $(LIBFULL_OBJS)
 #------------
 # Test: Encoding
 #------------
-test_encode: $(OBJECTS_ENCODING)
-	g++ tests/encoding.cpp $(OBJECTS_ENCODING) -o test_encode.exe
+test_encoding: $(OBJECTS_ENCODING)
+	g++ tests/encoding.cpp $(OBJECTS_ENCODING) -o test_encoding
 
 
 #------------
 # Test: HTTP
 #------------
 test_http: $(OBJECTS_HTTP) $(OBJECTS_ENCODING)
-	g++ tests/http.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) -o test_http.exe
+	g++ tests/http.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) -o test_http
 
 
 #------------
 # Test: Brotli
 #------------
 test_brotli: $(OBJECTS_COMPRESS_BR)
-	g++ tests/brotli.cpp $(OBJECTS_COMPRESS_BR) $(LIB_BR_SHARED) -o test_brotli.exe
+	g++ tests/brotli.cpp $(OBJECTS_COMPRESS_BR) $(LIB_BR_SHARED) -o test_brotli
 
 
 #------------
 # Test: zlib
 #------------
 test_zlib: $(OBJECTS_COMPRESS_ZLIB)
-	g++ tests/zlib.cpp $(OBJECTS_COMPRESS_ZLIB) $(LIB_ZLIB_SHARED) -o test_zlib.exe
+	g++ tests/zlib.cpp $(OBJECTS_COMPRESS_ZLIB) $(LIB_ZLIB_SHARED) -o test_zlib
 
 
 #------------
 # Test: Server
 #------------
 test_server: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
-	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_server.exe
+	g++ tests/server.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_server
 
 
 #------------
 # Test: Fetch
 #------------
 test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
-	g++ tests/fetch.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_fetch.exe
+	g++ tests/fetch.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_fetch
 
 
 #------------
 # Test: KV Storage
 #------------
 test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING)
-	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_kv.exe
+	g++ tests/kv.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_kv
 
 test_vfs: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS)
-	g++ tests/vfs.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_vfs.exe
+	g++ tests/vfs.cpp $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) -o test_vfs
 
 
 #------------
 # Test: JSON
 #------------
 test_json: encoding/json.o
-	g++ tests/json.cpp encoding/json.o -o test_json.exe
+	g++ tests/json.cpp encoding/json.o -o test_json
 
 
 #--------------------------------
@@ -299,16 +299,16 @@ test_json: encoding/json.o
 # Simple api server demo
 #------------
 example_api_server: $(LIBSHARED)
-	g++ examples/api_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_api_server.exe
+	g++ examples/api_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_api_server
 
 #------------
 # Simple web server demo
 #------------
 example_web_server: $(LIBSHARED)
-	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server.exe
+	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server
 
 #------------
 # Demo app
 #------------
 example_demo: $(LIBSHARED)
-	g++ examples/demo.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_demo.exe
+	g++ examples/demo.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_demo

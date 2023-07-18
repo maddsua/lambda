@@ -1,0 +1,21 @@
+name: Encoding component test
+
+on:
+  push:
+    branches: ['main']
+    paths: ['encoding/**']
+
+jobs:
+
+  build_and_test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: build test
+        run: make test_encoding
+        
+      - name: run test
+        run: chmod +x test_encoding && ./test_encoding

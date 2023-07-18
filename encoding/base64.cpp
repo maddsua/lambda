@@ -86,7 +86,7 @@ std::string Encoding::b64Decode(const std::string& data) {
 }
 
 
-//	yes. this table is here too
+//	short encode table
 const char base64EncodeTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 #define encB1(buffOut, posOut, byteIn1) \
