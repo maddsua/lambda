@@ -1,0 +1,35 @@
+name: Compress component test
+
+on:
+  push:
+    branches: ['main']
+    paths: ['compress/*', 'tests/brotli.cpp', 'tests/zlib.cpp']
+
+jobs:
+
+  build_and_test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Git Sumbodule Update
+        run: git submodule update
+
+      - name: Install brotli
+        run: sudo apt-get install -y brotli
+
+      - name: build brotli test
+        run: make test_brotli
+        
+      - name: run brotli test
+        run: chmod +x test_brotli && ./test_brotli
+
+      - name: build zlib test
+        run: make test_zlib
+        
+      - name: run zlib test
+        run: chmod +x test_zlib && ./test_zlib
