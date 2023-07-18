@@ -4,6 +4,8 @@ on:
   push:
     branches: ['main']
     paths: ['lambda.hpp', 'lambda_version.hpp', 'lambda_private.hpp']
+  pull_request:
+    branches: ['main']
 
 jobs:
 
@@ -21,4 +23,3 @@ jobs:
 
       - name: build
         run: make libstatic
-
