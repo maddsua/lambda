@@ -218,6 +218,8 @@ libstatic: $(LIBSTATIC)
 $(LIBSTATIC): $(LIBFULL_OBJS)
 	ar rvs $(LIBSTATIC) $(LIBFULL_OBJS)
 
+test_build: $(LIBFULL_OBJS)
+
 
 #--------------------------------
 #--------------------------------
