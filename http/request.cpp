@@ -50,7 +50,7 @@ std::string Request::text() {
 	return std::string(this->body.begin(), this->body.end());
 }
 
-void Request::setBodyText(const std::string& text) {
+void Request::setText(const std::string& text) {
 	this->body = std::vector<uint8_t>(text.begin(), text.end());
 }
 

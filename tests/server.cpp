@@ -19,7 +19,7 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 		response.headers.set("Set-Cookie", newCookies.stringify());
 	}
 
-	response.setBodyText("success! your user-agent is: " + request.headers.get("user-agent"));
+	response.setText("success! your user-agent is: " + request.headers.get("user-agent"));
 
 	return response;
 };

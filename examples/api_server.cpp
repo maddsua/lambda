@@ -42,7 +42,7 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	responseBody.addString("useragent", request.headers.get("user-agent"));
 	responseBody.addBool("first_visit", isFirstFisit);
 
-	response.setBodyText(responseBody.stringify());
+	response.setText(responseBody.stringify());
 	response.headers.append("content-type", "application/json");
 
 	return response;

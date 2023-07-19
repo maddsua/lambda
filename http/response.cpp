@@ -34,11 +34,11 @@ Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers
 Response::Response(const uint16_t statusCode, const std::vector<KVtype>& headers, const std::string& body) {
 	setStatusCode(statusCode);
 	this->headers.fromEntries(headers);
-	setBodyText(body);
+	setText(body);
 }
 Response::Response(const std::vector<KVtype>& headers, const std::string& body) {
 	this->headers.fromEntries(headers);
-	setBodyText(body);
+	setText(body);
 }
 
 Response& Response::operator = (const Request& right) {
@@ -78,6 +78,6 @@ uint16_t Response::statusCode() {
 	return this->_statusCode;
 }
 
-void Response::setBodyText(const std::string& text) {
+void Response::setText(const std::string& text) {
 	this->body = std::vector<uint8_t>(text.begin(), text.end());
 }
