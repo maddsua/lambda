@@ -74,7 +74,7 @@ void Response::setCustomStatus(const uint16_t statusCode, const std::string& sta
 	this->_statusText = statusText;
 }
 
-uint16_t Response::statusCode() {
+uint16_t Response::statusCode() const {
 	return this->_statusCode;
 }
 

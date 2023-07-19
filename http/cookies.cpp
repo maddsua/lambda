@@ -29,9 +29,9 @@ void Cookies::fromString(const std::string& cookies) {
 	}
 }
 
-bool Cookies::has(const std::string key) {
+bool Cookies::has(const std::string key) const {
 	auto keyNormalized = stringToLowerCase(key);
-	return this->data.find(keyNormalized) != this->data.end();
+	return this->data.contains(keyNormalized);
 }
 
 void Cookies::set(const std::string key, const std::string& value) {
@@ -39,10 +39,10 @@ void Cookies::set(const std::string key, const std::string& value) {
 	this->data[keyNormalized] = value;
 }
 
-std::string Cookies::get(const std::string key) {
+std::string Cookies::get(const std::string key) const {
 	auto keyNormalized = stringToLowerCase(key);
 	if (!has(keyNormalized)) return {};
-	return this->data[keyNormalized];
+	return this->data.at(keyNormalized);
 }
 
 void Cookies::del(const std::string key) {
@@ -51,7 +51,7 @@ void Cookies::del(const std::string key) {
 	this->data.erase(keyNormalized);
 }
 
-std::string Cookies::stringify() {
+std::string Cookies::stringify() const {
 	auto result = std::string();
 	for (auto item : this->data) {
 		if (result.size()) result += "; ";
@@ -60,7 +60,7 @@ std::string Cookies::stringify() {
 	return result;
 }
 
-std::vector<KVtype> Cookies::entries() {
+std::vector<KVtype> Cookies::entries() const {
 	auto entries = std::vector<KVtype>();
 	for (auto& item : this->data) {
 		entries.push_back({ item.first, item.second });
@@ -68,6 +68,6 @@ std::vector<KVtype> Cookies::entries() {
 	return entries;
 }
 
-KVtype Cookies::toHeader() {
+KVtype Cookies::toHeader() const {
 	return { "Set-Cookie", stringify() };
 }

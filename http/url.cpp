@@ -2,7 +2,7 @@
 
 using namespace Lambda::HTTP;
 
-std::string URL::href() {
+std::string URL::href() const {
 
 	auto href = this->host.size() ? this->protocol + "://" + this->host : std::string();
 
@@ -17,7 +17,7 @@ std::string URL::href() {
 	return href;
 }
 
-std::string URL::toHttpPath() {
+std::string URL::toHttpPath() const {
 	
 	auto path = this->pathname;
 
@@ -25,6 +25,10 @@ std::string URL::toHttpPath() {
 		path += "?" + this->searchParams.stringify();
 
 	return path;
+}
+
+URL::URL(const std::string& href) {
+	setHref(href);
 }
 
 void URL::setHref(const std::string& href) {
@@ -75,4 +79,8 @@ void URL::refresh() {
 	if (this->pathname.at(0) != '/')
 		this->pathname = std::string("/").append(this->pathname);
 
+}
+
+bool URL::isWWW() const {
+	return !(this->host == "localhost" || this->host == "127.0.0.1" || !this->host.size()) && this->protocol.starts_with("http");
 }

@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cstring>
 #include "./network.hpp"
-#include "./tcpip.hpp"
+#include "./sysnetw.hpp"
 #include "../compress/compress.hpp"
 
 using namespace Lambda::HTTP;
@@ -29,31 +29,11 @@ void BaseConnection::resolveAndConnect(const char* host, const char* port, Conne
 	}
 	
 	//	resolve host
-	//	failsafe in case WSA gets glitchy
-	#ifdef _WIN32
-	bool wsaInitEcexuted = false;
-	#endif
-
 	dnsresolvehost:	//	yes, I'm using jumps here. deal with it.
 	if (getaddrinfo(host, port, &hints, &resolvedAddresses) != 0) {
-
 		auto apierror = getAPIError();
-
-		#ifdef _WIN32
-		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
-
-			wsaInitEcexuted = true;
-			WSADATA initdata;
-			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw Lambda::Error("WSA initialization failed", apierror);
-			goto dnsresolvehost;
-
-		} else	//	this "else" goes to the "return" right below, don't panic.
-		//	It looks like ass, but I fell more comfortable doing this,
-		//	than bringing Boost ASIO or some other libarary to have crossplatform sockets
-		#endif
-
-		throw Lambda::Error("Failed to resolve host", apierror);
+		if (wsaWakeUp(apierror)) goto dnsresolvehost;
+			else throw Lambda::Error("Failed to resolve host", apierror);
 	}
 
 	this->hSocket = socket(hints.ai_family, hints.ai_socktype, hints.ai_protocol);
@@ -94,6 +74,45 @@ void BaseConnection::resolveAndConnect(const char* host, const char* port, Conne
 	throw Lambda::Error("Could not connect to the server", lastError);
 }
 
+void BaseConnection::connectLocalSerivce(uint16_t servicePort, ConnectionProtocol proto) {
+
+	struct {
+		int family = AF_INET;
+		int type = 0;
+		int protocol = 0;
+	} lhInfo;
+
+	switch (proto) {
+
+		case ConnectionProtocol::UDP: {
+			lhInfo.type = SOCK_DGRAM;
+			lhInfo.protocol = IPPROTO_UDP;
+		} break;
+	
+		default: {
+			lhInfo.type = SOCK_STREAM;
+			lhInfo.protocol = IPPROTO_TCP;
+		} break;
+	}
+
+	sockaddr_in serverAddr;
+	serverAddr.sin_family = lhInfo.family;
+	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	serverAddr.sin_port = htons(servicePort);
+	
+	sockcreate:
+	this->hSocket = socket(lhInfo.family, lhInfo.type, lhInfo.protocol);
+
+	if (this->hSocket == INVALID_SOCKET) {
+		auto apierror = getAPIError();
+		if (wsaWakeUp(apierror)) goto sockcreate;
+			else throw Lambda::Error("Failed to create socket", apierror);
+	}
+ 
+	auto connectResult = connect(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+	if (connectResult == SOCKET_ERROR) throw Lambda::Error("Connection rejected", getAPIError());
+}
+
 BaseConnection::~BaseConnection() {
 	if (this->hSocket != INVALID_SOCKET) {
 		shutdown(this->hSocket, SD_BOTH);
@@ -114,6 +133,12 @@ void BaseConnection::setTimeouts(uint32_t timeoutMs) {
 
 SOCKET BaseConnection::getHandle() noexcept {
 	return this->hSocket;
+}
+
+SOCKET BaseConnection::detachHandle() noexcept {
+	auto temp = this->hSocket;
+	this->hSocket = INVALID_SOCKET;
+	return temp;
 }
 
 BaseConnection& BaseConnection::operator= (BaseConnection&& other) noexcept {

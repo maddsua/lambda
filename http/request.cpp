@@ -46,7 +46,7 @@ Request::Request(const std::vector<uint8_t>& httpHeadStream) {
 	}
 }
 
-std::string Request::text() {
+std::string Request::text() const {
 	return std::string(this->body.begin(), this->body.end());
 }
 

@@ -1,5 +1,5 @@
 #include "./client.hpp"
-#include "../network/tcpip.hpp"
+#include "../network/sysnetw.hpp"
 #include "../network/network.hpp"
 
 using namespace Lambda;
@@ -10,19 +10,21 @@ Response Client::fetch(const Request& userRequest) {
 
 	try {
 
+		if (userRequest.url.protocol != "http")
+			throw Lambda::Error(std::string("Only http/1.1 is supported by fetch API in version ") + LAMBDA_VERSION);
+
 		auto connection = HTTPConnection(userRequest.url);
+		auto isWww = userRequest.url.isWWW();
 		
 		//	complete http request
 		auto request = userRequest;
-		request.headers.set("Host", /*"http://" + */request.url.host);
+		if (isWww) request.headers.set("Host", request.url.host);
 		request.headers.append("User-Agent", LAMBDA_USERAGENT);
 		request.headers.append("Accept-Encoding", LAMBDA_FETCH_ENCODINGS);
 		request.headers.append("Accept", "*/*");
 		request.headers.append("Connection", "close");
 
 		connection.sendRequest(request);
-
-		auto requestStream = request.dump();
 
 		return connection.receiveResponse();
 

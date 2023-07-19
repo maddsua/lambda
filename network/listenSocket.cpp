@@ -1,5 +1,5 @@
 #include "./network.hpp"
-#include "./tcpip.hpp"
+#include "./sysnetw.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Network;
@@ -32,30 +32,13 @@ void ListenSocket::create(uint16_t listenPort, ConnectionProtocol proto) {
 	serverAddr.sin_port = htons(listenPort);
 	
 	// create and bind a socket
-	#ifdef _WIN32
-	bool wsaInitEcexuted = false;
-	#endif
-
 	sockcreate:
 	this->hSocket = socket(serverInfo.family, serverInfo.type, serverInfo.protocol);
 
 	if (this->hSocket == INVALID_SOCKET) {
-
 		auto apierror = getAPIError();
-
-		#ifdef _WIN32
-		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
-
-			wsaInitEcexuted = true;
-			WSADATA initdata;
-			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw Lambda::Error("WSA initialization failed", apierror);
-			goto sockcreate;
-
-		} else
-		#endif
-		
-		throw Lambda::Error("Failed to create listen socket", apierror);
+		if (wsaWakeUp(apierror)) goto sockcreate;
+			else throw Lambda::Error("Failed to create listen socket", apierror);
 	}
 
 	//	allow fast port reuse
