@@ -116,7 +116,7 @@ namespace Lambda::HTTP {
 		
 		public:
 			URL() {};
-			URL(const std::string href);
+			URL(const std::string& href);
 			void setHref(const std::string& href);
 			std::string href() const;
 			std::string toHttpPath() const;

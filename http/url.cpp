@@ -27,7 +27,7 @@ std::string URL::toHttpPath() const {
 	return path;
 }
 
-URL::URL(const std::string href) {
+URL::URL(const std::string& href) {
 	setHref(href);
 }
 
