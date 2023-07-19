@@ -94,11 +94,13 @@ WebSocket::WebSocket(const HTTP::URL& address) {
 
 		auto connection = HTTPConnection(address);
 
+		auto handshakeNonce = Crypto::randomStream(16);
+
 		auto request = Request();
 		request.url = address;
 		request.headers.set("Connection", "Upgrade");
 		request.headers.set("Upgrade", "websocket");
-		request.headers.set("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+		request.headers.set("Sec-WebSocket-Key", Encoding::b64Encode(std::string(handshakeNonce.begin(), handshakeNonce.end())));
 		request.headers.set("Sec-WebSocket-Version", "13");
 
 		connection.sendRequest(request);
@@ -108,10 +110,14 @@ WebSocket::WebSocket(const HTTP::URL& address) {
 		if (response.statusCode() != 101)
 			throw Lambda::Error("Server rejected protocol switch");
 
-		if (response.headers.get("Connection") != "Upgrade")
+		auto headerConn = stringToLowerCase(response.headers.get("Connection")) == "upgrade";
+		auto headerUpgrade = stringToLowerCase(response.headers.get("Upgrade")) == "websocket";
+
+		if (!headerConn || !headerUpgrade)
 			throw Lambda::Error("Server rejected connection upgrade");
 
-		if (response.headers.get("Upgrade") != "websocket")
+		//	not checking the actual hash, I don't think it's necessary
+		if (!response.headers.has("Sec-WebSocket-Accept"))
 			throw Lambda::Error("Server rejected websocket setup");	
 
 		this->hSocket = connection.detachHandle();
