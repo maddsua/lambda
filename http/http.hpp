@@ -143,7 +143,7 @@ namespace Lambda::HTTP {
 			URL url;
 			Headers headers;
 			std::vector<uint8_t> body;
-			std::string text();
+			std::string text() const;
 			void setText(const std::string& text);
 			std::vector<uint8_t> dump();
 	};
