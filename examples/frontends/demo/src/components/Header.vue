@@ -17,11 +17,11 @@ import HeaderButton from './HeaderButton.vue';
 		</div>
 
 		<div class="click-to-action">
-			<HeaderButton href="#">
+			<HeaderButton href="https://github.com/maddsua/lambda/releases/latest">
 				Download
 			</HeaderButton>
 	
-			<HeaderButton href="#" :outline="true">
+			<HeaderButton href="https://github.com/maddsua/lambda" :outline="true">
 				Learn more
 			</HeaderButton>
 		</div>
