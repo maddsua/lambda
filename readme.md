@@ -6,9 +6,47 @@ I wanna have the power of C++ on my server apps, but I could not find any server
 
 Does it sound like a deal? It does to me.
 
-## Why lambda?
+## Why is lambda cool?
 
-It was very similar to AWS lambda before 1.0, that's why the name. I didn't spend a second thinking of it. A true engineer move, let the marketing department fix it later.
+Code style. This is all that takes to create a web server:
+
+```cpp
+#include "lambda.hpp"
+#include <cstdio>
+
+using namespace Lambda;
+
+HTTP::Response callbackServerless(HTTP::Request& request, Context& context) {
+
+  auto uaString = request.headers.get("user-agent");
+
+  auto response = HTTP::Response();
+  response.setText(std::string("Your user-agent is: ") + (uaString.size() ? uaString : "Unknown"));
+
+  return response;
+};
+
+int main() {
+
+  const int port = 8080;
+  auto server = Lambda::Server(port);
+  server.setServerlessCallback(&callbackServerless);
+
+  puts(("Server started at http://localhost:" + std::to_string(port)).c_str());
+
+  while (server.isAlive()) {
+    
+    if (server.hasNewLogs()) {
+      puts(HTTP::stringJoin(server.logsText(), "\n").c_str());
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  
+  return 0;
+}
+
+```
 
 **Here, a Vue project is being served by lambda for no reason at all**
 
