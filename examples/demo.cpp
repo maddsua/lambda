@@ -85,7 +85,7 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 
 		for (const auto& msg : messages) {
 
-			puts((msg.timestamp + ": " + msg.content).c_str());
+			puts((std::to_string(msg.timestamp) + ": " + msg.content).c_str());
 
 			auto msgtokens = stringSplit(msg.content, " ");
 
