@@ -100,35 +100,17 @@ void BaseConnection::connectLocalSerivce(uint16_t servicePort, ConnectionProtoco
 	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	serverAddr.sin_port = htons(servicePort);
 	
-	// create and bind a socket
-	#ifdef _WIN32
-	bool wsaInitEcexuted = false;
-	#endif
-
 	sockcreate:
 	this->hSocket = socket(lhInfo.family, lhInfo.type, lhInfo.protocol);
 
 	if (this->hSocket == INVALID_SOCKET) {
-
 		auto apierror = getAPIError();
-
-		#ifdef _WIN32
-		if (apierror == WSANOTINITIALISED && !wsaInitEcexuted) {
-
-			wsaInitEcexuted = true;
-			WSADATA initdata;
-			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw Lambda::Error("WSA initialization failed", apierror);
-			goto sockcreate;
-
-		} else
-		#endif
-		
-		throw Lambda::Error("Failed to create listen socket", apierror);
+		if (wsaWakeUp(apierror)) goto sockcreate;
+			else throw Lambda::Error("Failed to create socket", apierror);
 	}
  
 	auto connectResult = connect(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
-	if (connectResult == SOCKET_ERROR) throw Lambda::Error("Socket failed to connect", getAPIError());
+	if (connectResult == SOCKET_ERROR) throw Lambda::Error("Connection rejected", getAPIError());
 }
 
 BaseConnection::~BaseConnection() {
@@ -151,6 +133,12 @@ void BaseConnection::setTimeouts(uint32_t timeoutMs) {
 
 SOCKET BaseConnection::getHandle() noexcept {
 	return this->hSocket;
+}
+
+SOCKET BaseConnection::detachHandle() noexcept {
+	auto temp = this->hSocket;
+	this->hSocket = INVALID_SOCKET;
+	return temp;
 }
 
 BaseConnection& BaseConnection::operator= (BaseConnection&& other) noexcept {

@@ -46,7 +46,7 @@ namespace Lambda {
 			*/
 			Error(const std::string& message, int64_t errorCode) : msg(message), error(true) {
 				if (!errorCode) return;
-				msg += "; code: " + std::to_string(errorCode);
+				msg += " [code: " + std::to_string(errorCode) + "]";
 			}
 
 			/**

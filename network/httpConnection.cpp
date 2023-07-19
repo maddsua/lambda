@@ -2,6 +2,7 @@
 #include "./sysnetw.hpp"
 #include "../compress/compress.hpp"
 #include <algorithm>
+#include <stdexcept>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
@@ -9,9 +10,21 @@ using namespace Lambda::Network;
 using namespace Lambda::Compress;
 
 HTTPConnection::HTTPConnection(HTTP::URL remoteUrl) {
+	
 	try {
-		resolveAndConnect(remoteUrl.host.c_str(), remoteUrl.port.c_str(), ConnectionProtocol::TCP);
+
+		auto protocol = ConnectionProtocol::TCP;
+
+		if (remoteUrl.isWWW()){
+			resolveAndConnect(remoteUrl.host.c_str(), remoteUrl.port.c_str(), protocol);
+		} else {
+			uint64_t portNumber = std::stoi(remoteUrl.port);
+			if (portNumber > UINT16_MAX) throw std::range_error("Port number may not be greater than UINT16_MAX (65535)");
+			connectLocalSerivce(portNumber, protocol);
+		}
+
 		setTimeouts(network_connection_timeout);
+
 	} catch(const std::exception& e) {
 		throw Lambda::Error("Failed to create HTTP connection", e);
 	}

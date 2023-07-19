@@ -108,6 +108,11 @@ namespace Lambda::Network {
 			SOCKET getHandle() noexcept;
 
 			/**
+			 * Detaches undelying socket handle from this instance
+			*/
+			SOCKET detachHandle() noexcept;
+
+			/**
 			 * This object is not copyable
 			*/
 			BaseConnection& operator= (const BaseConnection& other) = delete;
@@ -184,24 +189,6 @@ namespace Lambda::Network {
 			WebSocket upgradeToWebsocket(Lambda::HTTP::Request& initalRequest);
 	};
 
-	/**
-	 * Websocket connection close status codes
-	*/
-	enum struct WebSocketCloseCode : uint16_t {
-		normal = 1000,
-		going_away = 1001,
-		protocol_error = 1002,
-		unsupported_data = 1003,
-		no_status_received = 1005,
-		abnormal_close = 1006,
-		invalid_payload_data = 1007,
-		policy_violation = 1008,
-		message_too_big = 1009,
-		mandatory_extension = 1010,
-		internal_server_error = 1011,
-		tls_handshake_failed = 1015
-	};
-
 	struct WebsocketMessage {
 		std::string content;
 		time_t timestamp = 0;
@@ -212,13 +199,38 @@ namespace Lambda::Network {
 		private:
 			SOCKET hSocket = INVALID_SOCKET;
 			std::vector<WebsocketMessage> rxQueue;
-			std::thread receiveThread;
+			std::thread handlerThread;
 			void asyncWsIO();
 			Lambda::Error internalError;
 			std::mutex mtLock;
 			uint16_t connCloseStatus = 0;
+			bool isServer = true;
 
 		public:
+
+			enum struct Opcodes : uint8_t {
+				frmcontinue = 0x00,
+				text = 0x01,
+				binary = 0x02,
+				close = 0x08,
+				ping = 0x09,
+				pong = 0x0A
+			};
+
+			enum struct CloseCodes : uint16_t {
+				normal = 1000,
+				going_away = 1001,
+				protocol_error = 1002,
+				unsupported_data = 1003,
+				no_status_received = 1005,
+				abnormal_close = 1006,
+				invalid_payload_data = 1007,
+				policy_violation = 1008,
+				message_too_big = 1009,
+				mandatory_extension = 1010,
+				internal_server_error = 1011,
+				tls_handshake_failed = 1015
+			};
 
 			/**
 			 * Create websocket by accepting incoming request
@@ -226,19 +238,19 @@ namespace Lambda::Network {
 			WebSocket(HTTPConnection& connection, HTTP::Request& initalRequest);
 
 			/**
-			 * Create websocket by creating a request
+			 * Create websocket by sending a request
 			*/
-			//WebSocket(HTTPConnection& connection);
+			WebSocket(const HTTP::URL& address);
 
 			~WebSocket();
 
 			/**
 			 * Send a message to this websocket
 			*/
-			Lambda::Error sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary);
+			Lambda::Error sendMessage(Opcodes opcode, const std::vector<uint8_t>& payload);
 
 			/**
-			 * Send text message (packet)
+			 * Send a text message to this websocket
 			*/
 			Lambda::Error sendMessage(const std::string& message);
 
@@ -272,7 +284,7 @@ namespace Lambda::Network {
 			/**
 			 * Close websocket with custom status code
 			*/
-			void close(WebSocketCloseCode reason);
+			void close(CloseCodes reason);
 	};
 
 };

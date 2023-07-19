@@ -23,35 +23,30 @@ static const time_t wsRcvTimeout = 100;
 //	these values are used for both pings and actual receive timeouts
 static const time_t wsActTimeout = 5000;
 static const unsigned short wsMaxSkippedAttempts = 3;
+static const uint16_t wsFrameMaskSize = 4;
 
 //	this implementation does not support sending partial messages
 //	if you want it to support it, contribute to the project, bc I personally don't need that functionality
 enum WebsockBits {
 	WEBSOCK_BIT_FINAL = 0x80,
-	WEBSOCK_OPCODE_CONTINUE = 0x00,
-	WEBSOCK_OPCODE_TEXT = 0x01,
-	WEBSOCK_OPCODE_BINARY = 0x02,
-	WEBSOCK_OPCODE_CLOSE = 0x08,
-	WEBSOCK_OPCODE_PING = 0x09,
-	WEBSOCK_OPCODE_PONG = 0x0A
 };
 
 static const std::array<uint8_t, 6> wsOpCodes = {
-	WEBSOCK_OPCODE_CONTINUE,
-	WEBSOCK_OPCODE_TEXT,
-	WEBSOCK_OPCODE_BINARY,
-	WEBSOCK_OPCODE_CLOSE,
-	WEBSOCK_OPCODE_PING,
-	WEBSOCK_OPCODE_PONG,
+	static_cast<uint8_t>(WebSocket::Opcodes::frmcontinue),
+	static_cast<uint8_t>(WebSocket::Opcodes::text),
+	static_cast<uint8_t>(WebSocket::Opcodes::binary),
+	static_cast<uint8_t>(WebSocket::Opcodes::ping),
+	static_cast<uint8_t>(WebSocket::Opcodes::pong),
+	static_cast<uint8_t>(WebSocket::Opcodes::close)
 };
 
 struct WebsocketFrameHeader {
-	size_t payloadSize;
-	size_t size;
-	uint8_t maskKey[4];
-	uint8_t opcode;
-	bool finbit;
-	bool mask;
+	size_t payloadSize = 0;
+	size_t size = 0;
+	uint8_t maskKey[wsFrameMaskSize];
+	uint8_t opcode = 0;
+	bool finbit = true;
+	bool mask = false;
 };
 
 WebSocket::WebSocket(HTTPConnection& connection, Request& initalRequest) {
@@ -82,10 +77,49 @@ WebSocket::WebSocket(HTTPConnection& connection, Request& initalRequest) {
 		connection.sendResponse(handshakeReponse);
 
 	} catch(const std::exception& e) {
-		throw Lambda::Error("Websocket request aborted", e);
+		throw Lambda::Error("Websocket connection rejected", e);
 	}
 
-	this->receiveThread = std::thread(&WebSocket::asyncWsIO, this);
+	this->handlerThread = std::thread(&WebSocket::asyncWsIO, this);
+}
+
+WebSocket::WebSocket(const HTTP::URL& address) {
+
+	this->isServer = false;
+
+	try {
+
+		if (address.protocol != "ws")
+			throw Lambda::Error("Websocket url should start with 'ws://'");
+
+		auto connection = HTTPConnection(address);
+
+		auto request = Request();
+		request.url = address;
+		request.headers.set("Connection", "Upgrade");
+		request.headers.set("Upgrade", "websocket");
+		request.headers.set("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+		request.headers.set("Sec-WebSocket-Version", "13");
+
+		connection.sendRequest(request);
+
+		auto response = connection.receiveResponse();
+
+		if (response.statusCode() != 101)
+			throw Lambda::Error("Server rejected protocol switch");
+
+		if (response.headers.get("Connection") != "Upgrade")
+			throw Lambda::Error("Server rejected connection upgrade");
+
+		if (response.headers.get("Upgrade") != "websocket")
+			throw Lambda::Error("Server rejected websocket setup");	
+
+		this->hSocket = connection.detachHandle();
+		this->handlerThread = std::thread(&WebSocket::asyncWsIO, this);
+
+	} catch(const std::exception& e) {
+		throw Lambda::Error("Unable to connect to a websocket", e);
+	}	
 }
 
 WebSocket::~WebSocket() {
@@ -106,38 +140,76 @@ WebSocket::~WebSocket() {
 		send(this->hSocket, (const char*)closeFrame, sizeof(closeFrame), 0);
 	}
 
-	if (this->receiveThread.joinable())
-		this->receiveThread.join();
+	if (this->handlerThread.joinable())
+		this->handlerThread.join();
 }
 
-WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer) {
+WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer, bool isServer) {
 
-	WebsocketFrameHeader header;
+	WebsocketFrameHeader wsfHeader;
 
-	header.finbit = (buffer.at(0) & 0x80) >> 7;
-	header.opcode = buffer.at(0) & 0x0F;
+	wsfHeader.finbit = (buffer.at(0) & 0x80) >> 7;
+	wsfHeader.opcode = buffer.at(0) & 0x0F;
 
-	header.size = 2;
-	header.payloadSize = buffer.at(1) & 0x7F;
+	wsfHeader.size = 2;
+	wsfHeader.payloadSize = buffer.at(1) & 0x7F;
 
-	if (header.payloadSize == 126) {
-		header.size += 2;
-		header.payloadSize = (buffer.at(2) << 8) | buffer.at(3);
-	} else if (header.payloadSize == 127) {
-		header.size += 8;
-		header.payloadSize = 0;
+	if (wsfHeader.payloadSize == 126) {
+		wsfHeader.size += 2;
+		wsfHeader.payloadSize = (buffer.at(2) << 8) | buffer.at(3);
+	} else if (wsfHeader.payloadSize == 127) {
+		wsfHeader.size += 8;
+		wsfHeader.payloadSize = 0;
 		for (int i = 0; i < 8; i++)
-			header.payloadSize |= (buffer.at(2 + i) << ((7 - i) * 8));
+			wsfHeader.payloadSize |= (buffer.at(2 + i) << ((7 - i) * 8));
 	}
 
-	header.mask = (buffer.at(1) & 0x80) >> 7;
+	if (!isServer) return wsfHeader;
 
-	if (header.mask && buffer.size() >= header.size + sizeof(header.maskKey)) {
-		memcpy(header.maskKey, buffer.data() + header.size, sizeof(header.maskKey));
-		header.size += 4;
+	wsfHeader.mask = (buffer.at(1) & 0x80) >> 7;
+
+	if (wsfHeader.mask && buffer.size() >= wsfHeader.size + wsFrameMaskSize) {
+		memcpy(wsfHeader.maskKey, buffer.data() + wsfHeader.size, wsFrameMaskSize);
+		wsfHeader.size += 4;
 	}
 
-	return header;
+	return wsfHeader;
+}
+
+std::vector<uint8_t> packFrameHeader(const WebsocketFrameHeader& header) {
+
+	std::vector<uint8_t> result;
+	result.reserve(sizeof(header));
+
+	// set FIN bit and opcode
+	result.push_back(WEBSOCK_BIT_FINAL | header.opcode);
+
+	// set payload length
+	if (header.payloadSize < 126) {
+		result.push_back(header.payloadSize & 0x7F);
+	} else if (header.payloadSize >= 126 && header.payloadSize <= 65535) {
+		result.push_back(126);
+		result.push_back((header.payloadSize >> 8) & 255);
+		result.push_back(header.payloadSize & 255);
+	} else {
+		result.push_back(127);
+		for (int i = 0; i < 8; i++)
+			result.push_back((header.payloadSize >> ((7 - i) * 8)) & 0xFF);
+	}
+
+	//	set mask bs
+	if (header.mask) {
+		result.at(1) |= (1 << 7);
+		result.resize(result.size() + wsFrameMaskSize);
+		memcpy(result.data() + (result.size() - wsFrameMaskSize), header.maskKey, wsFrameMaskSize);
+	}
+
+	return result;
+}
+
+void xorMask(std::vector<uint8_t>& framePayload, uint8_t* maskKey) {
+	for (size_t i = 0; i < framePayload.size(); i++)
+		framePayload[i] ^= maskKey[i % 4];
 }
 
 void clearMultipartData(WebsocketMessage** objPtr) {
@@ -161,63 +233,45 @@ void WebSocket::asyncWsIO() {
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPong = std::chrono::steady_clock::now();
 
-	WebsocketMessage* multipartMessagePtr = nullptr;
-	uint8_t multipartMessageMask[4];
+	WebsocketMessage* multipartFrmPtr = nullptr;
+	uint8_t multipartFrmMask[4];
 
 	while (this->hSocket != INVALID_SOCKET && !this->connCloseStatus) {
 
 		//	send ping and terminate websocket if there is no response
 		if ((lastPing - lastPong) > std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout)) {
-
-			this->internalError = { "Didn't receive any response for pings" };
-			this->connCloseStatus =  static_cast<std::underlying_type<WebSocketCloseCode>::type>(WebSocketCloseCode::protocol_error);
-
-			#ifdef LAMBDADEBUG_WS
-				puts("LAMBDA_DEBUG_WS: someone does not respond to the ping's! GET OUT!");
-			#endif
-
+			this->internalError = Lambda::Error("Didn't receive any response for pings");
+			this->connCloseStatus =  static_cast<uint16_t>(CloseCodes::protocol_error);
 			return;
 
 		} else if ((std::chrono::steady_clock::now() - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
 
-			uint8_t pingFrameHeader[2];
-
-			pingFrameHeader[0] = WEBSOCK_BIT_FINAL | WEBSOCK_OPCODE_PING;
-			pingFrameHeader[1] = wsPingString.size() & 0x7F;
-
-			//	send frame header and payload in separate calls so we don't have to copy any buffers
-			send(this->hSocket, (const char*)pingFrameHeader, sizeof(pingFrameHeader), 0);
-			send(this->hSocket, (const char*)wsPingString.data(), wsPingString.size(), 0);
-
+			sendMessage(Opcodes::ping, std::vector<uint8_t>(wsPingString.begin(), wsPingString.end()));
 			lastPing = std::chrono::steady_clock::now();
 
 			#ifdef LAMBDADEBUG_WS
 				puts("LAMBDA_DEBUG_WS: sending a ping");
 			#endif
-
 		}
 
 		//	receive all the data available
 		int32_t bytesReceived = 0;
-		//	kinda stupid control flow, but I don't feel comfortable putting an infinite loop here
 		while (bytesReceived >= 0) {
+			
 			bytesReceived = recv(hSocket, (char*)downloadChunk, sizeof(downloadChunk), 0);
-			if (bytesReceived <= 0) break;
-			downloadStream.insert(downloadStream.end(), downloadChunk, downloadChunk + bytesReceived);
-		}
 
-		//	if an error occured during receiving
-		if (bytesReceived < 0) {
+			if (bytesReceived < 0) {
 
-			//	kill this websocket if the connection has failed
-			//	but totally ignore the timeout errors
-			//	we're gonna hit them constantly
-			auto apierror = getAPIError();
-			if (apierror != ETIMEDOUT && apierror != WSAETIMEDOUT) {
-				this->internalError = { "Connection terminated", apierror };
-				this->connCloseStatus =  static_cast<std::underlying_type<WebSocketCloseCode>::type>(WebSocketCloseCode::protocol_error);
+				auto apierror = getAPIError();
+				if (apierror == ETIMEDOUT || apierror == WSAETIMEDOUT) break;
+				
+				this->internalError = Lambda::Error("Connection terminated", apierror);
+				this->connCloseStatus = static_cast<uint16_t>(CloseCodes::protocol_error);
 				return;
-			}
+
+			} else if (bytesReceived == 0) break;
+
+			downloadStream.insert(downloadStream.end(), downloadChunk, downloadChunk + bytesReceived);
 		}
 
 		//	skip further ops if there's no data
@@ -229,37 +283,25 @@ void WebSocket::asyncWsIO() {
 		//	it should always be a valid one
 		//	but in case we receive garbage data - here is a trycatch
 		try {
-			frameHeader = parseFrameHeader(downloadStream);
+			frameHeader = parseFrameHeader(downloadStream, this->isServer);
 		} catch(...) {
-
-			//	okay, it does not seem as a valid one
-			//	dropping the entire stream at this point
-			downloadStream.clear();
-
-			#ifdef LAMBDADEBUG_WS
-				puts("LAMBDA_DEBUG_WS: dropped a stream due to invalid header");
-			#endif
-
-			continue;
+			this->internalError = Lambda::Error("Received invalid header websocket header");
+			this->connCloseStatus = static_cast<uint16_t>(CloseCodes::protocol_error);
+			return;
 		}
 
-		//	The second-stage download loop, bc we can't rely on first-stage revc loop ⚠
+		//	Run recv loop again to get all the data for sure
 		if (frameHeader.size + frameHeader.payloadSize < downloadStream.size()) {
 			//	just run the download part again
 			continue;
 		}
 
 		//	check the mask bit
-		if (!frameHeader.mask) {
-
-			downloadStream.clear();
-			clearMultipartData(&multipartMessagePtr);
-
-			#ifdef LAMBDADEBUG_WS
-				puts("LAMBDA_DEBUG_WS: received unmasked data from the client");
-			#endif
-
-			continue;
+		//	Only when running as a server
+		if (!frameHeader.mask && this->isServer) {
+			this->internalError = Lambda::Error("Received unmasked data from the client");
+			this->connCloseStatus = static_cast<uint16_t>(CloseCodes::protocol_error);
+			return;
 		}
 
 		//	check opcode
@@ -268,15 +310,9 @@ void WebSocket::asyncWsIO() {
 		});
 
 		if (!opcodeSupported) {
-
-			downloadStream.clear();
-			clearMultipartData(&multipartMessagePtr);
-
-			#ifdef LAMBDADEBUG_WS
-				puts("LAMBDA_DEBUG_WS: Unsupported websocket opcode");
-			#endif
-
-			continue;
+			this->internalError = Lambda::Error("Unsupported websocket opcode");
+			this->connCloseStatus = static_cast<uint16_t>(CloseCodes::protocol_error);
+			return;
 		}
 
 		std::vector<uint8_t> payload;
@@ -288,7 +324,7 @@ void WebSocket::asyncWsIO() {
 		} catch(...) {
 
 			downloadStream.clear();
-			clearMultipartData(&multipartMessagePtr);
+			clearMultipartData(&multipartFrmPtr);
 
 			#ifdef LAMBDADEBUG_WS
 				puts("LAMBDA_DEBUG_WS: std thrown a size exception, that's how bad the message is malformed");
@@ -298,18 +334,11 @@ void WebSocket::asyncWsIO() {
 		}
 
 		//	unmask the payload
-		//	should actually use cpu intrinsics here
-		if (frameHeader.mask && multipartMessagePtr == nullptr) {
-			for (size_t i = 0; i < payload.size(); i++)
-				payload[i] ^= frameHeader.maskKey[i % 4];
-		} else if (frameHeader.mask) {
-			for (size_t i = 0; i < payload.size(); i++)
-				payload[i] ^= multipartMessageMask[i % 4];
-		}
+		if (frameHeader.mask) xorMask(payload, multipartFrmPtr == nullptr ? frameHeader.maskKey : multipartFrmMask);
 
 		switch (frameHeader.opcode) {
 
-			case WEBSOCK_OPCODE_CLOSE: {
+			case static_cast<uint8_t>(Opcodes::close): {
 
 				//	set connection close code
 				//	this will cause all the operation to be shut down
@@ -321,7 +350,7 @@ void WebSocket::asyncWsIO() {
 
 			} break;
 
-			case WEBSOCK_OPCODE_PONG: {
+			case static_cast<uint8_t>(Opcodes::pong): {
 
 				#ifdef LAMBDADEBUG_WS
 					puts("LAMBDA_DEBUG_WS: got a pong");
@@ -339,27 +368,18 @@ void WebSocket::asyncWsIO() {
 
 			} break;
 
-			case WEBSOCK_OPCODE_PING: {
+			case static_cast<uint8_t>(Opcodes::ping): {
 
-				uint8_t pongFrame[2];
-
-				// set FIN bit and opcode
-				pongFrame[0] = 0x80 | WEBSOCK_OPCODE_PONG;
-				//	copy payload length from ping
-				pongFrame[1] = downloadChunk[1] & 0x7F;
-
-				//	send frame header and echo the payload
-				send(this->hSocket, (const char*)pongFrame, sizeof(pongFrame), 0);
-				send(this->hSocket, (const char*)payload.data(), payload.size(), 0);
+				sendMessage(Opcodes::pong, payload);
 
 			} break;
 
-			case WEBSOCK_OPCODE_CONTINUE: {
+			case static_cast<uint8_t>(Opcodes::frmcontinue): {
 
-				if (multipartMessagePtr == nullptr) {
+				if (multipartFrmPtr == nullptr) {
 
 					downloadStream.clear();
-					clearMultipartData(&multipartMessagePtr);
+					clearMultipartData(&multipartFrmPtr);
 
 					#ifdef LAMBDADEBUG_WS
 						puts("LAMBDA_DEBUG_WS: got continue opcode but multipart mode was not enabled. dropping the stream");
@@ -368,7 +388,7 @@ void WebSocket::asyncWsIO() {
 					break;
 				}
 
-				multipartMessagePtr->content.insert(multipartMessagePtr->content.end(), payload.begin(), payload.end());
+				multipartFrmPtr->content.insert(multipartFrmPtr->content.end(), payload.begin(), payload.end());
 
 				#ifdef LAMBDADEBUG_WS
 					puts("LAMBDA_DEBUG_WS: chewing multipart message, pls wait even more");
@@ -377,10 +397,10 @@ void WebSocket::asyncWsIO() {
 				if (frameHeader.finbit) {
 
 					std::lock_guard<std::mutex>lock(this->mtLock);
-					this->rxQueue.push_back(*multipartMessagePtr);
+					this->rxQueue.push_back(*multipartFrmPtr);
 
-					delete multipartMessagePtr;
-					multipartMessagePtr = nullptr;
+					delete multipartFrmPtr;
+					multipartFrmPtr = nullptr;
 
 					#ifdef LAMBDADEBUG_WS
 						puts("LAMBDA_DEBUG_WS: oh nvm, message's done");
@@ -392,17 +412,17 @@ void WebSocket::asyncWsIO() {
 			default: {
 
 				//	if that's the first frame and there are multipart leftovers - remove them
-				clearMultipartData(&multipartMessagePtr);
+				clearMultipartData(&multipartFrmPtr);
 
 				//	if it's a multipart message, pass the first part to temp object
 				if (!frameHeader.finbit) {
 
-					multipartMessagePtr = new WebsocketMessage;
-					multipartMessagePtr->timestamp = time(nullptr);
-					multipartMessagePtr->binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
-					multipartMessagePtr->content.insert(multipartMessagePtr->content.end(), payload.begin(), payload.end());
+					multipartFrmPtr = new WebsocketMessage;
+					multipartFrmPtr->timestamp = time(nullptr);
+					multipartFrmPtr->binary = frameHeader.opcode == static_cast<uint8_t>(Opcodes::binary);
+					multipartFrmPtr->content.insert(multipartFrmPtr->content.end(), payload.begin(), payload.end());
 
-					memcpy(multipartMessageMask, frameHeader.maskKey, sizeof(frameHeader.maskKey));
+					memcpy(multipartFrmMask, frameHeader.maskKey, sizeof(frameHeader.maskKey));
 
 					break;
 				}
@@ -410,7 +430,7 @@ void WebSocket::asyncWsIO() {
 				//	ok, it's not multipart, just push it to the queue
 				WebsocketMessage wsMessage;
 				wsMessage.timestamp = time(nullptr);
-				wsMessage.binary = frameHeader.opcode == WEBSOCK_OPCODE_BINARY;
+				wsMessage.binary = frameHeader.opcode == static_cast<uint8_t>(Opcodes::binary);
 				wsMessage.content.insert(wsMessage.content.end(), payload.begin(), payload.end());
 
 				std::lock_guard<std::mutex>lock(this->mtLock);
@@ -432,47 +452,39 @@ std::vector<WebsocketMessage> WebSocket::getMessages() {
 	return temp;
 }
 
-Lambda::Error WebSocket::sendMessage(const uint8_t* dataBuff, const size_t dataSize, bool binary) {
+Lambda::Error WebSocket::sendMessage(Opcodes opcode, const std::vector<uint8_t>& payload) {
 
-	if (this->connCloseStatus) return Lambda::Error("Websocket connection closed and cannot be reused");
-	if (this->hSocket == INVALID_SOCKET) return Lambda::Error("Socket closed | Invalid socket error");
+	if (this->connCloseStatus)
+		return Lambda::Error("Websocket connection closed and cannot be reused");
 
-	//	create frame buffer
-	std::vector<uint8_t> frameHeader;
+	if (this->hSocket == INVALID_SOCKET)
+		return Lambda::Error("Socket closed | Invalid socket error");
 
-	// set FIN bit and opcode
-	frameHeader.push_back(WEBSOCK_BIT_FINAL | (binary ? WEBSOCK_OPCODE_BINARY : WEBSOCK_OPCODE_TEXT));
+	WebsocketFrameHeader header;
+	header.opcode = static_cast<std::underlying_type<Opcodes>::type>(opcode);
+	header.payloadSize = payload.size();
 
-	// set payload length
-	if (dataSize < 126) {
-		frameHeader.push_back(dataSize & 0x7F);
-	} else if (dataSize >= 126 && dataSize <= 65535) {
-		frameHeader.push_back(126);
-		frameHeader.push_back((dataSize >> 8) & 255);
-		frameHeader.push_back(dataSize & 255);
-	} else {
-		frameHeader.push_back(127);
-		for (int i = 0; i < 8; i++)
-			frameHeader.push_back((dataSize >> ((7 - i) * 8)) & 0xFF);
+	auto sendBuffer = payload;
+
+	if (!this->isServer) {
+		header.mask = true;
+		auto randomKey = Crypto::randomStream(wsFrameMaskSize);
+		memcpy(header.maskKey, randomKey.data(), randomKey.size());
+		xorMask(sendBuffer, header.maskKey);
 	}
 
-	//	send header
-	if (send(this->hSocket, (const char*)frameHeader.data(), frameHeader.size(), 0) <= 0) return {
-		"Couldn not send websocket frame header",
-		getAPIError()
-	};
+	auto headerPacked = packFrameHeader(header);
+	sendBuffer.insert(sendBuffer.begin(), headerPacked.begin(), headerPacked.end());
 
-	//	send payload
-	if (send(this->hSocket, (const char*)dataBuff, dataSize, 0) <= 0) return {
-		"Couldn't send ws frame payload",
-		getAPIError()
-	};
+	std::lock_guard<std::mutex>lock(this->mtLock);
+	if (send(this->hSocket, (const char*)sendBuffer.data(), sendBuffer.size(), 0) <= 0)
+		return Lambda::Error("Couldn't send websocket frame", getAPIError());
 
 	return {};
 }
 
 Lambda::Error WebSocket::sendMessage(const std::string& message) {
-	return sendMessage((const uint8_t*)message.data(), message.size(), false);
+	return sendMessage(Opcodes::text, std::vector<uint8_t>(message.begin(), message.end()));
 }
 
 bool WebSocket::availableMessage() {
@@ -487,9 +499,9 @@ Lambda::Error WebSocket::getError() {
 }
 
 void WebSocket::close() {
-	this->connCloseStatus = static_cast<std::underlying_type<WebSocketCloseCode>::type>(WebSocketCloseCode::normal);
+	this->connCloseStatus = static_cast<uint16_t>(CloseCodes::normal);
 }
 
-void WebSocket::close(WebSocketCloseCode reason) {
-	this->connCloseStatus = static_cast<std::underlying_type<WebSocketCloseCode>::type>(reason);
+void WebSocket::close(CloseCodes reason) {
+	this->connCloseStatus = static_cast<uint16_t>(reason);
 }

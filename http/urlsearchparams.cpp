@@ -22,7 +22,7 @@ void URLSearchParams::fromHref(const std::string& URLString) {
 	}
 }
 
-bool URLSearchParams::has(const std::string key) {
+bool URLSearchParams::has(const std::string key) const {
 	auto keyNormalized = stringToLowerCase(key);
 	return this->data.find(keyNormalized) != this->data.end();
 }
@@ -39,10 +39,10 @@ bool URLSearchParams::append(const std::string key, const std::string& value) {
 	return true;
 }
 
-std::string URLSearchParams::get(const std::string key) {
+std::string URLSearchParams::get(const std::string key) const {
 	auto keyNormalized = stringToLowerCase(key);
 	if (!has(keyNormalized)) return {};
-	return this->data[keyNormalized];
+	return this->data.at(keyNormalized);
 }
 
 void URLSearchParams::del(const std::string key) {
@@ -51,7 +51,7 @@ void URLSearchParams::del(const std::string key) {
 	this->data.erase(keyNormalized);
 }
 
-std::string URLSearchParams::stringify() {
+std::string URLSearchParams::stringify() const {
 	auto result = std::string();
 	for (auto item : this->data) {
 		result += (result.size() ? "&" : "") + item.first + "=" + item.second;
@@ -59,7 +59,7 @@ std::string URLSearchParams::stringify() {
 	return result;
 }
 
-std::vector<KVtype> URLSearchParams::entries() {
+std::vector<KVtype> URLSearchParams::entries() const {
 	auto entries = std::vector<KVtype>();
 	for (auto& item : this->data) {
 		entries.push_back({ item.first, item.second });
@@ -67,6 +67,6 @@ std::vector<KVtype> URLSearchParams::entries() {
 	return entries;
 }
 
-size_t URLSearchParams::length() {
+size_t URLSearchParams::length() const {
 	return this->data.size();
 }

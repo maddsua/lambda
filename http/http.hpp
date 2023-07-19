@@ -48,17 +48,17 @@ namespace Lambda::HTTP {
 			/**
 			 * Performs check whether a header is present
 			*/
-			bool has(const std::string& key);
+			bool has(const std::string& key) const;
 
 			/**
 			 * Retrieves a header value, or an empty string if header not present
 			*/
-			std::string get(const std::string& key);
+			std::string get(const std::string& key) const;
 
 			/**
 			 * Retrieves a vector of multivalue header values, or an empty vector if header not present
 			*/
-			std::vector<std::string> getMultiValue(const std::string& key);
+			std::vector<std::string> getMultiValue(const std::string& key) const;
 
 			/**
 			 * Sets a header, overwriting if exists
@@ -84,12 +84,12 @@ namespace Lambda::HTTP {
 			/**
 			 * Dumps all the headers in http text form (one header per line, separated by newline)
 			*/
-			std::string stringify();
+			std::string stringify() const;
 
 			/**
 			 * Returns const reference to internal data store
 			*/
-			const std::vector<KVtype>& entries();
+			const std::vector<KVtype>& entries() const;
 	};
 
 	class URLSearchParams {
@@ -100,14 +100,14 @@ namespace Lambda::HTTP {
 			URLSearchParams() {};
 			URLSearchParams(const std::string& URLString) { fromHref(URLString); };
 			void fromHref(const std::string& URLString);
-			bool has(const std::string key);
+			bool has(const std::string key) const;
 			void set(const std::string key, const std::string& value);
 			bool append(const std::string key, const std::string& value);
-			std::string get(const std::string key);
+			std::string get(const std::string key) const;
 			void del(const std::string key);
-			std::string stringify();
-			std::vector<KVtype> entries();
-			size_t length();
+			std::string stringify() const;
+			std::vector<KVtype> entries() const;
+			size_t length() const;
 	};
 
 	class URL {
@@ -116,15 +116,16 @@ namespace Lambda::HTTP {
 		
 		public:
 			URL() {};
-			URL(const std::string href) { setHref(href) ;};
+			URL(const std::string href);
 			void setHref(const std::string& href);
-			std::string href();
-			std::string toHttpPath();
+			std::string href() const;
+			std::string toHttpPath() const;
 			std::string host;
 			std::string port = "80";
 			std::string protocol;
 			std::string pathname = "/";
 			URLSearchParams searchParams;
+			bool isWWW() const;
 	};
 
 	class Request {
@@ -142,7 +143,7 @@ namespace Lambda::HTTP {
 			URL url;
 			Headers headers;
 			std::vector<uint8_t> body;
-			std::string text();
+			std::string text() const;
 			void setBodyText(const std::string& text);
 			std::vector<uint8_t> dump();
 	};
@@ -165,7 +166,7 @@ namespace Lambda::HTTP {
 
 			bool setStatusCode(const uint16_t statusCode);
 			void setCustomStatus(const uint16_t statusCode, const std::string& statusText);
-			uint16_t statusCode();
+			uint16_t statusCode() const;
 			Headers headers;
 			std::vector<uint8_t> body;
 			void setBodyText(const std::string& text);
@@ -199,7 +200,7 @@ namespace Lambda::HTTP {
 			/**
 			 * Checks if cookie is present
 			*/
-			bool has(const std::string key);
+			bool has(const std::string key) const;
 
 			/**
 			 * Sets a cookie
@@ -209,7 +210,7 @@ namespace Lambda::HTTP {
 			/**
 			 * Retrieves a cookie
 			*/
-			std::string get(const std::string key);
+			std::string get(const std::string key) const;
 
 			/**
 			 * Removes a cookie
@@ -219,17 +220,17 @@ namespace Lambda::HTTP {
 			/**
 			 * Convert to cookie string
 			*/
-			std::string stringify();
+			std::string stringify() const;
 
 			/**
 			 * List all key-value pairs
 			*/
-			std::vector<KVtype> entries();
+			std::vector<KVtype> entries() const;
 
 			/**
 			 * Convert to Set-Cookie header KV struct. The whole object is considered as a single cookie for this operation
 			*/
-			KVtype toHeader();
+			KVtype toHeader() const;
 	};
 
 	/**

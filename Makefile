@@ -271,6 +271,13 @@ test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NE
 
 
 #------------
+# Test: Websocket client
+#------------
+test_websocket_client: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
+	g++ tests/websocket_client.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_websocket_client
+
+
+#------------
 # Test: KV Storage
 #------------
 test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING)

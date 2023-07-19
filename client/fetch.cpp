@@ -10,9 +10,11 @@ Response Client::fetch(const Request& userRequest) {
 
 	try {
 
-		auto isWww = !(userRequest.url.pathname == "localhost" || userRequest.url.pathname == "127.0.0.01") && userRequest.url.pathname.starts_with("http");
+		if (userRequest.url.protocol != "http")
+			throw Lambda::Error(std::string("Only http/1.1 is supported by fetch API in version ") + LAMBDA_VERSION);
 
-		auto connection = isWww ? HTTPConnection(userRequest.url) : HTTPConnection((uint16_t)std::stoi(userRequest.url.port));
+		auto connection = HTTPConnection(userRequest.url);
+		auto isWww = userRequest.url.isWWW();
 		
 		//	complete http request
 		auto request = userRequest;
@@ -23,8 +25,6 @@ Response Client::fetch(const Request& userRequest) {
 		request.headers.append("Connection", "close");
 
 		connection.sendRequest(request);
-
-		auto requestStream = request.dump();
 
 		return connection.receiveResponse();
 
