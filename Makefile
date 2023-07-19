@@ -317,6 +317,12 @@ example_web_server: $(LIBSHARED)
 	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server
 
 #------------
+# Simple web server demo 2
+#------------
+example_web_server_disk: $(LIBSHARED)
+	g++ examples/web_server_disk.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server_disk.exe
+
+#------------
 # Demo app
 #------------
 example_demo: $(LIBSHARED)
