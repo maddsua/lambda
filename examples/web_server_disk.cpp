@@ -1,5 +1,7 @@
 /**
- * This is a web server example app using Lambda, but this version does not use VFS, but loads files from hard drive directly
+ * This is a web server example app using Lambda,
+ * but this version does not use VFS,
+ * it loads files from hard drive directly
 */
 
 #include "../lambda.hpp"
