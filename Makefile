@@ -218,6 +218,8 @@ libstatic: $(LIBSTATIC)
 $(LIBSTATIC): $(LIBFULL_OBJS)
 	ar rvs $(LIBSTATIC) $(LIBFULL_OBJS)
 
+test_build: $(LIBFULL_OBJS)
+
 
 #--------------------------------
 #--------------------------------
@@ -271,6 +273,13 @@ test_fetch: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NE
 
 
 #------------
+# Test: Websocket client
+#------------
+test_websocket_client: $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO)
+	g++ tests/websocket_client.cpp $(OBJECTS_HTTP) $(OBJECTS_ENCODING) $(OBJECTS_COMPRESS) $(OBJECTS_NETWORK) $(OBJECTS_SERVER) $(OBJECTS_CRYPTO) $(LIB_BR_SHARED) $(LIB_ZLIB_SHARED) $(LIBS_SYSTEM) -o test_websocket_client
+
+
+#------------
 # Test: KV Storage
 #------------
 test_kv: $(OBJECTS_STORAGE) $(OBJECTS_COMPRESS) $(OBJECTS_ENCODING)
@@ -306,6 +315,12 @@ example_api_server: $(LIBSHARED)
 #------------
 example_web_server: $(LIBSHARED)
 	g++ examples/web_server.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server
+
+#------------
+# Simple web server demo 2
+#------------
+example_web_server_disk: $(LIBSHARED)
+	g++ examples/web_server_disk.cpp $(LIBSHARED) $(LIBS_SYSTEM) $(CFLAGS) -o example_web_server_disk.exe
 
 #------------
 # Demo app

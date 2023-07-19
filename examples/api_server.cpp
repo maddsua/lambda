@@ -4,7 +4,7 @@
 */
 
 #include "../lambda.hpp"
-#include <iostream>
+#include <cstdio>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
@@ -12,7 +12,7 @@ using namespace Lambda::Encoding;
 
 HTTP::Response callbackServerless(Request& request, Context& context) {
 
-	std::cout << "Request to \"" << request.url.pathname << "\" from " << request.headers.get("user-agent") << std::endl;
+	puts(("Request to \"" + request.url.pathname + "\" from " + context.clientIP).c_str());
 
 	auto response = Response();
 
@@ -54,7 +54,7 @@ int main() {
 
 	auto server = Lambda::Server(port);
 
-	std::cout << "Started at http://localhost:" + std::to_string(port) << std::endl;
+	puts(("Server started at http://localhost:" + std::to_string(port)).c_str());
 
 	server.setServerlessCallback(&callbackServerless);
 

@@ -1,5 +1,5 @@
 #include "../lambda.hpp"
-#include <iostream>
+#include <cstdio>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
@@ -30,7 +30,7 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 
 	auto request = connection.receiveRequest();
 
-	std::cout << "Serving \"" << request.url.pathname << "\"" << std::endl;
+	puts(("Serving \"" + request.url.pathname + "\"").c_str());
 
 	//	handle regular http requests
 	if (!request.url.pathname.starts_with("/ws")) {
@@ -68,7 +68,7 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 	}
 
 	//	websocket part
-	std::cout << "Conntected a websocket" << std::endl;
+	puts("Conntected a websocket");
 
 	auto websock = connection.upgradeToWebsocket(request);
 
@@ -85,7 +85,7 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 
 		for (const auto& msg : messages) {
 
-			std::cout << msg.timestamp << ": " << msg.content << std::endl;
+			puts((msg.timestamp + ": " + msg.content).c_str());
 
 			auto msgtokens = stringSplit(msg.content, " ");
 
@@ -149,7 +149,7 @@ void callback(Lambda::Network::HTTPConnection& connection, Lambda::Context& cont
 		}
 	}
 
-	std::cout << "Websocket disconnected" << std::endl;
+	puts("Websocket disconnected");
 }
 
 int main() {
@@ -167,10 +167,10 @@ int main() {
 
 	auto vfs = new VFS();
 	auto vfsload = vfs->loadSnapshot("examples/content/demo.dist.tar.gz");
-	if (vfsload.isError()) std::cout << "Failed to load VFS: " << vfsload.what() << std::endl;
+	if (vfsload.isError()) puts((std::string("Failed to load VFS: ") + vfsload.what()).c_str());
 	else passthough.vfs = vfs;
 
-	std::cout << "Server started at http://localhost:" + std::to_string(port) << std::endl;
+	puts(("Server started at http://localhost:" + std::to_string(port)).c_str());
 
 	server.setServerCallback(&callback);
 

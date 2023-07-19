@@ -34,7 +34,7 @@ void Headers::fromEntries(const std::vector<KVtype>& headers) {
 	}
 }
 
-bool Headers::has(const std::string& key) {
+bool Headers::has(const std::string& key) const {
 	auto keyNormalized = stringToTittleCase(key);
 	for (const auto& item : this->data) {
 		if (item.key != keyNormalized) continue;
@@ -43,7 +43,7 @@ bool Headers::has(const std::string& key) {
 	return false;
 }
 
-std::string Headers::get(const std::string& key) {
+std::string Headers::get(const std::string& key) const {
 	auto keyNormalized = stringToTittleCase(key);
 	for (const auto& item : this->data) {
 		if (item.key != keyNormalized) continue;
@@ -52,7 +52,7 @@ std::string Headers::get(const std::string& key) {
 	return {};
 }
 
-std::vector<std::string> Headers::getMultiValue(const std::string& key) {
+std::vector<std::string> Headers::getMultiValue(const std::string& key) const {
 	auto keyNormalized = stringToTittleCase(key);
 	std::vector<std::string> result;
 	for (const auto& item : this->data) {
@@ -97,7 +97,7 @@ void Headers::del(const std::string& key) {
 	}
 }
 
-std::string Headers::stringify() {
+std::string Headers::stringify() const {
 	auto result = std::string();
 	for (const auto& item : this->data) {
 		result += item.key + ": " + item.value + "\r\n";
@@ -105,6 +105,6 @@ std::string Headers::stringify() {
 	return result;
 }
 
-const std::vector<KVtype>& Headers::entries() {
+const std::vector<KVtype>& Headers::entries() const {
 	return this->data;
 }
