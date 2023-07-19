@@ -4,7 +4,7 @@
 */
 
 #include "../lambda.hpp"
-#include <iostream>
+#include <cstdio>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
@@ -17,7 +17,7 @@ struct ServerPass {
 
 HTTP::Response callbackServerless(Request& request, Context& context) {
 
-	std::cout << "Request to \"" << request.url.pathname << "\" from " << context.clientIP << std::endl;
+	puts(("Request to \"" + request.url.pathname + "\" from " + context.clientIP).c_str());
 
 	if (context.passtrough == nullptr) {
 		return serviceResponse(500, "HTTP/500 Error: VFS unavailable");
@@ -57,10 +57,10 @@ int main() {
 	passthough.vfs = new VFS();
 
 	auto vfsload = passthough.vfs->loadSnapshot("examples/content/website.dist.tar.gz");
-	if (vfsload.isError()) std::cout << "Failed to load VFS: " << vfsload.what() << std::endl;
+	if (vfsload.isError()) puts((std::string("Failed to load VFS: ") + vfsload.what()).c_str());
 		else server.enablePasstrough(&passthough);
 
-	std::cout << "Server started at http://localhost:" + std::to_string(port) << std::endl;
+	puts(("Server started at http://localhost:" + std::to_string(port)).c_str());
 
 	server.setServerlessCallback(&callbackServerless);
 
