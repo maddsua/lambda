@@ -4,6 +4,7 @@
 
 #include "../lambda.hpp"
 #include <fstream>
+#include <string.h>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
@@ -13,7 +14,11 @@ using namespace Lambda::Storage;
 std::vector<uint8_t> loadFile(const std::string& path);
 HTTP::Response callbackServerless(Request& request, Context& context);
 
-int main() {
+struct Passtr {
+	std::string rootdir;
+};
+
+int main(int argc, char** argv) {
 
 	const int port = 8080;
 
@@ -21,6 +26,22 @@ int main() {
 
 	server.flags.compressionUseBrotli = true;
 	server.flags.compressionUseGzip = true;
+
+	Passtr pass;
+
+	for (size_t i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "-d") && i + 1 < argc) {
+			pass.rootdir = argv[i + 1];
+			break;
+		}
+	}
+
+	if (!pass.rootdir.size()) {
+		puts("Specify dist directory with: '-d dist_dir_name'");
+		pass.rootdir = "dist";
+	}
+
+	server.enablePasstrough(&pass);
 
 	puts(("Server started at http://localhost:" + std::to_string(port)).c_str());
 
@@ -56,8 +77,9 @@ HTTP::Response callbackServerless(Request& request, Context& context) {
 	if (filepath.starts_with("/")) filepath.erase(0, 1);
 
 	//	try to load file from fs
-	auto file = loadFile("dist/" + filepath);
-	if (!file.size()) return serviceResponse(404, "Resource \"" + request.url.pathname + "\" does not exist<br>Are you sure that you have a 'dist' directory next to the executable?");
+	auto rootDir = ((Passtr*)context.passtrough)->rootdir;
+	auto file = loadFile(rootDir + "/" + filepath);
+	if (!file.size()) return serviceResponse(404, "Resource \"" + request.url.pathname + "\" does not exist<br>Are you sure that you have a '" + rootDir + "' directory next to the executable?");
 	
 	auto response = Response();
 	response.body = file;
