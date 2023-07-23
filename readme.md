@@ -56,7 +56,7 @@ Please note that lambda is not an "nginx killer", so you probably don’t wanna 
 
 ## JSON
 
-You might not like my JSON implementation (I had a reason to put it here), so you might want to try [JSON for Modern C++ ](https://github.com/nlohmann/json) as a replacement. My implementation will still be used under the hood where performance is desirable.
+You might not like my JSON implementation (I had a reason to put it here), so you may want to try [JSON for Modern C++ ](https://github.com/nlohmann/json) as a replacement. My implementation will still be used under the hood where performance is desirable.
 
 ## Error handling/exceptions
 
