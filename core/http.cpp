@@ -227,7 +227,14 @@ std::string URL::href() const {
 	temp += this->pathname;
 
 	//	add search query
-	//temp += this->searchParams.stringify();
+	if (this->searchParams.entries().size()) {
+		temp += "?" + this->searchParams.stringify();
+	}
+
+	//	add fragment
+	if (this->hash.size() > 1) {
+		temp += this->hash;
+	}
 
 	return temp;
 }
