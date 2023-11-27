@@ -17,6 +17,10 @@ int main(int argc, char const *argv[]) {
 
 	std::cout << "full: " << url.href() << std::endl;
 
+	HTTP::Body test("test text");
+
+	std::cout << "body: " << test.text() << std::endl;
+
 	/* code */
 	return 0;
 }
