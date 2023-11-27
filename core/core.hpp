@@ -88,9 +88,18 @@
 		};
 
 		class URL {	
+			private:
+				void parse(const std::string& href);
+
 			public:
-				URL() {};
-				URL(const std::string& href);
+				URL(const std::string& href) {
+					this->parse(href);
+				}
+
+				URL& operator = (const std::string& right) {
+					this->parse(right);
+					return *this;
+				}
 
 				std::string protocol;
 				std::string username;
@@ -162,22 +171,39 @@
 				}
 		};
 
-		/*class Request {
+		class Method {
+			private:
+				std::string value;
+			
+			public:
+				Method(const std::string& method) {
+					this->value = method;
+				}
+
+				Method& operator = (const std::string& right) {
+					this->value = right;
+					return *this;
+				}
+
+				operator std::string () const {
+					return this->value;
+				}
+		};
+
+		class Request {
 			private:
 				std::vector <uint8_t> body;
 			
 			public:
 				Request(const std::string& url);
 				Request(const std::string& url, const Headers& headers);
-				Request(const std::string& url, const std::vector <uint8_t>& body);
-				Request(const std::string& url, const std::string& body);
-				Request(const std::string& url, const Headers& headers, const std::vector <uint8_t>& body);
-				Request(const std::string& url, const Headers& headers, const std::string& body);
+				Request(const std::string& url, const Body& body);
+				Request(const std::string& url, const Headers& headers, Body& body);
 
-				const std::string method;
+				Method method;
 				Headers headers;
 				URL url;
-		};*/
+		};
 	}
 
 #endif
