@@ -126,13 +126,12 @@ void URL::parse(const std::string& href) {
 
 		//	alright so let's start with getting url schema. that's the "http" thing
 		auto cursor = href.find("://");
-		if (cursor != std::string::npos) {
-			this->protocol = href.substr(0, cursor);
-			cursor += 3;
+		if (cursor == std::string::npos) {
+			throw std::runtime_error("Protocol not specified");
 		}
-		else {
-			cursor = 0;
-		}
+
+		this->protocol = href.substr(0, cursor);
+		cursor += 3;
 
 		std::string addrString;
 
