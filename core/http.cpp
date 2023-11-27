@@ -199,3 +199,35 @@ URL::URL(const std::string& href) {
 		throw std::runtime_error("Could not parse URL: Unhandled error");
 	}
 }
+
+std::string URL::href() const {
+
+	std::string temp;
+
+	//	add protocol
+	if (this->protocol.size()) {
+		temp = this->protocol + "://";
+	} else {
+		temp = "http://";
+	}
+
+	//	add http auth
+	if (this->username.size() && this->password.size()) {
+		temp += this->username + ":" + this->password + "@";
+	}
+
+	//	add host name
+	if (!this->hostname.size()) throw std::runtime_error("Host name is not defined");
+	temp += hostname;
+
+	//	add port
+	if (this->port.size()) temp += ":" + this->port;
+
+	//	add pathname
+	temp += this->pathname;
+
+	//	add search query
+	//temp += this->searchParams.stringify();
+
+	return temp;
+}
