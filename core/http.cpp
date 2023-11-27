@@ -1,6 +1,8 @@
 #include "./core.hpp"
 #include <stdexcept>
 
+#include <iostream>
+
 using namespace HTTP;
 using namespace Strings;
 
@@ -120,6 +122,53 @@ Cookie::Cookie(const std::string& cookies) {
 
 URL::URL(const std::string& href) {
 
+	//	alright so let's start with getting url schema. that's the "http" thing
+	auto cursor = href.find("://");
+	if (cursor == std::string::npos) {
+		throw std::runtime_error("Can't determine url schema");
+	}
+
+	this->protocol = href.substr(0, cursor);
+	cursor += 3;
+
+	//	find separator between hostname and stuff and document path and it's stuff
+	const auto docStart = href.find_first_of('/', cursor);
+
+	//	find auth separator
+	const auto authSep = href.find_first_of("@", cursor, docStart - cursor);
+	if (authSep != std::string::npos) {
+		
+		const auto credSep = href.find_first_of(":", cursor, authSep - cursor);
+		if (credSep != std::string::npos) {
+			this->username = href.substr(cursor, credSep - cursor);
+			this->password = href.substr(credSep + 1, authSep - 1);
+		}
+
+		cursor = authSep + 1;
+	}
+
+	//	new it's time to deal with host
+	this->host = href.substr(cursor, docStart - cursor);
+
+	//	now let's jump to the document section
+	if (docStart != std::string::npos) {
+
+		auto fragmentStart = href.find_first_of('#', docStart);
+		if (fragmentStart != std::string::npos) {
+			this->hash = href.substr(fragmentStart);
+		}
+
+		auto queryStart = href.find_first_of('?', docStart);
+		if (queryStart != std::string::npos) {
+			this->searchParams = HTTP::URLSearchParams(fragmentStart == std::string::npos ? href.substr(queryStart) : href.substr(queryStart, fragmentStart - queryStart));
+		}
+
+	} else {
+		this->pathname = '/';
+	}
+
+
+/*
 	auto temp = href;
 	auto pos = std::string::npos;
 
@@ -163,5 +212,5 @@ URL::URL(const std::string& href) {
 	}
 
 	//	we're basically left with pathname
-	this->pathname = temp;
+	this->pathname = temp;*/
 }
