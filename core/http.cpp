@@ -117,7 +117,7 @@ Cookie::Cookie(const std::string& cookies) {
 
 /**
  * Just a memo of how URL schema looks
- * https://user:password@example.com/document?search=query#fragment
+ * https://user:password@example.com:443/document?search=query#fragment
 */
 
 URL::URL(const std::string& href) {
@@ -131,9 +131,65 @@ URL::URL(const std::string& href) {
 	this->protocol = href.substr(0, cursor);
 	cursor += 3;
 
+	std::string addrString;
+
 	//	find separator between hostname and stuff and document path and it's stuff
 	const auto docStart = href.find_first_of('/', cursor);
+	if (docStart != std::string::npos) {
 
+		addrString = href.substr(cursor, docStart - cursor);
+
+		auto docString = href.substr(docStart);
+
+		//	get document fragment aka hash
+		cursor = docString.find_first_of('#');
+		if (cursor != std::string::npos) {
+			this->hash = docString.substr(cursor);
+			docString = docString.substr(0, cursor);
+		}
+
+		//	now get search query
+		cursor = docString.find_first_of('?');
+		if (cursor != std::string::npos) {
+			this->searchParams = URLSearchParams(docString.substr(cursor));
+			docString = docString.substr(0, cursor);
+		}
+
+		this->pathname = docString;
+	}
+	else {
+		this->pathname = '/';
+		addrString = href;
+	}
+
+	// get http auth sorted out
+	cursor = addrString.find('@');
+	if (cursor != std::string::npos) {
+
+		auto credentails = addrString.substr(0, cursor);
+		const auto credSep = credentails.find(':');
+		if (credSep != std::string::npos) {
+			this->username = credentails.substr(0, credSep);
+			this->password = credentails.substr(credSep + 1);
+		}
+
+		addrString = addrString.substr(cursor + 1);
+	}
+
+	//	get host and port
+	this->host = addrString;
+
+	cursor = addrString.find(':');
+	if (cursor != std::string::npos) {
+		this->port = addrString.substr(cursor + 1);
+		this->hostname = addrString.substr(0, cursor);
+	}
+	else {
+		this->hostname = addrString;
+		this->port = "80";
+	}
+
+/*
 	//	find auth separator
 	const auto authSep = href.find_first_of("@", cursor, docStart - cursor);
 	if (authSep != std::string::npos) {
@@ -166,7 +222,7 @@ URL::URL(const std::string& href) {
 	} else {
 		this->pathname = '/';
 	}
-
+*/
 
 /*
 	auto temp = href;
