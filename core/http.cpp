@@ -193,48 +193,57 @@ URL::URL(const std::string& href) {
 		}
 	}
 	catch(const std::exception& e) {
-		throw std::runtime_error("Could not parse URL: " + std::string(e.what()));
+		throw std::runtime_error("Failed to parse URL: " + std::string(e.what()));
 	}
 	catch(...) {
-		throw std::runtime_error("Could not parse URL: Unhandled error");
+		throw std::runtime_error("Failed to parse URL: Unhandled error");
 	}
 }
 
 std::string URL::href() const {
 
-	std::string temp;
+	try {
 
-	//	add protocol
-	if (this->protocol.size()) {
-		temp = this->protocol + "://";
-	} else {
-		temp = "http://";
+		std::string temp;
+
+		//	add protocol
+		if (this->protocol.size()) {
+			temp = this->protocol + "://";
+		} else {
+			temp = "http://";
+		}
+
+		//	add http auth
+		if (this->username.size() && this->password.size()) {
+			temp += this->username + ":" + this->password + "@";
+		}
+
+		//	add host name
+		if (!this->hostname.size()) throw std::runtime_error("Host name is not defined");
+		temp += hostname;
+
+		//	add port
+		if (this->port.size()) temp += ":" + this->port;
+
+		//	add pathname
+		temp += this->pathname;
+
+		//	add search query
+		if (this->searchParams.entries().size()) {
+			temp += "?" + this->searchParams.stringify();
+		}
+
+		//	add fragment
+		if (this->hash.size() > 1) {
+			temp += this->hash;
+		}
+
+		return temp;
 	}
-
-	//	add http auth
-	if (this->username.size() && this->password.size()) {
-		temp += this->username + ":" + this->password + "@";
+	catch(const std::exception& e) {
+		throw std::runtime_error("Failed to serialize URL: " + std::string(e.what()));
 	}
-
-	//	add host name
-	if (!this->hostname.size()) throw std::runtime_error("Host name is not defined");
-	temp += hostname;
-
-	//	add port
-	if (this->port.size()) temp += ":" + this->port;
-
-	//	add pathname
-	temp += this->pathname;
-
-	//	add search query
-	if (this->searchParams.entries().size()) {
-		temp += "?" + this->searchParams.stringify();
+	catch(...) {
+		throw std::runtime_error("Failed to serialize URL: Unhandled error");
 	}
-
-	//	add fragment
-	if (this->hash.size() > 1) {
-		temp += this->hash;
-	}
-
-	return temp;
 }
