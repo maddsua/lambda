@@ -159,7 +159,7 @@ URL::URL(const std::string& href) {
 	}
 	else {
 		this->pathname = '/';
-		addrString = href;
+		addrString = href.substr(cursor);
 	}
 
 	// get http auth sorted out
