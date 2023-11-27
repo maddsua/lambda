@@ -3,7 +3,7 @@
 
 int main(int argc, char const *argv[]) {
 
-	auto url = new HTTP::URL("https://example.com:443/doc?v=1#fragment");
+	auto url = new HTTP::URL("https://user:password@example.com/document?search=query#fragment");
 
 	std::cout << "hash: " << url->hash << std::endl;
 	std::cout << "search: " << url->searchParams.stringify() << std::endl;
@@ -12,6 +12,8 @@ int main(int argc, char const *argv[]) {
 	std::cout << "hostname: " << url->hostname << std::endl;
 	std::cout << "port: " << url->port << std::endl;
 	std::cout << "pathname: " << url->pathname << std::endl;
+	std::cout << "username: " << url->username << std::endl;
+	std::cout << "password: " << url->password << std::endl;
 
 	/* code */
 	return 0;
