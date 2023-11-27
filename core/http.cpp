@@ -122,70 +122,80 @@ Cookie::Cookie(const std::string& cookies) {
 
 URL::URL(const std::string& href) {
 
-	//	alright so let's start with getting url schema. that's the "http" thing
-	auto cursor = href.find("://");
-	if (cursor == std::string::npos) {
-		throw std::runtime_error("Can't determine url schema");
-	}
+	try {
 
-	this->protocol = href.substr(0, cursor);
-	cursor += 3;
-
-	std::string addrString;
-
-	//	find separator between hostname and stuff and document path and it's stuff
-	const auto docStart = href.find_first_of('/', cursor);
-	if (docStart != std::string::npos) {
-
-		addrString = href.substr(cursor, docStart - cursor);
-
-		auto docString = href.substr(docStart);
-
-		//	get document fragment aka hash
-		cursor = docString.find_first_of('#');
+		//	alright so let's start with getting url schema. that's the "http" thing
+		auto cursor = href.find("://");
 		if (cursor != std::string::npos) {
-			this->hash = docString.substr(cursor);
-			docString = docString.substr(0, cursor);
+			this->protocol = href.substr(0, cursor);
+			cursor += 3;
+		}
+		else {
+			cursor = 0;
 		}
 
-		//	now get search query
-		cursor = docString.find_first_of('?');
+		std::string addrString;
+
+		//	find separator between hostname and stuff and document path and it's stuff
+		const auto docStart = href.find_first_of('/', cursor);
+		if (docStart != std::string::npos) {
+
+			addrString = href.substr(cursor, docStart - cursor);
+
+			auto docString = href.substr(docStart);
+
+			//	get document fragment aka hash
+			cursor = docString.find_first_of('#');
+			if (cursor != std::string::npos) {
+				this->hash = docString.substr(cursor);
+				docString = docString.substr(0, cursor);
+			}
+
+			//	now get search query
+			cursor = docString.find_first_of('?');
+			if (cursor != std::string::npos) {
+				this->searchParams = URLSearchParams(docString.substr(cursor));
+				docString = docString.substr(0, cursor);
+			}
+
+			this->pathname = docString;
+		}
+		else {
+			this->pathname = '/';
+			addrString = href.substr(cursor);
+		}
+
+		// get http auth sorted out
+		cursor = addrString.find('@');
 		if (cursor != std::string::npos) {
-			this->searchParams = URLSearchParams(docString.substr(cursor));
-			docString = docString.substr(0, cursor);
+
+			auto credentails = addrString.substr(0, cursor);
+			const auto credSep = credentails.find(':');
+			if (credSep != std::string::npos) {
+				this->username = credentails.substr(0, credSep);
+				this->password = credentails.substr(credSep + 1);
+			}
+
+			addrString = addrString.substr(cursor + 1);
 		}
 
-		this->pathname = docString;
-	}
-	else {
-		this->pathname = '/';
-		addrString = href.substr(cursor);
-	}
+		this->host = addrString;
 
-	// get http auth sorted out
-	cursor = addrString.find('@');
-	if (cursor != std::string::npos) {
-
-		auto credentails = addrString.substr(0, cursor);
-		const auto credSep = credentails.find(':');
-		if (credSep != std::string::npos) {
-			this->username = credentails.substr(0, credSep);
-			this->password = credentails.substr(credSep + 1);
+		//	get hostname and port
+		cursor = addrString.find(':');
+		if (cursor != std::string::npos) {
+			this->port = addrString.substr(cursor + 1);
+			this->hostname = addrString.substr(0, cursor);
 		}
-
-		addrString = addrString.substr(cursor + 1);
+		else {
+			this->hostname = addrString;
+			this->port = "80";
+		}
 	}
-
-	this->host = addrString;
-
-	//	get hostname and port
-	cursor = addrString.find(':');
-	if (cursor != std::string::npos) {
-		this->port = addrString.substr(cursor + 1);
-		this->hostname = addrString.substr(0, cursor);
+	catch(const std::exception& e) {
+		throw std::runtime_error("Could not parse URL: " + std::string(e.what()));
 	}
-	else {
-		this->hostname = addrString;
-		this->port = "80";
+	catch(...) {
+		throw std::runtime_error("Could not parse URL: Unhandled error");
 	}
 }
