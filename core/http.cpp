@@ -189,13 +189,11 @@ void URL::parse(const std::string& href) {
 		}
 		else {
 			this->hostname = addrString;
-			this->port = "80";
 		}
-	}
-	catch(const std::exception& e) {
+
+	} catch(const std::exception& e) {
 		throw std::runtime_error("Failed to parse URL: " + std::string(e.what()));
-	}
-	catch(...) {
+	} catch(...) {
 		throw std::runtime_error("Failed to parse URL: Unhandled error");
 	}
 }
@@ -240,11 +238,10 @@ std::string URL::href() const {
 		}
 
 		return temp;
-	}
-	catch(const std::exception& e) {
+
+	} catch(const std::exception& e) {
 		throw std::runtime_error("Failed to serialize URL: " + std::string(e.what()));
-	}
-	catch(...) {
+	} catch(...) {
 		throw std::runtime_error("Failed to serialize URL: Unhandled error");
 	}
 }
