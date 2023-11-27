@@ -226,6 +226,7 @@ std::string URL::href() const {
 		if (this->port.size()) temp += ":" + this->port;
 
 		//	add pathname
+		if (!this->pathname.size()) throw std::runtime_error("Path name is not defined");
 		temp += this->pathname;
 
 		//	add search query
