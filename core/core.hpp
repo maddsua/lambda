@@ -161,6 +161,23 @@
 					return this->internalContent;
 				}
 		};
+
+		/*class Request {
+			private:
+				std::vector <uint8_t> body;
+			
+			public:
+				Request(const std::string& url);
+				Request(const std::string& url, const Headers& headers);
+				Request(const std::string& url, const std::vector <uint8_t>& body);
+				Request(const std::string& url, const std::string& body);
+				Request(const std::string& url, const Headers& headers, const std::vector <uint8_t>& body);
+				Request(const std::string& url, const Headers& headers, const std::string& body);
+
+				const std::string method;
+				Headers headers;
+				URL url;
+		};*/
 	}
 
 #endif
