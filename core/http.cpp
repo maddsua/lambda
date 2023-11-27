@@ -176,9 +176,9 @@ URL::URL(const std::string& href) {
 		addrString = addrString.substr(cursor + 1);
 	}
 
-	//	get host and port
 	this->host = addrString;
 
+	//	get hostname and port
 	cursor = addrString.find(':');
 	if (cursor != std::string::npos) {
 		this->port = addrString.substr(cursor + 1);
@@ -188,85 +188,4 @@ URL::URL(const std::string& href) {
 		this->hostname = addrString;
 		this->port = "80";
 	}
-
-/*
-	//	find auth separator
-	const auto authSep = href.find_first_of("@", cursor, docStart - cursor);
-	if (authSep != std::string::npos) {
-		
-		const auto credSep = href.find_first_of(":", cursor, authSep - cursor);
-		if (credSep != std::string::npos) {
-			this->username = href.substr(cursor, credSep - cursor);
-			this->password = href.substr(credSep + 1, authSep - 1);
-		}
-
-		cursor = authSep + 1;
-	}
-
-	//	new it's time to deal with host
-	this->host = href.substr(cursor, docStart - cursor);
-
-	//	now let's jump to the document section
-	if (docStart != std::string::npos) {
-
-		auto fragmentStart = href.find_first_of('#', docStart);
-		if (fragmentStart != std::string::npos) {
-			this->hash = href.substr(fragmentStart);
-		}
-
-		auto queryStart = href.find_first_of('?', docStart);
-		if (queryStart != std::string::npos) {
-			this->searchParams = HTTP::URLSearchParams(fragmentStart == std::string::npos ? href.substr(queryStart) : href.substr(queryStart, fragmentStart - queryStart));
-		}
-
-	} else {
-		this->pathname = '/';
-	}
-*/
-
-/*
-	auto temp = href;
-	auto pos = std::string::npos;
-
-	//	start parsing from the end
-	//	get document fragment aka hash
-	pos = temp.find_first_of('#');
-	if (pos != std::string::npos) {
-		this->hash = temp.substr(pos);
-		temp = temp.substr(0, pos);
-	}
-
-	//	now get search query
-	pos = temp.find_first_of('?');
-	if (pos != std::string::npos) {
-		this->searchParams = URLSearchParams(temp.substr(pos));
-		temp = temp.substr(0, pos);
-	}
-
-	//	then jump to the beginning to get protocol/schema
-	pos = temp.find("://");
-	if (pos != std::string::npos) {
-		this->protocol = temp.substr(0, pos);
-		temp = temp.substr(pos + 3);
-	}
-
-	//	get host
-	pos = temp.find_first_of('/');
-	if (pos == std::string::npos) throw new std::runtime_error("Cannot parse URL: path start undefined");
-
-	this->host = temp.substr(0, pos);
-	temp = temp.substr(pos);
-
-	//	split host to port and hostname real quick
-	pos = this->host.find_first_of(':');
-	if (pos != std::string::npos) {
-		this->port = this->host.substr(pos + 1);
-		this->hostname = this->host.substr(0, pos);
-	}
-	else {
-		this->hostname = this->host;
-	}
-
-	//	we're basically left with pathname
-	this->pathname = temp;*/
 }
