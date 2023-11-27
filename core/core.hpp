@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <cstring>
 
 	/**
 	 * Extends standard std::string methods
@@ -132,23 +133,16 @@
 				*/
 				Body() {};
 
+				Body(const char* content) {
+					this->internalContent = std::vector<uint8_t>(content, content + strlen(content));
+				};
 				Body(const std::string& content) {
 					this->internalContent = std::vector<uint8_t>(content.begin(), content.end());
 				};
-
 				Body(const std::vector<uint8_t>& content) {
 					this->internalContent = content;
 				};
 
-				Body& operator = (const std::vector<uint8_t>& right) {
-					this->internalContent = right;
-					return *this;
-				}
-
-				Body& operator = (const std::string& right) {
-					this->internalContent = std::vector<uint8_t>(right.begin(), right.end());
-					return *this;
-				}
 
 				operator std::string () const {
 					return this->text();
