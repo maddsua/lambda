@@ -95,10 +95,8 @@
 				URL(const std::string& href) {
 					this->parse(href);
 				}
-
-				URL& operator = (const std::string& right) {
-					this->parse(right);
-					return *this;
+				URL(const char* href) {
+					this->parse(href);
 				}
 
 				std::string protocol;
