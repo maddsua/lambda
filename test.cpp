@@ -15,6 +15,8 @@ int main(int argc, char const *argv[]) {
 	std::cout << "username: " << url->username << std::endl;
 	std::cout << "password: " << url->password << std::endl;
 
+	std::cout << "full: " << url->href() << std::endl;
+
 	/* code */
 	return 0;
 }
