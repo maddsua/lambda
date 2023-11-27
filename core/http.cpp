@@ -120,7 +120,7 @@ Cookie::Cookie(const std::string& cookies) {
  * https://user:password@example.com:443/document?search=query#fragment
 */
 
-URL::URL(const std::string& href) {
+void URL::parse(const std::string& href) {
 
 	try {
 
