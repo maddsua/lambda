@@ -66,10 +66,10 @@ std::vector<std::string> Headers::getAll(const std::string& key) const {
 }
 
 
-URLSearchParams::URLSearchParams(const std::string& URLString) {
+URLSearchParams::URLSearchParams(const std::string& urlString) {
 
-	auto qmark = URLString.find_last_of('?');
-	auto queries = split(qmark != std::string::npos ? URLString.substr(qmark + 1) : URLString, "&");
+	auto qmark = urlString.find_last_of('?');
+	auto queries = split(qmark != std::string::npos ? urlString.substr(qmark + 1) : urlString, "&");
 	
 	for (const auto& item : queries) {
 
