@@ -190,6 +190,8 @@ void URL::parse(const std::string& href) {
 			this->hostname = addrString;
 		}
 
+		if (!this->hostname.size()) throw std::runtime_error("Host name undefined");
+
 	} catch(const std::exception& e) {
 		throw std::runtime_error("Failed to parse URL: " + std::string(e.what()));
 	} catch(...) {
@@ -216,14 +218,14 @@ std::string URL::href() const {
 		}
 
 		//	add host name
-		if (!this->hostname.size()) throw std::runtime_error("Host name is not defined");
+		if (!this->hostname.size()) throw std::runtime_error("Host name undefined");
 		temp += hostname;
 
 		//	add port
 		if (this->port.size()) temp += ":" + this->port;
 
 		//	add pathname
-		if (!this->pathname.size()) throw std::runtime_error("Path name is not defined");
+		if (!this->pathname.size()) throw std::runtime_error("Path name undefined");
 		temp += this->pathname;
 
 		//	add search query
