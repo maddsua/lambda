@@ -3,7 +3,7 @@
 
 int main(int argc, char const *argv[]) {
 
-	auto url = new HTTP::URL("https://user:password@example.com/document?search=query#fragment");
+	auto url = new HTTP::URL("https://user:password@example.com:443/document?search=query#fragment");
 
 	std::cout << "hash: " << url->hash << std::endl;
 	std::cout << "search: " << url->searchParams.stringify() << std::endl;
