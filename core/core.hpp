@@ -92,10 +92,12 @@
 				URL() {};
 				URL(const std::string& href);
 
+				std::string protocol;
+				std::string username;
+				std::string password;
 				std::string host;
 				std::string hostname;
 				std::string port;
-				std::string protocol;
 				std::string pathname;
 				std::string hash;
 				URLSearchParams searchParams;
