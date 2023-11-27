@@ -113,6 +113,11 @@ Cookie::Cookie(const std::string& cookies) {
 	}
 }
 
+/**
+ * Just a memo of how URL schema looks
+ * https://user:password@example.com/document?search=query#fragment
+*/
+
 URL::URL(const std::string& href) {
 
 	auto temp = href;
