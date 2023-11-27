@@ -160,8 +160,13 @@ void URL::parse(const std::string& href) {
 			this->pathname = docString;
 		}
 		else {
+
 			this->pathname = '/';
 			addrString = href.substr(cursor);
+
+			if (Strings::includes(addrString, std::vector<std::string>({ "?", "#" }))) {
+				throw std::runtime_error("Hostname invalid");
+			}
 		}
 
 		// get http auth sorted out
