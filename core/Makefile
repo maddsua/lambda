@@ -1,17 +1,22 @@
 CFLAGS		=	-std=c++20
-COREOBJS	=	http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o
+TARGETOBJ	=	core.o
+COREOBJS	=	strings.o http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o
 
 .PHONY: all all-before all-after action-custom
-all: all-before core.o all-after
+all: all-before $(TARGETOBJ) all-after
 
 clean: action-custom
 	rm -rf *.o *.exe *.a *.dll *.res
 
+# target object
+$(TARGETOBJ): $(COREOBJS)
+	ld -relocatable $(COREOBJS) -o $(TARGETOBJ)
 
-core.o: $(COREOBJS)
-	ld -relocatable $(COREOBJS) -o core.o
+# strings stuff
+strings.o: strings.cpp
+	g++ -c strings.cpp -o strings.o $(CFLAGS)
 
-
+# http stuff
 http/cookie.o: http/cookie.cpp
 	g++ -c http/cookie.cpp -o http/cookie.o $(CFLAGS)
 
