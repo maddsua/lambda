@@ -230,4 +230,25 @@
 		};
 	}
 
+	class Date {
+		private:
+			time_t internalTime;
+		
+		public:
+			Date() {}
+			Date(time_t epoch) : internalTime(epoch) {}
+
+			std::string getDate();
+			uint32_t getDay();
+			uint32_t getYear();
+			uint32_t getHours();
+			uint32_t getMinutes();
+			uint32_t getMonth();
+			uint32_t getSeconds();
+			time_t getTime() {
+				return this->internalTime;
+			}
+			std::string toUTCString();
+	};
+
 #endif
