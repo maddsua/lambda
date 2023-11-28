@@ -1,6 +1,6 @@
 CFLAGS		=	-std=c++20
 TARGETOBJ	=	core.o
-COREOBJS	=	strings.o http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o
+COREOBJS	=	strings.o http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o http/status.o
 
 .PHONY: all all-before all-after action-custom
 all: all-before $(TARGETOBJ) all-after
@@ -34,3 +34,6 @@ http/urlsearchparams.o: http/urlsearchparams.cpp
 
 http/method.o: http/method.cpp
 	g++ -c http/method.cpp -o http/method.o $(CFLAGS)
+
+http/status.o: http/status.cpp
+	g++ -c http/status.cpp -o http/status.o $(CFLAGS)
