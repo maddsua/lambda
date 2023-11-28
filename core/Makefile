@@ -1,11 +1,16 @@
 CFLAGS		=	-std=c++20
-COREOBJS	=	http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o
+COREOBJS	=	http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o
 
 .PHONY: all all-before all-after action-custom
 all: all-before core.o all-after
 
 clean: action-custom
 	rm -rf *.o *.exe *.a *.dll *.res
+
+
+core.o: $(COREOBJS)
+	ld -relocatable $(COREOBJS) -o core.o
+
 
 http/cookie.o: http/cookie.cpp
 	g++ -c http/cookie.cpp -o http/cookie.o $(CFLAGS)
@@ -22,5 +27,5 @@ http/url.o: http/url.cpp
 http/urlsearchparams.o: http/urlsearchparams.cpp
 	g++ -c http/urlsearchparams.cpp -o http/urlsearchparams.o $(CFLAGS)
 
-core.o: $(COREOBJS)
-	ld -relocatable $(COREOBJS) -o core.o
+http/method.o: http/method.cpp
+	g++ -c http/method.cpp -o http/method.o $(CFLAGS)
