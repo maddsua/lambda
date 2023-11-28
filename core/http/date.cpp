@@ -34,3 +34,33 @@ std::string Date::toHRTString() {
 	strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &this->timestruct);
 	return std::string(timebuff);
 }
+
+std::string Date::getDate() {
+	char timebuff[64];
+	strftime(timebuff, sizeof(timebuff), "%a, %d %b %Y", &this->timestruct);
+	return timebuff;
+}
+
+int Date::getSeconds() {
+	return this->timestruct.tm_sec;
+}
+
+int Date::getMonth() {
+	return this->timestruct.tm_mon;
+}
+
+int Date::getMinutes() {
+	return this->timestruct.tm_min;
+}
+
+int Date::getHours() {
+	return this->timestruct.tm_hour;
+}
+
+int Date::getYear() {
+	return this->timestruct.tm_year;
+}
+
+int Date::getDay() {
+	return this->timestruct.tm_mday;
+}
