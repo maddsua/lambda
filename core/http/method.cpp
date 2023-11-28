@@ -1,10 +1,11 @@
 #include "../core.hpp"
 #include <stdexcept>
+#include <set>
 
 using namespace HTTP;
 using namespace Strings;
 
-static const std::string httpKnownMethods[] = {
+static const std::set<std::string> httpKnownMethods = {
 	"GET",
 	"POST",
 	"PUT",
@@ -21,12 +22,9 @@ void Method::apply(const std::string& method) {
 
 	const auto newMethod = Strings::toUpperCase(Strings::trim(method));
 
-	for (size_t i = 0; i < methodsLength; i++) {
-		if (newMethod == httpKnownMethods[i]) {
-			this->value = newMethod;
-			return;
-		}
+	if (!httpKnownMethods.contains(newMethod)) {
+		throw new std::runtime_error("\"" + method + "\" is not a valid http method");
 	}
-	
-	throw new std::runtime_error("\"" + method + "\" is not a valid http method");
+
+	this->value = newMethod;
 }
