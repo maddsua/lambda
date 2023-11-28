@@ -25,6 +25,12 @@ time_t Date::getTime() {
 
 std::string Date::toUTCString() {
 	char timebuff[64];
-	strftime(timebuff, sizeof(timebuff) - 1, "%a, %d %b %Y %H:%M:%S GMT", &this->timestruct);
+	strftime(timebuff, sizeof(timebuff), "%a, %d %b %Y %H:%M:%S GMT", &this->timestruct);
 	return timebuff;
+}
+
+std::string Date::toHRTString() {
+	char timebuff[32];
+	strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &this->timestruct);
+	return std::string(timebuff);
 }
