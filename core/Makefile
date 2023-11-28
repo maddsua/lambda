@@ -1,4 +1,5 @@
 CFLAGS		=	-std=c++20
+COREOBJS	=	strings.o http.o
 
 .PHONY: all all-before all-after action-custom
 all: all-before core.o all-after
@@ -12,5 +13,5 @@ strings.o: strings.cpp
 http.o: http.cpp
 	g++ -c http.cpp -o http.o $(CFLAGS)
 
-core.o: strings.o http.o
-	ld -relocatable strings.o http.o -o core.o
+core.o: $(COREOBJS)
+	ld -relocatable $(COREOBJS) -o core.o
