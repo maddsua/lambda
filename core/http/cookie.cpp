@@ -21,3 +21,15 @@ Cookie::Cookie(const std::string& cookies) {
 		this->internalContent.push_back({ key, value });
 	}
 }
+
+std::string Cookie::stringify() const {
+	
+	std::string temp;
+
+	for (const auto& item : this->internalContent) {
+		if (temp.size()) temp += "; ";
+		temp += item.key + "=" + item.value;
+	}
+
+	return temp;
+}
