@@ -124,13 +124,13 @@ void URL::parse(const std::string& href) {
 
 	try {
 
-		size_t docStart = 0;
+		size_t docStart, cursor = 0;
 
 		//	parse server address and stuff
 		if (!href.starts_with('/')) {
 
 			//	alright so let's start with getting url schema. that's the "http" thing
-			auto cursor = href.find("://");
+			cursor = href.find("://");
 			if (cursor == std::string::npos) {
 				throw std::runtime_error("Protocol not specified");
 			}
@@ -174,32 +174,30 @@ void URL::parse(const std::string& href) {
 			}
 
 			if (!this->hostname.size()) throw std::runtime_error("Host name undefined");
-		}		
-
-		
-		if (docStart != std::string::npos) {
-
-			auto urlDocPart = href.substr(docStart);
-
-			//	get document fragment aka hash
-			auto cursor = urlDocPart.find_first_of('#', docStart);
-			if (cursor != std::string::npos) {
-				this->hash = urlDocPart.substr(cursor);
-				urlDocPart = urlDocPart.substr(0, cursor);
-			}
-
-			//	now get search query
-			cursor = urlDocPart.find_first_of('?');
-			if (cursor != std::string::npos) {
-				this->searchParams = URLSearchParams(urlDocPart.substr(cursor));
-				urlDocPart = urlDocPart.substr(0, cursor);
-			}
-
-			this->pathname = urlDocPart;
 		}
-		else {
+
+		if (docStart == std::string::npos) {
 			this->pathname = '/';
+			return;
 		}
+
+		auto urlDocPart = href.substr(docStart);
+
+		//	get document fragment aka hash
+		cursor = urlDocPart.find_first_of('#', docStart);
+		if (cursor != std::string::npos) {
+			this->hash = urlDocPart.substr(cursor);
+			urlDocPart = urlDocPart.substr(0, cursor);
+		}
+
+		//	now get search query
+		cursor = urlDocPart.find_first_of('?');
+		if (cursor != std::string::npos) {
+			this->searchParams = URLSearchParams(urlDocPart.substr(cursor));
+			urlDocPart = urlDocPart.substr(0, cursor);
+		}
+
+		this->pathname = urlDocPart;
 
 	} catch(const std::exception& e) {
 		throw std::runtime_error("Failed to parse URL: " + std::string(e.what()));
