@@ -201,15 +201,13 @@
 			private:
 				std::string internalText;
 				int internalCode;
-
-				void match(int code);
 			
 			public:
 				Status() {
 					this->internalCode = 200;
 					this->internalText = "OK";
 				}
-				Status(int code) {}
+				Status(int code);
 				Status(int code, const std::string& text) : internalCode(code), internalText(text) {}
 
 				int code() const {
