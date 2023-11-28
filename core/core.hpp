@@ -217,6 +217,17 @@
 					return this->internalText;
 				}
 		};
+
+		class Response {
+			Response(const Status& status) : status(status) {}
+			Response(const Status& status, const Headers& headers) : status(status), headers(headers) {}
+			Response(const Status& status, const Body& body) : status(status), body(body) {}
+			Response(const Status& status, const Headers& headers, Body& body) : status(status), headers(headers), body(body) {}
+			
+			Status status;
+			Headers headers;
+			Body body;
+		};
 	}
 
 #endif
