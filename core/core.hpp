@@ -240,12 +240,12 @@
 			Date(time_t epoch);
 
 			std::string getDate();
-			uint32_t getDay();
-			uint32_t getYear();
-			uint32_t getHours();
-			uint32_t getMinutes();
-			uint32_t getMonth();
-			uint32_t getSeconds();
+			int getDay();
+			int getYear();
+			int getHours();
+			int getMinutes();
+			int getMonth();
+			int getSeconds();
 			time_t getTime();
 			std::string toUTCString();
 			std::string toHRTString();
