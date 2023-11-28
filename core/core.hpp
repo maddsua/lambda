@@ -249,6 +249,7 @@
 				return this->internalTime;
 			}
 			std::string toUTCString();
+			std::string toHumanReadableTime();
 	};
 
 #endif
