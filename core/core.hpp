@@ -203,9 +203,9 @@
 					this->body = body;
 				}
 
+				URL url;
 				Method method;
 				Headers headers;
-				URL url;
 				Body body;
 		};
 	}
