@@ -124,78 +124,82 @@ void URL::parse(const std::string& href) {
 
 	try {
 
-		//	alright so let's start with getting url schema. that's the "http" thing
-		auto cursor = href.find("://");
-		if (cursor == std::string::npos) {
-			throw std::runtime_error("Protocol not specified");
-		}
+		size_t docStart = 0;
 
-		this->protocol = href.substr(0, cursor);
-		cursor += 3;
+		//	parse server address and stuff
+		if (!href.starts_with('/')) {
 
-		std::string addrString;
-
-		//	find separator between hostname and stuff and document path and it's stuff
-		const auto docStart = href.find_first_of('/', cursor);
-		if (docStart != std::string::npos) {
-
-			addrString = href.substr(cursor, docStart - cursor);
-
-			auto docString = href.substr(docStart);
-
-			//	get document fragment aka hash
-			cursor = docString.find_first_of('#');
-			if (cursor != std::string::npos) {
-				this->hash = docString.substr(cursor);
-				docString = docString.substr(0, cursor);
+			//	alright so let's start with getting url schema. that's the "http" thing
+			auto cursor = href.find("://");
+			if (cursor == std::string::npos) {
+				throw std::runtime_error("Protocol not specified");
 			}
 
-			//	now get search query
-			cursor = docString.find_first_of('?');
-			if (cursor != std::string::npos) {
-				this->searchParams = URLSearchParams(docString.substr(cursor));
-				docString = docString.substr(0, cursor);
-			}
+			this->protocol = href.substr(0, cursor);
+			cursor += 3;
 
-			this->pathname = docString;
-		}
-		else {
+			//	find separator between hostname and stuff and document path and it's stuff
+			docStart = href.find_first_of('/', cursor);
 
-			this->pathname = '/';
-			addrString = href.substr(cursor);
+			auto addrString = href.substr(cursor, docStart - cursor);
 
 			if (Strings::includes(addrString, std::vector<std::string>({ "?", "#" }))) {
 				throw std::runtime_error("Hostname invalid");
 			}
-		}
 
-		// get http auth sorted out
-		cursor = addrString.find('@');
-		if (cursor != std::string::npos) {
+			// get http auth sorted out
+			cursor = addrString.find('@');
+			if (cursor != std::string::npos) {
 
-			auto credentails = addrString.substr(0, cursor);
-			const auto credSep = credentails.find(':');
-			if (credSep != std::string::npos) {
-				this->username = credentails.substr(0, credSep);
-				this->password = credentails.substr(credSep + 1);
+				auto credentails = addrString.substr(0, cursor);
+				const auto credSep = credentails.find(':');
+				if (credSep != std::string::npos) {
+					this->username = credentails.substr(0, credSep);
+					this->password = credentails.substr(credSep + 1);
+				}
+
+				addrString = addrString.substr(cursor + 1);
 			}
 
-			addrString = addrString.substr(cursor + 1);
-		}
+			this->host = addrString;
 
-		this->host = addrString;
+			//	get hostname and port
+			cursor = addrString.find(':');
+			if (cursor != std::string::npos) {
+				this->port = addrString.substr(cursor + 1);
+				this->hostname = addrString.substr(0, cursor);
+			}
+			else {
+				this->hostname = addrString;
+			}
 
-		//	get hostname and port
-		cursor = addrString.find(':');
-		if (cursor != std::string::npos) {
-			this->port = addrString.substr(cursor + 1);
-			this->hostname = addrString.substr(0, cursor);
+			if (!this->hostname.size()) throw std::runtime_error("Host name undefined");
+		}		
+
+		
+		if (docStart != std::string::npos) {
+
+			auto urlDocPart = href.substr(docStart);
+
+			//	get document fragment aka hash
+			auto cursor = urlDocPart.find_first_of('#', docStart);
+			if (cursor != std::string::npos) {
+				this->hash = urlDocPart.substr(cursor);
+				urlDocPart = urlDocPart.substr(0, cursor);
+			}
+
+			//	now get search query
+			cursor = urlDocPart.find_first_of('?');
+			if (cursor != std::string::npos) {
+				this->searchParams = URLSearchParams(urlDocPart.substr(cursor));
+				urlDocPart = urlDocPart.substr(0, cursor);
+			}
+
+			this->pathname = urlDocPart;
 		}
 		else {
-			this->hostname = addrString;
+			this->pathname = '/';
 		}
-
-		if (!this->hostname.size()) throw std::runtime_error("Host name undefined");
 
 	} catch(const std::exception& e) {
 		throw std::runtime_error("Failed to parse URL: " + std::string(e.what()));
