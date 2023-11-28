@@ -185,7 +185,7 @@ void URL::parse(const std::string& href) {
 		auto urlDocPart = href.substr(docStart);
 
 		//	get document fragment aka hash
-		cursor = urlDocPart.find_first_of('#', docStart);
+		cursor = urlDocPart.find_first_of('#');
 		if (cursor != std::string::npos) {
 			this->hash = urlDocPart.substr(cursor);
 			urlDocPart = urlDocPart.substr(0, cursor);
