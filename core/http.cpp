@@ -124,7 +124,8 @@ void URL::parse(const std::string& href) {
 
 	try {
 
-		size_t docStart, cursor = 0;
+		size_t docStart = 0;
+		size_t cursor = 0;
 
 		//	parse server address and stuff
 		if (!href.starts_with('/')) {
