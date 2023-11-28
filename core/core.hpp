@@ -232,11 +232,11 @@
 
 	class Date {
 		private:
-			time_t internalTime;
+			time_t epoch;
 		
 		public:
-			Date() {}
-			Date(time_t epoch) : internalTime(epoch) {}
+			Date();
+			Date(time_t epoch);
 
 			std::string getDate();
 			uint32_t getDay();
@@ -245,9 +245,7 @@
 			uint32_t getMinutes();
 			uint32_t getMonth();
 			uint32_t getSeconds();
-			time_t getTime() {
-				return this->internalTime;
-			}
+			time_t getTime();
 			std::string toUTCString();
 			std::string toHRTString();
 	};
