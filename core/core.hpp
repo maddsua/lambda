@@ -185,18 +185,28 @@
 		};
 
 		class Request {
-			private:
-				std::vector <uint8_t> body;
-			
 			public:
-				Request(const std::string& url);
-				Request(const std::string& url, const Headers& headers);
-				Request(const std::string& url, const Body& body);
-				Request(const std::string& url, const Headers& headers, Body& body);
+				Request(const URL& url) {
+					this->url = url;
+				}
+				Request(const URL& url, const Headers& headers) {
+					this->url = url;
+					this->headers = headers;
+				}
+				Request(const URL& url, const Body& body) {
+					this->url = url;
+					this->body = body;
+				}
+				Request(const URL& url, const Headers& headers, Body& body) {
+					this->url = url;
+					this->headers = headers;
+					this->body = body;
+				}
 
 				Method method;
 				Headers headers;
 				URL url;
+				Body body;
 		};
 	}
 
