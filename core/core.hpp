@@ -186,27 +186,38 @@
 
 		class Request {
 			public:
-				Request(const URL& url) {
-					this->url = url;
-				}
-				Request(const URL& url, const Headers& headers) {
-					this->url = url;
-					this->headers = headers;
-				}
-				Request(const URL& url, const Body& body) {
-					this->url = url;
-					this->body = body;
-				}
-				Request(const URL& url, const Headers& headers, Body& body) {
-					this->url = url;
-					this->headers = headers;
-					this->body = body;
-				}
+				Request(const URL& url) : url(url) {}
+				Request(const URL& url, const Headers& headers) : url(url), headers(headers) {}
+				Request(const URL& url, const Body& body) : url(url), body(body) {}
+				Request(const URL& url, const Headers& headers, Body& body) : url(url), headers(headers), body(body) {}
 
 				URL url;
 				Method method;
 				Headers headers;
 				Body body;
+		};
+
+		class Status {
+			private:
+				std::string internalText;
+				int internalCode;
+
+				void match(int code);
+			
+			public:
+				Status() {
+					this->internalCode = 200;
+					this->internalText = "OK";
+				}
+				Status(int code) {}
+				Status(int code, const std::string& text) : internalCode(code), internalText(text) {}
+
+				int code() const {
+					return this->internalCode;
+				}
+				const std::string& text() const {
+					return this->internalText;
+				}
 		};
 	}
 
