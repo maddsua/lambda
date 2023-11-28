@@ -166,13 +166,17 @@
 		class Method {
 			private:
 				std::string value;
+				void apply(const std::string& method);
 			
 			public:
+				Method() {
+					this->value = "GET";
+				};
 				Method(const std::string& method) {
-					this->value = method;
+					this->apply(method);
 				}
 				Method(const char* method) {
-					this->value = method;
+					this->apply(method);
 				}
 
 				operator std::string () const {
