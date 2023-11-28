@@ -171,10 +171,8 @@
 				Method(const std::string& method) {
 					this->value = method;
 				}
-
-				Method& operator = (const std::string& right) {
-					this->value = right;
-					return *this;
+				Method(const char* method) {
+					this->value = method;
 				}
 
 				operator std::string () const {
