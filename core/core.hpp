@@ -233,6 +233,7 @@
 	class Date {
 		private:
 			time_t epoch;
+			tm timestruct;
 		
 		public:
 			Date();
