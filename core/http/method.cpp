@@ -1,5 +1,5 @@
 #include "../http.hpp"
-#include "../strings.hpp"
+#include "../polyfill.hpp"
 
 #include <stdexcept>
 #include <set>
