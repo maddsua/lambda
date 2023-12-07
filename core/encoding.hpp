@@ -6,8 +6,8 @@
 
 namespace Encoding {
 
-	std::string decodeBase64(const std::string& data);
-	std::string encodeBase64(const std::string& data);
+	std::string toBase64(const std::string& data);
+	std::string fromBase64(const std::string& data);
 
 };
 

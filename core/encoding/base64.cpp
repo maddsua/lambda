@@ -40,7 +40,7 @@ const uint8_t base64DecodeTable[] = {
 #define decB3(buffOut, posOut, byteIn1, byteIn2) \
 	((buffOut[((posOut) + 2)]) = (base64DecodeTable[((uint8_t)(byteIn1))] << 4) ^ (base64DecodeTable[((uint8_t)(byteIn2))] >> 2))
 
-std::string Encoding::decodeBase64(const std::string& data) {
+std::string Encoding::fromBase64(const std::string& data) {
 
 	//	check base64 string validity real quick
 	for (size_t i = 0; i < data.size(); i++) {
@@ -108,7 +108,7 @@ const char base64EncodeTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrst
 #define encB4(buffOut, posOut, byteIn2) \
 	((buffOut[((posOut) + 3)]) = (base64EncodeTable[(((uint8_t)(byteIn2)) & 0x3F)]))
 
-std::string Encoding::encodeBase64(const std::string& data) {
+std::string Encoding::toBase64(const std::string& data) {
 
 	size_t dataCompleteBlocks = (data.size() / 3) * 3;
 	size_t outputCompleteBlocks = ((dataCompleteBlocks * 4) / 3);
