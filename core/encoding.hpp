@@ -23,8 +23,8 @@ namespace Encoding {
 	char decodeHexByte(HexByte hexbyte);
 	std::string fromHex(const std::string& input);
 
-	std::string encodeURIComponent(const std::string input);
-	std::string decodeURIComponent(const std::string input);
+	std::string encodeURIComponent(const std::string& input);
+	std::string decodeURIComponent(const std::string& input);
 };
 
 #endif
