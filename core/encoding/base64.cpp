@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 //	full decode table does brrrrrr. high-speed tricks here
-const uint8_t base64DecodeTable[] = {
+static const uint8_t base64DecodeTable[] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,
@@ -94,7 +94,7 @@ std::string Encoding::fromBase64(const std::string& data) {
 
 
 //	short encode table
-const char base64EncodeTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64EncodeTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 #define encB1(buffOut, posOut, byteIn1) \
 	((buffOut[(posOut)]) = (base64EncodeTable[((((uint8_t)(byteIn1)) >> 2) & 0x3F)]));
