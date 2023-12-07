@@ -1,6 +1,6 @@
-#include "./core.hpp"
-#include <string.h>
+#include "../strings.hpp"
 
+#include <string.h>
 
 void Strings::toLowerCase(std::string& str) {
 	for (auto& c : str) {

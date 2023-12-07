@@ -1,0 +1,46 @@
+#ifndef _OCTOPUSS_CORE_STRINGS_
+#define _OCTOPUSS_CORE_STRINGS_
+
+#include <vector>
+#include <string>
+#include <cstring>
+
+	/**
+	 * Extends standard std::string methods
+	*/
+	namespace Strings {
+
+		//	Set all string characters to lower case
+		//	AaA -> aaa
+		void toLowerCase(std::string& str);
+		std::string toLowerCase(const std::string& str);
+
+		//	Set all string characters to upper case
+		//	aAa -> AAA
+		void toUpperCase(std::string& str);
+		std::string toUpperCase(const std::string& str);
+
+		//	Capitalize first character in each word and leave others in lower case
+		//	aa-bB -> Aa-Bb
+		void toTittleCase(std::string& str);
+		std::string toTittleCase(const std::string& str);
+
+		//	Checks whether string includes substring
+		bool includes(const std::string& str, const std::string& substr);
+		bool includes(const std::string& str, const std::vector <std::string>& substrs);
+
+		//	Checks whether string ends with substring
+		bool endsWith(const std::string& str, const std::string& substr);
+
+		//	Checks whether string starts with substring
+		bool startsWith(const std::string& str, const std::string& substr);
+
+		//	Remove trailing and preceiding whitespace characters (\\r\\n\\t\\s)
+		void trim(std::string& str);
+		std::string trim(const std::string& str);
+
+		//	Split string into array of substrings separated by token
+		std::vector<std::string> split(const std::string& str, const std::string& token);
+	};
+
+#endif

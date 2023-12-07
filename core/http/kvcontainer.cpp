@@ -1,4 +1,5 @@
-#include "../core.hpp"
+#include "../http.hpp"
+#include "../strings.hpp"
 
 using namespace HTTP;
 using namespace Strings;

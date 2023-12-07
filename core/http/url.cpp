@@ -1,4 +1,6 @@
-#include "../core.hpp"
+#include "../http.hpp"
+#include "../strings.hpp"
+
 #include <stdexcept>
 
 using namespace HTTP;
