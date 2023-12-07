@@ -60,7 +60,7 @@ std::string Encoding::fromHex(const std::string& input) {
 	for (size_t i = 0; i < input.size(); i+= 2) {
 		HexByte temp;
 		strncpy(temp.string, input.substr(i, 2).c_str(), sizeof(temp.string));
-		result += decodeHexByte(temp);
+		result.push_back(decodeHexByte(temp));
 	}
 
 	return result;
