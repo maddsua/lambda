@@ -7,6 +7,14 @@ const uint8_t hex_table[16] = {
 	'8','9','a','b','c','d','e','f'
 };
 
+union HexByte {
+	char string[2];
+	struct data {
+		char first;
+		char second;
+	} data;
+};
+
 std::string binToHex(const uint8_t* data, const size_t length) {
 	std::string result;
 		result.resize(length * 2);
