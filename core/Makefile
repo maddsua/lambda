@@ -1,6 +1,6 @@
 CFLAGS			=	-std=c++20
 TARGETOBJ		=	core.o
-OBJ_POLYFILL	=	polyfill/strings.o polyfill/date.o
+OBJ_POLYFILL	=	polyfill/strings.o polyfill/date.o polyfill/mimetype.o
 OBJ_HTTP		=	http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o http/status.o
 COREOBJS		=	$(OBJ_POLYFILL) $(OBJ_HTTP)
 
@@ -18,9 +18,11 @@ $(TARGETOBJ): $(COREOBJS)
 polyfill/strings.o: polyfill/strings.cpp
 	g++ -c polyfill/strings.cpp -o polyfill/strings.o $(CFLAGS)
 
-# polyfill stuff
 polyfill/date.o: polyfill/date.cpp
 	g++ -c polyfill/date.cpp -o polyfill/date.o $(CFLAGS)
+
+polyfill/mimetype.o: polyfill/mimetype.cpp
+	g++ -c polyfill/mimetype.cpp -o polyfill/mimetype.o $(CFLAGS)
 
 # http stuff
 http/cookie.o: http/cookie.cpp
