@@ -64,4 +64,12 @@
 			std::string toHRTString();
 	};
 
+	namespace Content {
+		//	Get mimetype for file extension
+		std::string getExtMimetype(const std::string& mimetype);
+
+		//	Get file extension for mimetype
+		std::string getMimetypeExt(const std::string& mimetype);
+	};
+
 #endif
