@@ -27,7 +27,7 @@ std::string Encoding::toHex(const std::string& input) {
 		result.append(encodeHexByte(symbol).string);
 	}
 
-	return result;
+	return std::move(result);
 }
 
 const uint8_t hex_decode_table[] = {
@@ -63,5 +63,5 @@ std::string Encoding::fromHex(const std::string& input) {
 		result.push_back(decodeHexByte(temp));
 	}
 
-	return result;
+	return std::move(result);
 }
