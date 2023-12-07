@@ -2,7 +2,8 @@ CFLAGS			=	-std=c++20
 TARGETOBJ		=	core.o
 OBJ_POLYFILL	=	polyfill/strings.o polyfill/date.o polyfill/mimetype.o
 OBJ_HTTP		=	http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o http/status.o
-COREOBJS		=	$(OBJ_POLYFILL) $(OBJ_HTTP)
+OBJ_ENCODING	=	encoding/base64.o encoding/hex.o
+COREOBJS		=	$(OBJ_POLYFILL) $(OBJ_HTTP) $(OBJ_ENCODING)
 
 .PHONY: all all-before all-after action-custom
 all: all-before $(TARGETOBJ) all-after
@@ -45,3 +46,10 @@ http/method.o: http/method.cpp
 
 http/status.o: http/status.cpp
 	g++ -c http/status.cpp -o http/status.o $(CFLAGS)
+
+# encoding stuff
+encoding/base64.o: encoding/base64.cpp
+	g++ -c encoding/base64.cpp -o encoding/base64.o $(CFLAGS)
+
+encoding/hex.o: encoding/hex.cpp
+	g++ -c encoding/hex.cpp -o encoding/hex.o $(CFLAGS)
