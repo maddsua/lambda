@@ -46,7 +46,7 @@ std::string Encoding::decodeBase64(const std::string& data) {
 	for (size_t i = 0; i < data.size(); i++) {
 		auto symbol = data[i];
 		if (!isalnum(symbol) && symbol != '+' && symbol != '/' && symbol != '=')
-			throw std::runtime_error("Invalid symbol in base 64 sequence at position " + std::to_string(i));
+			throw std::runtime_error("Invalid symbol in base64 sequence at position " + std::to_string(i));
 	}
 
 	size_t encodedCompleteBlocks = ((data.size() / 4) * 4);
