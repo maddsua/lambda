@@ -1,6 +1,8 @@
-CFLAGS		=	-std=c++20
-TARGETOBJ	=	core.o
-COREOBJS	=	strings/strings.o http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o http/status.o
+CFLAGS			=	-std=c++20
+TARGETOBJ		=	core.o
+OBJ_POLYFILL	=	polyfill/strings.o polyfill/date.o
+OBJ_HTTP		=	http/cookie.o http/headers.o http/kvcontainer.o http/url.o http/urlsearchparams.o http/method.o http/status.o
+COREOBJS		=	$(OBJ_POLYFILL) $(OBJ_HTTP)
 
 .PHONY: all all-before all-after action-custom
 all: all-before $(TARGETOBJ) all-after
@@ -12,9 +14,13 @@ clean: action-custom
 $(TARGETOBJ): $(COREOBJS)
 	ld -relocatable $(COREOBJS) -o $(TARGETOBJ)
 
-# strings stuff
-strings/strings.o: strings/strings.cpp
-	g++ -c strings/strings.cpp -o strings/strings.o $(CFLAGS)
+# polyfill stuff
+polyfill/strings.o: polyfill/strings.cpp
+	g++ -c polyfill/strings.cpp -o polyfill/strings.o $(CFLAGS)
+
+# polyfill stuff
+polyfill/date.o: polyfill/date.cpp
+	g++ -c polyfill/date.cpp -o polyfill/date.o $(CFLAGS)
 
 # http stuff
 http/cookie.o: http/cookie.cpp

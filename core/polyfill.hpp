@@ -43,4 +43,25 @@
 		std::vector<std::string> split(const std::string& str, const std::string& token);
 	};
 
+	class Date {
+		private:
+			time_t epoch;
+			tm timestruct;
+		
+		public:
+			Date();
+			Date(time_t epoch);
+
+			std::string getDate();
+			int getDay();
+			int getYear();
+			int getHours();
+			int getMinutes();
+			int getMonth();
+			int getSeconds();
+			time_t getTime();
+			std::string toUTCString();
+			std::string toHRTString();
+	};
+
 #endif
