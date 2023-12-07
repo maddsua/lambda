@@ -115,3 +115,15 @@ std::vector<std::string> Strings::split(const std::string& str, const std::strin
 
 	return std::move(result);
 }
+
+std::string Strings::join(const std::vector<std::string>& strs, const char* token) {
+
+	std::string result;
+
+	for(auto& str : strs) {
+		if (result.size() > 0) result += token;
+		result += str;
+	}
+
+	return std::move(result);
+}
