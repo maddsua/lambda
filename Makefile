@@ -2,12 +2,12 @@ CFLAGS			=	-std=c++20 -g
 LIB_TARGET		=	octo.a
 LIB_OBJECTS		=	core/core.o extra/extra.o
 
+.PHONY: all all-before all-after action-custom
+all: all-before $(LIB_TARGET) all-after
+
 include Makefile.core.mk
 include Makefile.extra.mk
 include Makefile.test.mk
-
-.PHONY: all all-before all-after action-custom
-all: all-before $(LIB_TARGET) all-after
 
 clean: action-custom
 	rm -rf *.o *.exe *.a *.dll *.res
