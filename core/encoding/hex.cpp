@@ -7,7 +7,7 @@ using namespace Encoding;
 
 const uint8_t hex_encode_table[] = {
 	'0','1','2','3','4','5','6','7',
-	'8','9','a','b','c','d','e','f'
+	'8','9','A','B','C','D','E','F'
 };
 
 HexByte Encoding::encodeHexByte(char databyte) {
@@ -41,12 +41,12 @@ char Encoding::decodeHexByte(HexByte hexbyte) {
 	HexByte temp;
 
 	for (size_t i = 0; i < 2; i++) {
-		int charcode = hexbyte.string[i] - 48;
+		int charcode = hexbyte.string[i] - (hexbyte.string[i] > 'Z' ? 'a' : '0');
 		if (charcode >= (int)sizeof(hex_decode_table) || charcode < 0)
 			throw std::runtime_error("Invalid character in hex strng");
 		temp.string[i] = hex_decode_table[charcode];
 	}
-	
+
 	return (temp.data.first << 4) | temp.data.second;
 }
 
