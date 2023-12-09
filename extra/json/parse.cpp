@@ -23,10 +23,19 @@ Property JSON::parse(const std::string& text) {
 	if (!isArray && !objectText.starts_with('{')) {
 		
 		if (objectText.starts_with('\"')) {
+
 			auto textcontent = objectText.substr(1, objectText.size() - 2);
+
+			auto illegalQuotePosition = textcontent.find('\"');
+
+			if (illegalQuotePosition != std::string::npos && (illegalQuotePosition == 0 || textcontent.at(illegalQuotePosition - 1) != '\\'))
+				throw std::runtime_error("Invalid JSON: unescaped double quote");
+
 			for (const auto& symbol : stringUnescapeTable)
 				Strings::replaceAll(textcontent, symbol.first, symbol.second);
+
 			return Property(textcontent);
+
 		} else if (isdigit(objectText.at(0))) {
 			return objectText.find('.') == std::string::npos ? Property(std::stoi(objectText)) : Property(std::stold(objectText));
 		} else if ((objectText.starts_with('t') || objectText.starts_with('f')) && objectText.ends_with('e')) {
