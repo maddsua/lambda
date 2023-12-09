@@ -1,9 +1,13 @@
 #include <iostream>
-#include "./core/core.hpp"
+#include "../core/core.hpp"
 
 int main(int argc, char const *argv[]) {
 
-	HTTP::URL url = "https://user:password@example.com:443/document?search=query#fragment";
+	auto source = "https://user:password@example.com:443/document?search=query#fragment";
+
+	auto url = HTTP::URL(source);
+
+	std::cout << "original url: " << source << std::endl;
 
 	std::cout << "hash: " << url.hash << std::endl;
 	std::cout << "search: " << url.searchParams.stringify() << std::endl;
@@ -15,12 +19,7 @@ int main(int argc, char const *argv[]) {
 	std::cout << "username: " << url.username << std::endl;
 	std::cout << "password: " << url.password << std::endl;
 
-	std::cout << "full: " << url.href() << std::endl;
+	std::cout << "reassembled url: " << url.href() << std::endl;
 
-	HTTP::Body test("test text");
-
-	std::cout << "body: " << test.text() << std::endl;
-
-	/* code */
 	return 0;
 }
