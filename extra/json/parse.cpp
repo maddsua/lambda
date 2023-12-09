@@ -104,7 +104,7 @@ Property JSON::parse(const std::string& text) {
 			auto entryTrimmed = Strings::trim(entry);
 			if (!entryTrimmed.size()) throw std::runtime_error("Invalid JSON: trailing comma has been found");
 
-			size_t keyEnded = std::string::npos;
+			auto keyEnded = std::string::npos;
 			bool insideString = false;
 
 			for (size_t i = 0; i < entryTrimmed.size(); i++) {
@@ -115,6 +115,8 @@ Property JSON::parse(const std::string& text) {
 					break;
 				}
 			}
+
+			if (keyEnded == std::string::npos) throw std::runtime_error("Invalid JSON: no separator after property name");
 
 			auto key = Strings::trim(entryTrimmed.substr(0, keyEnded));
 			auto value = Strings::trim(entryTrimmed.substr(keyEnded + 1));
