@@ -41,7 +41,7 @@ char Encoding::decodeHexByte(HexByte hexbyte) {
 	HexByte temp;
 
 	for (size_t i = 0; i < 2; i++) {
-		int charcode = hexbyte.string[i] - (hexbyte.string[i] > 'Z' ? 'a' : '0');
+		int charcode = hexbyte.string[i] - (hexbyte.string[i] > 0x5a ? 0x50 : 0x30);
 		if (charcode >= (int)sizeof(hex_decode_table) || charcode < 0)
 			throw std::runtime_error("Invalid character in hex strng");
 		temp.string[i] = hex_decode_table[charcode];
