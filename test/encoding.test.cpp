@@ -69,5 +69,13 @@ int main() {
 	}
 	puts("Ok\n");
 
+	puts("URL decoding test...");
+	for (auto& item : test_data_url) {
+		auto temp = Encoding::decodeURIComponent(item.second);
+		if (temp == item.first) continue;
+		throw std::runtime_error("Unexpected decoding output: \'" + item.second + "\' is expected, but got \'" + temp + "\'");
+	}
+	puts("Ok\n");
+
 	return 0;
 }
