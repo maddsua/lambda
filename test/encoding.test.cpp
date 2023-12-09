@@ -1,16 +1,10 @@
-#include "../encoding/encoding.hpp"
+
 #include <cstdio>
 #include <vector>
 #include <exception>
 #include <stdexcept>
 
-using namespace Lambda::Encoding;
-
-/*
-	for (auto& c : decoded) {
-		printf("%02X ", (uint8_t)c);
-	}
-*/
+#include "../core/encoding.hpp"
 
 std::vector<std::pair<std::string, std::string>> test_data_base64_encode = {
 	{
@@ -52,7 +46,7 @@ int main() {
 
 	puts("Base64 encoding test...");
 	for (auto& item : test_data_base64_encode) {
-		auto temp = b64Encode(item.first);
+		auto temp = Encoding::toBase64(item.first);
 		if (temp == item.second) continue;
 		throw std::runtime_error("Unexpected encoding output: \'" + item.second + "\' is expected, but got \'" + temp + "\'");
 	}
@@ -60,7 +54,7 @@ int main() {
 
 	puts("Base64 decode test...");
 	for (auto& item : test_data_base64_encode) {
-		auto temp = b64Decode(item.second);
+		auto temp = Encoding::fromBase64(item.second);
 		if (temp == item.first) continue;
 		throw std::runtime_error("Unexpected decoding output: \'" + item.second + "\' is expected, but got \'" + temp + "\'");
 	}
@@ -69,24 +63,9 @@ int main() {
 
 	puts("URL encoding test...");
 	for (auto& item : test_data_url) {
-		auto temp = encodeURIComponent(item.first);
+		auto temp = Encoding::encodeURIComponent(item.first);
 		if (temp == item.second) continue;
 		throw std::runtime_error("Unexpected encoding output: \'" + item.second + "\' is expected, but got \'" + temp + "\'");
-	}
-	puts("Ok\n");
-
-	puts("JSON test...");
-	{
-		JSON_Object jsonObject;
-		jsonObject.addInt("number", 44);
-		jsonObject.addBool("bool", false);
-		jsonObject.addString("string", "test\"more\ntests");
-		auto stringified = jsonObject.stringify();
-
-		auto parsed = JSONParser(stringified);
-		if (parsed.getIntProp("number") != 44) throw std::runtime_error("JSON extracted invalid property 'number'");
-		if (parsed.getBoolProp("bool") != false) throw std::runtime_error("JSON extracted invalid property 'bool'");
-		if (parsed.getStringProp("string") != "test\"more\ntests") throw std::runtime_error("JSON extracted invalid property 'string'");
 	}
 	puts("Ok\n");
 

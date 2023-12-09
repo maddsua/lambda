@@ -1,4 +1,24 @@
 
+# Test URL core module
+test.url: url.test.exe
+
+url.test.exe: test/url.test.o $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ)
+	g++ $(CFLAGS) test/url.test.cpp $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ) -o url.test.exe
+
+test/url.test.o: test/url.test.cpp
+	g++ -c $(CFLAGS) test/url.test.cpp -o test/url.test.o
+
+
+# Test encoding core module
+test.encoding: encoding.test.exe
+
+encoding.test.exe: test/encoding.test.o $(CORE_ENCODING_OBJ) $(CORE_POLYFILL_OBJ)
+	g++ $(CFLAGS) test/encoding.test.cpp $(CORE_ENCODING_OBJ) $(CORE_POLYFILL_OBJ) -o encoding.test.exe
+
+test/encoding.test.o: test/encoding.test.cpp
+	g++ -c $(CFLAGS) test/encoding.test.cpp -o test/encoding.test.o
+
+
 # Test JSON extra module
 test.json: json.test.exe
 
@@ -17,16 +37,6 @@ storage.test.exe: test/storage.test.o $(CORE_COMPRESS_OBJ) $(CORE_ENCODING_OBJ)
 
 test/storage.test.o: test/storage.test.cpp
 	g++ -c $(CFLAGS) test/storage.test.cpp -o test/storage.test.o
-
-
-# Test URL core module
-test.url: url.test.exe
-
-url.test.exe: test/url.test.o $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ)
-	g++ $(CFLAGS) test/url.test.cpp $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ) -o url.test.exe
-
-test/url.test.o: test/url.test.cpp
-	g++ -c $(CFLAGS) test/url.test.cpp -o test/url.test.o
 
 
 # Test zlib compression module
