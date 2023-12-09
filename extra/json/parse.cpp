@@ -26,9 +26,9 @@ Property JSON::parse(const std::string& text) {
 
 			auto textcontent = objectText.substr(1, objectText.size() - 2);
 
-			auto illegalQuotePosition = textcontent.find('\"');
+			auto illegalQuotePos = textcontent.find('\"');
 
-			if (illegalQuotePosition != std::string::npos && (illegalQuotePosition == 0 || textcontent.at(illegalQuotePosition - 1) != '\\'))
+			if (illegalQuotePos != std::string::npos && (illegalQuotePos == 0 || textcontent.at(illegalQuotePos - 1) != '\\'))
 				throw std::runtime_error("Invalid JSON: unescaped double quote");
 
 			for (const auto& symbol : stringUnescapeTable)
