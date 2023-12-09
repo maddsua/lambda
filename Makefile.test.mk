@@ -22,8 +22,8 @@ test/encoding.test.o: test/encoding.test.cpp
 # Test JSON extra module
 test.json: json.test.exe
 
-json.test.exe: test/json.test.o $(CORE_POLYFILL_OBJ) $(CORE_JSON_OBJ)
-	g++ $(CFLAGS) test/json.test.cpp $(CORE_POLYFILL_OBJ) $(CORE_JSON_OBJ) -o json.test.exe
+json.test.exe: test/json.test.o $(CORE_JSON_OBJ) $(CORE_POLYFILL_OBJ)
+	g++ $(CFLAGS) test/json.test.cpp $(CORE_JSON_OBJ) $(CORE_POLYFILL_OBJ) -o json.test.exe
 
 test/json.test.o: test/json.test.cpp
 	g++ -c $(CFLAGS) test/json.test.cpp -o test/json.test.o

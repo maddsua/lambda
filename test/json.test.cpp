@@ -58,5 +58,32 @@ int main(int argc, char const *argv[]) {
 	std::cout << "Restringify 6: " << stringify(Property(parse("[8,3,150,9]"))) << "\n";
 	std::cout << "Restringify 6: " << stringify(Property(parse("{\"record_5\":[8,3,150,9],\"record_4\":true,\"record_3\":\"Look here\n\tboo!\",\"record_2\":150,\"record\":8}"))) << "\n";
 
+	std::string datajson = R"(
+		{
+			"value": "test\\ttext here"
+			"number": 4575889,
+			"float": 16.4,
+			"booolean": true,
+			"object": {
+				"key":"value",
+				"flag": true
+			},
+			"array": [8,9,10],
+			"strings": ["one","two","sever"],
+			"objarray": [
+				{
+					"value": "success"
+				},
+				{
+					"value": 14
+				},
+			]
+		}
+	)";
+
+	auto comprexObject = JSON::parse(datajson);
+
+	std::cout << "Read 1: " << comprexObject.asMap().find("value")->second.asString() << "\n";
+
 	return 0;
 }
