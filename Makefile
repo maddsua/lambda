@@ -1,6 +1,10 @@
-CFLAGS			=	-std=c++20
+CFLAGS			=	-std=c++20 -g
 LIB_TARGET		=	octo.a
-LIB_OBJECTS		=	core.o
+LIB_OBJECTS		=	core/core.o extra/extra.o
+
+include Makefile.core.mk
+include Makefile.extra.mk
+include Makefile.test.mk
 
 .PHONY: all all-before all-after action-custom
 all: all-before $(LIB_TARGET) all-after
@@ -13,5 +17,3 @@ cleanw: action-custom
 
 $(LIB_TARGET): $(LIB_OBJECTS)
 	ar rvs $(LIB_TARGET) $(LIB_OBJECTS)
-
-include Makefile.core.mk

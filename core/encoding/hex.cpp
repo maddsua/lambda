@@ -27,7 +27,7 @@ std::string Encoding::toHex(const std::string& input) {
 		result.append(encodeHexByte(symbol).string);
 	}
 
-	return std::move(result);
+	return result;
 }
 
 const uint8_t hex_decode_table[] = {
@@ -42,7 +42,7 @@ char Encoding::decodeHexByte(HexByte hexbyte) {
 
 	for (size_t i = 0; i < 2; i++) {
 		int charcode = hexbyte.string[i] - 48;
-		if (charcode >= sizeof(hex_decode_table) || charcode < 0)
+		if (charcode >= (int)sizeof(hex_decode_table) || charcode < 0)
 			throw std::runtime_error("Invalid character in hex strng");
 		temp.string[i] = hex_decode_table[charcode];
 	}
@@ -63,5 +63,5 @@ std::string Encoding::fromHex(const std::string& input) {
 		result.push_back(decodeHexByte(temp));
 	}
 
-	return std::move(result);
+	return result;
 }

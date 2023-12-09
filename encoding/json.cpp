@@ -4,7 +4,7 @@
 using namespace Lambda;
 using namespace Lambda::Encoding;
 
-static const std::vector<std::pair<std::string, std::string>> encodeTable = {
+static const std::vector<std::pair<std::string, std::string>> stringEncodeTable = {
 	{ "\n", "\\\\n" },
 	{ "\r", "\\\\r" },
 	{ "\t", "\\\\t" },
@@ -43,7 +43,7 @@ void stringEncode(std::string& content) {
 
 	for (size_t i = 0; i < content.size(); i++) {
 
-		for (const auto& ec : encodeTable) {
+		for (const auto& ec : stringEncodeTable) {
 
 			if (ec.first[0] != content.at(i)) continue;
 			else if (i > 0 && content.at(i - 1) == '\\') continue;
@@ -63,7 +63,7 @@ std::string stringEncode(const std::string& content) {
 
 void stringDecode(std::string& content) {
 
-	for (const auto& ec : encodeTable) {
+	for (const auto& ec : stringEncodeTable) {
 
 		auto found = std::string::npos;
 

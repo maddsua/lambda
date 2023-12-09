@@ -11,7 +11,7 @@ void Strings::toLowerCase(std::string& str) {
 std::string Strings::toLowerCase(const std::string& str) {
 	auto temp = str;
 	toLowerCase(temp);
-	return std::move(temp);
+	return temp;
 }
 
 void Strings::toUpperCase(std::string& str) {
@@ -23,7 +23,7 @@ void Strings::toUpperCase(std::string& str) {
 std::string Strings::toUpperCase(const std::string& str) {
 	auto temp = str;
 	toUpperCase(temp);
-	return std::move(temp);
+	return temp;
 }
 
 void Strings::toTittleCase(std::string& str) {
@@ -37,7 +37,7 @@ void Strings::toTittleCase(std::string& str) {
 std::string Strings::toTittleCase(const std::string& str) {
 	auto temp = str;
 	toTittleCase(temp);
-	return std::move(temp);
+	return temp;
 }
 
 bool Strings::includes(const std::string& str, const std::string& substr) {
@@ -65,7 +65,6 @@ void Strings::trim(std::string& str) {
 
 	//	forward pass
 	size_t pos_from = 0;
-	bool spaceCharMatched = false;
 	while (pos_from < str.size()) {
 		if (whitespaceChars.find(str[pos_from]) == std::string::npos) break;
 		pos_from++;
@@ -87,7 +86,7 @@ void Strings::trim(std::string& str) {
 std::string Strings::trim(const std::string& str) {
 	auto temp = str;
 	trim(temp);
-	return std::move(temp);
+	return temp;
 }
 
 std::vector<std::string> Strings::split(const std::string& str, const std::string& token) {
@@ -113,7 +112,7 @@ std::vector<std::string> Strings::split(const std::string& str, const std::strin
 	//	push the remaining part
 	if (str.size() - startpos) result.push_back(str.substr(startpos));
 
-	return std::move(result);
+	return result;
 }
 
 std::string Strings::join(const std::vector<std::string>& strs, const char* token) {
@@ -125,5 +124,26 @@ std::string Strings::join(const std::vector<std::string>& strs, const char* toke
 		result += str;
 	}
 
-	return std::move(result);
+	return result;
+}
+
+void Strings::replace(std::string& base, const std::string& sub, const std::string& replacement) {
+	auto index = base.find(sub);
+	if (index == std::string::npos) return;
+	base.replace(index, sub.size(), replacement);
+}
+
+void Strings::replaceAll(std::string& base, const std::string& sub, const std::string& replacement) {
+	size_t index = base.find(sub);
+	while (index != std::string::npos) {
+		base.replace(index, sub.size(), replacement);
+		index += replacement.size();
+		index = base.find(sub, index);
+	}
+}
+
+std::string Strings::replaceAll(const std::string& base, const std::string& sub, const std::string& replacement) {
+	auto temp = base;
+	replaceAll(temp, sub, replacement);
+	return temp;
 }

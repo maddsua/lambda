@@ -1,12 +1,13 @@
-CORE_OBJ_TARGET	=	core.o
+CORE_OBJ_TARGET	=	core/core.o
+CORE_OBJ_DEPS	=	$(OBJ_POLYFILL) $(OBJ_HTTP) $(OBJ_ENCODING)
 
 OBJ_POLYFILL	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
 OBJ_HTTP		=	core/http/cookie.o core/http/headers.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
 OBJ_ENCODING	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
 
-CORE_OBJ_DEPS	=	$(OBJ_POLYFILL) $(OBJ_HTTP) $(OBJ_ENCODING)
-
 # target object
+octo.core: $(CORE_OBJ_TARGET)
+
 $(CORE_OBJ_TARGET): $(CORE_OBJ_DEPS)
 	ld -relocatable $(CORE_OBJ_DEPS) -o $(CORE_OBJ_TARGET)
 

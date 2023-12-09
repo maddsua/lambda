@@ -26,7 +26,7 @@ std::string Encoding::encodeURIComponent(const std::string& input) {
 		result.push_back(symbol);
 	}
 
-	return std::move(result);
+	return result;
 }
 
 std::string Encoding::decodeURIComponent(const std::string& input) {
@@ -49,5 +49,5 @@ std::string Encoding::decodeURIComponent(const std::string& input) {
 		result.push_back(input[i]);
 	}
 
-	return std::move(result);
+	return result;
 }

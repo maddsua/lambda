@@ -77,7 +77,7 @@ std::string Encoding::fromBase64(const std::string& data) {
 			decB1(result, outputCompleteBlocks, data[encodedCompleteBlocks], 0);
 		}
 
-		return std::move(result);
+		return result;
 	}
 
 	uint8_t paddLength = 0;
@@ -89,7 +89,7 @@ std::string Encoding::fromBase64(const std::string& data) {
 	if (paddLength > 0) 
 		result.resize(result.size() - paddLength);
 
-	return std::move(result);
+	return result;
 }
 
 
@@ -124,7 +124,7 @@ std::string Encoding::toBase64(const std::string& data) {
 	}
 		
 	size_t incompleteBlockSize = (data.size() - dataCompleteBlocks);
-	if (incompleteBlockSize == 0) return std::move(result);
+	if (incompleteBlockSize == 0) return result;
 	
 	result.resize(result.size() + 4, '=');
 
@@ -139,5 +139,5 @@ std::string Encoding::toBase64(const std::string& data) {
 		}
 	}
 
-	return std::move(result);
+	return result;
 }

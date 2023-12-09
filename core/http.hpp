@@ -161,8 +161,8 @@
 
 		class Status {
 			private:
-				std::string internalText;
 				int internalCode;
+				std::string internalText;
 			
 			public:
 				Status() {
