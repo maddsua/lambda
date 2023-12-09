@@ -1,6 +1,6 @@
-CFLAGS			=	-std=c++20 -g
+CFLAGS			=	-Wall -std=c++20 -g
 LIB_TARGET		=	octo.a
-LIB_OBJECTS		=	core/core.o extra/extra.o
+LIB_OBJECTS		=	core/core.a extra/extra.a
 
 .PHONY: all all-before all-after action-custom
 all: all-before $(LIB_TARGET) all-after

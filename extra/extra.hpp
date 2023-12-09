@@ -2,5 +2,6 @@
 #define _OCTOPUSS_EXTRA_
 
 #include "./json.hpp"
+#include "./storage.hpp"
 
 #endif

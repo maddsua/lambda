@@ -1,17 +1,25 @@
-CORE_OBJ_TARGET	=	core/core.o
-CORE_OBJ_DEPS	=	$(OBJ_POLYFILL) $(OBJ_HTTP) $(OBJ_ENCODING)
+CORE_OBJ_MAIN		=	core/core.a
+CORE_OBJ_DEPS		=	$(CORE_POLYFILL_OBJ) $(CORE_HTTP_OBJ) $(CORE_ENCODING_OBJ)
 
-OBJ_POLYFILL	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
-OBJ_HTTP		=	core/http/cookie.o core/http/headers.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
-OBJ_ENCODING	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
+CORE_POLYFILL_OBJ	=	core/polyfill.a
+CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
+
+CORE_HTTP_OBJ		=	core/http.a
+CORE_HTTP_DEPS		=	core/http/cookie.o core/http/headers.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
+
+CORE_ENCODING_OBJ	=	core/encoding.a
+CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
 
 # target object
-octo.core: $(CORE_OBJ_TARGET)
+octo.core: $(CORE_OBJ_MAIN)
 
-$(CORE_OBJ_TARGET): $(CORE_OBJ_DEPS)
-	ld -relocatable $(CORE_OBJ_DEPS) -o $(CORE_OBJ_TARGET)
+$(CORE_OBJ_MAIN): $(CORE_OBJ_DEPS)
+	ar rvs $(CORE_OBJ_MAIN) $(CORE_OBJ_DEPS)
 
 # polyfill stuff
+$(CORE_POLYFILL_OBJ): $(CORE_POLYFILL_DEPS)
+	ar rvs $(CORE_POLYFILL_OBJ) $(CORE_POLYFILL_DEPS)
+
 core/polyfill/strings.o: core/polyfill/strings.cpp
 	g++ -c core/polyfill/strings.cpp -o core/polyfill/strings.o $(CFLAGS)
 
@@ -22,6 +30,9 @@ core/polyfill/mimetype.o: core/polyfill/mimetype.cpp
 	g++ -c core/polyfill/mimetype.cpp -o core/polyfill/mimetype.o $(CFLAGS)
 
 # http stuff
+$(CORE_HTTP_OBJ): $(CORE_HTTP_DEPS)
+	ar rvs $(CORE_HTTP_OBJ) $(CORE_HTTP_DEPS)
+
 core/http/cookie.o: core/http/cookie.cpp
 	g++ -c core/http/cookie.cpp -o core/http/cookie.o $(CFLAGS)
 
@@ -44,6 +55,9 @@ core/http/status.o: core/http/status.cpp
 	g++ -c core/http/status.cpp -o core/http/status.o $(CFLAGS)
 
 # encoding stuff
+$(CORE_ENCODING_OBJ): $(CORE_ENCODING_DEPS)
+	ar rvs $(CORE_ENCODING_OBJ) $(CORE_ENCODING_DEPS)
+
 core/encoding/base64.o: core/encoding/base64.cpp
 	g++ -c core/encoding/base64.cpp -o core/encoding/base64.o $(CFLAGS)
 
