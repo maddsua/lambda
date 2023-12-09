@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
 			"strings": ["one","two","sever"],
 			"objarray": [
 				{
-					"value": "success"
+					"value": "succ\\"ess"
 				},
 				{
 					"value": 14
