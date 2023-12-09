@@ -60,7 +60,7 @@ int main(int argc, char const *argv[]) {
 
 	std::string datajson = R"(
 		{
-			"value": "test\\ttext here"
+			"value": "test\\ttext here",
 			"number": 4575889,
 			"float": 16.4,
 			"booolean": true,
@@ -76,7 +76,7 @@ int main(int argc, char const *argv[]) {
 				},
 				{
 					"value": 14
-				},
+				}
 			]
 		}
 	)";
