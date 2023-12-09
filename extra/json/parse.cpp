@@ -16,6 +16,8 @@ static const std::array<std::pair<std::string, std::string>, 4> stringUnescapeTa
 Property JSON::parse(const std::string& text) {
 
 	auto objectText = Strings::trim(text);
+	if (!objectText.size()) throw std::runtime_error("Invalid JSON: empty text");
+
 	auto isArray = objectText.starts_with('[');
 
 	if (!isArray && !objectText.starts_with('{')) {
@@ -77,7 +79,9 @@ Property JSON::parse(const std::string& text) {
 		std::vector<Property> temp;
 
 		for (const auto& entry : entries) {
-			temp.push_back(parse(entry));
+			auto entryTrimmed = Strings::trim(entry);
+			if (!entryTrimmed.size()) throw std::runtime_error("Invalid JSON: trailing comma has been found");
+			temp.push_back(parse(entryTrimmed));
 		}
 
 		return Property(temp);
@@ -88,20 +92,23 @@ Property JSON::parse(const std::string& text) {
 
 		for (const auto& entry : entries) {
 
+			auto entryTrimmed = Strings::trim(entry);
+			if (!entryTrimmed.size()) throw std::runtime_error("Invalid JSON: trailing comma has been found");
+
 			size_t keyEnded = std::string::npos;
 			bool insideString = false;
 
-			for (size_t i = 0; i < entry.size(); i++) {
-				if (entry[i] == '\"') {
+			for (size_t i = 0; i < entryTrimmed.size(); i++) {
+				if (entryTrimmed[i] == '\"') {
 					insideString = !insideString;
-				} else if (!insideString && entry[i] == ':') {
+				} else if (!insideString && entryTrimmed[i] == ':') {
 					keyEnded = i;
 					break;
 				}
 			}
 
-			auto key = Strings::trim(entry.substr(0, keyEnded));
-			auto value = Strings::trim(entry.substr(keyEnded + 1));
+			auto key = Strings::trim(entryTrimmed.substr(0, keyEnded));
+			auto value = Strings::trim(entryTrimmed.substr(keyEnded + 1));
 			auto useKey = key.starts_with('\"') ? key.substr(1, key.size() - 2) : key;
 
 			temp[useKey] = parse(value);
