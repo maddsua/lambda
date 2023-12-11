@@ -94,10 +94,10 @@ $(CORE_COMPRESS_TARGET): $(CORE_COMPRESS_DEPS)
 	ar rvs $(CORE_COMPRESS_TARGET) $(CORE_COMPRESS_DEPS)
 
 core/compression/brotli.o: core/compression/brotli.cpp
-	g++ -c $(CFLAGS) core/compression/brotli.cpp -o core/compression/brotli.o $(LINK_COMPRESS_LIBS)
+	g++ -c $(CFLAGS) core/compression/brotli.cpp -o core/compression/brotli.o
 
 core/compression/zlib.o: core/compression/zlib.cpp
-	g++ -c $(CFLAGS) core/compression/zlib.cpp -o core/compression/zlib.o $(LINK_COMPRESS_LIBS)
+	g++ -c $(CFLAGS) core/compression/zlib.cpp -o core/compression/zlib.o
 
 
 # server stuff
