@@ -22,7 +22,7 @@
  * |______________________|
 */
 
-namespace Storage {
+namespace Lambda::Storage {
 
 	enum StorageTransaction {
 		Tr_Delete = -1,

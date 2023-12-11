@@ -2,7 +2,8 @@
 
 #include <stdexcept>
 
-using namespace JSON;
+using namespace Lambda;
+using namespace Lambda::JSON;
 
 void Property::clone(const Property& other) {
 	this->internalType = other.internalType;

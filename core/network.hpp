@@ -7,7 +7,7 @@
 #include "../core/http.hpp"
 #include "./network/compat.hpp"
 
-namespace Network {
+namespace Lambda::Network {
 
 	enum struct Constants : uint32_t {
 		Receive_ChunkSize = 2048,

@@ -8,8 +8,7 @@
 #define gmtime_r(timettime, tmstruct) gmtime_s(tmstruct, timettime)
 #endif
 
-using namespace HTTP;
-using namespace Strings;
+using namespace Lambda;
 
 Date::Date() {
 	this->epoch = std::time(nullptr);

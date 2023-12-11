@@ -3,14 +3,14 @@
 #include <stdexcept>
 #include <cstring>
 
-using namespace Encoding;
+using namespace Lambda;
 
 const uint8_t hex_encode_table[] = {
 	'0','1','2','3','4','5','6','7',
 	'8','9','A','B','C','D','E','F'
 };
 
-HexByte Encoding::encodeHexByte(char databyte) {
+Encoding::HexByte Encoding::encodeHexByte(char databyte) {
 	HexByte result;
 	result.data.first = hex_encode_table[(databyte & 0xF0) >> 4];
 	result.data.second = hex_encode_table[databyte & 0x0F];

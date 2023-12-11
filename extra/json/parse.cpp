@@ -4,7 +4,8 @@
 #include <array>
 #include <stdexcept>
 
-using namespace JSON;
+using namespace Lambda;
+using namespace Lambda::JSON;
 
 static const std::array<std::pair<std::string, std::string>, 4> stringUnescapeTable = {
 	std::make_pair("\\\\n", "\n"),

@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <map>
 
-using namespace HTTP;
-using namespace Strings;
+using namespace Lambda::HTTP;
+using namespace Lambda::Strings;
 
 static const std::map <uint16_t, std::string> statusCodeTable = {
 	{ 100, "Continue" },

@@ -1,8 +1,8 @@
 #include "../http.hpp"
 #include "../polyfill.hpp"
 
-using namespace HTTP;
-using namespace Strings;
+using namespace Lambda::HTTP;
+using namespace Lambda::Strings;
 
 void Headers::append(const std::string& key, const std::string value) {
 	this->internalContent.push_back({ toLowerCase(key), value });

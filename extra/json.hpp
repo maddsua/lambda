@@ -5,7 +5,7 @@
 #include <vector>
 #include <unordered_map>
 
-namespace JSON {
+namespace Lambda::JSON {
 
 	class Property;
 	typedef std::unordered_map<std::string, Property> Map;

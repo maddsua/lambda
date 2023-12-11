@@ -1,8 +1,8 @@
 #include "../http.hpp"
 #include "../polyfill.hpp"
 
-using namespace HTTP;
-using namespace Strings;
+using namespace Lambda::HTTP;
+using namespace Lambda::Strings;
 
 URLSearchParams::URLSearchParams(const std::string& urlString) {
 

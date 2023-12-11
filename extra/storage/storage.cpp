@@ -1,6 +1,6 @@
 #include "../storage.hpp"
 
-using namespace Storage;
+using namespace Lambda::Storage;
 
 bool BaseStorage::hasItem(const std::string& key) const {
 	return this->data.contains(key);

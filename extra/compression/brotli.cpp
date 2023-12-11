@@ -1,7 +1,7 @@
 #include "../compression.hpp"
 #include "./streams.hpp"
 
-using namespace Compress;
+using namespace Lambda;
 
 std::vector<uint8_t> Compress::brotliCompressBuffer(const std::vector<uint8_t>& input, Quality quality) {
 

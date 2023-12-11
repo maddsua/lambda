@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <vector>
 
-namespace Compress {
+namespace Lambda::Compress {
 
 	enum struct Quality {
 		Store = 0,

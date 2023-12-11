@@ -2,7 +2,7 @@
 
 #include <set>
 
-using namespace Encoding;
+using namespace Lambda;
 
 static const auto escapeChars = std::set<char>({
 	'\"', '\'', '\\', '/', '>', '<', ' ', '%', '{', '}',

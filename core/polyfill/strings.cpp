@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+using namespace Lambda;
+
 void Strings::toLowerCase(std::string& str) {
 	for (auto& c : str) {
 		if (c > 'Z' || c < 'A') continue;

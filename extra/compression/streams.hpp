@@ -8,7 +8,7 @@
 
 #include <stdexcept>
 
-namespace Compress {
+namespace Lambda::Compress {
 
 	class BrotliCompressStream {
 		public:

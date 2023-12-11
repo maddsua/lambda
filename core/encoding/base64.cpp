@@ -3,6 +3,8 @@
 #include <map>
 #include <stdexcept>
 
+using namespace Lambda;
+
 //	full decode table does brrrrrr. high-speed tricks here
 static const uint8_t base64DecodeTable[] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

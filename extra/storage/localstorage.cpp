@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <iterator>
 
-using namespace Storage;
+using namespace Lambda::Storage;
 
 enum DiskDbWriteOps {
 	WriteOpStartBlock = 0x06,
@@ -17,7 +17,7 @@ enum DiskDbWriteOps {
 
 LocalStorage::LocalStorage() {
 
-	this->dbFileName = new std::string("localstorage.octo.db");
+	this->dbFileName = new std::string("localstorage.ldb");
 	this->stats = new StorageTrStats();
 
 	loadFile(*this->dbFileName);

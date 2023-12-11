@@ -4,6 +4,8 @@
 #include "../core/http.hpp"
 #include "../core/server.hpp"
 
+using namespace Lambda;
+
 HTTP::Response httpHandler(HTTP::Request req, Network::ConnInfo info) {
 	printf("Serving rq for: %s\n", req.url.pathname.c_str());
 	if (req.body.size()) printf("Request payload: %s\n", req.body.text().c_str());

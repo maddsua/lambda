@@ -3,7 +3,8 @@
 #include <map>
 #include <stdexcept>
 
-using namespace JSON;
+using namespace Lambda;
+using namespace Lambda::JSON;
 
 static const std::map<char, std::string> stringEscapeTable = {
 	{ '\n', "\\\\n" },

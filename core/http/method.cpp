@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <set>
 
-using namespace HTTP;
-using namespace Strings;
+using namespace Lambda::HTTP;
+using namespace Lambda::Strings;
 
 static const std::set<std::string> httpKnownMethods = {
 	"GET",

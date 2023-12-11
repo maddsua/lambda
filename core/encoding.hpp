@@ -4,7 +4,7 @@
 #include "./polyfill.hpp"
 #include "./http.hpp"
 
-namespace Encoding {
+namespace Lambda::Encoding {
 
 	std::string toBase64(const std::string& data);
 	std::string fromBase64(const std::string& data);

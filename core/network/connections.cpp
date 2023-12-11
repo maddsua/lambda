@@ -1,7 +1,8 @@
 #include "./sysnetw.hpp"
 #include "../network.hpp"
 
-using namespace Network;
+using namespace Lambda;
+using namespace Lambda::Network;
 
 TCPListenSocket::TCPListenSocket(uint16_t listenPort) {
 

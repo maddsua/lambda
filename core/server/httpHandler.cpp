@@ -9,8 +9,8 @@
 #include <thread>
 #include <algorithm>
 
-using namespace Network;
 using namespace Lambda;
+using namespace Lambda::Network;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
