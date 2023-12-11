@@ -2,7 +2,7 @@
 
 #include "../core/polyfill.hpp"
 #include "../core/http.hpp"
-#include "../core/network.hpp"
+#include "../core/server.hpp"
 
 HTTP::Response httpHandler(HTTP::Request req, Network::ConnInfo info) {
 	printf("Serving rq for: %s\n", req.url.pathname.c_str());
@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
 		std::cout << "Got a connection!\n-----\n";
 
 		try {
-			Network::handleHTTPConnection(conn, httpHandler);
+			Lambda::handleHTTPConnection(conn, httpHandler);
 			std::cout << "TCP connection served and closed\n-----\n";
 		} catch(const std::exception& e) {
 			std::cerr << "http handler crashed: " << e.what() << '\n';

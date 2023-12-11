@@ -11,7 +11,10 @@ CORE_ENCODING_OBJ	=	core/encoding.a
 CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
 
 CORE_NETWORK_OBJ	=	core/network.a
-CORE_NETWORK_DEPS	=	core/network/connections.o core/network/transport.o
+CORE_NETWORK_DEPS	=	core/network/connections.o
+
+CORE_SERVER_OBJ		=	core/server.a
+CORE_SERVER_DEPS	=	core/server/http.o
 
 
 # target object
@@ -82,6 +85,9 @@ $(CORE_NETWORK_OBJ): $(CORE_NETWORK_DEPS)
 core/network/connections.o: core/network/connections.cpp
 	g++ -c $(CFLAGS) core/network/connections.cpp -o core/network/connections.o
 
-core/network/transport.o: core/network/transport.cpp
-	g++ -c $(CFLAGS) core/network/transport.cpp -o core/network/transport.o
+# server stuff
+$(CORE_SERVER_OBJ): $(CORE_SERVER_DEPS)
+	ar rvs $(CORE_SERVER_OBJ) $(CORE_SERVER_DEPS)
 
+core/server/http.o: core/server/http.cpp
+	g++ -c $(CFLAGS) core/server/http.cpp -o core/server/http.o

@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <string>
-#include <functional>
 
 #include "../core/http.hpp"
 #include "./network/compat.hpp"
@@ -63,10 +62,6 @@ namespace Network {
 	};
 
 	void setSocketTimeouts(SOCKET hSocket, uint32_t timeoutsMs);
-
-	typedef std::function<HTTP::Response(const HTTP::Request request, const ConnInfo& info)> HttpHandlerFunction;
-
-	void handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handler);
 };
 
 #endif

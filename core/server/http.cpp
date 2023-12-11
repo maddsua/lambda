@@ -1,5 +1,6 @@
-#include "./sysnetw.hpp"
+#include "../network/sysnetw.hpp"
 #include "../network.hpp"
+#include "../server.hpp"
 #include "../../core/polyfill.hpp"
 
 #include <queue>
@@ -9,6 +10,7 @@
 #include <algorithm>
 
 using namespace Network;
+using namespace Lambda;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -19,7 +21,7 @@ struct PipelineItem {
 	} info;
 };
 
-void Network::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handler) {
+void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handler) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMtLock;

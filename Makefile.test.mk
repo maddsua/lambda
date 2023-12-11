@@ -71,8 +71,8 @@ test/tcp.test.o: test/tcp.test.cpp
 # Test network/transport/http core module
 test.httpserver: httpserver.test.exe
 
-httpserver.test.exe: test/httpserver.test.o $(CORE_NETWORK_OBJ) $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ)
-	g++ $(CFLAGS) test/httpserver.test.cpp $(CORE_NETWORK_OBJ) $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ) -lws2_32 -o httpserver.test.exe
+httpserver.test.exe: test/httpserver.test.o $(CORE_SERVER_OBJ) $(CORE_NETWORK_OBJ) $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ)
+	g++ $(CFLAGS) test/httpserver.test.cpp $(CORE_SERVER_OBJ) $(CORE_NETWORK_OBJ) $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ) -lws2_32 -o httpserver.test.exe
 
 test/httpserver.test.o: test/httpserver.test.cpp
 	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o
