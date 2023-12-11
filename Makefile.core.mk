@@ -1,5 +1,5 @@
 CORE_OBJ_MAIN		=	core/core.a
-CORE_OBJ_DEPS		=	$(CORE_POLYFILL_OBJ) $(CORE_HTTP_OBJ) $(CORE_ENCODING_OBJ)
+CORE_OBJ_DEPS		=	$(CORE_POLYFILL_OBJ) $(CORE_HTTP_OBJ) $(CORE_ENCODING_OBJ) $(CORE_NETWORK_OBJ) $(CORE_SERVER_OBJ)
 
 CORE_POLYFILL_OBJ	=	core/polyfill.a
 CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
