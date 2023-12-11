@@ -118,10 +118,17 @@
 				}
 				
 				/**
-				 * Returns raw bite buffer
+				 * Returns raw byte buffer
 				*/
 				const std::vector<uint8_t>& buffer() const {
 					return this->internalContent;
+				}
+
+				/**
+				 * Returns body buffer size
+				*/
+				size_t size() const {
+					return this->internalContent.size();
 				}
 		};
 
@@ -181,14 +188,16 @@
 		};
 
 		class Response {
-			Response(const Status& status) : status(status) {}
-			Response(const Status& status, const Headers& headers) : status(status), headers(headers) {}
-			Response(const Status& status, const Body& body) : status(status), body(body) {}
-			Response(const Status& status, const Headers& headers, Body& body) : status(status), headers(headers), body(body) {}
-			
-			Status status;
-			Headers headers;
-			Body body;
+			public:
+				Response() {}
+				Response(const Status& status) : status(status) {}
+				Response(const Status& status, const Headers& headers) : status(status), headers(headers) {}
+				Response(const Status& status, const Body& body) : status(status), body(body) {}
+				Response(const Status& status, const Headers& headers, Body& body) : status(status), headers(headers), body(body) {}
+				
+				Status status;
+				Headers headers;
+				Body body;
 		};
 	}
 

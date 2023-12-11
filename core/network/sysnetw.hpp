@@ -3,23 +3,23 @@
 	Should work in theory. If it does not, well, something is wrong 🗿🚬
 */
 
-#ifndef __LAMBDA_NETWORK_TCPIP__
-#define __LAMBDA_NETWORK_TCPIP__
+#ifndef __OCTOPUSS_INTERNAL_NETWORK_TCPIP__
+#define __OCTOPUSS_INTERNAL_NETWORK_TCPIP__
 
 #include <stdint.h>
+
+#include "./compat.hpp"
 
 #ifdef _WIN32
 
 	#define WIN32_LEAN_AND_MEAN
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
-	#include "../lambda_private.hpp"
+	#include <stdexcept>
 
 	#define getAPIError() GetLastError()
 
-	inline bool wsaWakeUp(int64_t initrqcode) {
-
-		if (initrqcode != WSANOTINITIALISED) return false;
+	inline bool wsaWakeUp() {
 
 		static bool wsaInitCalled = false;
 		if (wsaInitCalled) return false;
@@ -27,11 +27,11 @@
 
 		WSADATA initdata;
 		if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-			throw Lambda::Error("WSA initialization failed", getAPIError());
+			throw std::runtime_error("WSA initialization failed: windows API error " + std::to_string(getAPIError()));
 
 		return true;
 	}
-	
+
 #else
 
 	#include <sys/types.h>
@@ -42,23 +42,21 @@
 	#include <cerrno>
 
 	#ifndef INVALID_SOCKET
-	#define INVALID_SOCKET (-1)
+		#define INVALID_SOCKET (-1)
 	#endif
 
 	#ifndef SOCKET_ERROR
-	#define SOCKET_ERROR (-1)
+		#define SOCKET_ERROR (-1)
 	#endif
 
 	#ifndef WSAETIMEDOUT
-	#define WSAETIMEDOUT (ETIMEDOUT)
+		#define WSAETIMEDOUT (ETIMEDOUT)
 	#endif
 
 	#define getAPIError() errno
 
 	#define closesocket(socketHandle) close(socketHandle)
 	#define SD_BOTH (SHUT_RDWR)
-
-	#define wsaWakeUp(initrqcode) (false)
 
 #endif
 

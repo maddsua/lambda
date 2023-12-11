@@ -57,3 +57,22 @@ brotli.test.exe: test/brotli.test.o $(CORE_COMPRESS_OBJ)
 
 test/brotli.test.o: test/brotli.test.cpp
 	g++ -c $(CFLAGS) test/brotli.test.cpp -o test/brotli.test.o
+
+
+# Test network/TCP core module
+test.tcp: tcp.test.exe
+
+tcp.test.exe: test/tcp.test.o $(CORE_NETWORK_OBJ)
+	g++ $(CFLAGS) test/tcp.test.cpp $(CORE_NETWORK_OBJ) -lws2_32 -o tcp.test.exe
+
+test/tcp.test.o: test/tcp.test.cpp
+	g++ -c $(CFLAGS) test/tcp.test.cpp -o test/tcp.test.o
+
+# Test network/transport/http core module
+test.httpserver: httpserver.test.exe
+
+httpserver.test.exe: test/httpserver.test.o $(CORE_NETWORK_OBJ) $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ)
+	g++ $(CFLAGS) test/httpserver.test.cpp $(CORE_NETWORK_OBJ) $(CORE_HTTP_OBJ) $(CORE_POLYFILL_OBJ) -lws2_32 -o httpserver.test.exe
+
+test/httpserver.test.o: test/httpserver.test.cpp
+	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o

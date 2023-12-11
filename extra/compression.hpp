@@ -6,7 +6,7 @@
 
 namespace Compress {
 
-	enum class Quality {
+	enum struct Quality {
 		Store = 0,
 		Barely = 1,
 		Fast = 2,
@@ -22,7 +22,7 @@ namespace Compress {
 	std::vector<uint8_t> brotliCompressBuffer(const std::vector<uint8_t>& input, Quality quality);
 	std::vector<uint8_t> brotliDecompressBuffer(const std::vector<uint8_t>& input);
 
-	enum class ZlibSetHeader {
+	enum struct ZlibSetHeader {
 		Zheader_GZ = 26,
 		Zheader_Defalte = 8,
 		Zheader_RAW = -15,
