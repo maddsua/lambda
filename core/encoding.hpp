@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_CORE_ENCODING_
-#define _OCTOPUSS_CORE_ENCODING_
+#ifndef _LAMBDA_CORE_ENCODING_
+#define _LAMBDA_CORE_ENCODING_
 
 #include "./polyfill.hpp"
 #include "./http.hpp"

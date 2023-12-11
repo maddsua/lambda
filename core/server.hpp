@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_CORE_SERVER_
-#define _OCTOPUSS_CORE_SERVER_
+#ifndef _LAMBDA_CORE_SERVER_
+#define _LAMBDA_CORE_SERVER_
 
 #include <functional>
 

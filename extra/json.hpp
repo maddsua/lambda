@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_EXTRA_JSON_
-#define _OCTOPUSS_EXTRA_JSON_
+#ifndef _LAMBDA_EXTRA_JSON_
+#define _LAMBDA_EXTRA_JSON_
 
 #include <string>
 #include <vector>

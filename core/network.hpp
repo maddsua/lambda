@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_NETWORK_
-#define _OCTOPUSS_NETWORK_
+#ifndef _LAMBDA_NETWORK_
+#define _LAMBDA_NETWORK_
 
 #include <vector>
 #include <string>

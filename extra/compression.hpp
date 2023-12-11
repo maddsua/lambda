@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_EXTRA_COMPRESSION_
-#define _OCTOPUSS_EXTRA_COMPRESSION_
+#ifndef _LAMBDA_EXTRA_COMPRESSION_
+#define _LAMBDA_EXTRA_COMPRESSION_
 
 #include <stdint.h>
 #include <vector>

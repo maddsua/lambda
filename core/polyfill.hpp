@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_CORE_STRINGS_
-#define _OCTOPUSS_CORE_STRINGS_
+#ifndef _LAMBDA_CORE_STRINGS_
+#define _LAMBDA_CORE_STRINGS_
 
 #include <vector>
 #include <string>

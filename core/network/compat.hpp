@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_NETWORK_COMPAT_
-#define _OCTOPUSS_NETWORK_COMPAT_
+#ifndef _LAMBDA_NETWORK_COMPAT_
+#define _LAMBDA_NETWORK_COMPAT_
 
 #include <stdint.h>
 

@@ -1,6 +1,6 @@
 
-#ifndef _OCTOPUSS_EXTRA_STORAGE_
-#define _OCTOPUSS_EXTRA_STORAGE_
+#ifndef _LAMBDA_EXTRA_STORAGE_
+#define _LAMBDA_EXTRA_STORAGE_
 
 #include <vector>
 #include <string>

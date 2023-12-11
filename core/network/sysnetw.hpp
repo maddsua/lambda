@@ -3,8 +3,8 @@
 	Should work in theory. If it does not, well, something is wrong 🗿🚬
 */
 
-#ifndef __OCTOPUSS_INTERNAL_NETWORK_TCPIP__
-#define __OCTOPUSS_INTERNAL_NETWORK_TCPIP__
+#ifndef __LAMBDA_INTERNAL_NETWORK_TCPIP__
+#define __LAMBDA_INTERNAL_NETWORK_TCPIP__
 
 #include <stdint.h>
 

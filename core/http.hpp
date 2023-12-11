@@ -1,5 +1,5 @@
-#ifndef _OCTOPUSS_CORE_HTTP_
-#define _OCTOPUSS_CORE_HTTP_
+#ifndef _LAMBDA_CORE_HTTP_
+#define _LAMBDA_CORE_HTTP_
 
 #include <vector>
 #include <string>
