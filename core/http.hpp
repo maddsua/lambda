@@ -153,17 +153,16 @@
 				}
 		};
 
-		class Request {
-			public:
-				Request(const URL& url) : url(url) {}
-				Request(const URL& url, const Headers& headers) : url(url), headers(headers) {}
-				Request(const URL& url, const Body& body) : url(url), body(body) {}
-				Request(const URL& url, const Headers& headers, Body& body) : url(url), headers(headers), body(body) {}
+		struct Request {
+			URL url;
+			Method method;
+			Headers headers;
+			Body body;
 
-				URL url;
-				Method method;
-				Headers headers;
-				Body body;
+			Request(const URL& url) : url(url) {}
+			Request(const URL& url, const Headers& headers) : url(url), headers(headers) {}
+			Request(const URL& url, const Body& body) : url(url), body(body) {}
+			Request(const URL& url, const Headers& headers, Body& body) : url(url), headers(headers), body(body) {}
 		};
 
 		class Status {
@@ -187,17 +186,18 @@
 				}
 		};
 
-		class Response {
-			public:
-				Response() {}
-				Response(const Status& status) : status(status) {}
-				Response(const Status& status, const Headers& headers) : status(status), headers(headers) {}
-				Response(const Status& status, const Body& body) : status(status), body(body) {}
-				Response(const Status& status, const Headers& headers, Body& body) : status(status), headers(headers), body(body) {}
-				
-				Status status;
-				Headers headers;
-				Body body;
+		struct Response {
+			Status status;
+			Headers headers;
+			Body body;
+
+			Response() {}
+			Response(const Status& status) : status(status) {}
+			Response(const Body& body) : body(body) {}
+			Response(const Headers& headers, Body& body) : headers(headers), body(body) {}
+			Response(const Status& status, const Headers& headers) : status(status), headers(headers) {}
+			Response(const Status& status, const Body& body) : status(status), body(body) {}
+			Response(const Status& status, const Headers& headers, Body& body) : status(status), headers(headers), body(body) {}
 		};
 	}
 
