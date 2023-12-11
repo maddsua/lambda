@@ -1,5 +1,5 @@
 /**
-	The http and websocket C++ library
+	An http and websocket C++ library
 	Or at least, it apperas to be
 	2023 maddsua, https://github.com/maddsua
 
