@@ -8,9 +8,6 @@
 #include <thread>
 #include <algorithm>
 
-#include <iostream>
-#include <fstream>
-
 using namespace Network;
 
 static const std::string patternEndHeader = "\r\n\r\n";
