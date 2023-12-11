@@ -1,5 +1,5 @@
 CORE_TARGET				=	core/core.a
-CORE_DEPS				=	$(CORE_POLYFILL_DEPS) $(CORE_HTTP_DEPS) $(CORE_ENCODING_DEPS) $(CORE_NETWORK_DEPS) $(CORE_SERVER_DEPS)
+CORE_DEPS				=	$(CORE_POLYFILL_DEPS) $(CORE_HTTP_DEPS) $(CORE_ENCODING_DEPS) $(CORE_NETWORK_DEPS) $(CORE_COMPRESS_DEPS) $(CORE_SERVER_DEPS)
 
 CORE_POLYFILL_TARGET	=	core/polyfill.a
 CORE_POLYFILL_DEPS		=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
@@ -12,6 +12,9 @@ CORE_ENCODING_DEPS		=	core/encoding/base64.o core/encoding/hex.o core/encoding/u
 
 CORE_NETWORK_TARGET		=	core/network.a
 CORE_NETWORK_DEPS		=	core/network/connections.o
+
+CORE_COMPRESS_TARGET	=	core/compression.a
+CORE_COMPRESS_DEPS		=	core/compression/brotli.o core/compression/zlib.o
 
 CORE_SERVER_TARGET		=	core/server.a
 CORE_SERVER_DEPS		=	core/server/httpHandler.o
@@ -84,6 +87,17 @@ $(CORE_NETWORK_TARGET): $(CORE_NETWORK_DEPS)
 
 core/network/connections.o: core/network/connections.cpp
 	g++ -c $(CFLAGS) core/network/connections.cpp -o core/network/connections.o
+
+
+# compression stuff
+$(CORE_COMPRESS_TARGET): $(CORE_COMPRESS_DEPS)
+	ar rvs $(CORE_COMPRESS_TARGET) $(CORE_COMPRESS_DEPS)
+
+core/compression/brotli.o: core/compression/brotli.cpp
+	g++ -c $(CFLAGS) core/compression/brotli.cpp -o core/compression/brotli.o $(LINK_COMPRESS_LIBS)
+
+core/compression/zlib.o: core/compression/zlib.cpp
+	g++ -c $(CFLAGS) core/compression/zlib.cpp -o core/compression/zlib.o $(LINK_COMPRESS_LIBS)
 
 
 # server stuff
