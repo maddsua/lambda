@@ -1,19 +1,19 @@
+include Makefile.core.mk
+include Makefile.extra.mk
+include Makefile.test.mk
+
 CFLAGS					=	-Wall -std=c++20 -g
+
+LINK_COMPRESS_LIBS		=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
+LINK_SYSTEM_LIBS		=	-lws2_32
 
 LAMBDA_LIBSTATIC		=	lambda.a
 LAMBDA_LIBSHARED		=	lambda.dll
 
 LAMBDA_DEPS				=	$(CORE_DEPS) $(EXTRA_DEPS)
 
-LINK_COMPRESS_LIBS		=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
-LINK_SYSTEM_LIBS		=	-lws2_32
-
 .PHONY: all all-before all-after action-custom
 all: all-before $(LAMBDA_LIBSTATIC) all-after
-
-include Makefile.core.mk
-include Makefile.extra.mk
-include Makefile.test.mk
 
 clean: action-custom
 	rm -rf *.o *.exe *.a *.dll *.res
