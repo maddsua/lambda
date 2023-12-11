@@ -72,6 +72,7 @@ namespace Lambda {
 
 		//	Split string into array of substrings separated by token
 		std::vector<std::string> split(const std::string& str, const std::string& token);
+		std::vector<std::string> split(const std::string& str, char separator);
 
 		//	Combine multiple strings
 		std::string join(const std::vector<std::string>& strs, const char* token);

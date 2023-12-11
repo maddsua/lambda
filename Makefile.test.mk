@@ -42,8 +42,8 @@ test/storage.test.o: test/storage.test.cpp
 # Test zlib compression module
 test.zlib: zlib.test.exe
 
-zlib.test.exe: test/zlib.test.o $(LIB_EXTRA_COMPRESS)
-	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_EXTRA_COMPRESS) $(LINK_COMPRESS_LIBS) -o zlib.test.exe
+zlib.test.exe: test/zlib.test.o $(LIB_CORE_COMPRESS_DEPS)
+	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o zlib.test.exe
 
 test/zlib.test.o: test/zlib.test.cpp
 	g++ -c $(CFLAGS) test/zlib.test.cpp -o test/zlib.test.o
@@ -52,8 +52,8 @@ test/zlib.test.o: test/zlib.test.cpp
 # Test brotli compression module
 test.brotli: brotli.test.exe
 
-brotli.test.exe: test/brotli.test.o $(LIB_EXTRA_COMPRESS)
-	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_EXTRA_COMPRESS) $(LINK_COMPRESS_LIBS) -o brotli.test.exe
+brotli.test.exe: test/brotli.test.o $(LIB_CORE_COMPRESS_DEPS)
+	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o brotli.test.exe
 
 test/brotli.test.o: test/brotli.test.cpp
 	g++ -c $(CFLAGS) test/brotli.test.cpp -o test/brotli.test.o
@@ -71,8 +71,8 @@ test/tcp.test.o: test/tcp.test.cpp
 # Test network/transport/http core module
 test.httpserver: httpserver.test.exe
 
-httpserver.test.exe: test/httpserver.test.o $(LIB_CORE_SERVER) $(LIB_CORE_NETWORK) $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL)
-	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_SERVER) $(LIB_CORE_NETWORK) $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL) -lws2_32 -o httpserver.test.exe
+httpserver.test.exe: test/httpserver.test.o $(LIB_CORE_SERVER) $(LIB_CORE_NETWORK) $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL) $(LIB_CORE_COMPRESS_DEPS)
+	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_SERVER) $(LIB_CORE_NETWORK) $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL) $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -lws2_32 -o httpserver.test.exe
 
 test/httpserver.test.o: test/httpserver.test.cpp
 	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o

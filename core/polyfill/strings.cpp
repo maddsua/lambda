@@ -117,6 +117,30 @@ std::vector<std::string> Strings::split(const std::string& str, const std::strin
 	return result;
 }
 
+std::vector<std::string> Strings::split(const std::string& str, char separator) {
+
+	std::vector <std::string> result;
+
+	//	abort if source is empty
+	if (!str.size()) return {};
+
+	//	return entrire source is deliminator/token is not present in the source
+	auto match = str.find(separator);
+	if (match == std::string::npos) return { str };
+
+	size_t startpos = 0;
+	while (match != std::string::npos) {
+		result.push_back(str.substr(startpos, match - startpos));
+		startpos = match + 1;
+		match = str.find(separator, startpos);
+	}
+	
+	//	push the remaining part
+	if (str.size() - startpos) result.push_back(str.substr(startpos));
+
+	return result;
+}
+
 std::string Strings::join(const std::vector<std::string>& strs, const char* token) {
 
 	std::string result;

@@ -23,9 +23,9 @@ namespace Lambda::Compress {
 	std::vector<uint8_t> brotliDecompressBuffer(const std::vector<uint8_t>& input);
 
 	enum struct ZlibSetHeader {
-		Zheader_GZ = 26,
-		Zheader_Defalte = 8,
-		Zheader_RAW = -15,
+		Gzip = 26,
+		Defalte = 8,
+		Raw = -15,
 	};
 
 	std::vector<uint8_t> zlibCompressBuffer(const std::vector<uint8_t>& input, Quality quality, ZlibSetHeader header);

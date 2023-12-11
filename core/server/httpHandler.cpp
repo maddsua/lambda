@@ -1,24 +1,43 @@
 #include "../network/sysnetw.hpp"
 #include "../network.hpp"
 #include "../server.hpp"
+#include "../compression.hpp"
 #include "../../core/polyfill.hpp"
+#include "../../lambda_build_options.hpp"
 
 #include <queue>
 #include <mutex>
 #include <future>
 #include <thread>
 #include <algorithm>
+#include <array>
+#include <map>
+#include <set>
 
 using namespace Lambda;
 using namespace Lambda::Network;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
+enum struct ContentEncodings {
+	None = 0,
+	Brotli = 1,
+	Gzip = 2,
+	Deflate = 3,
+};
+
+static const std::map<ContentEncodings, std::string> contentEncodingMap = {
+	{  ContentEncodings::Brotli, "br" },
+	{  ContentEncodings::Gzip, "gzip" },
+	{  ContentEncodings::Deflate, "deflate" },
+};
+
 struct PipelineItem {
 	std::future<HTTP::Response> future;
 	struct {
 		bool keepAlive = false;
-	} info;
+		ContentEncodings acceptsEncoding = ContentEncodings::None;
+	} context;
 };
 
 void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handler) {
@@ -52,7 +71,7 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 			auto headerFields = Strings::split(std::string(recvBuff.begin(), headerEnded), "\r\n");
 			recvBuff.erase(recvBuff.begin(), headerEnded + patternEndHeader.size());
 
-			auto headerStartLine = Strings::split(headerFields.at(0), " ");
+			auto headerStartLine = Strings::split(headerFields.at(0), ' ');
 			auto request = HTTP::Request(HTTP::URL(headerStartLine.at(1)));
 			request.method = HTTP::Method(headerStartLine.at(0));
 
@@ -71,7 +90,28 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 
 				request.headers.append(headerKey, headerValue);
 			}
-			
+
+			PipelineItem next;
+
+			auto connectionHeader = request.headers.get("connection");
+			if (connectionKeepAlive) connectionKeepAlive = !Strings::includes(connectionHeader, "close");
+				else connectionKeepAlive = Strings::includes(connectionHeader, "keep-alive");
+			next.context.keepAlive = connectionKeepAlive;
+
+			auto acceptEncodingHeader = request.headers.get("accept-encoding");
+			if (acceptEncodingHeader.size()) {
+
+				auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
+				auto acceptEncodingsSet = std::set<std::string>(encodingNames.begin(), encodingNames.end());
+
+				for (const auto& encoding : contentEncodingMap) {
+					if (acceptEncodingsSet.contains(encoding.second)) {
+						next.context.acceptsEncoding = encoding.first;
+						break;
+					}
+				}
+			}
+
 			auto bodySizeHeader = request.headers.get("content-length");
 			size_t bodySize = bodySizeHeader.size() ? std::stoull(bodySizeHeader) : 0;
 
@@ -90,13 +130,7 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 				recvBuff.erase(recvBuff.begin(), recvBuff.begin() + bodySize);
 			}
 
-			auto connectionHeader = request.headers.get("connection");
-			if (connectionKeepAlive) connectionKeepAlive = !Strings::includes(connectionHeader, "close");
-				else connectionKeepAlive = Strings::includes(connectionHeader, "keep-alive");
-
-			PipelineItem next;
 			next.future = std::async(handler, std::move(request), conn.info());
-			next.info.keepAlive = connectionKeepAlive;
 
 			std::lock_guard<std::mutex>lock(pipelineMtLock);
 			pipeline.push(std::move(next));
@@ -130,11 +164,41 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 
 		response.headers.set("date", Date().toUTCString());
 		response.headers.set("server", "maddsua/lambda");
+		if (next.context.keepAlive) response.headers.set("connection", "keep-alive");
 
-		auto bodySize = response.body.size();
+		#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
+
+			std::vector<uint8_t> responseBody;
+
+			switch (next.context.acceptsEncoding) {
+	
+				case ContentEncodings::Brotli: {
+					responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
+				} break;
+
+				case ContentEncodings::Gzip: {
+					responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+				} break;
+
+				case ContentEncodings::Deflate: {
+					responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+				} break;
+
+				default: {
+					responseBody = response.body.buffer();
+				} break;
+			}
+
+			if (next.context.acceptsEncoding != ContentEncodings::None) {
+				response.headers.set("content-encoding", contentEncodingMap.at(next.context.acceptsEncoding));
+			}
+
+		#else
+			auto& responseBody = response.body.buffer();
+		#endif
+
+		auto bodySize = responseBody.size();
 		response.headers.set("content-length", std::to_string(bodySize));
-
-		if (next.info.keepAlive) response.headers.set("connection", "keep-alive");
 
 		std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
 		for (const auto& header : response.headers.entries()) {
@@ -143,7 +207,7 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 		headerBuff += "\r\n";
 
 		conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
-		if (bodySize) conn.write(response.body.buffer());
+		if (bodySize) conn.write(responseBody);
 
 		std::lock_guard<std::mutex>lock(pipelineMtLock);
 		pipeline.pop();
