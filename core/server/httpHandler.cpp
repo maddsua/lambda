@@ -134,9 +134,7 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 		auto bodySize = response.body.size();
 		response.headers.set("content-length", std::to_string(bodySize));
 
-		if (next.info.keepAlive) {
-			response.headers.set("connection", "keep-alive");
-		}
+		if (next.info.keepAlive) response.headers.set("connection", "keep-alive");
 
 		std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
 		for (const auto& header : response.headers.entries()) {
