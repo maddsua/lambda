@@ -14,7 +14,7 @@ CORE_NETWORK_OBJ	=	core/network.a
 CORE_NETWORK_DEPS	=	core/network/connections.o
 
 CORE_SERVER_OBJ		=	core/server.a
-CORE_SERVER_DEPS	=	core/server/http.o
+CORE_SERVER_DEPS	=	core/server/httpHandler.o
 
 
 # target object
@@ -89,5 +89,5 @@ core/network/connections.o: core/network/connections.cpp
 $(CORE_SERVER_OBJ): $(CORE_SERVER_DEPS)
 	ar rvs $(CORE_SERVER_OBJ) $(CORE_SERVER_DEPS)
 
-core/server/http.o: core/server/http.cpp
-	g++ -c $(CFLAGS) core/server/http.cpp -o core/server/http.o
+core/server/httpHandler.o: core/server/httpHandler.cpp
+	g++ -c $(CFLAGS) core/server/httpHandler.cpp -o core/server/httpHandler.o
