@@ -15,6 +15,7 @@
 
 using namespace Lambda;
 using namespace Lambda::Network;
+using namespace Lambda::Server;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -39,7 +40,7 @@ struct PipelineItem {
 	} context;
 };
 
-void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handler) {
+void Server::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handler) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMtLock;

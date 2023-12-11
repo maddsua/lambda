@@ -26,7 +26,7 @@ int main(int argc, char const *argv[]) {
 		std::cout << "Got a connection!\n-----\n";
 
 		try {
-			Lambda::handleHTTPConnection(conn, httpHandler);
+			Server::handleHTTPConnection(conn, httpHandler);
 			std::cout << "TCP connection served and closed\n-----\n";
 		} catch(const std::exception& e) {
 			std::cerr << "http handler crashed: " << e.what() << '\n';

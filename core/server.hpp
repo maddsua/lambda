@@ -8,8 +8,10 @@
 
 namespace Lambda {
 
-	typedef std::function<HTTP::Response(const HTTP::Request request, const Network::ConnInfo& info)> HttpHandlerFunction;
-	void handleHTTPConnection(Network::TCPConnection& conn, HttpHandlerFunction handler);
+	namespace Server {
+		typedef std::function<HTTP::Response(const HTTP::Request request, const Network::ConnInfo& info)> HttpHandlerFunction;
+		void handleHTTPConnection(Network::TCPConnection& conn, HttpHandlerFunction handler);
+	};
 
 };
 
