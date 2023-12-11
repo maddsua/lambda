@@ -1,6 +1,6 @@
 
-#ifndef _LAMBDA_EXTRA_STORAGE_
-#define _LAMBDA_EXTRA_STORAGE_
+#ifndef  __LIB_MADDSUA_LAMBDA_EXTRA_STORAGE__
+#define  __LIB_MADDSUA_LAMBDA_EXTRA_STORAGE__
 
 #include <vector>
 #include <string>

@@ -1,28 +1,9 @@
-/*
-	This file is not the entry point!
-	It just holds some stuff that is commonly user throughout the library.
-
-	The http and websocket C++ library
-	Or at least, it apperas to be
-	2023 maddsua, https://github.com/maddsua
-
-	This file is not the entrypoint.
-	Include lambda.hpp instead
-*/
-
-#ifndef __LIB_MADDSUA_LAMBDA_PRIVATE__
-#define __LIB_MADDSUA_LAMBDA_PRIVATE__
-
-#include "./lambda_version.hpp"
+#ifndef __LIB_MADDSUA_LAMBDA_ERROR__
+#define __LIB_MADDSUA_LAMBDA_ERROR__
 
 #include <exception>
 #include <stdexcept>
 #include <string>
-
-#define LAMBDA_USERAGENT		LAMBDA_PRODUCT "/" LAMBDA_VERSION
-#define LAMBDA_FETCH_ENCODINGS	"br, gzip, deflate"
-
-//#define LAMBDADEBUG_WS
 
 namespace Lambda {
 

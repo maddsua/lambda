@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_CORE_STRINGS_
-#define _LAMBDA_CORE_STRINGS_
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_STRINGS__
+#define __LIB_MADDSUA_LAMBDA_CORE_STRINGS__
 
 #include <vector>
 #include <string>

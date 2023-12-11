@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_CORE_ENCODING_
-#define _LAMBDA_CORE_ENCODING_
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_ENCODING__
+#define __LIB_MADDSUA_LAMBDA_CORE_ENCODING__
 
 #include "./polyfill.hpp"
 #include "./http.hpp"

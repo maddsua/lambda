@@ -11,11 +11,7 @@
 
 #include "./lambda_version.hpp"
 
-#include "./server/server.hpp"
-#include "./client/client.hpp"
-#include "./http/http.hpp"
-#include "./storage/kv.hpp"
-#include "./storage/vfs.hpp"
-#include "./encoding/encoding.hpp"
+#include "./core/core.hpp"
+#include "./extra/extra.hpp"
 
 #endif

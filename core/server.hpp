@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_CORE_SERVER_
-#define _LAMBDA_CORE_SERVER_
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER__
+#define __LIB_MADDSUA_LAMBDA_CORE_SERVER__
 
 #include <functional>
 

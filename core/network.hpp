@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_NETWORK_
-#define _LAMBDA_NETWORK_
+#ifndef __LIB_MADDSUA_LAMBDA_NETWORK__
+#define __LIB_MADDSUA_LAMBDA_NETWORK__
 
 #include <vector>
 #include <string>

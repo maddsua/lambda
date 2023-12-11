@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_NETWORK_COMPAT_
-#define _LAMBDA_NETWORK_COMPAT_
+#ifndef  __LIB_MADDSUA_LAMBDA_NETWORK_COMPAT__
+#define  __LIB_MADDSUA_LAMBDA_NETWORK_COMPAT__
 
 #include <stdint.h>
 

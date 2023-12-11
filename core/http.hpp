@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_CORE_HTTP_
-#define _LAMBDA_CORE_HTTP_
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_HTTP__
+#define __LIB_MADDSUA_LAMBDA_CORE_HTTP__
 
 #include <vector>
 #include <string>

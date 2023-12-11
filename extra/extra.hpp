@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_EXTRA_
-#define _LAMBDA_EXTRA_
+#ifndef __LIB_MADDSUA_LAMBDA_EXTRA__
+#define __LIB_MADDSUA_LAMBDA_EXTRA__
 
 #include "./json.hpp"
 #include "./storage.hpp"

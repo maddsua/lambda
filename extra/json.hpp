@@ -1,5 +1,5 @@
-#ifndef _LAMBDA_EXTRA_JSON_
-#define _LAMBDA_EXTRA_JSON_
+#ifndef  __LIB_MADDSUA_LAMBDA_EXTRA_JSON__
+#define  __LIB_MADDSUA_LAMBDA_EXTRA_JSON__
 
 #include <string>
 #include <vector>
