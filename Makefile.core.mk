@@ -1,5 +1,5 @@
 CORE_TARGET				=	core/core.a
-CORE_DEPS				=	$(CORE_POLYFILL_TARGET) $(CORE_HTTP_TARGET) $(CORE_ENCODING_TARGET) $(CORE_NETWORK_TARGET) $(CORE_SERVER_TARGET)
+CORE_DEPS				=	$(CORE_POLYFILL_DEPS) $(CORE_HTTP_DEPS) $(CORE_ENCODING_DEPS) $(CORE_NETWORK_DEPS) $(CORE_SERVER_DEPS)
 
 CORE_POLYFILL_TARGET	=	core/polyfill.a
 CORE_POLYFILL_DEPS		=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
@@ -84,6 +84,7 @@ $(CORE_NETWORK_TARGET): $(CORE_NETWORK_DEPS)
 
 core/network/connections.o: core/network/connections.cpp
 	g++ -c $(CFLAGS) core/network/connections.cpp -o core/network/connections.o
+
 
 # server stuff
 $(CORE_SERVER_TARGET): $(CORE_SERVER_DEPS)

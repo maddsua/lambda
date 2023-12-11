@@ -1,5 +1,5 @@
 EXTRA_TARGET			=	extra/extra.a
-EXTRA_DEPS				=	$(EXTRA_JSON_TARGET) $(EXTRA_STORAGE_TARGET) $(EXTRA_COMPRESS_TARGET)
+EXTRA_DEPS				=	$(EXTRA_JSON_DEPS) $(EXTRA_STORAGE_DEPS) $(EXTRA_COMPRESS_DEPS)
 
 EXTRA_JSON_TARGET		=	extra/json.a
 EXTRA_JSON_DEPS			=	extra/json/property.o extra/json/parse.o extra/json/stringify.o
