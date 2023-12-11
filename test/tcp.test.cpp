@@ -6,10 +6,12 @@
 using namespace Lambda;
 
 int main(int argc, char const *argv[]) {
-	
-	auto server = Network::TCPListenSocket(8180);
 
-	std::cout << "Started server...\n";
+	auto startAtPort = 8180;
+	
+	auto server = Network::TCPListenSocket(startAtPort);
+
+	std::cout << "Started server at port " + std::to_string(startAtPort) + "\n";
 
 	while (server.ok()) {
 
