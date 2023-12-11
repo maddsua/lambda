@@ -10,7 +10,6 @@
 #include <future>
 #include <thread>
 #include <algorithm>
-#include <array>
 #include <map>
 #include <set>
 
@@ -48,7 +47,7 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 	auto receiveInitedPromise = std::promise<void>();
 	auto receiveInitedFuture = receiveInitedPromise.get_future();
 
-	auto receiveLoop = std::async([&]() {
+	auto receiveRoutine = std::async([&]() {
 
 		std::vector<uint8_t> recvBuff;
 
@@ -143,9 +142,12 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 
 	});
 
-	receiveInitedFuture.wait();
+	while (receiveInitedFuture.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
+		if (receiveRoutine.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
+			receiveRoutine.get();
+	}
 
-	while ((receiveLoop.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready || pipeline.size()) && conn.alive()) {
+	while ((receiveRoutine.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready || pipeline.size()) && conn.alive()) {
 
 		if (!pipeline.size()) continue;
 
@@ -212,4 +214,6 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 		std::lock_guard<std::mutex>lock(pipelineMtLock);
 		pipeline.pop();
 	}
+
+	receiveRoutine.get();
 }
