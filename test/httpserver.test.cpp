@@ -7,7 +7,7 @@
 HTTP::Response httpHandler(HTTP::Request req, Network::ConnInfo info) {
 	printf("Serving rq for: %s\n", req.url.pathname.c_str());
 	if (req.body.size()) printf("Request payload: %s\n", req.body.text().c_str());
-	return HTTP::Response();
+	return HTTP::Response("status report: live");
 }
 
 int main(int argc, char const *argv[]) {
