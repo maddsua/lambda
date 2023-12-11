@@ -4,7 +4,7 @@
 using namespace Lambda;
 using namespace Lambda::Network;
 
-TCPListenSocket::TCPListenSocket(uint16_t listenPort) {
+TCPListenSocket::TCPListenSocket(uint16_t listenPort, const ListenInit& init) {
 
 	//	special threatment for windows and it's fucking WSA
 	#ifdef _WIN32
@@ -19,10 +19,12 @@ TCPListenSocket::TCPListenSocket(uint16_t listenPort) {
 	}
 	
 	//	allow fast port reuse
-	uint32_t sockoptReuseaddr = 1;
-	if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
-		auto apierror = getAPIError();
-		throw std::runtime_error("failed to set socket reuse address option: code " + std::to_string(apierror));
+	if (init.allowPortReuse) {		
+		uint32_t sockoptReuseaddr = 1;
+		if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
+			auto apierror = getAPIError();
+			throw std::runtime_error("failed to set socket reuse address option: code " + std::to_string(apierror));
+		}
 	}
 
 	//	bind socket

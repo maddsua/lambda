@@ -15,8 +15,8 @@ HTTP::Response httpHandler(HTTP::Request req, Network::ConnInfo info) {
 int main(int argc, char const *argv[]) {
 
 	auto startAtPort = 8180;
-	
-	auto server = Network::TCPListenSocket(startAtPort);
+
+	auto server = Network::TCPListenSocket(startAtPort, {});
 
 	std::cout << "Started server at http://localhost:" + std::to_string(startAtPort) + "/\n";
 

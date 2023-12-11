@@ -47,13 +47,17 @@ namespace Lambda::Network {
 			bool alive();
 	};
 
+	struct ListenInit {
+		bool allowPortReuse = false;
+	};
+
 	class TCPListenSocket {
 		protected:
 			SOCKET hSocket = INVALID_SOCKET;
 			uint16_t internalPort;
 
 		public:
-			TCPListenSocket(uint16_t listenPort);
+			TCPListenSocket(uint16_t listenPort, const ListenInit& init);
 			~TCPListenSocket();
 
 			TCPConnection acceptConnection();
