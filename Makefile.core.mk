@@ -1,35 +1,35 @@
-CORE_TARGET				=	core/core.a
-CORE_DEPS				=	$(CORE_POLYFILL_DEPS) $(CORE_HTTP_DEPS) $(CORE_ENCODING_DEPS) $(CORE_NETWORK_DEPS) $(CORE_COMPRESS_DEPS) $(CORE_SERVER_DEPS)
+LIB_CORE				=	core/core.a
+LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS)
 
-CORE_POLYFILL_TARGET	=	core/polyfill.a
-CORE_POLYFILL_DEPS		=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
+LIB_CORE_POLYFILL		=	core/polyfill.a
+LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
 
-CORE_HTTP_TARGET		=	core/http.a
-CORE_HTTP_DEPS			=	core/http/cookie.o core/http/headers.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
+LIB_CORE_HTTP			=	core/http.a
+LIB_CORE_HTTP_DEPS		=	core/http/cookie.o core/http/headers.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
 
-CORE_ENCODING_TARGET	=	core/encoding.a
-CORE_ENCODING_DEPS		=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
+LIB_CORE_ENCODING		=	core/encoding.a
+LIB_CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
 
-CORE_NETWORK_TARGET		=	core/network.a
-CORE_NETWORK_DEPS		=	core/network/connections.o
+LIB_CORE_NETWORK		=	core/network.a
+LIB_CORE_NETWORK_DEPS	=	core/network/connections.o
 
-CORE_COMPRESS_TARGET	=	core/compression.a
-CORE_COMPRESS_DEPS		=	core/compression/brotli.o core/compression/zlib.o
+LIB_CORE_COMPRESS		=	core/compression.a
+LIB_CORE_COMPRESS_DEPS	=	core/compression/brotli.o core/compression/zlib.o
 
-CORE_SERVER_TARGET		=	core/server.a
-CORE_SERVER_DEPS		=	core/server/httpHandler.o
+LIB_CORE_SERVER			=	core/server.a
+LIB_CORE_SERVER_DEPS	=	core/server/httpHandler.o
 
 
 # target object
-lambda.core: $(CORE_TARGET)
+lambda.core: $(LIB_CORE)
 
-$(CORE_TARGET): $(CORE_DEPS)
-	ar rvs $(CORE_TARGET) $(CORE_DEPS)
+$(LIB_CORE): $(LIB_CORE_DEPS)
+	ar rvs $(LIB_CORE) $(LIB_CORE_DEPS)
 
 
 # polyfill stuff
-$(CORE_POLYFILL_TARGET): $(CORE_POLYFILL_DEPS)
-	ar rvs $(CORE_POLYFILL_TARGET) $(CORE_POLYFILL_DEPS)
+$(LIB_CORE_POLYFILL): $(LIB_CORE_POLYFILL_DEPS)
+	ar rvs $(LIB_CORE_POLYFILL) $(LIB_CORE_POLYFILL_DEPS)
 
 core/polyfill/strings.o: core/polyfill/strings.cpp
 	g++ -c $(CFLAGS) core/polyfill/strings.cpp -o core/polyfill/strings.o
@@ -42,8 +42,8 @@ core/polyfill/mimetype.o: core/polyfill/mimetype.cpp
 
 
 # http stuff
-$(CORE_HTTP_TARGET): $(CORE_HTTP_DEPS)
-	ar rvs $(CORE_HTTP_TARGET) $(CORE_HTTP_DEPS)
+$(LIB_CORE_HTTP): $(LIB_CORE_HTTP_DEPS)
+	ar rvs $(LIB_CORE_HTTP) $(LIB_CORE_HTTP_DEPS)
 
 core/http/cookie.o: core/http/cookie.cpp
 	g++ -c $(CFLAGS) core/http/cookie.cpp -o core/http/cookie.o
@@ -68,8 +68,8 @@ core/http/status.o: core/http/status.cpp
 
 
 # encoding stuff
-$(CORE_ENCODING_TARGET): $(CORE_ENCODING_DEPS)
-	ar rvs $(CORE_ENCODING_TARGET) $(CORE_ENCODING_DEPS)
+$(LIB_CORE_ENCODING): $(LIB_CORE_ENCODING_DEPS)
+	ar rvs $(LIB_CORE_ENCODING) $(LIB_CORE_ENCODING_DEPS)
 
 core/encoding/base64.o: core/encoding/base64.cpp
 	g++ -c $(CFLAGS) core/encoding/base64.cpp -o core/encoding/base64.o
@@ -82,16 +82,16 @@ core/encoding/url.o: core/encoding/url.cpp
 
 
 # network stuff
-$(CORE_NETWORK_TARGET): $(CORE_NETWORK_DEPS)
-	ar rvs $(CORE_NETWORK_TARGET) $(CORE_NETWORK_DEPS)
+$(LIB_CORE_NETWORK): $(LIB_CORE_NETWORK_DEPS)
+	ar rvs $(LIB_CORE_NETWORK) $(LIB_CORE_NETWORK_DEPS)
 
 core/network/connections.o: core/network/connections.cpp
 	g++ -c $(CFLAGS) core/network/connections.cpp -o core/network/connections.o
 
 
 # compression stuff
-$(CORE_COMPRESS_TARGET): $(CORE_COMPRESS_DEPS)
-	ar rvs $(CORE_COMPRESS_TARGET) $(CORE_COMPRESS_DEPS)
+$(LIB_CORE_COMPRESS): $(LIB_CORE_COMPRESS_DEPS)
+	ar rvs $(LIB_CORE_COMPRESS) $(LIB_CORE_COMPRESS_DEPS)
 
 core/compression/brotli.o: core/compression/brotli.cpp
 	g++ -c $(CFLAGS) core/compression/brotli.cpp -o core/compression/brotli.o
@@ -101,8 +101,8 @@ core/compression/zlib.o: core/compression/zlib.cpp
 
 
 # server stuff
-$(CORE_SERVER_TARGET): $(CORE_SERVER_DEPS)
-	ar rvs $(CORE_SERVER_TARGET) $(CORE_SERVER_DEPS)
+$(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
+	ar rvs $(LIB_CORE_SERVER) $(LIB_CORE_SERVER_DEPS)
 
 core/server/httpHandler.o: core/server/httpHandler.cpp
 	g++ -c $(CFLAGS) core/server/httpHandler.cpp -o core/server/httpHandler.o

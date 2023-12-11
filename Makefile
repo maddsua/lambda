@@ -4,7 +4,7 @@ CFLAGS					=	-Wall -std=c++20 -g
 LAMBDA_LIBSTATIC		=	lambda.a
 LAMBDA_LIBSHARED		=	lambda.dll
 
-LAMBDA_DEPS				=	$(CORE_DEPS) $(EXTRA_DEPS)
+LAMBDA_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
 
 LINK_COMPRESS_LIBS		=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
 LINK_SYSTEM_LIBS		=	-lws2_32

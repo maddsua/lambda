@@ -1,23 +1,23 @@
-EXTRA_TARGET			=	extra/extra.a
-EXTRA_DEPS				=	$(EXTRA_JSON_DEPS) $(EXTRA_STORAGE_DEPS)
+LIB_EXTRA				=	extra/extra.a
+LIB_EXTRA_DEPS			=	$(LIB_EXTRA_JSON_DEPS) $(LIB_EXTRA_STORAGE_DEPS)
 
-EXTRA_JSON_TARGET		=	extra/json.a
-EXTRA_JSON_DEPS			=	extra/json/property.o extra/json/parse.o extra/json/stringify.o
+LIB_EXTRA_JSON			=	extra/json.a
+LIB_EXTRA_JSON_DEPS		=	extra/json/property.o extra/json/parse.o extra/json/stringify.o
 
-EXTRA_STORAGE_TARGET	=	extra/storage.a
-EXTRA_STORAGE_DEPS		=	extra/storage/storage.o extra/storage/localstorage.o
+LIB_EXTRA_STORAGE		=	extra/storage.a
+LIB_EXTRA_STORAGE_DEPS	=	extra/storage/storage.o extra/storage/localstorage.o
 
 
 # extra object
-lambda.extra: $(EXTRA_TARGET)
+lambda.extra: $(LIB_EXTRA)
 
-$(EXTRA_TARGET): $(EXTRA_DEPS)
-	ar rvs $(EXTRA_TARGET) $(EXTRA_DEPS)
+$(LIB_EXTRA): $(LIB_EXTRA_DEPS)
+	ar rvs $(LIB_EXTRA) $(LIB_EXTRA_DEPS)
 
 
 # jisson stuff
-$(EXTRA_JSON_TARGET): $(EXTRA_JSON_DEPS)
-	ar rvs $(EXTRA_JSON_TARGET) $(EXTRA_JSON_DEPS)
+$(LIB_EXTRA_JSON): $(LIB_EXTRA_JSON_DEPS)
+	ar rvs $(LIB_EXTRA_JSON) $(LIB_EXTRA_JSON_DEPS)
 
 extra/json/parse.o: extra/json/parse.cpp
 	g++ -c $(CFLAGS) extra/json/parse.cpp -o extra/json/parse.o
@@ -30,8 +30,8 @@ extra/json/property.o: extra/json/property.cpp
 
 
 # storage stuff
-$(EXTRA_STORAGE_TARGET): $(EXTRA_STORAGE_DEPS)
-	ar rvs $(EXTRA_STORAGE_TARGET) $(EXTRA_STORAGE_DEPS)
+$(LIB_EXTRA_STORAGE): $(LIB_EXTRA_STORAGE_DEPS)
+	ar rvs $(LIB_EXTRA_STORAGE) $(LIB_EXTRA_STORAGE_DEPS)
 
 extra/storage/storage.o: extra/storage/storage.cpp
 	g++ -c $(CFLAGS) extra/storage/storage.cpp -o extra/storage/storage.o
