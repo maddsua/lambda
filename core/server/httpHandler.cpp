@@ -128,8 +128,8 @@ void Lambda::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 			response = HTTP::Response(HTTP::Status(500), "function has crashed");
 		}
 
-		response.headers.append("date", Date().toUTCString());
-		response.headers.append("server", "maddsua/lambda");
+		response.headers.set("date", Date().toUTCString());
+		response.headers.set("server", "maddsua/lambda");
 
 		auto bodySize = response.body.size();
 		response.headers.set("content-length", std::to_string(bodySize));
