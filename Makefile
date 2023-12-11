@@ -1,9 +1,15 @@
-CFLAGS			=	-Wall -std=c++20 -g
-LIB_TARGET		=	octo.a
-LIB_OBJECTS		=	core/core.a extra/extra.a
+CFLAGS					=	-Wall -std=c++20 -g
+
+TARGET_LIBSTATIC		=	lambda.a
+TARGET_LIBSHARED		=	lambda.dll
+
+LIB_OBJECTS				=	core/core.a extra/extra.a
+
+LINK_COMPRESS_LIBS		=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
+LINK_SYSTEM_LIBS		=	-lws2_32
 
 .PHONY: all all-before all-after action-custom
-all: all-before $(LIB_TARGET) all-after
+all: all-before $(TARGET_LIBSTATIC) all-after
 
 include Makefile.core.mk
 include Makefile.extra.mk
@@ -15,5 +21,14 @@ clean: action-custom
 cleanw: action-custom
 	del /S *.o *.exe *.a *.dll *.res
 
-$(LIB_TARGET): $(LIB_OBJECTS)
-	ar rvs $(LIB_TARGET) $(LIB_OBJECTS)
+# static lib build
+libstatic: $(TARGET_LIBSTATIC)
+
+$(TARGET_LIBSTATIC): $(LIB_OBJECTS)
+	ar rvs $(TARGET_LIBSTATIC) $(LIB_OBJECTS)
+
+# shared lib build
+libshared: $(TARGET_LIBSHARED)
+
+$(TARGET_LIBSHARED): $(LIB_OBJECTS)
+	g++ $(CFLAGS) $(LIB_OBJECTS) $(EXT_COMPRESS_LIBS) $(LINK_SYSTEM_LIBS) -s -shared -o $(TARGET_LIBSHARED) -Wl,--out-implib,lib$(TARGET_LIBSHARED).a

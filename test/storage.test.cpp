@@ -3,7 +3,7 @@
 
 #include "../extra/storage.hpp"
 
-using namespace Storage;
+using namespace Lambda::Storage;
 
 int main(int argc, char const *argv[]) {
 

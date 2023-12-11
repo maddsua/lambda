@@ -3,6 +3,8 @@
 #include "../core/polyfill.hpp"
 #include "../core/network.hpp"
 
+using namespace Lambda;
+
 int main(int argc, char const *argv[]) {
 	
 	auto server = Network::TCPListenSocket(8180);

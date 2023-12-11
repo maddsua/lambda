@@ -3,7 +3,8 @@
 
 #include "../extra/json.hpp"
 
-using namespace JSON;
+using namespace Lambda;
+using namespace Lambda::JSON;
 
 int main(int argc, char const *argv[]) {
 

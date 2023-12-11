@@ -3,6 +3,8 @@
 
 #include "../extra/compression.hpp"
 
+using namespace Lambda;
+
 const std::vector<uint64_t> sizesets = {
 	1,
 	4,

@@ -6,6 +6,8 @@
 
 #include "../core/encoding.hpp"
 
+using namespace Lambda;
+
 std::vector<std::pair<std::string, std::string>> test_data_base64_encode = {
 	{
 		"this is a test string",

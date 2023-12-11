@@ -1,6 +1,8 @@
 #include <iostream>
 #include "../core/core.hpp"
 
+using namespace Lambda;
+
 int main(int argc, char const *argv[]) {
 
 	auto source = "https://user:password@example.com:443/document?search=query#fragment";
