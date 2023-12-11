@@ -1,6 +1,3 @@
-include Makefile.core.mk
-include Makefile.extra.mk
-include Makefile.test.mk
 
 CFLAGS					=	-Wall -std=c++20 -g
 
@@ -20,6 +17,10 @@ clean: action-custom
 
 cleanw: action-custom
 	del /S *.o *.exe *.a *.dll *.res
+
+include Makefile.core.mk
+include Makefile.extra.mk
+include Makefile.test.mk
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
