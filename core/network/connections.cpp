@@ -32,14 +32,15 @@ TCPListenSocket::TCPListenSocket(uint16_t listenPort) {
 	serverAddr.sin_port = htons(listenPort);
 	this->internalPort = listenPort;
 
-	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr))) {
 		auto apierror = getAPIError();
 		closesocket(this->hSocket);
+		if (apierror == SYSNETWERR_IN_USE) throw std::runtime_error("failed to bind socket: address already in use");
 		throw std::runtime_error("failed to bind socket: code " + std::to_string(apierror));
 	}
 
 	//	listen for incoming connections
-	if (listen(this->hSocket, SOMAXCONN) == SOCKET_ERROR) {
+	if (listen(this->hSocket, SOMAXCONN)) {
 		auto apierror = getAPIError();
 		closesocket(this->hSocket);
 		throw std::runtime_error("socket listen failed: code " + std::to_string(apierror));
