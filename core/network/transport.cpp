@@ -116,30 +116,31 @@ void Network::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction hand
 		auto& next = pipeline.front();
 		if (next.future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) continue;
 
+		HTTP::Response response;
+
 		try {
-
-			auto response = next.future.get();
-
-			auto bodySize = response.body.size();
-			response.headers.set("content-length", std::to_string(bodySize));
-
-			if (next.info.keepAlive) {
-				response.headers.set("connection", "keep-alive");
-			}
-
-			std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
-			for (const auto& header : response.headers.entries()) {
-				headerBuff += header.key + ": " + header.value + "\r\n";
-			}
-			headerBuff += "\r\n";
-
-			conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
-			if (bodySize) conn.write(response.body.buffer());
-
+			response = next.future.get();
 		} catch(const std::exception& e) {
-			std::cerr << "Failed: " << e.what() << '\n';
-			break;
+			response = HTTP::Response(HTTP::Status(500), "function has crashed");
+		} catch(...) {
+			response = HTTP::Response(HTTP::Status(500), "function has crashed");
 		}
+
+		auto bodySize = response.body.size();
+		response.headers.set("content-length", std::to_string(bodySize));
+
+		if (next.info.keepAlive) {
+			response.headers.set("connection", "keep-alive");
+		}
+
+		std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
+		for (const auto& header : response.headers.entries()) {
+			headerBuff += header.key + ": " + header.value + "\r\n";
+		}
+		headerBuff += "\r\n";
+
+		conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
+		if (bodySize) conn.write(response.body.buffer());
 
 		std::lock_guard<std::mutex>lock(pipelineMtLock);
 		pipeline.pop();
