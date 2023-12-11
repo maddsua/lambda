@@ -32,6 +32,8 @@
 		return true;
 	}
 
+	#define SYSNETWERR_IN_USE WSAEADDRINUSE
+
 #else
 
 	#include <sys/types.h>
@@ -57,6 +59,8 @@
 
 	#define closesocket(socketHandle) close(socketHandle)
 	#define SD_BOTH (SHUT_RDWR)
+
+	#define SYSNETWERR_IN_USE EADDRINUSE
 
 #endif
 
