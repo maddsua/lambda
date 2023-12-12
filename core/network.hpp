@@ -34,6 +34,7 @@ namespace Lambda::Network {
 
 		public:
 			TCPConnection(ConnCreateInit init);
+			TCPConnection(TCPConnection&& other) noexcept;
 			~TCPConnection();
 
 			TCPConnection& operator= (const TCPConnection& other) = delete;
@@ -44,7 +45,7 @@ namespace Lambda::Network {
 			void write(const std::vector<uint8_t>& data);
 			const ConnInfo& info() const noexcept;
 			void closeConnection();
-			bool alive();
+			bool alive() const noexcept;
 	};
 
 	struct ListenInit {
@@ -54,18 +55,21 @@ namespace Lambda::Network {
 	class TCPListenSocket {
 		protected:
 			SOCKET hSocket = INVALID_SOCKET;
-			uint16_t internalPort;
+			uint16_t internalPort = 0;
 
 		public:
+			TCPListenSocket(TCPListenSocket&& other);
 			TCPListenSocket(uint16_t listenPort, const ListenInit& init);
 			~TCPListenSocket();
 
+			TCPListenSocket& operator=(const TCPListenSocket& other) = delete;
+			TCPListenSocket& operator=(TCPListenSocket&& other) noexcept;
+
 			TCPConnection acceptConnection();
 
-			bool ok();
+			bool ok() const noexcept;
+			uint16_t getPort() const noexcept;
 	};
-
-	void setSocketTimeouts(SOCKET hSocket, uint32_t timeoutsMs);
 };
 
 #endif

@@ -1,7 +1,4 @@
 #include <iostream>
-#include <future>
-#include <chrono>
-#include <thread>
 
 #include "../core/polyfill.hpp"
 #include "../core/http.hpp"
@@ -19,14 +16,22 @@ int main(int argc, char const *argv[]) {
 
 	auto startAtPort = 8180;
 
-	auto server = HttpServer(httpHandler, {});
+	auto server = Network::TCPListenSocket(startAtPort, {});
 
 	std::cout << "Started server at http://localhost:" + std::to_string(startAtPort) + "/\n";
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	while (server.ok()) {
 
-	auto emptyPromise = std::promise<void>();
-	emptyPromise.get_future().wait();
+		auto conn = server.acceptConnection();
+		std::cout << "Got a connection!\n-----\n";
+
+		try {
+			Server::handleHTTPConnection(std::move(conn), httpHandler);
+			std::cout << "TCP connection served and closed\n-----\n";
+		} catch(const std::exception& e) {
+			std::cerr << "http handler crashed: " << e.what() << '\n';
+		}
+	}
 
 	return 0;
 }

@@ -17,7 +17,7 @@ LIB_CORE_COMPRESS		=	core/compression.a
 LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_DEPS	=	core/server/httpHandler.o
+LIB_CORE_SERVER_DEPS	=	core/server/httpHandler.o core/server/httpServer.o
 
 
 # target object
@@ -109,4 +109,7 @@ $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 
 core/server/httpHandler.o: core/server/httpHandler.cpp
 	g++ -c $(CFLAGS) core/server/httpHandler.cpp -o core/server/httpHandler.o
+
+core/server/httpServer.o: core/server/httpServer.cpp
+	g++ -c $(CFLAGS) core/server/httpServer.cpp -o core/server/httpServer.o
 

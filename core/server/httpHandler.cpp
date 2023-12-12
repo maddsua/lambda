@@ -1,6 +1,5 @@
-#include "../network/sysnetw.hpp"
-#include "../network.hpp"
 #include "../server.hpp"
+#include "../network/sysnetw.hpp"
 #include "../compression.hpp"
 #include "../../core/polyfill.hpp"
 #include "../../lambda_build_options.hpp"
@@ -40,7 +39,7 @@ struct PipelineItem {
 	} context;
 };
 
-void Server::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handler) {
+void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handler) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMtLock;

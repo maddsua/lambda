@@ -2,6 +2,7 @@
 #include <cstdio>
 
 #include "./sysnetw.hpp"
+#include "./internal.hpp"
 #include "../network.hpp"
 
 using namespace Lambda;
@@ -59,7 +60,22 @@ TCPListenSocket::~TCPListenSocket() {
 	closesocket(this->hSocket);
 }
 
+TCPListenSocket::TCPListenSocket(TCPListenSocket&& other) {
+	this->hSocket = other.hSocket;
+	this->internalPort = other.internalPort;
+	other.hSocket = INVALID_SOCKET;
+}
+
+TCPListenSocket& TCPListenSocket::operator= (TCPListenSocket&& other) noexcept {
+	this->hSocket = other.hSocket;
+	this->internalPort = other.internalPort;
+	other.hSocket = INVALID_SOCKET;
+	return *this;
+}
+
 TCPConnection TCPListenSocket::acceptConnection() {
+
+	if (this->hSocket == INVALID_SOCKET) throw std::runtime_error("cannot accept anything from a closed socket");
 
 	ConnCreateInit next;
 	next.info.port = this->internalPort;
@@ -77,8 +93,12 @@ TCPConnection TCPListenSocket::acceptConnection() {
 	return TCPConnection(next);
 }
 
-bool TCPListenSocket::ok() {
+bool TCPListenSocket::ok() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
+}
+
+uint16_t TCPListenSocket::getPort() const noexcept {
+	return this->internalPort;
 }
 
 
@@ -97,12 +117,25 @@ TCPConnection::TCPConnection(ConnCreateInit init) {
 		if (setConnectionTimeout < static_cast<uint32_t>(Constants::Connection_TimeoutMs_Min))
 			throw std::runtime_error("cannot setup a TCP connection: timeout is too small");
 
-		setSocketTimeouts(this->hSocket, setConnectionTimeout);
+		setConnectionTimeouts(this->hSocket, setConnectionTimeout);
 
 	} catch(...) {
 		if (this->hSocket == INVALID_SOCKET) return;
 		closesocket(this->hSocket);
 	}
+}
+
+TCPConnection& TCPConnection::operator= (TCPConnection&& other) noexcept {
+	this->hSocket = other.hSocket;
+	this->conninfo = other.conninfo;
+	other.hSocket = INVALID_SOCKET;
+	return *this;
+}
+
+TCPConnection::TCPConnection(TCPConnection&& other) noexcept {
+	this->hSocket = other.hSocket;
+	this->conninfo = other.conninfo;
+	other.hSocket = INVALID_SOCKET;
 }
 
 TCPConnection::~TCPConnection() {
@@ -118,17 +151,11 @@ void TCPConnection::closeConnection() {
 	this->hSocket = INVALID_SOCKET;
 }
 
-TCPConnection& TCPConnection::operator= (TCPConnection&& other) noexcept {
-	this->hSocket = other.hSocket;
-	other.hSocket = INVALID_SOCKET;
-	return *this;
-}
-
 const ConnInfo& TCPConnection::info() const noexcept {
 	return this->conninfo;
 }
 
-bool TCPConnection::alive() {
+bool TCPConnection::alive() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
 }
 
@@ -168,7 +195,7 @@ std::vector<uint8_t> TCPConnection::read(size_t expectedSize) {
 	return chunk;
 }
 
-void Network::setSocketTimeouts(SOCKET hSocket, uint32_t timeoutsMs) {
+void Network::setConnectionTimeouts(SOCKET hSocket, uint32_t timeoutsMs) {
 	if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutsMs, sizeof(timeoutsMs)))
 		throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
 	if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutsMs, sizeof(timeoutsMs)))
