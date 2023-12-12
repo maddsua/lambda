@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <cstdio>
 
 #include "./sysnetw.hpp"
 #include "../network.hpp"
@@ -27,6 +28,7 @@ TCPListenSocket::TCPListenSocket(uint16_t listenPort, const ListenInit& init) {
 			closesocket(this->hSocket);
 			throw std::runtime_error("failed to set socket reuse address option: code " + std::to_string(apierror));
 		}
+		puts("Warning: fast port reuse enabled");
 	}
 
 	//	bind socket
