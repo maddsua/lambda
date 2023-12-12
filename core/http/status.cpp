@@ -70,7 +70,7 @@ Status::Status(int code) {
 
 	const auto foundCode = statusCodeTable.find(code);
 	if (foundCode == statusCodeTable.end())
-		throw std::invalid_argument("Unknown status code");
+		throw std::invalid_argument("provided http status code is unknown");
 
 	this->internalCode = foundCode->first;
 	this->internalText = foundCode->second;

@@ -80,13 +80,13 @@ void Server::handleHTTPConnection(TCPConnection& conn, HttpHandlerFunction handl
 				const auto& headerline = headerFields[i];
 
 				auto separator = headerline.find(':');
-				if (separator == std::string::npos) throw std::runtime_error("header is fucked");
+				if (separator == std::string::npos) throw std::runtime_error("invalid header structure (no separation betwen name and header value)");
 
 				auto headerKey = Strings::trim(headerline.substr(0, separator));
-				if (!headerKey.size()) throw std::runtime_error("header key is fucked");
+				if (!headerKey.size()) throw std::runtime_error("invalid header (empty header name)");
 
 				auto headerValue = Strings::trim(headerline.substr(separator + 1));
-				if (!headerValue.size()) throw std::runtime_error("header value is fucked");
+				if (!headerValue.size()) throw std::runtime_error("invalid header (empty header value)");
 
 				request.headers.append(headerKey, headerValue);
 			}

@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <set>
 
+using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::Strings;
 
@@ -25,7 +26,7 @@ void Method::apply(const std::string& method) {
 	const auto newMethod = Strings::toUpperCase(Strings::trim(method));
 
 	if (!httpKnownMethods.contains(newMethod)) {
-		throw new std::runtime_error("\"" + method + "\" is not a valid http method");
+		throw std::invalid_argument("provided http method is unknown");
 	}
 
 	this->value = newMethod;

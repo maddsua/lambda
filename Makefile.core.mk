@@ -14,7 +14,7 @@ LIB_CORE_NETWORK		=	core/network.a
 LIB_CORE_NETWORK_DEPS	=	core/network/connections.o
 
 LIB_CORE_COMPRESS		=	core/compression.a
-LIB_CORE_COMPRESS_DEPS	=	core/compression/brotli.o core/compression/zlib.o
+LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_DEPS	=	core/server/httpHandler.o
@@ -93,6 +93,9 @@ core/network/connections.o: core/network/connections.cpp
 $(LIB_CORE_COMPRESS): $(LIB_CORE_COMPRESS_DEPS)
 	ar rvs $(LIB_CORE_COMPRESS) $(LIB_CORE_COMPRESS_DEPS)
 
+core/compression/streams.o: core/compression/streams.cpp
+	g++ -c $(CFLAGS) core/compression/streams.cpp -o core/compression/streams.o
+
 core/compression/brotli.o: core/compression/brotli.cpp
 	g++ -c $(CFLAGS) core/compression/brotli.cpp -o core/compression/brotli.o
 
@@ -106,3 +109,4 @@ $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 
 core/server/httpHandler.o: core/server/httpHandler.cpp
 	g++ -c $(CFLAGS) core/server/httpHandler.cpp -o core/server/httpHandler.o
+

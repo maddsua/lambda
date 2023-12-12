@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "./sysnetw.hpp"
 #include "../network.hpp"
 
@@ -14,15 +16,15 @@ TCPListenSocket::TCPListenSocket(uint16_t listenPort, const ListenInit& init) {
 	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if (this->hSocket == INVALID_SOCKET) {
-		auto apierror = getAPIError();
-		throw std::runtime_error("failed to create listen socket: code " + std::to_string(apierror));
+		throw std::runtime_error("failed to create listen socket: code " + std::to_string(getAPIError()));
 	}
 	
 	//	allow fast port reuse
-	if (init.allowPortReuse) {		
+	if (init.allowPortReuse) {
 		uint32_t sockoptReuseaddr = 1;
 		if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
 			auto apierror = getAPIError();
+			closesocket(this->hSocket);
 			throw std::runtime_error("failed to set socket reuse address option: code " + std::to_string(apierror));
 		}
 	}
@@ -85,30 +87,32 @@ TCPConnection::TCPConnection(ConnCreateInit init) {
 
 	auto setConnectionTimeout = init.connTimeout ? init.connTimeout : static_cast<uint32_t>(Constants::Connection_TimeoutMs);
 
-	if (setConnectionTimeout > static_cast<uint32_t>(Constants::Connection_TimeoutMs_Max))
-		throw std::runtime_error("cannot create TCP connection: timeout is too big");
-	if (setConnectionTimeout < static_cast<uint32_t>(Constants::Connection_TimeoutMs_Min))
-		throw std::runtime_error("cannot create TCP connection: timeout is too small");
+	try {
 
-	setSocketTimeouts(this->hSocket, setConnectionTimeout);
+		if (setConnectionTimeout > static_cast<uint32_t>(Constants::Connection_TimeoutMs_Max))
+			throw std::runtime_error("cannot setup a TCP connection: timeout is too big");
+			
+		if (setConnectionTimeout < static_cast<uint32_t>(Constants::Connection_TimeoutMs_Min))
+			throw std::runtime_error("cannot setup a TCP connection: timeout is too small");
+
+		setSocketTimeouts(this->hSocket, setConnectionTimeout);
+
+	} catch(...) {
+		if (this->hSocket == INVALID_SOCKET) return;
+		closesocket(this->hSocket);
+	}
 }
 
 TCPConnection::~TCPConnection() {
-	this->closeConnection();
+	if (this->hSocket == INVALID_SOCKET) return;
+	shutdown(this->hSocket, SD_BOTH);
+	closesocket(this->hSocket);
 }
 
 void TCPConnection::closeConnection() {
-
 	if (this->hSocket == INVALID_SOCKET) return;
-
-	if (shutdown(this->hSocket, SD_BOTH)) {
-		throw std::runtime_error("failed to perform socket shutdown: code " + std::to_string(getAPIError()));
-	}
-
-	if (closesocket(this->hSocket)) {
-		throw std::runtime_error("failed to close socket: code " + std::to_string(getAPIError()));
-	}
-
+	shutdown(this->hSocket, SD_BOTH);
+	closesocket(this->hSocket);
 	this->hSocket = INVALID_SOCKET;
 }
 
@@ -165,7 +169,6 @@ std::vector<uint8_t> TCPConnection::read(size_t expectedSize) {
 void Network::setSocketTimeouts(SOCKET hSocket, uint32_t timeoutsMs) {
 	if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutsMs, sizeof(timeoutsMs)))
 		throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
-
 	if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutsMs, sizeof(timeoutsMs)))
 		throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
 }

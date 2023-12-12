@@ -1194,11 +1194,8 @@ std::string Content::getExtMimetype(const std::string& ext) {
 }
 
 std::string Content::getMimetypeExt(const std::string& mimetype) {
-
 	for (const auto& entry : mimetypeMap) {
-		if (entry.second.find(mimetype) == std::string::npos) continue;
-		return entry.first;
+		if (entry.second == mimetype) return entry.first;
 	}
-
 	return "bin";
 }

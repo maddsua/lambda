@@ -24,7 +24,7 @@ void URL::parse(const std::string& href) {
 			//	alright so let's start with getting url schema. that's the "http" thing
 			cursor = href.find("://");
 			if (cursor == std::string::npos) {
-				throw std::runtime_error("Protocol not specified");
+				throw std::runtime_error("protocol not specified");
 			}
 
 			this->protocol = href.substr(0, cursor);
@@ -36,7 +36,7 @@ void URL::parse(const std::string& href) {
 			auto addrString = href.substr(cursor, docStart - cursor);
 
 			if (Strings::includes(addrString, std::vector<std::string>({ "?", "#" }))) {
-				throw std::runtime_error("Hostname invalid");
+				throw std::runtime_error("hostname invalid");
 			}
 
 			// get http auth sorted out
@@ -65,7 +65,7 @@ void URL::parse(const std::string& href) {
 				this->hostname = addrString;
 			}
 
-			if (!this->hostname.size()) throw std::runtime_error("Host name undefined");
+			if (!this->hostname.size()) throw std::runtime_error("host name undefined");
 		}
 
 		if (docStart == std::string::npos) {
