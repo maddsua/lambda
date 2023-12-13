@@ -2,7 +2,7 @@ LIB_CORE				=	core/core.a
 LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
-LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
+LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/crypto/random.o
 
 LIB_CORE_HTTP			=	core/http.a
 LIB_CORE_HTTP_DEPS		=	core/http/cookie.o core/http/headers.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
@@ -39,6 +39,9 @@ core/polyfill/date.o: core/polyfill/date.cpp
 
 core/polyfill/mimetype.o: core/polyfill/mimetype.cpp
 	g++ -c $(CFLAGS) core/polyfill/mimetype.cpp -o core/polyfill/mimetype.o
+
+core/polyfill/crypto/random.o: core/polyfill/crypto/random.cpp
+	g++ -c $(CFLAGS) core/polyfill/crypto/random.cpp -o core/polyfill/crypto/random.o
 
 
 # http stuff

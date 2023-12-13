@@ -6,8 +6,8 @@
 
 namespace Lambda::Encoding {
 
-	std::string toBase64(const std::string& data);
-	std::string fromBase64(const std::string& data);
+	std::string toBase64(const std::vector<uint8_t>& data);
+	std::vector<uint8_t> fromBase64(const std::string& data);
 
 	union HexByte {
 		char string[3];
@@ -18,10 +18,10 @@ namespace Lambda::Encoding {
 	};
 
 	HexByte encodeHexByte(char databyte);
-	std::string toHex(const std::string& input);
+	std::string toHex(const std::vector<uint8_t>& input);
 
 	char decodeHexByte(HexByte hexbyte);
-	std::string fromHex(const std::string& input);
+	std::vector<uint8_t> fromHex(const std::string& input);
 
 	std::string encodeURIComponent(const std::string& input);
 	std::string decodeURIComponent(const std::string& input);

@@ -32,20 +32,21 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 };
 
 struct PipelineItem {
-	std::future<HTTP::Response> future;
+
+	HTTP::Request request;
+
 	struct {
 		bool keepAlive = false;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
-	} context;
+	} ctx;
+
+	std::string id;
 };
 
-void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handler) {
+void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMtLock;
-
-	auto receiveInitedPromise = std::promise<void>();
-	auto receiveInitedFuture = receiveInitedPromise.get_future();
 
 	auto receiveRoutine = std::async([&]() {
 
@@ -71,8 +72,14 @@ void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handle
 			recvBuff.erase(recvBuff.begin(), headerEnded + patternEndHeader.size());
 
 			auto headerStartLine = Strings::split(headerFields.at(0), ' ');
-			auto request = HTTP::Request(HTTP::URL(headerStartLine.at(1)));
-			request.method = HTTP::Method(headerStartLine.at(0));
+	
+			auto& requestMethodString = headerStartLine.at(0);
+			auto& requestUrlString = headerStartLine.at(1);
+
+			PipelineItem next;
+			next.id = Crypto::randomID(8);
+			next.request.url = HTTP::URL(requestUrlString);
+			next.request.method = HTTP::Method(requestMethodString);
 
 			for (size_t i = 1; i < headerFields.size(); i++) {
 
@@ -87,17 +94,15 @@ void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handle
 				auto headerValue = Strings::trim(headerline.substr(separator + 1));
 				if (!headerValue.size()) throw std::runtime_error("invalid header (empty header value)");
 
-				request.headers.append(headerKey, headerValue);
+				next.request.headers.append(headerKey, headerValue);
 			}
 
-			PipelineItem next;
-
-			auto connectionHeader = request.headers.get("connection");
+			auto connectionHeader = next.request.headers.get("connection");
 			if (connectionKeepAlive) connectionKeepAlive = !Strings::includes(connectionHeader, "close");
 				else connectionKeepAlive = Strings::includes(connectionHeader, "keep-alive");
-			next.context.keepAlive = connectionKeepAlive;
+			next.ctx.keepAlive = connectionKeepAlive;
 
-			auto acceptEncodingHeader = request.headers.get("accept-encoding");
+			auto acceptEncodingHeader = next.request.headers.get("accept-encoding");
 			if (acceptEncodingHeader.size()) {
 
 				auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
@@ -105,13 +110,13 @@ void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handle
 
 				for (const auto& encoding : contentEncodingMap) {
 					if (acceptEncodingsSet.contains(encoding.second)) {
-						next.context.acceptsEncoding = encoding.first;
+						next.ctx.acceptsEncoding = encoding.first;
 						break;
 					}
 				}
 			}
 
-			auto bodySizeHeader = request.headers.get("content-length");
+			auto bodySizeHeader = next.request.headers.get("content-length");
 			size_t bodySize = bodySizeHeader.size() ? std::stoull(bodySizeHeader) : 0;
 
 			if (bodySize) {
@@ -125,54 +130,61 @@ void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handle
 					recvBuff.insert(recvBuff.end(), temp.begin(), temp.end());
 				}
 
-				request.body = HTTP::Body(std::vector<uint8_t>(recvBuff.begin(), recvBuff.begin() + bodySize));
+				next.request.body = std::vector<uint8_t>(recvBuff.begin(), recvBuff.begin() + bodySize);
 				recvBuff.erase(recvBuff.begin(), recvBuff.begin() + bodySize);
 			}
-
-			next.future = std::async(handler, std::move(request), conn.info());
 
 			std::lock_guard<std::mutex>lock(pipelineMtLock);
 			pipeline.push(std::move(next));
 
-			if (receiveInitedFuture.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
-				receiveInitedPromise.set_value();
-			}
-
 		} while (connectionKeepAlive);
 
 	});
-
-	while (receiveInitedFuture.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
-		if (receiveRoutine.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
-			receiveRoutine.get();
-	}
 
 	while ((receiveRoutine.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready || pipeline.size()) && conn.alive()) {
 
 		if (!pipeline.size()) continue;
 
 		auto& next = pipeline.front();
-		if (next.future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) continue;
 
 		HTTP::Response response;
+		auto responseDate = Date();
 
 		try {
-			response = next.future.get();
+
+			RequestContext requestCtx;
+			requestCtx.requestID = next.id;
+			requestCtx.conninfo = conn.info();
+	
+			response = handler(next.request, requestCtx);
+
 		} catch(const std::exception& e) {
+
+			if (options.errorLoggingEnabled) {
+				printf("%s [%s] Handler has crashed: %s\n", responseDate.toHRTString().c_str(), next.id.c_str(), e.what());
+			}
+
 			response = HTTP::Response(HTTP::Status(500), "function has crashed");
+
 		} catch(...) {
+
+			if (options.errorLoggingEnabled) {
+				printf("%s [%s] Handler has crashed: unhandled exception\n", responseDate.toHRTString().c_str(), next.id.c_str());
+			}
+
 			response = HTTP::Response(HTTP::Status(500), "function has crashed");
 		}
 
-		response.headers.set("date", Date().toUTCString());
+		response.headers.set("date", responseDate.toUTCString());
 		response.headers.set("server", "maddsua/lambda");
-		if (next.context.keepAlive) response.headers.set("connection", "keep-alive");
+		response.headers.set("x-request-id", next.id);
+		if (next.ctx.keepAlive) response.headers.set("connection", "keep-alive");
 
 		#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
 			std::vector<uint8_t> responseBody;
 
-			switch (next.context.acceptsEncoding) {
+			switch (next.ctx.acceptsEncoding) {
 	
 				case ContentEncodings::Brotli: {
 					responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
@@ -191,8 +203,8 @@ void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handle
 				} break;
 			}
 
-			if (next.context.acceptsEncoding != ContentEncodings::None) {
-				response.headers.set("content-encoding", contentEncodingMap.at(next.context.acceptsEncoding));
+			if (next.ctx.acceptsEncoding != ContentEncodings::None) {
+				response.headers.set("content-encoding", contentEncodingMap.at(next.ctx.acceptsEncoding));
 			}
 
 		#else
@@ -210,6 +222,11 @@ void Server::handleHTTPConnection(TCPConnection conn, HttpHandlerFunction handle
 
 		conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 		if (bodySize) conn.write(responseBody);
+
+		if (options.reuqestLoggingEnabled) {
+			auto conninfo = conn.info();
+			printf("%s [%s] (%s) %s %s --> %i\n", responseDate.toHRTString().c_str(), next.id.c_str(), conninfo.ip.c_str(), static_cast<std::string>(next.request.method).c_str(), next.request.url.pathname.c_str(), response.status.code());
+		}
 
 		std::lock_guard<std::mutex>lock(pipelineMtLock);
 		pipeline.pop();

@@ -71,8 +71,8 @@ test/tcp.test.o: test/tcp.test.cpp
 # Test network/transport/http core module
 test.httptransport: httptransport.test.exe
 
-httptransport.test.exe: test/httptransport.test.o $(LIB_CORE)
-	g++ $(CFLAGS) test/httptransport.test.cpp $(LIB_CORE) $(LINK_COMPRESS_LIBS) -lws2_32 -o httptransport.test.exe
+httptransport.test.exe: test/httptransport.test.o $(LIB_CORE_DEPS)
+	g++ $(CFLAGS) test/httptransport.test.cpp $(LIB_CORE_DEPS) $(LINK_COMPRESS_LIBS) -lws2_32 -o httptransport.test.exe
 
 test/httptransport.test.o: test/httptransport.test.cpp
 	g++ -c $(CFLAGS) test/httptransport.test.cpp -o test/httptransport.test.o
@@ -81,8 +81,8 @@ test/httptransport.test.o: test/httptransport.test.cpp
 # Test http server core module
 test.httpserver: httpserver.test.exe
 
-httpserver.test.exe: test/httpserver.test.o $(LIB_CORE)
-	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE) $(LINK_COMPRESS_LIBS) -lws2_32 -o httpserver.test.exe
+httpserver.test.exe: test/httpserver.test.o $(LIB_CORE_DEPS)
+	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_DEPS) $(LINK_COMPRESS_LIBS) -lws2_32 -o httpserver.test.exe
 
 test/httpserver.test.o: test/httpserver.test.cpp
 	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o

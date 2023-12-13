@@ -18,7 +18,7 @@ Encoding::HexByte Encoding::encodeHexByte(char databyte) {
 	return result;
 };
 
-std::string Encoding::toHex(const std::string& input) {
+std::string Encoding::toHex(const std::vector<uint8_t>& input) {
 
 	std::string result;
 	result.reserve(input.size() * 2);
@@ -50,11 +50,11 @@ char Encoding::decodeHexByte(HexByte hexbyte) {
 	return (temp.data.first << 4) | temp.data.second;
 }
 
-std::string Encoding::fromHex(const std::string& input) {
+std::vector<uint8_t> Encoding::fromHex(const std::string& input) {
 
 	if (input.size() % 2) throw std::runtime_error("Hex string length must be divisible by 2");
 
-	std::string result;
+	std::vector<uint8_t> result;
 	result.reserve(input.size() / 2);
 
 	for (size_t i = 0; i < input.size(); i+= 2) {

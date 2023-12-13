@@ -6,7 +6,6 @@
 #include "./encoding.hpp"
 #include "./compression.hpp"
 #include "./network.hpp"
-#include "./error.hpp"
 #include "./server.hpp"
 
 #endif

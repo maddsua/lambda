@@ -26,8 +26,6 @@ namespace Lambda::Crypto {
 			std::array <uint8_t, Crypto::SHA1_BLOCK_SIZE> digest();
 	};
 
-	std::vector <uint64_t> randomSequence(const size_t cap, const size_t length);
-	std::vector <uint8_t> randomStream(const size_t length);
 }
 
 #endif

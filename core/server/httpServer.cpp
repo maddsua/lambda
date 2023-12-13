@@ -1,9 +1,11 @@
-#include <iostream>
+#include <cstdio>
 #include <thread>
 
 #include "../server.hpp"
+#include "../polyfill.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Server;
 
 HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerInit init) {
 
@@ -15,38 +17,74 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerIn
 	auto tempListener = Network::TCPListenSocket(this->config.port, listenInitOpts);
 	this->listener = new Network::TCPListenSocket(std::move(tempListener));
 
-	this->watchdogRoutine = std::async([&]() {
+	this->watchdogWorker = std::thread([&]() {
 
 		while (!this->terminated && this->listener->ok()) {
 
 			try {
 
-				auto conn = this->listener->acceptConnection();
-			
-				std::cout << "Got a connection!\n-----\n";
+				auto nextConn = this->listener->acceptConnection();
 
-				//auto worker = std::thread(Server::handleHTTPConnection, std::move(conn), this->handler);
+				auto connectionWorker = std::thread([&](Network::TCPConnection&& conn) {
 
-				auto temp = std::async(Server::handleHTTPConnection, std::move(conn), this->handler);
+					try {
 
-				//Server::handleHTTPConnection(conn, this->handler);
-				std::cout << "TCP connection served and closed\n-----\n";
+						Server::handleHTTPConnection(std::move(conn), this->handler, this->config.handlerOptions);
+
+					} catch(const std::exception& e) {
+						if (this->terminated) return;
+						fprintf(stderr, "[Service] http handler crashed: %s\n", e.what()); 
+					} catch(...) {
+						if (this->terminated) return;
+						fprintf(stderr, "[Service] http handler crashed with unknown error\n"); 
+					}
+
+				}, std::move(nextConn));
+
+				connectionWorker.detach();
 
 			} catch(const std::exception& e) {
-				if (!this->terminated) return;
-				std::cerr << "http handler crashed: " << e.what() << '\n';
+				if (this->terminated) return;
+				fprintf(stderr, "[Service] connection handler crashed: %s\n", e.what()); 
 			} catch(...) {
-				if (!this->terminated) return;
-				std::cerr << "http handler crashed: unhandled error\n";
+				if (this->terminated) return;
+				fprintf(stderr, "[Service] connection handler crashed with unknown error\n"); 
 			}
 		}
 	});
+
+	printf("[Service] Started server at http://localhost:%i/\n", this->config.port);
 };
 
-HttpServer::~HttpServer() {
-	this->terminated = false;
+void HttpServer::softShutdownn() {
+
+	printf("[Service] Initiating graceful shutdown...\n");
+
+	this->terminated = true;
+	if (this->watchdogWorker.joinable())
+		this->watchdogWorker.join();
+
+	printf("[Service] Server shut down\n");
+}
+
+void HttpServer::immediateShutdownn() {
+
+	printf("[Service] Terminating server now\n");
+
+	this->terminated = true;
 	delete this->listener;
-	this->watchdogRoutine.get();
+
+	if (this->watchdogWorker.joinable())
+		this->watchdogWorker.join();
+}
+
+void HttpServer::awaitFinished() {
+	if (this->watchdogWorker.joinable())
+		this->watchdogWorker.join();
+}
+
+HttpServer::~HttpServer() {
+	this->immediateShutdownn();
 }
 
 const HttpServerInit& HttpServer::getConfig() const noexcept {

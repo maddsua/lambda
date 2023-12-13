@@ -55,6 +55,7 @@ namespace Lambda::HTTP {
 			void parse(const std::string& href);
 
 		public:
+			URL() {}
 			URL(const std::string& href) {
 				this->parse(href);
 			}
@@ -159,6 +160,7 @@ namespace Lambda::HTTP {
 		Headers headers;
 		Body body;
 
+		Request() {}
 		Request(const URL& url) : url(url) {}
 		Request(const URL& url, const Headers& headers) : url(url), headers(headers) {}
 		Request(const URL& url, const Body& body) : url(url), body(body) {}

@@ -48,7 +48,7 @@ int main() {
 
 	puts("Base64 encoding test...");
 	for (auto& item : test_data_base64_encode) {
-		auto temp = Encoding::toBase64(item.first);
+		auto temp = Encoding::toBase64(std::vector<uint8_t>(item.first.begin(), item.first.end()));
 		if (temp == item.second) continue;
 		throw std::runtime_error("Unexpected encoding output: \'" + item.second + "\' is expected, but got \'" + temp + "\'");
 	}
@@ -57,8 +57,9 @@ int main() {
 	puts("Base64 decode test...");
 	for (auto& item : test_data_base64_encode) {
 		auto temp = Encoding::fromBase64(item.second);
-		if (temp == item.first) continue;
-		throw std::runtime_error("Unexpected decoding output: \'" + item.second + "\' is expected, but got \'" + temp + "\'");
+		auto tempt = std::string(temp.begin(), temp.end());
+		if (tempt == item.first) continue;
+		throw std::runtime_error("Unexpected decoding output: \'" + item.second + "\' is expected, but got \'" + tempt + "\'");
 	}
 	puts("Ok\n");
 

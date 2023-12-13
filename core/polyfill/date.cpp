@@ -32,7 +32,7 @@ std::string Date::toUTCString() {
 
 std::string Date::toHRTString() {
 	char timebuff[32];
-	strftime(timebuff, sizeof(timebuff), "%H:%M:%S", &this->timestruct);
+	strftime(timebuff, sizeof(timebuff), "%d %b %Y %H:%M:%S", &this->timestruct);
 	return std::string(timebuff);
 }
 

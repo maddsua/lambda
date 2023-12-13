@@ -81,6 +81,14 @@ namespace Lambda {
 		void replaceAll(std::string& base, const std::string& sub, const std::string& replacement);
 		std::string replaceAll(const std::string& base, const std::string& sub, const std::string& replacement);
 	};
+
+	namespace Crypto {
+		std::vector<uint8_t> getRandomValues(size_t length);
+		void getRandomValues(std::vector<uint8_t>& buffer);
+		std::string randomUUID();
+		std::string randomID(size_t length);
+		std::string randomString(size_t length);
+	};
 };
 
 
