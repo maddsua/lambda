@@ -1,6 +1,7 @@
 #include "../polyfill.hpp"
 
-#include <string.h>
+#include <cstring>
+#include <set>
 
 using namespace Lambda;
 
@@ -63,20 +64,20 @@ bool Strings::startsWith(const std::string& str, const std::string& substr) {
 void Strings::trim(std::string& str) {
 
 	//	list of characters to remove
-	static const std::string whitespaceChars = "\r\n\t ";
+	static const std::set<char> whitespaceChars = { '\r', '\n', '\t', ' ' };
 
 	//	forward pass
 	size_t pos_from = 0;
 	while (pos_from < str.size()) {
-		if (whitespaceChars.find(str[pos_from]) == std::string::npos) break;
+		if (!whitespaceChars.contains(str[pos_from])) break;
 		pos_from++;
 	}
 
 	//	backward pass
 	const size_t endIdx = str.size() - 1;
 	size_t pos_to = endIdx;
-	while (pos_to >= 0) {
-		if (whitespaceChars.find(str[pos_to]) == std::string::npos) break;
+	while (pos_to > 0) {
+		if (!whitespaceChars.contains(str[pos_to])) break;
 		pos_to--;
 	}
 

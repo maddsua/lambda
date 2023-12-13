@@ -86,3 +86,12 @@ httpserver.test.exe: test/httpserver.test.o $(LIB_CORE_DEPS)
 
 test/httpserver.test.o: test/httpserver.test.cpp
 	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o
+
+# Test polyfill/strings core module
+test.strings: strings.test.exe
+
+strings.test.exe: test/strings.test.o $(LIB_CORE_POLYFILL_DEPS)
+	g++ $(CFLAGS) test/strings.test.cpp $(LIB_CORE_POLYFILL_DEPS) -o strings.test.exe
+
+test/strings.test.o: test/strings.test.cpp
+	g++ -c $(CFLAGS) test/strings.test.cpp -o test/strings.test.o
