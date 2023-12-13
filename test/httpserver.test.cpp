@@ -13,7 +13,7 @@ HTTP::Response httpHandler(const Request& req, const Context& context) {
 
 int main(int argc, char const *argv[]) {
 
-	HttpServerInit initparams;
+	HttpServerConfig initparams;
 	auto server = HttpServer(httpHandler, initparams);
 	server.awaitFinished();
 

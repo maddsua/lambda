@@ -8,14 +8,14 @@
 using namespace Lambda;
 using namespace Lambda::Server;
 
-HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerInit init) {
+HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerConfig init) {
 
 	this->config = init;
 	this->handler = handlerFunction;
 
 	Network::ListenInit listenInitOpts;
-	listenInitOpts.allowPortReuse = this->config.fastPortReuse;
-	auto tempListener = Network::TCPListenSocket(this->config.port, listenInitOpts);
+	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
+	auto tempListener = Network::TCPListenSocket(this->config.service.port, listenInitOpts);
 	this->listener = new Network::TCPListenSocket(std::move(tempListener));
 
 	this->watchdogWorker = std::thread([&]() {
@@ -30,14 +30,37 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerIn
 
 					try {
 
-						Server::handleHTTPConnection(std::move(conn), this->handler, this->config.handlerOptions);
+						HttpHandlerOptions handlerOptions = {
+							this->config.loglevel,
+							this->config.transport,
+							Crypto::randomID(8)
+						};
+
+						if (this->config.loglevel.logConnections) {
+							printf("%s opens %s\n", conn.info().ip.c_str(), handlerOptions.contextID.c_str());
+						}
+
+						Server::handleHTTPConnection(std::move(conn), this->handler, handlerOptions);
+
+						if (this->config.loglevel.logConnections) {
+							printf("Connection closed\n");
+						}
 
 					} catch(const std::exception& e) {
+
 						if (this->terminated) return;
-						fprintf(stderr, "[Service] http handler crashed: %s\n", e.what()); 
+
+						if (this->config.loglevel.logRequests) {
+							fprintf(stderr, "[Service] http handler crashed: %s\n", e.what()); 
+						}
+
 					} catch(...) {
+
 						if (this->terminated) return;
-						fprintf(stderr, "[Service] http handler crashed with unknown error\n"); 
+
+						if (this->config.loglevel.logRequests) {
+							fprintf(stderr, "[Service] http handler crashed with unknown error\n"); 
+						}
 					}
 
 				}, std::move(nextConn));
@@ -54,7 +77,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerIn
 		}
 	});
 
-	printf("[Service] Started server at http://localhost:%i/\n", this->config.port);
+	printf("[Service] Started server at http://localhost:%i/\n", this->config.service.port);
 };
 
 void HttpServer::softShutdownn() {
@@ -88,6 +111,6 @@ HttpServer::~HttpServer() {
 	this->immediateShutdownn();
 }
 
-const HttpServerInit& HttpServer::getConfig() const noexcept {
+const HttpServerConfig& HttpServer::getConfig() const noexcept {
 	return this->config;
 }

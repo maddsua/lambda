@@ -78,7 +78,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			auto& requestUrlString = headerStartLine.at(1);
 
 			PipelineItem next;
-			next.id = Crypto::randomID(8);
+			next.id = options.contextID.size() ? (options.contextID + '-' + Crypto::randomID(8)) : Crypto::randomUUID();
 			next.request.url = HTTP::URL(requestUrlString);
 			next.request.method = HTTP::Method(requestMethodString);
 
@@ -161,7 +161,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 		} catch(const std::exception& e) {
 
-			if (options.errorLoggingEnabled) {
+			if (options.loglevel.logRequests) {
 				printf("%s [%s] [Caught error] Handler has crashed: %s\n", responseDate.toHRTString().c_str(), next.id.c_str(), e.what());
 			}
 			
@@ -169,7 +169,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 		} catch(...) {
 
-			if (options.errorLoggingEnabled) {
+			if (options.loglevel.logRequests) {
 				printf("%s [%s] [Caught error] Handler has crashed: unhandled exception\n", responseDate.toHRTString().c_str(), next.id.c_str());
 			}
 
@@ -224,7 +224,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 		if (bodySize) conn.write(responseBody);
 
-		if (options.reuqestLoggingEnabled) {
+		if (options.loglevel.logRequests) {
 			auto conninfo = conn.info();
 			printf("%s [%s] (%s) %s %s --> %i\n", responseDate.toHRTString().c_str(), next.id.c_str(), conninfo.ip.c_str(), static_cast<std::string>(next.request.method).c_str(), next.request.url.pathname.c_str(), response.status.code());
 		}

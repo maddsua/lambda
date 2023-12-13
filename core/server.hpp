@@ -12,10 +12,19 @@ namespace Lambda {
 
 	namespace Server {
 
-		struct HttpHandlerOptions {
-			bool reuqestLoggingEnabled = true;
-			bool errorLoggingEnabled = true;
+		struct LoggingOptions {
+			bool logConnections = false;
+			bool logRequests = true;			
+		};
+
+		struct TransportOptions {
 			bool httpCompressionEnabled = true;
+		};
+
+		struct HttpHandlerOptions {
+			LoggingOptions loglevel;
+			TransportOptions transport;
+			std::string contextID;
 		};
 
 		struct RequestContext {
@@ -27,32 +36,40 @@ namespace Lambda {
 		void handleHTTPConnection(Network::TCPConnection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options);
 
 		HTTP::Response serviceResponse(int statusCode, std::optional<std::string> errorMessage);
+
+		struct ServiceOptions {
+			uint16_t port = 8180;
+			bool fastPortReuse = false;
+		};
+
+		struct HttpServerConfig {
+			Server::LoggingOptions loglevel;
+			Server::TransportOptions transport;
+			ServiceOptions service;
+		};
+
+		class HttpServer {
+			private:
+				Network::TCPListenSocket* listener = nullptr;
+				Server::HttpHandlerFunction handler;
+				HttpServerConfig config;
+				std::thread watchdogWorker;
+				bool terminated = false;
+
+			public:
+				HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerConfig init);
+				~HttpServer();
+
+				void softShutdownn();
+				void immediateShutdownn();
+				void awaitFinished();
+
+				const HttpServerConfig& getConfig() const noexcept;
+		};
 	};
 
-	struct HttpServerInit {
-		Server::HttpHandlerOptions handlerOptions;
-		uint16_t port = 8180;
-		bool fastPortReuse = false;
-	};
-
-	class HttpServer {
-		private:
-			Network::TCPListenSocket* listener = nullptr;
-			Server::HttpHandlerFunction handler;
-			std::thread watchdogWorker;
-			HttpServerInit config;
-			bool terminated = false;
-
-		public:
-			HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerInit init);
-			~HttpServer();
-
-			void softShutdownn();
-			void immediateShutdownn();
-			void awaitFinished();
-
-			const HttpServerInit& getConfig() const noexcept;
-	};
+	typedef Server::HttpServer HttpServer;
+	typedef Server::HttpServerConfig HttpServerConfig;
 
 	typedef HTTP::Request Request;
 	typedef Server::RequestContext Context;
