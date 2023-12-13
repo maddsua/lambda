@@ -43,7 +43,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 						Server::handleHTTPConnection(std::move(conn), this->handler, handlerOptions);
 
 						if (this->config.loglevel.logConnections) {
-							printf("Connection closed\n");
+							printf("%s closed\n", handlerOptions.contextID.c_str());
 						}
 
 					} catch(const std::exception& e) {
