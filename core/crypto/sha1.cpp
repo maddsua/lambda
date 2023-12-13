@@ -7,6 +7,8 @@
 
 */
 
+#include <memory.h>
+
 #include "./crypto.hpp"
 
 using namespace Lambda;
@@ -104,10 +106,10 @@ void SHA1::update(const std::vector<uint8_t>& data) {
 	}
 }
 
-std::array <uint8_t, SHA1_BLOCK_SIZE> SHA1::digest() {
+std::array <uint8_t, SHA1::BlockSize> SHA1::digest() {
 
 	auto ctx = (SHA1_CTX*)this->hashctx;
-	std::array <uint8_t, SHA1_BLOCK_SIZE> hash;
+	std::array <uint8_t, SHA1::BlockSize> hash;
 	uint32_t i = ctx->datalen;
 
 	// Pad whatever data is left in the buffer.
