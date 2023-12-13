@@ -63,6 +63,8 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 						}
 					}
 
+					printf("Disconnected %s\n", conn.info().ip.c_str());
+
 				}, std::move(nextConn));
 
 				connectionWorker.detach();

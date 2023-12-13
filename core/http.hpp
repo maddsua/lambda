@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <unordered_map>
 
 namespace Lambda::HTTP {
 
@@ -20,8 +21,7 @@ namespace Lambda::HTTP {
 	*/
 	class KVContainer {
 		protected:
-			std::vector<KVpair> internalContent;
-			void delNormalized(const std::string& keyNormalized);
+			std::unordered_map<std::string, std::vector<std::string>> data;
 
 		public:
 			KVContainer() {};
@@ -31,19 +31,14 @@ namespace Lambda::HTTP {
 			bool has(const std::string& key) const;
 			void set(const std::string& key, const std::string value);
 			void del(const std::string& key);
-			const std::vector<KVpair>& entries() const;
-	};
-
-	class Headers : public KVContainer {
-		public:
-			Headers() {};
-			Headers(const std::vector<KVpair>& init);
-
 			std::vector<std::string> getAll(const std::string& key) const;
 			void append(const std::string& key, const std::string value);
+			std::vector<KVpair> entries() const;
 	};
 
-	class URLSearchParams : public Headers {
+	typedef KVContainer Headers;
+
+	class URLSearchParams : public KVContainer {
 		public:
 			URLSearchParams() {};
 			URLSearchParams(const std::string& URLString);

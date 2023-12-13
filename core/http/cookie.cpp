@@ -2,24 +2,22 @@
 #include "../polyfill.hpp"
 
 using namespace Lambda::HTTP;
-using namespace Lambda::Strings;
 
 Cookie::Cookie(const std::string& cookies) {
 
-	auto entries = split(cookies, "; ");
+	auto entries = Strings::split(cookies, "; ");
 
 	for (const auto& entry : entries) {
 
 		auto kvSeparatorIdx = entry.find('=');
 		if (kvSeparatorIdx == std::string::npos || kvSeparatorIdx == 0 || kvSeparatorIdx == entry.size() - 1) continue;
 
-		auto key = entry.substr(0, kvSeparatorIdx);
-		auto value = entry.substr(kvSeparatorIdx + 1);
+		auto key = Strings::trim(entry.substr(0, kvSeparatorIdx));
+		auto value = Strings::trim(entry.substr(kvSeparatorIdx + 1));
 
-		trim(key);
-		trim(value);
+		if (!key.size() || !value.size()) continue;
 
-		this->internalContent.push_back({ key, value });
+		this->data[key] = { value };
 	}
 }
 
@@ -27,9 +25,9 @@ std::string Cookie::stringify() const {
 	
 	std::string temp;
 
-	for (const auto& item : this->internalContent) {
+	for (const auto& entry : this->data) {
 		if (temp.size()) temp += "; ";
-		temp += item.key + "=" + item.value;
+		temp += entry.first + "=" + entry.second.at(0);
 	}
 
 	return temp;

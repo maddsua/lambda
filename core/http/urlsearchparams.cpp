@@ -2,34 +2,30 @@
 #include "../polyfill.hpp"
 
 using namespace Lambda::HTTP;
-using namespace Lambda::Strings;
 
-URLSearchParams::URLSearchParams(const std::string& urlString) {
+URLSearchParams::URLSearchParams(const std::string& queries) {
 
-	auto qmark = urlString.find_last_of('?');
-	auto queries = split(qmark != std::string::npos ? urlString.substr(qmark + 1) : urlString, "&");
+	auto qmark = queries.find_last_of('?');
+	auto entries = Strings::split(qmark != std::string::npos ? queries.substr(qmark + 1) : queries, '&');
 	
-	for (const auto& item : queries) {
+	for (const auto& entry : entries) {
 
-		if (item.find('=') == std::string::npos) continue;
+		auto kvSeparatorIdx = entry.find('=');
+		if (kvSeparatorIdx == std::string::npos || kvSeparatorIdx == 0 || kvSeparatorIdx == entry.size() - 1) continue;
 
-		auto query = split(item, "=");
-		if (query.size() < 2) continue;
+		auto key = Strings::trim(entry.substr(0, kvSeparatorIdx));
+		auto value = Strings::trim(entry.substr(kvSeparatorIdx + 1));
 
-		const auto key = query.at(0);
-		const auto value = query.at(1);
+		if (!key.size() || !value.size()) continue;
 
-		this->internalContent.push_back({
-			toLowerCase(trim(key)),
-			trim(value)
-		});
+		this->data[key] = { value };
 	}
 }
 
 std::string URLSearchParams::stringify() const {
 	auto result = std::string();
-	for (const auto& item : this->internalContent) {
-		result += (result.size() ? "&" : "") + item.key + "=" + item.value;
+	for (const auto& entry : this->data) {
+		result += (result.size() ? "&" : "") + entry.first + "=" + entry.second.at(0);
 	}
 	return result;
 }
