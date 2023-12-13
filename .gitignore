@@ -18,3 +18,4 @@ deps/build/package-lock.json
 # app's stuff
 *.db
 *.bin
+*.ldb
