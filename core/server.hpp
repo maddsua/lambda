@@ -12,18 +12,17 @@ namespace Lambda {
 
 	namespace Server {
 
-		struct LoggingOptions {
-			bool logConnections = false;
-			bool logRequests = true;			
+		struct ServeOptions {
+			struct {
+				bool logConnections = false;
+				bool logRequests = true;			
+			} loglevel;
+			struct {
+				bool httpCompressionEnabled = true;		
+			} transport;
 		};
 
-		struct TransportOptions {
-			bool httpCompressionEnabled = true;
-		};
-
-		struct HttpHandlerOptions {
-			LoggingOptions loglevel;
-			TransportOptions transport;
+		struct HttpHandlerOptions : ServeOptions {
 			std::string contextID;
 		};
 
@@ -42,9 +41,7 @@ namespace Lambda {
 			bool fastPortReuse = false;
 		};
 
-		struct HttpServerConfig {
-			Server::LoggingOptions loglevel;
-			Server::TransportOptions transport;
+		struct HttpServerConfig : ServeOptions {
 			ServiceOptions service;
 		};
 
