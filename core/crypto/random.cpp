@@ -3,7 +3,7 @@
 #include <array>
 #include <random>
 
-#include "../polyfill.hpp"
+#include "../crypto.hpp"
 #include "../encoding.hpp"
 
 using namespace Lambda;
