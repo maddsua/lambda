@@ -10,7 +10,7 @@ const uint8_t hex_encode_table[] = {
 	'8','9','A','B','C','D','E','F'
 };
 
-Encoding::HexByte Encoding::encodeHexByte(char databyte) {
+Encoding::HexByte Encoding::byteToHex(uint8_t databyte) {
 	HexByte result;
 	result.data.first = hex_encode_table[(databyte & 0xF0) >> 4];
 	result.data.second = hex_encode_table[databyte & 0x0F];
@@ -24,7 +24,7 @@ std::string Encoding::toHex(const std::vector<uint8_t>& input) {
 	result.reserve(input.size() * 2);
 
 	for (auto symbol : input) {
-		result.append(encodeHexByte(symbol).string);
+		result.append(byteToHex(symbol).string);
 	}
 
 	return result;
@@ -36,7 +36,7 @@ const uint8_t hex_decode_table[] = {
 	10,11,12,13,14,15
 };
 
-char Encoding::decodeHexByte(HexByte hexbyte) {
+uint8_t Encoding::hexToByte(HexByte hexbyte) {
 
 	HexByte temp;
 
@@ -60,7 +60,7 @@ std::vector<uint8_t> Encoding::fromHex(const std::string& input) {
 	for (size_t i = 0; i < input.size(); i+= 2) {
 		HexByte temp;
 		strncpy(temp.string, input.substr(i, 2).c_str(), sizeof(temp.string));
-		result.push_back(decodeHexByte(temp));
+		result.push_back(hexToByte(temp));
 	}
 
 	return result;

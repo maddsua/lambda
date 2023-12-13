@@ -19,7 +19,7 @@ std::string Encoding::encodeURIComponent(const std::string& input) {
 
 		if (escapeChars.contains(symbol)) {
 			result.push_back('%');
-			result.append(encodeHexByte(symbol).string);
+			result.append(byteToHex(symbol).string);
 			continue;
 		}
 
@@ -40,7 +40,7 @@ std::string Encoding::decodeURIComponent(const std::string& input) {
 
 			HexByte temp;
 			strncpy(temp.string, input.substr(i + 1, 2).c_str(), sizeof(temp.string));
-			result.push_back(decodeHexByte(temp));
+			result.push_back(hexToByte(temp));
 
 			i += 2;
 			continue;

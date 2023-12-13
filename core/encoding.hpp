@@ -17,10 +17,10 @@ namespace Lambda::Encoding {
 		} data;
 	};
 
-	HexByte encodeHexByte(char databyte);
+	HexByte byteToHex(uint8_t databyte);
 	std::string toHex(const std::vector<uint8_t>& input);
 
-	char decodeHexByte(HexByte hexbyte);
+	uint8_t hexToByte(HexByte hexbyte);
 	std::vector<uint8_t> fromHex(const std::string& input);
 
 	std::string encodeURIComponent(const std::string& input);
