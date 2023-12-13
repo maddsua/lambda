@@ -98,7 +98,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 					auto& value = fields.at(1);
 					auto decodedValue = Encoding::fromBase64(std::string(value.begin(), value.end()));
 
-					this->data[decodedKey] = decodedValue;
+					this->data[std::string(decodedKey.begin(), decodedKey.end())] = std::string(decodedValue.begin(), decodedValue.end());
 
 				} break;
 
@@ -109,7 +109,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 					auto& key = fields.at(0);
 					auto decodedKey = Encoding::fromBase64(std::string(key.begin(), key.end()));
 
-					this->data.erase(decodedKey);
+					this->data.erase(std::string(decodedKey.begin(), decodedKey.end()));
 
 				} break;
 
@@ -141,12 +141,12 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 				DiskDbWriteOps::WriteOpSet,
 			});
 
-			auto encodedKey = Encoding::toBase64(*key);
+			auto encodedKey = Encoding::toBase64(std::vector<uint8_t>(key->begin(), key->end()));
 			writeBuff.insert(writeBuff.end(), encodedKey.begin(), encodedKey.end());
 
 			writeBuff.insert(writeBuff.end(), { DiskDbWriteOps::WriteOpFieldSep });
 			
-			auto encodedValue = Encoding::toBase64(*value);
+			auto encodedValue = Encoding::toBase64(std::vector<uint8_t>(value->begin(), value->end()));
 			writeBuff.insert(writeBuff.end(), encodedValue.begin(), encodedValue.end());
 			
 			writeBuff.insert(writeBuff.end(), { DiskDbWriteOps::WriteOpBlockEnd });
@@ -162,7 +162,7 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 				DiskDbWriteOps::WriteOpDel,
 			});
 
-			auto encodedKey = Encoding::toBase64(*key);
+			auto encodedKey = Encoding::toBase64(std::vector<uint8_t>(key->begin(), key->end()));
 			writeBuff.insert(writeBuff.end(), encodedKey.begin(), encodedKey.end());
 
 			writeBuff.insert(writeBuff.end(), { DiskDbWriteOps::WriteOpBlockEnd });
