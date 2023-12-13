@@ -4,6 +4,10 @@
 using namespace Lambda::HTTP;
 using namespace Lambda::Strings;
 
+Headers::Headers(const std::vector<KVpair>& init) {
+	this->internalContent = init;
+}
+
 void Headers::append(const std::string& key, const std::string value) {
 	this->internalContent.push_back({ toLowerCase(key), value });
 }
