@@ -1,8 +1,8 @@
 LIB_CORE				=	core/core.a
-LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS)
+LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
-LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/crypto/random.o
+LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
 
 LIB_CORE_HTTP			=	core/http.a
 LIB_CORE_HTTP_DEPS		=	core/http/cookie.o core/http/headers.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
@@ -18,6 +18,9 @@ LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o co
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_DEPS	=	core/server/httpHandler.o core/server/httpServer.o
+
+LIB_CORE_CRYPTO			=	core/crypto.a
+LIB_CORE_CRYPTO_DEPS	=	core/crypto/random.o core/crypto/sha1.o
 
 
 # target object
@@ -116,3 +119,13 @@ core/server/httpHandler.o: core/server/httpHandler.cpp
 core/server/httpServer.o: core/server/httpServer.cpp
 	g++ -c $(CFLAGS) core/server/httpServer.cpp -o core/server/httpServer.o
 
+
+# crypto stuff
+$(LIB_CORE_CRYPTO): $(LIB_CORE_CRYPTO_DEPS)
+	ar rvs $(LIB_CORE_CRYPTO) $(LIB_CORE_CRYPTO_DEPS)
+
+core/crypto/random.o: core/crypto/random.cpp
+	g++ -c $(CFLAGS) core/crypto/random.cpp -o core/crypto/random.o
+
+core/crypto/sha1.o: core/crypto/sha1.cpp
+	g++ -c $(CFLAGS) core/crypto/sha1.cpp -o core/crypto/sha1.o
