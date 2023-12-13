@@ -1,12 +1,9 @@
 #include "../storage.hpp"
-#include "../fs.hpp"
 #include "../../core/encoding.hpp"
 
 #include <stdexcept>
 #include <iterator>
-#include <filesystem>
 
-using namespace Lambda;
 using namespace Lambda::Storage;
 
 enum DiskDbWriteOps {
@@ -42,9 +39,20 @@ LocalStorage::~LocalStorage() {
 
 void LocalStorage::loadFile(const std::string& dbfile) {
 
-	if (std::filesystem::exists(dbfile)) {
+	//	open db file for rw
+	this->filestream = std::fstream(dbfile, std::ios::in | std::ios::binary);
+
+	if (this->filestream.is_open()) {
 	
-		auto rawcontent = FS::readFileSync(dbfile);
+		this->filestream.seekg(0, std::ios::end);
+		auto fileSize = this->filestream.tellg();
+		this->filestream.seekg(0, std::ios::beg);
+
+		std::vector<uint8_t> rawcontent;
+		rawcontent.reserve(fileSize);
+
+		rawcontent.insert(rawcontent.begin(), std::istream_iterator<uint8_t>(this->filestream), std::istream_iterator<uint8_t>());
+		this->filestream.close();
 
 		std::vector<std::vector<uint8_t>> messages;
 
