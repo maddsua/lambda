@@ -7,12 +7,6 @@
 
 namespace Lambda::Crypto {
 
-	std::vector<uint8_t> getRandomValues(size_t length);
-	void getRandomValues(std::vector<uint8_t>& buffer);
-	std::string randomUUID();
-	std::string randomID(size_t length);
-	std::string randomString(size_t length);
-
 	class SHA1 {
 		private:
 			void* hashctx = nullptr;

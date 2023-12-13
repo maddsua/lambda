@@ -3,7 +3,7 @@ LIB_CORE				=	core/core.a
 LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
-LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
+LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/uid.o
 
 LIB_CORE_HTTP			=	core/http.a
 LIB_CORE_HTTP_DEPS		=	core/http/cookie.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
@@ -22,7 +22,7 @@ LIB_CORE_SERVER_RESS	=	core/server/resources/html/servicepage.res
 LIB_CORE_SERVER_DEPS	=	core/server/httpHandler.o core/server/httpServer.o core/server/serviceResponse.o $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
-LIB_CORE_CRYPTO_DEPS	=	core/crypto/random.o core/crypto/sha1.o
+LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o
 
 
 # target object
@@ -45,8 +45,8 @@ core/polyfill/date.o: core/polyfill/date.cpp
 core/polyfill/mimetype.o: core/polyfill/mimetype.cpp
 	g++ -c $(CFLAGS) core/polyfill/mimetype.cpp -o core/polyfill/mimetype.o
 
-core/polyfill/crypto/random.o: core/polyfill/crypto/random.cpp
-	g++ -c $(CFLAGS) core/polyfill/crypto/random.cpp -o core/polyfill/crypto/random.o
+core/polyfill/uid.o: core/polyfill/uid.cpp
+	g++ -c $(CFLAGS) core/polyfill/uid.cpp -o core/polyfill/uid.o
 
 
 # http stuff
@@ -128,9 +128,6 @@ core/server/resources/html/servicepage.res: core/server/resources/html/servicepa
 # crypto stuff
 $(LIB_CORE_CRYPTO): $(LIB_CORE_CRYPTO_DEPS)
 	ar rvs $(LIB_CORE_CRYPTO) $(LIB_CORE_CRYPTO_DEPS)
-
-core/crypto/random.o: core/crypto/random.cpp
-	g++ -c $(CFLAGS) core/crypto/random.cpp -o core/crypto/random.o
 
 core/crypto/sha1.o: core/crypto/sha1.cpp
 	g++ -c $(CFLAGS) core/crypto/sha1.cpp -o core/crypto/sha1.o

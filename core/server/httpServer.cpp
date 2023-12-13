@@ -4,6 +4,7 @@
 #include "../server.hpp"
 #include "../polyfill.hpp"
 #include "../crypto.hpp"
+#include "../encoding.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Server;
@@ -28,16 +29,22 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 
 				auto connectionWorker = std::thread([&](Network::TCPConnection&& conn) {
 
+					const auto& connfinfo = conn.getInfo();
+
 					HttpHandlerOptions handlerOptions = {
 						this->config.loglevel,
 						this->config.transport,
-						Crypto::randomID(8)
+						connfinfo.shortid.toString()
 					};
 
 					try {
 
 						if (this->config.loglevel.logConnections) {
-							printf("%s opens %s\n", conn.info().ip.c_str(), handlerOptions.contextID.c_str());
+							printf("%s %s opens %s\n",
+								Date().toHRTString().c_str(),
+								connfinfo.peerIP.c_str(),
+								handlerOptions.contextID.c_str()
+							);
 						}
 
 						Server::handleHTTPConnection(std::move(conn), this->handler, handlerOptions);
@@ -47,7 +54,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 						if (this->terminated) return;
 
 						if (this->config.loglevel.logRequests) {
-							fprintf(stderr, "[Service] http handler crashed: %s\n", e.what()); 
+							fprintf(stderr, "%s [Service] http handler crashed: %s\n", Date().toHRTString().c_str(), e.what()); 
 						}
 
 					} catch(...) {
@@ -55,12 +62,12 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 						if (this->terminated) return;
 
 						if (this->config.loglevel.logRequests) {
-							fprintf(stderr, "[Service] http handler crashed with unknown error\n"); 
+							fprintf(stderr, "%s [Service] http handler crashed with unknown error\n", Date().toHRTString().c_str()); 
 						}
 					}
 
 					if (this->config.loglevel.logConnections) {
-						printf("%s closed\n", handlerOptions.contextID.c_str());
+						printf("%s %s was closed\n", Date().toHRTString().c_str(), handlerOptions.contextID.c_str());
 					}
 
 				}, std::move(nextConn));

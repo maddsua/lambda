@@ -3,8 +3,10 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 
 #include "../core/http.hpp"
+#include "../core/polyfill.hpp"
 #include "./network/compat.hpp"
 
 namespace Lambda::Network {
@@ -17,7 +19,8 @@ namespace Lambda::Network {
 	};
 
 	struct ConnInfo {
-		std::string ip;
+		ShortID shortid;
+		std::string peerIP;
 		uint16_t port;
 	};
 
@@ -30,7 +33,9 @@ namespace Lambda::Network {
 	class TCPConnection {
 		protected:
 			SOCKET hSocket = INVALID_SOCKET;
-			ConnInfo conninfo;
+			ConnInfo info;
+			std::mutex readMutex;
+			std::mutex writeMutex;
 
 		public:
 			TCPConnection(ConnCreateInit init);
@@ -43,9 +48,9 @@ namespace Lambda::Network {
 			std::vector<uint8_t> read();
 			std::vector<uint8_t> read(size_t expectedSize);
 			void write(const std::vector<uint8_t>& data);
-			const ConnInfo& info() const noexcept;
+			const ConnInfo& getInfo() const noexcept;
 			void close();
-			bool alive() const noexcept;
+			bool isOpen() const noexcept;
 	};
 
 	struct ListenInit {

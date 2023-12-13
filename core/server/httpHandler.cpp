@@ -33,32 +33,28 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 };
 
 struct PipelineItem {
-
 	HTTP::Request request;
-
-	struct {
-		bool keepAlive = false;
-		ContentEncodings acceptsEncoding = ContentEncodings::None;
-	} ctx;
-
 	std::string id;
+	ContentEncodings acceptsEncoding = ContentEncodings::None;
+	bool keepAlive = false;
 };
 
 void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
-	std::mutex pipelineMtLock;
+	std::mutex pipelineMutex;
 
 	auto receiveRoutine = std::async([&]() {
 
 		std::vector<uint8_t> recvBuff;
 
 		bool connectionKeepAlive = false;
+		size_t totalReadSize = 0;
 
 		do {
 
 			auto headerEnded = recvBuff.end();
-			while (conn.alive() && headerEnded == recvBuff.end()) {
+			while (conn.isOpen() && headerEnded == recvBuff.end()) {
 
 				auto newBytes = conn.read();
 				if (!newBytes.size()) break;
@@ -70,6 +66,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			if (!recvBuff.size() || headerEnded == recvBuff.end()) break;
 
 			auto headerFields = Strings::split(std::string(recvBuff.begin(), headerEnded), "\r\n");
+			totalReadSize += recvBuff.size();
 			recvBuff.erase(recvBuff.begin(), headerEnded + patternEndHeader.size());
 
 			auto headerStartLine = Strings::split(headerFields.at(0), ' ');
@@ -78,7 +75,6 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			auto& requestUrlString = headerStartLine.at(1);
 
 			PipelineItem next;
-			next.id = options.contextID.size() ? (options.contextID + '-' + Crypto::randomID(8)) : Crypto::randomUUID();
 			next.request.url = HTTP::URL(requestUrlString);
 			next.request.method = HTTP::Method(requestMethodString);
 
@@ -101,7 +97,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			auto connectionHeader = next.request.headers.get("connection");
 			if (connectionKeepAlive) connectionKeepAlive = !Strings::includes(connectionHeader, "close");
 				else connectionKeepAlive = Strings::includes(connectionHeader, "keep-alive");
-			next.ctx.keepAlive = connectionKeepAlive;
+			next.keepAlive = connectionKeepAlive;
 
 			auto acceptEncodingHeader = next.request.headers.get("accept-encoding");
 			if (acceptEncodingHeader.size()) {
@@ -111,7 +107,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 				for (const auto& encoding : contentEncodingMap) {
 					if (acceptEncodingsSet.contains(encoding.second)) {
-						next.ctx.acceptsEncoding = encoding.first;
+						next.acceptsEncoding = encoding.first;
 						break;
 					}
 				}
@@ -122,7 +118,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 			if (bodySize) {
 
-				if (!conn.alive()) throw std::runtime_error("connection was terminated before request body could be received");
+				if (!conn.isOpen()) throw std::runtime_error("connection was terminated before request body could be received");
 
 				auto bodyRemaining = bodySize - recvBuff.size();
 				if (bodyRemaining) {
@@ -132,17 +128,24 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 				}
 
 				next.request.body = std::vector<uint8_t>(recvBuff.begin(), recvBuff.begin() + bodySize);
+				totalReadSize += recvBuff.size();
 				recvBuff.erase(recvBuff.begin(), recvBuff.begin() + bodySize);
 			}
 
-			std::lock_guard<std::mutex>lock(pipelineMtLock);
+			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+			uint32_t shortidField = (timeHighres & ~0UL) ^ (totalReadSize & ~0UL);
+			std::string requestOwnId = ShortID(shortidField).toString();
+
+			next.id = options.contextID.size() ? (options.contextID + '-' + requestOwnId) : requestOwnId;
+
+			std::lock_guard<std::mutex>lock(pipelineMutex);
 			pipeline.push(std::move(next));
 
 		} while (connectionKeepAlive);
 
 	});
 
-	while ((receiveRoutine.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready || pipeline.size()) && conn.alive()) {
+	while ((receiveRoutine.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready || pipeline.size()) && conn.isOpen()) {
 
 		if (!pipeline.size()) continue;
 
@@ -155,7 +158,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 			RequestContext requestCtx;
 			requestCtx.requestID = next.id;
-			requestCtx.conninfo = conn.info();
+			requestCtx.conninfo = conn.getInfo();
 	
 			response = handler(next.request, requestCtx);
 
@@ -179,13 +182,14 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		response.headers.set("date", responseDate.toUTCString());
 		response.headers.set("server", "maddsua/lambda");
 		response.headers.set("x-request-id", next.id);
-		if (next.ctx.keepAlive) response.headers.set("connection", "keep-alive");
+		if (next.keepAlive) response.headers.set("connection", "keep-alive");
+		if (!response.headers.has("content-type")) response.headers.set("content-type", "text/html; charset=utf-8");
 
 		#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
 			std::vector<uint8_t> responseBody;
 
-			switch (next.ctx.acceptsEncoding) {
+			switch (next.acceptsEncoding) {
 	
 				case ContentEncodings::Brotli: {
 					responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
@@ -204,8 +208,8 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 				} break;
 			}
 
-			if (next.ctx.acceptsEncoding != ContentEncodings::None) {
-				response.headers.set("content-encoding", contentEncodingMap.at(next.ctx.acceptsEncoding));
+			if (next.acceptsEncoding != ContentEncodings::None) {
+				response.headers.set("content-encoding", contentEncodingMap.at(next.acceptsEncoding));
 			}
 
 		#else
@@ -225,11 +229,25 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		if (bodySize) conn.write(responseBody);
 
 		if (options.loglevel.logRequests) {
-			auto conninfo = conn.info();
-			printf("%s [%s] (%s) %s %s --> %i\n", responseDate.toHRTString().c_str(), next.id.c_str(), conninfo.ip.c_str(), static_cast<std::string>(next.request.method).c_str(), next.request.url.pathname.c_str(), response.status.code());
+			options.loglevel.logConnections ? 
+				printf("%s [%s] %s %s --> %i\n",
+					responseDate.toHRTString().c_str(),
+					next.id.c_str(),
+					static_cast<std::string>(next.request.method).c_str(),
+					next.request.url.pathname.c_str(),
+					response.status.code()
+				) :
+				printf("%s [%s] (%s) %s %s --> %i\n",
+					responseDate.toHRTString().c_str(),
+					next.id.c_str(),
+					conn.getInfo().peerIP.c_str(),
+					static_cast<std::string>(next.request.method).c_str(),
+					next.request.url.pathname.c_str(),
+					response.status.code()
+				);
 		}
 
-		std::lock_guard<std::mutex>lock(pipelineMtLock);
+		std::lock_guard<std::mutex>lock(pipelineMutex);
 		pipeline.pop();
 	}
 
