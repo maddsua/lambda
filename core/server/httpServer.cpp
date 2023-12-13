@@ -28,23 +28,19 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 
 				auto connectionWorker = std::thread([&](Network::TCPConnection&& conn) {
 
-					try {
+					HttpHandlerOptions handlerOptions = {
+						this->config.loglevel,
+						this->config.transport,
+						Crypto::randomID(8)
+					};
 
-						HttpHandlerOptions handlerOptions = {
-							this->config.loglevel,
-							this->config.transport,
-							Crypto::randomID(8)
-						};
+					try {
 
 						if (this->config.loglevel.logConnections) {
 							printf("%s opens %s\n", conn.info().ip.c_str(), handlerOptions.contextID.c_str());
 						}
 
 						Server::handleHTTPConnection(std::move(conn), this->handler, handlerOptions);
-
-						if (this->config.loglevel.logConnections) {
-							printf("%s closed\n", handlerOptions.contextID.c_str());
-						}
 
 					} catch(const std::exception& e) {
 
@@ -63,7 +59,9 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 						}
 					}
 
-					printf("Disconnected %s\n", conn.info().ip.c_str());
+					if (this->config.loglevel.logConnections) {
+						printf("%s closed\n", handlerOptions.contextID.c_str());
+					}
 
 				}, std::move(nextConn));
 
