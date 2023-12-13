@@ -7,7 +7,7 @@
 using namespace Lambda::HTTP;
 using namespace Lambda::Strings;
 
-static const std::map <uint16_t, std::string> statusCodeTable = {
+static const std::map <int, std::string> statusCodeTable = {
 	{ 100, "Continue" },
 	{ 101, "Switching Protocols" },
 	{ 102, "Processing" },
