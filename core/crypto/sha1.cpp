@@ -9,7 +9,7 @@
 
 #include <memory.h>
 
-#include "./crypto.hpp"
+#include "../crypto.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Crypto;
