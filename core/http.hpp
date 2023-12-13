@@ -37,6 +37,7 @@ namespace Lambda::HTTP {
 	class Headers : public KVContainer {
 		public:
 			Headers() {};
+			Headers(const std::vector<KVpair>& init);
 
 			std::vector<std::string> getAll(const std::string& key) const;
 			void append(const std::string& key, const std::string value);
@@ -105,7 +106,6 @@ namespace Lambda::HTTP {
 			Body(const std::vector<uint8_t>& content) {
 				this->internalContent = content;
 			};
-
 
 			operator std::string () const {
 				return this->text();
@@ -196,10 +196,10 @@ namespace Lambda::HTTP {
 		Response() {}
 		Response(const Status& status) : status(status) {}
 		Response(const Body& body) : body(body) {}
-		Response(const Headers& headers, Body& body) : headers(headers), body(body) {}
+		Response(const Headers& headers, const Body& body) : headers(headers), body(body) {}
 		Response(const Status& status, const Headers& headers) : status(status), headers(headers) {}
 		Response(const Status& status, const Body& body) : status(status), body(body) {}
-		Response(const Status& status, const Headers& headers, Body& body) : status(status), headers(headers), body(body) {}
+		Response(const Status& status, const Headers& headers, const Body& body) : status(status), headers(headers), body(body) {}
 	};
 };
 
