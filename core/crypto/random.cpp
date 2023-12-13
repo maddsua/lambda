@@ -3,8 +3,8 @@
 #include <array>
 #include <random>
 
-#include "../../polyfill.hpp"
-#include "../../encoding.hpp"
+#include "../polyfill.hpp"
+#include "../encoding.hpp"
 
 using namespace Lambda;
 
