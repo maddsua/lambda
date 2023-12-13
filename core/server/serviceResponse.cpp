@@ -23,7 +23,7 @@ std::string populateTemplate(const TemplateContent& content) {
 	return result;
 }
 
-HTTP::Response serviceResponse(int statusCode, std::optional<std::string> errorMessage) {
+HTTP::Response Server::serviceResponse(int statusCode, std::optional<std::string> errorMessage) {
 
 	auto httpstatus = HTTP::Status(statusCode);
 
