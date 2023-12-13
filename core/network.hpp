@@ -44,7 +44,7 @@ namespace Lambda::Network {
 			std::vector<uint8_t> read(size_t expectedSize);
 			void write(const std::vector<uint8_t>& data);
 			const ConnInfo& info() const noexcept;
-			void closeConnection();
+			void close();
 			bool alive() const noexcept;
 	};
 

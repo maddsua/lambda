@@ -42,7 +42,7 @@ TCPListenSocket::TCPListenSocket(uint16_t listenPort, const ListenInit& init) {
 	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr))) {
 		auto apierror = getAPIError();
 		closesocket(this->hSocket);
-		if (apierror == SYSNETWERR_IN_USE) throw std::runtime_error("failed to bind socket: address already in use");
+		if (apierror == LNETWERR_IN_USE) throw std::runtime_error("failed to bind socket: address already in use");
 		throw std::runtime_error("failed to bind socket: code " + std::to_string(apierror));
 	}
 
@@ -144,7 +144,7 @@ TCPConnection::~TCPConnection() {
 	closesocket(this->hSocket);
 }
 
-void TCPConnection::closeConnection() {
+void TCPConnection::close() {
 	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
@@ -182,11 +182,26 @@ std::vector<uint8_t> TCPConnection::read(size_t expectedSize) {
 	chunk.resize(expectedSize);
 
 	auto bytesReceived = recv(this->hSocket, (char*)chunk.data(), chunk.size(), 0);
+
 	if (bytesReceived == 0) {
-		this->closeConnection();
+
+		this->close();
 		return {};
+
 	} else if (bytesReceived < 0) {
-		throw std::runtime_error("network error while getting data: code " + std::to_string(getAPIError()));
+
+		auto apiError = getAPIError();
+
+		switch (apiError) {
+
+			case LNETWERR_TIMED_OUT: {
+				this->close();
+				return {};
+			} break;
+			
+			default:
+				throw std::runtime_error("network error while getting data: code " + std::to_string(apiError));
+		}		
 	}
 
 	chunk.resize(bytesReceived);

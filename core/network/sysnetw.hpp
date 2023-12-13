@@ -32,7 +32,8 @@
 		return true;
 	}
 
-	#define SYSNETWERR_IN_USE WSAEADDRINUSE
+	#define LNETWERR_IN_USE		WSAEADDRINUSE
+	#define LNETWERR_TIMED_OUT	WSAETIMEDOUT
 
 #else
 
@@ -60,7 +61,8 @@
 	#define closesocket(socketHandle) close(socketHandle)
 	#define SD_BOTH (SHUT_RDWR)
 
-	#define SYSNETWERR_IN_USE EADDRINUSE
+	#define LNETWERR_IN_USE		EADDRINUSE
+	#define LNETWERR_TIMED_OUT	ETIMEDOUT
 
 #endif
 
