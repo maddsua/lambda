@@ -1,7 +1,8 @@
 #include "../server.hpp"
 #include "../network/sysnetw.hpp"
 #include "../compression.hpp"
-#include "../../core/polyfill.hpp"
+#include "../polyfill.hpp"
+#include "../crypto.hpp"
 #include "../../lambda_build_options.hpp"
 
 #include <queue>
