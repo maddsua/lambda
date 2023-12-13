@@ -57,7 +57,7 @@ namespace Lambda::Storage {
 
 	class LocalStorage : public BaseStorage {
 		protected:
-			std::fstream filestream;
+			std::fstream writeStream;
 			void loadFile(const std::string& dbfile);
 			void handleTransaction(StorageTransaction tra, const std::string* key, const std::string* value);
 			void rebuildStorageSnapshot();

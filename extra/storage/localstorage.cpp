@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <iterator>
+#include <filesystem>
 
 using namespace Lambda::Storage;
 
@@ -32,27 +33,27 @@ LocalStorage::LocalStorage(const std::string& dbfile) {
 }
 
 LocalStorage::~LocalStorage() {
-	this->filestream.close();
+	this->writeStream.close();
 	delete this->dbFileName;
 	delete this->stats;
 }
 
 void LocalStorage::loadFile(const std::string& dbfile) {
 
-	//	open db file for rw
-	this->filestream = std::fstream(dbfile, std::ios::in | std::ios::binary);
+	if (std::filesystem::exists(dbfile)) {
+		
+		auto readfile = std::ifstream(dbfile, std::ios::binary);
+		if (!readfile.is_open()) throw std::runtime_error("Could not open \"" + dbfile + "\" for read");
 
-	if (this->filestream.is_open()) {
-	
-		this->filestream.seekg(0, std::ios::end);
-		auto fileSize = this->filestream.tellg();
-		this->filestream.seekg(0, std::ios::beg);
+		readfile.seekg(0, std::ios::end);
+		auto fileSize = readfile.tellg();
+		readfile.seekg(0, std::ios::beg);
 
 		std::vector<uint8_t> rawcontent;
 		rawcontent.reserve(fileSize);
 
-		rawcontent.insert(rawcontent.begin(), std::istream_iterator<uint8_t>(this->filestream), std::istream_iterator<uint8_t>());
-		this->filestream.close();
+		rawcontent.insert(rawcontent.begin(), std::istream_iterator<uint8_t>(readfile), std::istream_iterator<uint8_t>());
+		readfile.close();
 
 		std::vector<std::vector<uint8_t>> messages;
 
@@ -184,7 +185,7 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 		default: throw std::runtime_error("unknown transaction type");
 	}
 
-	this->filestream.write((char*)writeBuff.data(), writeBuff.size());
+	this->writeStream.write((char*)writeBuff.data(), writeBuff.size());
 
 	if (this->stats != nullptr && this->stats->deletions > 1000) {
 		this->stats->deletions = 0;
@@ -196,12 +197,12 @@ void LocalStorage::rebuildStorageSnapshot() {
 
 	if (this->dbFileName == nullptr) throw std::runtime_error("LocalStorage::dbFileName is undefined");
 
-	if (this->filestream.is_open()) {
-		this->filestream.close();
+	if (this->writeStream.is_open()) {
+		this->writeStream.close();
 	}
 
-	this->filestream = std::fstream(*this->dbFileName, std::ios::out | std::ios::binary);
-	if (!this->filestream.is_open()) {
+	this->writeStream = std::fstream(*this->dbFileName, std::ios::out | std::ios::binary);
+	if (!this->writeStream.is_open()) {
 		throw std::runtime_error("Failed to open db file for write: " + *this->dbFileName);
 	}
 
