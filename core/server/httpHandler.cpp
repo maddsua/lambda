@@ -164,8 +164,8 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			if (options.errorLoggingEnabled) {
 				printf("%s [%s] Handler has crashed: %s\n", responseDate.toHRTString().c_str(), next.id.c_str(), e.what());
 			}
-
-			response = HTTP::Response(HTTP::Status(500), "function has crashed");
+			
+			response = serviceResponse(500, std::string("Function handler crashed: ") + e.what());
 
 		} catch(...) {
 
@@ -173,7 +173,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 				printf("%s [%s] Handler has crashed: unhandled exception\n", responseDate.toHRTString().c_str(), next.id.c_str());
 			}
 
-			response = HTTP::Response(HTTP::Status(500), "function has crashed");
+			response = serviceResponse(500, "Function handler crashed: unhandled exception");
 		}
 
 		response.headers.set("date", responseDate.toUTCString());
