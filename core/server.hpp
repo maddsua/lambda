@@ -25,6 +25,8 @@ namespace Lambda {
 
 		typedef std::function<HTTP::Response(const HTTP::Request& request, const RequestContext& context)> HttpHandlerFunction;
 		void handleHTTPConnection(Network::TCPConnection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options);
+
+		HTTP::Response serviceResponse(int statusCode, std::optional<std::string> errorMessage);
 	};
 
 	struct HttpServerInit {
