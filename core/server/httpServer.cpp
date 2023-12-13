@@ -3,6 +3,7 @@
 
 #include "../server.hpp"
 #include "../polyfill.hpp"
+#include "../crypto.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Server;
