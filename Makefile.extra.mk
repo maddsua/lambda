@@ -7,9 +7,6 @@ LIB_EXTRA_JSON_DEPS		=	extra/json/property.o extra/json/parse.o extra/json/strin
 LIB_EXTRA_STORAGE		=	extra/storage.a
 LIB_EXTRA_STORAGE_DEPS	=	extra/storage/storage.o extra/storage/localstorage.o
 
-LIB_EXTRA_FS			=	extra/fs.a
-LIB_EXTRA_FS_DEPS		=	extra/fs/fs.o
-
 
 # extra object
 lambda.extra: $(LIB_EXTRA)
@@ -41,12 +38,3 @@ extra/storage/storage.o: extra/storage/storage.cpp
 
 extra/storage/localstorage.o: extra/storage/localstorage.cpp
 	g++ -c $(CFLAGS) extra/storage/localstorage.cpp -o extra/storage/localstorage.o
-
-
-# FS stuff
-$(LIB_EXTRA_FS): $(LIB_EXTRA_FS_DEPS)
-	ar rvs $(LIB_EXTRA_FS) $(LIB_EXTRA_FS_DEPS)
-
-extra/fs/fs.o: extra/fs/fs.cpp
-	g++ -c $(CFLAGS) extra/fs/fs.cpp -o extra/fs/fs.o
-
