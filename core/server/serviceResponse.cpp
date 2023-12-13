@@ -33,5 +33,8 @@ HTTP::Response serviceResponse(int statusCode, std::optional<std::string> errorM
 		{ "${html_svcpage_message_text}", (errorMessage.has_value() ? errorMessage.value() : "That's all we know.") }
 	};
 
-	return HTTP::Response(httpstatus, { { "Content-Type", "text/html" } }, populateTemplate(content));
+	HTTP::Headers headers;
+	headers.set("Content-Type", "text/html");
+
+	return HTTP::Response(httpstatus, headers, populateTemplate(content));
 }
