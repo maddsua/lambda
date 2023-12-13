@@ -32,8 +32,8 @@ test/json.test.o: test/json.test.cpp
 # Test Storage extra module
 test.storage: storage.test.exe
 
-storage.test.exe: test/storage.test.o $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_EXTRA_FS_DEPS)
-	g++ $(CFLAGS) test/storage.test.cpp $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_EXTRA_FS_DEPS) -o storage.test.exe
+storage.test.exe: test/storage.test.o $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS)
+	g++ $(CFLAGS) test/storage.test.cpp $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) -o storage.test.exe
 
 test/storage.test.o: test/storage.test.cpp
 	g++ -c $(CFLAGS) test/storage.test.cpp -o test/storage.test.o
