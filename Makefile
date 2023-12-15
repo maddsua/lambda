@@ -39,4 +39,4 @@ dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
 
 dllinfo.rc: updatedllinfo.exe
-	updatedllinfo.exe --template=dllinfo.template.rc --info=lambda_version.hpp --output=tset
+	updatedllinfo.exe --template=dllinfo.template.rc --info=lambda_version.hpp --output=dllinfo.rc
