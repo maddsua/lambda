@@ -19,3 +19,4 @@ deps/build/package-lock.json
 *.db
 *.bin
 *.ldb
+dllinfo.rc
