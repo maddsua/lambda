@@ -1,0 +1,27 @@
+#include <windows.h>
+
+1 VERSIONINFO
+FILEVERSION version_comma
+PRODUCTVERSION version_comma
+FILETYPE VFT_DLL
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "040904E4"
+		{
+			VALUE "CompanyName", "maddsua/dev"
+			VALUE "FileVersion", "$version_dot"
+			VALUE "FileDescription", "HTTP and Websocket server library"
+			VALUE "InternalName", "lambda"
+			VALUE "LegalCopyright", "https://github.com/maddsua"
+			VALUE "LegalTrademarks", "$released_year maddsua"
+			VALUE "OriginalFilename", "lambda.dll"
+			VALUE "ProductName", "maddsua/lambda"
+			VALUE "ProductVersion", "$version_dot"
+		}
+	}
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x0409, 1252
+	}
+}
