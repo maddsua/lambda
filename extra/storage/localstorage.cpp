@@ -186,6 +186,7 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 	}
 
 	this->writeStream.write((char*)writeBuff.data(), writeBuff.size());
+	this->writeStream.flush();
 
 	if (this->stats != nullptr && this->stats->deletions > 1000) {
 		this->stats->deletions = 0;
