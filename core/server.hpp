@@ -49,7 +49,7 @@ namespace Lambda {
 		struct ServeOptions {
 			struct {
 				bool logConnections = false;
-				bool logRequests = true;			
+				bool logRequests = false;			
 			} loglevel;
 			struct {
 				bool useCompression = true;		
