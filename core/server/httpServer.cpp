@@ -44,7 +44,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 							printf("%s %s opens %s\n",
 								Date().toHRTString().c_str(),
 								connfinfo.peerIP.c_str(),
-								contextID
+								contextID.c_str()
 							);
 						}
 
