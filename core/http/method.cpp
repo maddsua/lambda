@@ -12,7 +12,7 @@ static const std::map<std::string, Methods> httpKnownMethods = {
 	{ "GET", Methods::GET },
 	{ "POST", Methods::POST },
 	{ "PUT", Methods::PUT },
-	{ "DELETE", Methods::DELETE },
+	{ "DELETE", Methods::DEL },
 	{ "HEAD", Methods::HEAD },
 	{ "OPTIONS", Methods::OPTIONS },
 	{ "TRACE", Methods::TRACE },
