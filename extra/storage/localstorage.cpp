@@ -7,7 +7,7 @@
 
 using namespace Lambda::Storage;
 
-enum DiskDbWriteOps {
+enum DiskLogWriteOps {
 	WriteOpStartBlock = 0x06,
 	WriteOpFieldSep = 0x1f,
 	WriteOpBlockEnd = 0x00,
@@ -60,7 +60,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 		if (rawcontent.size()) {
 			size_t lastMessageStart = 0;
 			for (size_t i = lastMessageStart; i < rawcontent.size(); i++) {
-				if (rawcontent[i] == DiskDbWriteOps::WriteOpBlockEnd) {
+				if (rawcontent[i] == DiskLogWriteOps::WriteOpBlockEnd) {
 					messages.push_back(std::vector<uint8_t>(rawcontent.begin() + lastMessageStart, rawcontent.begin() + i));
 					lastMessageStart = i + 1;
 				}
@@ -71,14 +71,14 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 			const auto& entry = messages[i];
 
-			if (entry.at(0) != DiskDbWriteOps::WriteOpStartBlock)
+			if (entry.at(0) != DiskLogWriteOps::WriteOpStartBlock)
 				throw std::runtime_error("Invalid start byte in message " + std::to_string(i));
 
 			auto getFields = [&entry]() {
 				std::vector<std::vector<uint8_t>> messageFields;
 				size_t lastFieldStart = 2;
 				for (size_t i = lastFieldStart; i < entry.size(); i++) {
-					if (entry[i] == DiskDbWriteOps::WriteOpFieldSep) {
+					if (entry[i] == DiskLogWriteOps::WriteOpFieldSep) {
 						messageFields.push_back(std::vector<uint8_t>(entry.begin() + lastFieldStart, entry.begin() + i));
 						lastFieldStart = i + 1;
 					}
@@ -89,7 +89,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 			switch (entry.at(1)) {
 
-				case DiskDbWriteOps::WriteOpSet: {
+				case DiskLogWriteOps::WriteOpSet: {
 
 					auto fields = getFields();
 
@@ -103,7 +103,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 				} break;
 
-				case DiskDbWriteOps::WriteOpDel: {
+				case DiskLogWriteOps::WriteOpDel: {
 
 					auto fields = getFields();
 
@@ -114,7 +114,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 				} break;
 
-				case DiskDbWriteOps::WriteOpDrop: {
+				case DiskLogWriteOps::WriteOpDrop: {
 					this->data.clear();
 				} break;
 
@@ -132,52 +132,52 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 
 	switch (tra) {
 
-		case StorageTransaction::Tr_Set: {
+		case StorageTransaction::Set: {
 
 			if (!key) throw std::runtime_error("key pointer should be defined for write operation");
 			if (!value) throw std::runtime_error("value pointer should be defined for write operation");
 
 			writeBuff.insert(writeBuff.end(), {
-				DiskDbWriteOps::WriteOpStartBlock,
-				DiskDbWriteOps::WriteOpSet,
+				DiskLogWriteOps::WriteOpStartBlock,
+				DiskLogWriteOps::WriteOpSet,
 			});
 
 			auto encodedKey = Encoding::toBase64(std::vector<uint8_t>(key->begin(), key->end()));
 			writeBuff.insert(writeBuff.end(), encodedKey.begin(), encodedKey.end());
 
-			writeBuff.insert(writeBuff.end(), { DiskDbWriteOps::WriteOpFieldSep });
+			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::WriteOpFieldSep });
 			
 			auto encodedValue = Encoding::toBase64(std::vector<uint8_t>(value->begin(), value->end()));
 			writeBuff.insert(writeBuff.end(), encodedValue.begin(), encodedValue.end());
 			
-			writeBuff.insert(writeBuff.end(), { DiskDbWriteOps::WriteOpBlockEnd });
+			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::WriteOpBlockEnd });
 
 		} break;
 
-		case StorageTransaction::Tr_Delete: {
+		case StorageTransaction::Remove: {
 
 			if (!key) throw std::runtime_error("key pointer should be defined for delete operation");
 
 			writeBuff.insert(writeBuff.end(), {
-				DiskDbWriteOps::WriteOpStartBlock,
-				DiskDbWriteOps::WriteOpDel,
+				DiskLogWriteOps::WriteOpStartBlock,
+				DiskLogWriteOps::WriteOpDel,
 			});
 
 			auto encodedKey = Encoding::toBase64(std::vector<uint8_t>(key->begin(), key->end()));
 			writeBuff.insert(writeBuff.end(), encodedKey.begin(), encodedKey.end());
 
-			writeBuff.insert(writeBuff.end(), { DiskDbWriteOps::WriteOpBlockEnd });
+			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::WriteOpBlockEnd });
 
 			if (this->stats != nullptr) this->stats->deletions++;
 
 		} break;
 
-		case StorageTransaction::Tr_Clear: {
+		case StorageTransaction::Clear: {
 
 			writeBuff.insert(writeBuff.end(), {
-				DiskDbWriteOps::WriteOpStartBlock,
-				DiskDbWriteOps::WriteOpDrop,
-				DiskDbWriteOps::WriteOpBlockEnd
+				DiskLogWriteOps::WriteOpStartBlock,
+				DiskLogWriteOps::WriteOpDrop,
+				DiskLogWriteOps::WriteOpBlockEnd
 			});
 			
 		} break;
@@ -208,10 +208,46 @@ void LocalStorage::rebuildStorageSnapshot() {
 	}
 
 	for (const auto& entry : this->data) {
-		this->handleTransaction(StorageTransaction::Tr_Set, &entry.first, &entry.second);
+		this->handleTransaction(StorageTransaction::Set, &entry.first, &entry.second);
 	}
 }
 
 void LocalStorage::rebuild() {
 	this->rebuildStorageSnapshot();
+}
+
+bool LocalStorage::hasItem(const std::string& key) const {
+	return this->data.contains(key);
+}
+
+std::string LocalStorage::getItem(const std::string& key) {
+	std::lock_guard <std::mutex> lock(this->mtlock);
+	if (!this->data.contains(key)) return {};
+	return this->data.find(key)->second;
+}
+
+void LocalStorage::setItem(const std::string& key, const std::string& value) {
+	std::lock_guard <std::mutex> lock(this->mtlock);
+	this->data[key] = value;
+	handleTransaction(StorageTransaction::Set, &key, &value);
+}
+
+void LocalStorage::removeItem(const std::string& key) {
+	std::lock_guard <std::mutex> lock(this->mtlock);
+	this->data.erase(key);
+	handleTransaction(StorageTransaction::Remove, &key, nullptr);
+}
+
+void LocalStorage::clear() {
+	std::lock_guard <std::mutex> lock(this->mtlock);
+	this->data.clear();
+	handleTransaction(StorageTransaction::Clear, nullptr, nullptr);
+}
+
+size_t LocalStorage::length() const {
+	return this->data.size();
+}
+
+size_t LocalStorage::size() const {
+	return this->data.size();
 }

@@ -24,24 +24,20 @@
 
 namespace Lambda::Storage {
 
-	enum StorageTransaction {
-		Tr_Delete = -1,
-		Tr_Clear = 0,
-		Tr_Set = 1,
+	enum struct StorageTransaction {
+		Remove = -1,
+		Clear = 0,
+		Set = 1,
 	};
 
 	struct StorageTrStats {
 		size_t deletions = 0;
 	};
 
-	class BaseStorage {
+	class SessionStorage {
 		protected:
 			std::unordered_map<std::string, std::string> data;
 			std::mutex mtlock;
-			virtual void handleTransaction(StorageTransaction tra, const std::string* key, const std::string* value) {}
-			virtual void rebuildStorageSnapshot() {}
-			StorageTrStats* stats = nullptr;
-			std::string* dbFileName = nullptr;
 
 		public:
 			std::string getItem(const std::string& key);
@@ -53,11 +49,13 @@ namespace Lambda::Storage {
 			size_t size() const;
 	};
 
-	typedef BaseStorage SessionStorage;
-
-	class LocalStorage : public BaseStorage {
+	class LocalStorage {
 		protected:
+			std::string* dbFileName = nullptr;
 			std::fstream writeStream;
+			std::mutex mtlock;
+			StorageTrStats* stats = nullptr;
+			std::unordered_map<std::string, std::string> data;
 			void loadFile(const std::string& dbfile);
 			void handleTransaction(StorageTransaction tra, const std::string* key, const std::string* value);
 			void rebuildStorageSnapshot();
@@ -67,6 +65,14 @@ namespace Lambda::Storage {
 			LocalStorage(const std::string& dbfile);
 			~LocalStorage();
 			void rebuild();
+
+			std::string getItem(const std::string& key);
+			bool hasItem(const std::string& key) const;
+			void setItem(const std::string& key, const std::string& value);
+			void removeItem(const std::string& key);
+			void clear();
+			size_t length() const;
+			size_t size() const;
 	};
 };
 

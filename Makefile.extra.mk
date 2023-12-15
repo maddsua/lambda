@@ -5,7 +5,7 @@ LIB_EXTRA_JSON			=	extra/json.a
 LIB_EXTRA_JSON_DEPS		=	extra/json/property.o extra/json/parse.o extra/json/stringify.o
 
 LIB_EXTRA_STORAGE		=	extra/storage.a
-LIB_EXTRA_STORAGE_DEPS	=	extra/storage/storage.o extra/storage/localstorage.o
+LIB_EXTRA_STORAGE_DEPS	=	extra/storage/localStorage.o extra/storage/sessionStorage.o
 
 
 # extra object
@@ -33,8 +33,8 @@ extra/json/property.o: extra/json/property.cpp
 $(LIB_EXTRA_STORAGE): $(LIB_EXTRA_STORAGE_DEPS)
 	ar rvs $(LIB_EXTRA_STORAGE) $(LIB_EXTRA_STORAGE_DEPS)
 
-extra/storage/storage.o: extra/storage/storage.cpp
-	g++ -c $(CFLAGS) extra/storage/storage.cpp -o extra/storage/storage.o
+extra/storage/localStorage.o: extra/storage/localStorage.cpp
+	g++ -c $(CFLAGS) extra/storage/localStorage.cpp -o extra/storage/localStorage.o
 
-extra/storage/localstorage.o: extra/storage/localstorage.cpp
-	g++ -c $(CFLAGS) extra/storage/localstorage.cpp -o extra/storage/localstorage.o
+extra/storage/sessionStorage.o: extra/storage/sessionStorage.cpp
+	g++ -c $(CFLAGS) extra/storage/sessionStorage.cpp -o extra/storage/sessionStorage.o
