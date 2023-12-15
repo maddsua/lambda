@@ -16,7 +16,6 @@ HTTP::Response httpHandler(const Request& req, const Context& context) {
 int main(int argc, char const *argv[]) {
 
 	HttpServerConfig initparams;
-	initparams.loglevel.logConnections = true;
 	auto server = HttpServer(httpHandler, initparams);
 	server.awaitFinished();
 
