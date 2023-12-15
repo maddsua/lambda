@@ -150,10 +150,10 @@ namespace Lambda::HTTP {
 		Body body;
 
 		Request() {}
-		Request(const URL& url) : url(url) {}
-		Request(const URL& url, const Headers& headers) : url(url), headers(headers) {}
-		Request(const URL& url, const Body& body) : url(url), body(body) {}
-		Request(const URL& url, const Headers& headers, Body& body) : url(url), headers(headers), body(body) {}
+		Request(const URL& urlinit) : url(urlinit) {}
+		Request(const URL& urlinit, const Headers& headersinit) : url(urlinit), headers(headersinit) {}
+		Request(const URL& urlinit, const Body& bodyinit) : url(urlinit), body(bodyinit) {}
+		Request(const URL& urlinit, const Headers& headersinit, Body& bodyinit) : url(urlinit), headers(headersinit), body(bodyinit) {}
 	};
 
 	class Status {
@@ -183,12 +183,12 @@ namespace Lambda::HTTP {
 		Body body;
 
 		Response() {}
-		Response(const Status& status) : status(status) {}
-		Response(const Body& body) : body(body) {}
-		Response(const Headers& headers, const Body& body) : headers(headers), body(body) {}
-		Response(const Status& status, const Headers& headers) : status(status), headers(headers) {}
-		Response(const Status& status, const Body& body) : status(status), body(body) {}
-		Response(const Status& status, const Headers& headers, const Body& body) : status(status), headers(headers), body(body) {}
+		Response(const Status& statusinit) : status(statusinit) {}
+		Response(const Body& bodyinit) : body(bodyinit) {}
+		Response(const Headers& headersinit, const Body& bodyinit) : headers(headersinit), body(bodyinit) {}
+		Response(const Status& statusinit, const Headers& headersinit) : status(statusinit), headers(headersinit) {}
+		Response(const Status& statusinit, const Body& bodyinit) : status(statusinit), body(bodyinit) {}
+		Response(const Status& statusinit, const Headers& headersinit, const Body& body) : status(statusinit), headers(headersinit), body(body) {}
 	};
 };
 
