@@ -18,6 +18,15 @@ std::string loadFile(const std::string& path) {
 	return content;
 }
 
+void replaceAll(std::string& base, const std::string& sub, const std::string& replacement) {
+	size_t index = base.find(sub);
+	while (index != std::string::npos) {
+		base.replace(index, sub.size(), replacement);
+		index += replacement.size();
+		index = base.find(sub, index);
+	}
+}
+
 int main(int argc, char const *argv[]) {
 
 	Options opts;
@@ -52,11 +61,27 @@ int main(int argc, char const *argv[]) {
 
 	auto templateContent = loadFile(opts.templateFile);
 
-	std::vector<std::string> infoLines;
 
 
+	std::vector<std::pair<std::string, std::string>> replaceList = {
+		{ "version_dot", LAMBDA_VERSION },
+		{ "version_comma", [&](){
+			std::string temp = LAMBDA_VERSION;
+			std::string result;
+			for (auto symbol : temp) {
+				if (isalnum(symbol)) result.push_back(symbol);
+				else if (symbol == '.') result.push_back(',');
+			}
+			return result;
+		}() },
+		{ "released_year", "2023" },
+	};
 
 	auto dllinfoContent = templateContent;
+
+	for (const auto& entry : replaceList) {
+		replaceAll(dllinfoContent, '$' + entry.first, entry.second);
+	}
 
 	auto dllinfoFile = std::fstream(opts.outputFile, std::ios::out | std::ios::binary);
 	if (!dllinfoFile.is_open()) throw std::runtime_error("Couldn't open file " + opts.outputFile + " for write");
