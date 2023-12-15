@@ -128,25 +128,19 @@ namespace Lambda::HTTP {
 			}
 	};
 
+	enum struct Methods { GET, POST, PUT, DELETE, HEAD, OPTIONS, TRACE, PATCH, CONNECT };
+
 	class Method {
 		private:
-			std::string value;
+			Methods value;
 			void apply(const std::string& method);
-		
-		public:
-			Method() {
-				this->value = "GET";
-			};
-			Method(const std::string& method) {
-				this->apply(method);
-			}
-			Method(const char* method) {
-				this->apply(method);
-			}
 
-			operator std::string () const {
-				return this->value;
-			}
+		public:
+			Method();
+			Method(const std::string& method);
+			Method(const char* method);
+			operator std::string () const;
+			operator Methods () const noexcept;
 	};
 
 	struct Request {
