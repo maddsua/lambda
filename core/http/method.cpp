@@ -2,32 +2,54 @@
 #include "../polyfill.hpp"
 
 #include <stdexcept>
-#include <set>
+#include <map>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::Strings;
 
-static const std::set<std::string> httpKnownMethods = {
-	"GET",
-	"POST",
-	"PUT",
-	"DELETE",
-	"HEAD",
-	"OPTIONS",
-	"TRACE",
-	"PATCH",
-	"CONNECT"
+static const std::map<std::string, Methods> httpKnownMethods = {
+	{ "GET", Methods::GET },
+	{ "POST", Methods::POST },
+	{ "PUT", Methods::PUT },
+	{ "DELETE", Methods::DELETE },
+	{ "HEAD", Methods::HEAD },
+	{ "OPTIONS", Methods::OPTIONS },
+	{ "TRACE", Methods::TRACE },
+	{ "PATCH", Methods::PATCH },
+	{ "CONNECT", Methods::CONNECT },
 };
-static const auto methodsLength = sizeof(httpKnownMethods) / sizeof(std::string);
+
+Method::Method() {
+	this->value = Methods::GET;
+}
+
+Method::Method(const std::string& method) {
+	this->apply(method);
+}
+
+Method::Method(const char* method) {
+	this->apply(method);
+}
+
+Method::operator std::string () const {
+	for (const auto& entry : httpKnownMethods) {
+		if (entry.second == this->value) return entry.first;
+	}
+	return "GET";
+}
+
+Method::operator Methods () const noexcept {
+	return this->value;
+}
 
 void Method::apply(const std::string& method) {
 
-	const auto newMethod = Strings::toUpperCase(Strings::trim(method));
+	auto knownMethod = httpKnownMethods.find(Strings::toUpperCase(Strings::trim(method)));
 
-	if (!httpKnownMethods.contains(newMethod)) {
+	if (knownMethod == httpKnownMethods.end()) {
 		throw std::invalid_argument("provided http method is unknown");
 	}
 
-	this->value = newMethod;
+	this->value = knownMethod->second;
 }
