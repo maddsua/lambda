@@ -71,6 +71,7 @@ namespace Lambda {
 
 		//	Checks whether string includes substring
 		bool includes(const std::string& str, const std::string& substr);
+		bool includes(const std::string& str, char token);
 		bool includes(const std::string& str, const std::vector <std::string>& substrs);
 
 		//	Checks whether string ends with substring
