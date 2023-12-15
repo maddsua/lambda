@@ -17,15 +17,16 @@ void Network::setConnectionTimeouts(SOCKET hSocket, uint32_t timeoutsMs) {
 		throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
 }
 
-TCPListenSocket::TCPListenSocket(uint16_t listenPort, const ListenInit& init) {
+TCPListenSocket::TCPListenSocket(const TCPListenConfig& init) {
 
 	//	special threatment for windows and it's fucking WSA
 	#ifdef _WIN32
 		wsaWakeUp();
 	#endif
 
-	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	this->config = init;
 
+	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (this->hSocket == INVALID_SOCKET) {
 		throw std::runtime_error("failed to create listen socket: code " + std::to_string(getAPIError()));
 	}
@@ -45,8 +46,7 @@ TCPListenSocket::TCPListenSocket(uint16_t listenPort, const ListenInit& init) {
 	sockaddr_in serverAddr;
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	serverAddr.sin_port = htons(listenPort);
-	this->internalPort = listenPort;
+	serverAddr.sin_port = htons(init.port);
 
 	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr))) {
 		auto apierror = getAPIError();
@@ -71,13 +71,13 @@ TCPListenSocket::~TCPListenSocket() {
 
 TCPListenSocket::TCPListenSocket(TCPListenSocket&& other) {
 	this->hSocket = other.hSocket;
-	this->internalPort = other.internalPort;
+	this->config = other.config;
 	other.hSocket = INVALID_SOCKET;
 }
 
 TCPListenSocket& TCPListenSocket::operator= (TCPListenSocket&& other) noexcept {
 	this->hSocket = other.hSocket;
-	this->internalPort = other.internalPort;
+	this->config = other.config;
 	other.hSocket = INVALID_SOCKET;
 	return *this;
 }
@@ -87,7 +87,7 @@ TCPConnection TCPListenSocket::acceptConnection() {
 	if (this->hSocket == INVALID_SOCKET) throw std::runtime_error("cannot accept anything from a closed socket");
 
 	ConnCreateInit next;
-	next.info.port = this->internalPort;
+	next.info.port = this->config.port;
 
 	sockaddr_in peerAddr;
 	socklen_t clientAddrLen = sizeof(peerAddr);
@@ -109,8 +109,8 @@ bool TCPListenSocket::ok() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
 }
 
-uint16_t TCPListenSocket::getPort() const noexcept {
-	return this->internalPort;
+TCPListenConfig TCPListenSocket::getConfig() const noexcept {
+	return this->config;
 }
 
 TCPConnection::TCPConnection(ConnCreateInit init) {

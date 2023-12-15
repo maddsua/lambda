@@ -53,17 +53,18 @@ namespace Lambda::Network {
 			bool isOpen() const noexcept;
 	};
 
-	struct ListenInit {
+	struct TCPListenConfig {
 		bool allowPortReuse = false;
+		uint16_t port = 8180;
 	};
 
 	class TCPListenSocket {
 		protected:
 			SOCKET hSocket = INVALID_SOCKET;
-			uint16_t internalPort = 0;
+			TCPListenConfig config;
 
 		public:
-			TCPListenSocket(uint16_t listenPort, const ListenInit& init);
+			TCPListenSocket(const TCPListenConfig& init);
 			TCPListenSocket(TCPListenSocket&& other);
 			~TCPListenSocket();
 
@@ -73,7 +74,7 @@ namespace Lambda::Network {
 			TCPConnection acceptConnection();
 
 			bool ok() const noexcept;
-			uint16_t getPort() const noexcept;
+			TCPListenConfig getConfig() const noexcept;
 	};
 };
 

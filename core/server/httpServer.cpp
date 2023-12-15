@@ -14,9 +14,10 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 	this->config = init;
 	this->handler = handlerFunction;
 
-	Network::ListenInit listenInitOpts;
+	Network::TCPListenConfig listenInitOpts;
 	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
-	auto tempListener = Network::TCPListenSocket(this->config.service.port, listenInitOpts);
+	listenInitOpts.port = this->config.service.port;
+	auto tempListener = Network::TCPListenSocket(listenInitOpts);
 	this->listener = new Network::TCPListenSocket(std::move(tempListener));
 
 	this->watchdogWorker = std::thread([&]() {

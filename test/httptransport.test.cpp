@@ -12,11 +12,9 @@ HTTP::Response httpHandler(const Request& req, const Context& context)  {
 
 int main(int argc, char const *argv[]) {
 
-	auto startAtPort = 8180;
+	auto server = Network::TCPListenSocket({});
 
-	auto server = Network::TCPListenSocket(startAtPort, {});
-
-	std::cout << "Started server at http://localhost:" + std::to_string(startAtPort) + "/\n";
+	std::cout << "Started server at http://localhost:" + std::to_string(server.getConfig().port) + "/\n";
 
 	while (server.ok()) {
 
