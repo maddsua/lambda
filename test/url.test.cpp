@@ -1,5 +1,6 @@
 #include <iostream>
-#include "../core/core.hpp"
+
+#include "../lambda.hpp"
 
 using namespace Lambda;
 

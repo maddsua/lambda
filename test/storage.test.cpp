@@ -1,7 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "../extra/storage.hpp"
+#include "../lambda.hpp"
 
 using namespace Lambda::Storage;
 

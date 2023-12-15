@@ -1,8 +1,6 @@
 #include <iostream>
 
-#include "../core/polyfill.hpp"
-#include "../core/http.hpp"
-#include "../core/server.hpp"
+#include "../lambda.hpp"
 
 using namespace Lambda;
 

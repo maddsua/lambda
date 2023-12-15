@@ -63,8 +63,8 @@ namespace Lambda::Network {
 			uint16_t internalPort = 0;
 
 		public:
-			TCPListenSocket(TCPListenSocket&& other);
 			TCPListenSocket(uint16_t listenPort, const ListenInit& init);
+			TCPListenSocket(TCPListenSocket&& other);
 			~TCPListenSocket();
 
 			TCPListenSocket& operator=(const TCPListenSocket& other) = delete;

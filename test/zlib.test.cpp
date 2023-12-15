@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../extra/compression.hpp"
+#include "../lambda.hpp"
 
 using namespace Lambda;
 
@@ -34,7 +34,7 @@ int main(int argc, char const *argv[]) {
 		}
 
 		std::vector<uint8_t> binData(textdata.begin(), textdata.end());
-		std::vector<uint8_t> compressed = Compress::zlibCompressBuffer(binData, Compress::Quality::Max, Compress::ZlibSetHeader::Zheader_GZ);
+		std::vector<uint8_t> compressed = Compress::zlibCompressBuffer(binData, Compress::Quality::Max, Compress::ZlibSetHeader::Gzip);
 
 		std::cout << "Original size: " << binData.size() << ", compressed: " << compressed.size() << ", delta: " << ((double)compressed.size() / (double)binData.size()) << std::endl;
 

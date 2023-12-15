@@ -4,7 +4,7 @@
 #include <exception>
 #include <stdexcept>
 
-#include "../core/encoding.hpp"
+#include "../lambda.hpp"
 
 using namespace Lambda;
 

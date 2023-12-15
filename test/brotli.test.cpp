@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../extra/compression.hpp"
+#include "../lambda.hpp"
 
 using namespace Lambda;
 

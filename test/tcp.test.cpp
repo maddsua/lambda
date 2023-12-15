@@ -1,7 +1,6 @@
 #include <iostream>
 
-#include "../core/polyfill.hpp"
-#include "../core/network.hpp"
+#include "../lambda.hpp"
 
 using namespace Lambda;
 
@@ -9,7 +8,7 @@ int main(int argc, char const *argv[]) {
 
 	auto startAtPort = 8180;
 	
-	auto server = Network::TCPListenSocket(startAtPort);
+	auto server = Network::TCPListenSocket(startAtPort, {});
 
 	std::cout << "Started server at port " + std::to_string(startAtPort) + "\n";
 

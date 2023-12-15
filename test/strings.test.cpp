@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../core/polyfill.hpp"
+#include "../lambda.hpp"
 
 using namespace Lambda;
 
