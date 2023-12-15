@@ -16,70 +16,70 @@ void Property::clone(const Property& other) {
 }
 
 Property::Property() {
-	this->internalType = JSTypes::Type_Undefined;
+	this->internalType = JSTypes::Undefined;
 }
 
 Property::Property(std::nullptr_t value) {
-	this->internalType = JSTypes::Type_Null;
+	this->internalType = JSTypes::Null;
 }
 
 Property::Property(long double value) {
-	this->internalType = JSTypes::Type_Float;
+	this->internalType = JSTypes::Float;
 	this->internalDataFloat = new long double(value);
 }
 
 Property::Property(double value) {
-	this->internalType = JSTypes::Type_Float;
+	this->internalType = JSTypes::Float;
 	this->internalDataFloat = new long double(value);
 }
 
 Property::Property(float value) {
-	this->internalType = JSTypes::Type_Float;
+	this->internalType = JSTypes::Float;
 	this->internalDataFloat = new long double(value);
 }
 
 Property::Property(int32_t value) {
-	this->internalType = JSTypes::Type_Integer;
+	this->internalType = JSTypes::Integer;
 	this->internalDataInt = new int32_t(value);
 }
 
 Property::Property(uint32_t value) {
-	this->internalType = JSTypes::Type_Integer;
+	this->internalType = JSTypes::Integer;
 	this->internalDataInt = new int32_t(value);
 }
 
 Property::Property(int16_t value) {
-	this->internalType = JSTypes::Type_Integer;
+	this->internalType = JSTypes::Integer;
 	this->internalDataInt = new int32_t(value);
 }
 
 Property::Property(uint16_t value) {
-	this->internalType = JSTypes::Type_Integer;
+	this->internalType = JSTypes::Integer;
 	this->internalDataInt = new int32_t(value);
 }
 
 Property::Property(bool value) {
-	this->internalType = JSTypes::Type_Boolean;
+	this->internalType = JSTypes::Boolean;
 	this->internalDataBool = new bool(value);
 }
 
 Property::Property(const std::string& value) {
-	this->internalType = JSTypes::Type_String;
+	this->internalType = JSTypes::String;
 	this->internalDataStr = new std::string(value);
 }
 
 Property::Property(const char* value) {
-	this->internalType = JSTypes::Type_String;
+	this->internalType = JSTypes::String;
 	this->internalDataStr = new std::string(value);
 }
 
 Property::Property(const std::vector<Property>& value) {
-	this->internalType = JSTypes::Type_Array;
+	this->internalType = JSTypes::Array;
 	this->internalDataArray = new std::vector<Property>(value);
 }
 
 Property::Property(const std::unordered_map<std::string, Property>& value) {
-	this->internalType = JSTypes::Type_Map;
+	this->internalType = JSTypes::Map;
 	this->internalDataMap = new std::unordered_map<std::string, Property>(value);
 }
 
@@ -101,19 +101,19 @@ JSTypes Property::type() const {
 }
 
 bool Property::isUndefined() const {
-	return this->internalType == JSTypes::Type_Undefined;
+	return this->internalType == JSTypes::Undefined;
 }
 
 bool Property::isNull() const {
-	return this->internalType == JSTypes::Type_Null;
+	return this->internalType == JSTypes::Null;
 }
 
 bool Property::isNil() const {
-	return this->internalType == JSTypes::Type_Null || this->internalType == JSTypes::Type_Undefined;
+	return this->internalType == JSTypes::Null || this->internalType == JSTypes::Undefined;
 }
 
 long double Property::asFloat() const {
-	if (this->internalType != JSTypes::Type_Float)
+	if (this->internalType != JSTypes::Float)
 		throw std::runtime_error("TypeError: value is not a float");
 	else if (!this->internalDataFloat)
 		throw std::runtime_error("DataError: float value undefined");
@@ -121,7 +121,7 @@ long double Property::asFloat() const {
 }
 
 int32_t Property::asInt() const {
-	if (this->internalType != JSTypes::Type_Integer)
+	if (this->internalType != JSTypes::Integer)
 		throw std::runtime_error("TypeError: value is not an int");
 	else if (!this->internalDataInt)
 		throw std::runtime_error("DataError: int value undefined");
@@ -129,7 +129,7 @@ int32_t Property::asInt() const {
 }
 
 bool Property::asBool() const {
-	if (this->internalType != JSTypes::Type_Boolean)
+	if (this->internalType != JSTypes::Boolean)
 		throw std::runtime_error("TypeError: value is not a boolean");
 	else if (!this->internalDataBool)
 		throw std::runtime_error("DataError: boolean value undefined");
@@ -137,7 +137,7 @@ bool Property::asBool() const {
 }
 
 const std::string& Property::asString() const {
-	if (this->internalType != JSTypes::Type_String)
+	if (this->internalType != JSTypes::String)
 		throw std::runtime_error("TypeError: value is not a string");
 	else if (!this->internalDataStr)
 		throw std::runtime_error("DataError: string value undefined");
@@ -145,7 +145,7 @@ const std::string& Property::asString() const {
 }
 
 const std::vector<Property>& Property::asArray() const {
-	if (this->internalType != JSTypes::Type_Array)
+	if (this->internalType != JSTypes::Array)
 		throw std::runtime_error("TypeError: value is not an array");
 	else if (!this->internalDataArray)
 		throw std::runtime_error("DataError: array value undefined");
@@ -153,7 +153,7 @@ const std::vector<Property>& Property::asArray() const {
 }
 
 const std::unordered_map<std::string, Property>& Property::asMap() const {
-	if (this->internalType != JSTypes::Type_Map)
+	if (this->internalType != JSTypes::Map)
 		throw std::runtime_error("TypeError: value is not a map");
 	else if (!this->internalDataMap)
 		throw std::runtime_error("DataError: map value undefined");

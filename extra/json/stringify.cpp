@@ -17,16 +17,16 @@ std::string JSON::stringify(const Property& data) {
 
 	switch (data.type()) {
 
-		case JSTypes::Type_Integer:
+		case JSTypes::Integer:
 			return std::to_string(data.asInt());
 
-		case JSTypes::Type_Float:
+		case JSTypes::Float:
 			return std::to_string(data.asFloat());
 
-		case JSTypes::Type_Boolean:
+		case JSTypes::Boolean:
 			return data.asBool() ? "true" : "false";
 
-		case JSTypes::Type_String: {
+		case JSTypes::String: {
 
 			auto textcontent = data.asString();
 			std::string temp;
@@ -46,10 +46,10 @@ std::string JSON::stringify(const Property& data) {
 			return '\"' + temp + '\"';
 		}
 
-		case JSTypes::Type_Null:
+		case JSTypes::Null:
 			return "null";
 
-		case JSTypes::Type_Array: {
+		case JSTypes::Array: {
 
 			std::string temp;
 
@@ -61,7 +61,7 @@ std::string JSON::stringify(const Property& data) {
 			return '[' + temp + ']';
 		}
 
-		case JSTypes::Type_Map: {
+		case JSTypes::Map: {
 
 			std::string temp;
 

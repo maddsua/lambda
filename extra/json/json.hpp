@@ -11,15 +11,15 @@ namespace Lambda::JSON {
 	typedef std::unordered_map<std::string, Property> Map;
 	typedef std::vector<Property> Array;
 
-	enum JSTypes {
-		Type_Undefined = -1,
-		Type_Null = 0,
-		Type_String = 1,
-		Type_Boolean = 2,
-		Type_Integer = 3,
-		Type_Float = 4,
-		Type_Array = 5,
-		Type_Map = 6
+	enum struct JSTypes {
+		Undefined = -1,
+		Null = 0,
+		String = 1,
+		Boolean = 2,
+		Integer = 3,
+		Float = 4,
+		Array = 5,
+		Map = 6
 	};
 
 	class Property {
