@@ -7,7 +7,6 @@ using namespace Lambda;
 HTTP::Response httpHandler(const Request& req, const Context& context) {
 
 	context.console.log({"Serving rq for:", req.url.pathname});
-	context.console.log({"Full url:", req.url.href()});
 
 	if (req.body.size()) context.console.log({"Request payload", req.body.text()});
 
