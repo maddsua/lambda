@@ -34,7 +34,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 
 struct PipelineItem {
 	HTTP::Request request;
-	std::string id;
+	uint32_t id;
 	ContentEncodings acceptsEncoding = ContentEncodings::None;
 	bool keepAlive = false;
 };
@@ -133,10 +133,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			}
 
 			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-			uint32_t shortidField = (timeHighres & ~0UL) ^ (totalReadSize & ~0UL);
-			std::string requestOwnId = ShortID(shortidField).toString();
-
-			next.id = options.contextID.size() ? (options.contextID + '-' + requestOwnId) : requestOwnId;
+			next.id = (timeHighres & ~0UL) ^ (totalReadSize & ~0UL);
 
 			std::lock_guard<std::mutex>lock(pipelineMutex);
 			pipeline.push(std::move(next));
@@ -150,22 +147,24 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		if (!pipeline.size()) continue;
 
 		auto& next = pipeline.front();
+		auto requestID = ShortID(next.id).toString();
+		auto uinqueID = options.contextID.size() ? (options.contextID + '-' + requestID) : requestID;
 
 		HTTP::Response response;
 		auto responseDate = Date();
 
 		try {
 
-			RequestContext requestCtx;
-			requestCtx.requestID = next.id;
-			requestCtx.conninfo = conn.getInfo();
-	
-			response = handler(next.request, requestCtx);
+			response = handler(next.request, {
+				uinqueID,
+				conn.getInfo(),
+				Console(requestID)
+			});
 
 		} catch(const std::exception& e) {
 
 			if (options.loglevel.logRequests) {
-				printf("%s [%s] [Caught error] Handler has crashed: %s\n", responseDate.toHRTString().c_str(), next.id.c_str(), e.what());
+				printf("%s [%s] [Caught error] Handler has crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
 			}
 			
 			response = serviceResponse(500, std::string("Function handler crashed: ") + e.what());
@@ -173,7 +172,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		} catch(...) {
 
 			if (options.loglevel.logRequests) {
-				printf("%s [%s] [Caught error] Handler has crashed: unhandled exception\n", responseDate.toHRTString().c_str(), next.id.c_str());
+				printf("%s [%s] [Caught error] Handler has crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
 			}
 
 			response = serviceResponse(500, "Function handler crashed: unhandled exception");
@@ -181,7 +180,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 		response.headers.set("date", responseDate.toUTCString());
 		response.headers.set("server", "maddsua/lambda");
-		response.headers.set("x-request-id", next.id);
+		response.headers.set("x-request-id", uinqueID);
 		if (next.keepAlive) response.headers.set("connection", "keep-alive");
 		if (!response.headers.has("content-type")) response.headers.set("content-type", "text/html; charset=utf-8");
 
@@ -230,16 +229,16 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 		if (options.loglevel.logRequests) {
 			options.loglevel.logConnections ? 
-				printf("%s [%s] %s %s --> %i\n",
+				printf("%s %s %s %s --> %i\n",
 					responseDate.toHRTString().c_str(),
-					next.id.c_str(),
+					requestID.c_str(),
 					static_cast<std::string>(next.request.method).c_str(),
 					next.request.url.pathname.c_str(),
 					response.status.code()
 				) :
-				printf("%s [%s] (%s) %s %s --> %i\n",
+				printf("%s %s (%s) %s %s --> %i\n",
 					responseDate.toHRTString().c_str(),
-					next.id.c_str(),
+					requestID.c_str(),
 					conn.getInfo().peerIP.c_str(),
 					static_cast<std::string>(next.request.method).c_str(),
 					next.request.url.pathname.c_str(),

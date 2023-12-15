@@ -6,7 +6,9 @@ using namespace Lambda;
 
 HTTP::Response httpHandler(const Request& req, const Context& context) {
 
-	if (req.body.size()) printf("Request payload: %s\n", req.body.text().c_str());
+	context.console.log({"Serving rq for:", req.url.pathname});
+
+	if (req.body.size()) context.console.log({"Request payload", req.body.text()});
 
 	return HTTP::Response("status report: live");
 }
