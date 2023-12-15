@@ -22,6 +22,7 @@ include Makefile.core.mk
 include Makefile.extra.mk
 include Makefile.test.mk
 include Makefile.tools.mk
+include Makefile.examples.mk
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
