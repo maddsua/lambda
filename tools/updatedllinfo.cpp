@@ -61,11 +61,9 @@ int main(int argc, char const *argv[]) {
 
 	auto templateContent = loadFile(opts.templateFile);
 
-
-
 	std::vector<std::pair<std::string, std::string>> replaceList = {
 		{ "version_dot", LAMBDA_VERSION },
-		{ "version_comma", [&](){
+		{ "version_comma", [](){
 			std::string temp = LAMBDA_VERSION;
 			std::string result;
 			for (auto symbol : temp) {
@@ -74,7 +72,11 @@ int main(int argc, char const *argv[]) {
 			}
 			return result;
 		}() },
-		{ "released_year", "2023" },
+		{ "released_year", []() {
+			auto epochNow = time(nullptr);
+			auto timeNow = gmtime(&epochNow);
+			return std::to_string(timeNow->tm_year + 1900);
+		}() },
 	};
 
 	auto dllinfoContent = templateContent;
