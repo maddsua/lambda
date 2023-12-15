@@ -19,7 +19,8 @@ LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o co
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_RESS	=	core/server/resources/html/servicepage.res
-LIB_CORE_SERVER_DEPS	=	core/server/httpHandler.o core/server/httpServer.o core/server/serviceResponse.o core/server/console.o $(LIB_CORE_SERVER_RESS)
+LIB_CORE_SERVER_OBJS	=	core/server/httpHandler.o core/server/httpServer.o core/server/serviceResponse.o core/server/console.o
+LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
 LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o
