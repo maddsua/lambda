@@ -32,5 +32,11 @@ $(LAMBDA_LIBSTATIC): $(LAMBDA_DEPS)
 # shared lib build
 libshared: $(LAMBDA_LIBSHARED)
 
-$(LAMBDA_LIBSHARED): $(LAMBDA_DEPS)
-	g++ $(CFLAGS) $(LAMBDA_DEPS) $(LINK_COMPRESS_LIBS) $(LINK_SYSTEM_LIBS) -s -shared -o $(LAMBDA_LIBSHARED) -Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
+$(LAMBDA_LIBSHARED): $(LAMBDA_DEPS) dllinfo.res
+	g++ $(CFLAGS) $(LAMBDA_DEPS) $(LINK_COMPRESS_LIBS) $(LINK_SYSTEM_LIBS) dllinfo.res -s -shared -o $(LAMBDA_LIBSHARED) -Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
+
+dllinfo.res: dllinfo.rc
+	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
+
+dllinfo.rc: updatedllinfo.exe
+	updatedllinfo.exe --template=dllinfo.template.rc --info=lambda_version.hpp --output=tset
