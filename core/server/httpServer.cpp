@@ -30,11 +30,12 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 				auto connectionWorker = std::thread([&](Network::TCPConnection&& conn) {
 
 					const auto& connfinfo = conn.getInfo();
+					auto contextID = connfinfo.shortid.toString();
 
 					HttpHandlerOptions handlerOptions = {
 						this->config.loglevel,
 						this->config.transport,
-						connfinfo.shortid.toString()
+						contextID
 					};
 
 					try {
@@ -43,7 +44,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 							printf("%s %s opens %s\n",
 								Date().toHRTString().c_str(),
 								connfinfo.peerIP.c_str(),
-								handlerOptions.contextID.c_str()
+								contextID
 							);
 						}
 
@@ -54,7 +55,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 						if (this->terminated) return;
 
 						if (this->config.loglevel.logRequests) {
-							fprintf(stderr, "%s [Service] http handler crashed: %s\n", Date().toHRTString().c_str(), e.what()); 
+							fprintf(stderr, "%s [Service] http handler %s crashed: %s\n", Date().toHRTString().c_str(), contextID.c_str(), e.what()); 
 						}
 
 					} catch(...) {
@@ -62,12 +63,12 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 						if (this->terminated) return;
 
 						if (this->config.loglevel.logRequests) {
-							fprintf(stderr, "%s [Service] http handler crashed with unknown error\n", Date().toHRTString().c_str()); 
+							fprintf(stderr, "%s [Service] http handler %s crashed with unknown error\n", Date().toHRTString().c_str(), contextID.c_str()); 
 						}
 					}
 
 					if (this->config.loglevel.logConnections) {
-						printf("%s %s was closed\n", Date().toHRTString().c_str(), handlerOptions.contextID.c_str());
+						printf("%s %s was closed\n", Date().toHRTString().c_str(), contextID.c_str());
 					}
 
 				}, std::move(nextConn));
