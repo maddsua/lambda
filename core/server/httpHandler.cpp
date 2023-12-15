@@ -147,11 +147,16 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		if (!pipeline.size()) continue;
 
 		auto& next = pipeline.front();
+		auto responseDate = Date();
+
 		auto requestID = ShortID(next.id).toString();
 		auto uinqueID = options.contextID.size() ? (options.contextID + '-' + requestID) : requestID;
 
+		if (options.loglevel.logRequests) {
+			printf("%s %s creates %s\n", responseDate.toHRTString().c_str(), options.contextID.c_str(), requestID.c_str());
+		}
+
 		HTTP::Response response;
-		auto responseDate = Date();
 
 		try {
 
@@ -164,7 +169,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		} catch(const std::exception& e) {
 
 			if (options.loglevel.logRequests) {
-				printf("%s [%s] [Caught error] Handler has crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
+				printf("%s %s crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
 			}
 			
 			response = serviceResponse(500, std::string("Function handler crashed: ") + e.what());
@@ -172,7 +177,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 		} catch(...) {
 
 			if (options.loglevel.logRequests) {
-				printf("%s [%s] [Caught error] Handler has crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
+				printf("%s %s crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
 			}
 
 			response = serviceResponse(500, "Function handler crashed: unhandled exception");
