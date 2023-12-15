@@ -21,6 +21,7 @@ cleanw: action-custom
 include Makefile.core.mk
 include Makefile.extra.mk
 include Makefile.test.mk
+include Makefile.tools.mk
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
