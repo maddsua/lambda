@@ -1,5 +1,5 @@
 #include "./storage.hpp"
-#include "../../core/encoding.hpp"
+#include "../../core/encoding/encoding.hpp"
 
 #include <stdexcept>
 #include <iterator>
