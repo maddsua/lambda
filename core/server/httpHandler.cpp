@@ -94,10 +94,8 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			}
 
 			auto hostHeader = next.request.headers.get("host");
-			if (hostHeader.size()) {
-				if (Strings::includes(hostHeader, '/')) throw std::runtime_error("invalid \"Host\" header");
-				next.request.url = HTTP::URL("http://" + hostHeader + requestUrlString);
-			}
+			if (Strings::includes(hostHeader, '/')) throw std::runtime_error("invalid \"Host\" header");
+			next.request.url = HTTP::URL(std::string("http://") + (hostHeader.size() ? hostHeader : ("lambdahost:" + conn.getInfo().port)) + requestUrlString);
 
 			if (options.transport.reuseConnections) {
 				auto connectionHeader = next.request.headers.get("connection");
