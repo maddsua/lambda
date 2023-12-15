@@ -52,7 +52,8 @@ namespace Lambda {
 				bool logRequests = true;			
 			} loglevel;
 			struct {
-				bool httpCompressionEnabled = true;		
+				bool useCompression = true;		
+				bool reuseConnections = true;
 			} transport;
 		};
 

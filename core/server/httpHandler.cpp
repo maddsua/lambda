@@ -94,10 +94,12 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 				next.request.headers.append(headerKey, headerValue);
 			}
 
-			auto connectionHeader = next.request.headers.get("connection");
-			if (connectionKeepAlive) connectionKeepAlive = !Strings::includes(connectionHeader, "close");
-				else connectionKeepAlive = Strings::includes(connectionHeader, "keep-alive");
-			next.keepAlive = connectionKeepAlive;
+			if (options.transport.reuseConnections) {
+				auto connectionHeader = next.request.headers.get("connection");
+				if (connectionKeepAlive) connectionKeepAlive = !Strings::includes(connectionHeader, "close");
+					else connectionKeepAlive = Strings::includes(connectionHeader, "keep-alive");
+				next.keepAlive = connectionKeepAlive;
+			}
 
 			auto acceptEncodingHeader = next.request.headers.get("accept-encoding");
 			if (acceptEncodingHeader.size()) {
