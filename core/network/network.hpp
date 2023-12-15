@@ -5,9 +5,9 @@
 #include <string>
 #include <mutex>
 
-#include "../core/http.hpp"
-#include "../core/polyfill.hpp"
-#include "./network/compat.hpp"
+#include "../http/http.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "./compat.hpp"
 
 namespace Lambda::Network {
 

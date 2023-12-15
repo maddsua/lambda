@@ -4,7 +4,7 @@
 
 #include "./sysnetw.hpp"
 #include "./internal.hpp"
-#include "../network.hpp"
+#include "./network.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Network;

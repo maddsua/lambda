@@ -1,13 +1,15 @@
+
+#include "./server.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "../crypto/crypto.hpp"
+#include "../encoding/encoding.hpp"
+
 #include <cstdio>
 #include <thread>
 
-#include "../server.hpp"
-#include "../polyfill.hpp"
-#include "../crypto.hpp"
-#include "../encoding.hpp"
-
 using namespace Lambda;
 using namespace Lambda::Server;
+
 
 HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerConfig init) {
 

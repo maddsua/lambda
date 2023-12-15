@@ -17,11 +17,9 @@ BrotliDecompressStream::~BrotliDecompressStream() {
 	BrotliDecoderDestroyInstance(this->stream);
 }
 
-
 ZlibStream::ZlibStream() {
 	memset(&this->stream, 0, sizeof(z_stream));
 }
-
 
 ZlibCompressStream::ZlibCompressStream(int compression, int winbits) {
 	auto initResult = deflateInit2(&this->stream, compression, Z_DEFLATED, winbits, 8, Z_DEFAULT_STRATEGY);

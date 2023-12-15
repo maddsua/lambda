@@ -1,8 +1,9 @@
-#include "../server.hpp"
+
+#include "./server.hpp"
 #include "../network/sysnetw.hpp"
-#include "../compression.hpp"
-#include "../polyfill.hpp"
-#include "../crypto.hpp"
+#include "../compression/compression.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "../crypto/crypto.hpp"
 #include "../../lambda_build_options.hpp"
 
 #include <queue>
@@ -16,6 +17,7 @@
 using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::Server;
+
 
 static const std::string patternEndHeader = "\r\n\r\n";
 

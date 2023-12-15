@@ -1,9 +1,10 @@
-#include "../server.hpp"
+#include "./server.hpp"
 
 extern char _binary_core_server_resources_html_servicepage_html_start;
 extern char _binary_core_server_resources_html_servicepage_html_end;
 
 using namespace Lambda;
+
 
 static const auto pageTemplate = std::string(&_binary_core_server_resources_html_servicepage_html_start, &_binary_core_server_resources_html_servicepage_html_end - &_binary_core_server_resources_html_servicepage_html_start);
 

@@ -1,5 +1,6 @@
-#include "../server.hpp"
-#include "../polyfill.hpp"
+
+#include "./server.hpp"
+#include "../polyfill/polyfill.hpp"
 
 using namespace Lambda;
 

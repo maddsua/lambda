@@ -5,8 +5,8 @@
 #include <future>
 #include <optional>
 
-#include "./http.hpp"
-#include "./network.hpp"
+#include "../http/http.hpp"
+#include "../network/network.hpp"
 
 namespace Lambda {
 

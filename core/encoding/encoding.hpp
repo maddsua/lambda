@@ -1,8 +1,8 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_ENCODING__
 #define __LIB_MADDSUA_LAMBDA_CORE_ENCODING__
 
-#include "./polyfill.hpp"
-#include "./http.hpp"
+#include <string>
+#include <vector>
 
 namespace Lambda::Encoding {
 

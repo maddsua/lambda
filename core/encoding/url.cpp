@@ -1,6 +1,7 @@
-#include "../encoding.hpp"
+#include "./encoding.hpp"
 
 #include <set>
+#include <cstring>
 
 using namespace Lambda;
 

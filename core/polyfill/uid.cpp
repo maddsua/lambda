@@ -1,5 +1,5 @@
-#include "../polyfill.hpp"
-#include "../encoding.hpp"
+#include "./polyfill.hpp"
+#include "../encoding/encoding.hpp"
 
 using namespace Lambda;
 
