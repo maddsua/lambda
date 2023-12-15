@@ -75,7 +75,6 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			auto& requestUrlString = headerStartLine.at(1);
 
 			PipelineItem next;
-			next.request.url = HTTP::URL(requestUrlString);
 			next.request.method = HTTP::Method(requestMethodString);
 
 			for (size_t i = 1; i < headerFields.size(); i++) {
@@ -93,6 +92,10 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 
 				next.request.headers.append(headerKey, headerValue);
 			}
+
+			auto hostHeader = next.request.headers.get("host");
+			if (Strings::includes(hostHeader, '/')) throw std::runtime_error("invalid \"Host\" header");
+			next.request.url = HTTP::URL("http://" + hostHeader + requestUrlString);
 
 			if (options.transport.reuseConnections) {
 				auto connectionHeader = next.request.headers.get("connection");
