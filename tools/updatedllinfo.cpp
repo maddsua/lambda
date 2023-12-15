@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <stdexcept>
 
 struct Options {
@@ -55,6 +56,14 @@ int main(int argc, char const *argv[]) {
 
 	auto templateContent = loadFile(opts.templateFile);
 	auto infoContent = loadFile(opts.infoFile);
+
+	std::vector<std::string> infoLines;
+
+	size_t linePosStar = 0;
+	for (auto i = linePosStar; i < infoContent.size(); i++) {
+	//	if (infoContent[i] == '\n')
+	}
+	
 
 
 	auto dllinfoContent = templateContent;
