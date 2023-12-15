@@ -14,7 +14,7 @@ FILETYPE VFT_DLL
 			VALUE "FileDescription", "HTTP and Websocket server library"
 			VALUE "InternalName", "lambda"
 			VALUE "LegalCopyright", "https://github.com/maddsua"
-			VALUE "LegalTrademarks", "$released_year maddsua"
+			VALUE "LegalTrademarks", "maddsua, $released_year"
 			VALUE "OriginalFilename", "lambda.dll"
 			VALUE "ProductName", "maddsua/lambda"
 			VALUE "ProductVersion", "$version_dot"
