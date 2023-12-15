@@ -11,7 +11,7 @@ struct Options {
 std::string loadFile(const std::string& path) {
 	std::string content;
 	auto localfile = std::ifstream(path);
-	if (!localfile.is_open()) throw std::runtime_error("Couldn't open file " + path);
+	if (!localfile.is_open()) throw std::runtime_error("Couldn't open file " + path + " for read");
 	content.assign(std::istreambuf_iterator<char>(localfile), std::istreambuf_iterator<char>());
 	return content;
 }
@@ -57,6 +57,11 @@ int main(int argc, char const *argv[]) {
 	auto infoContent = loadFile(opts.infoFile);
 
 
+	auto dllinfoContent = templateContent;
+
+	auto dllinfoFile = std::fstream(opts.outputFile, std::ios::out | std::ios::binary);
+	if (!dllinfoFile.is_open()) throw std::runtime_error("Couldn't open file " + opts.outputFile + " for write");
+	dllinfoFile.write(dllinfoContent.data(), dllinfoContent.size());
 
 	return 0;
 }
