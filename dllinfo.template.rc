@@ -1,8 +1,8 @@
 #include <windows.h>
 
 1 VERSIONINFO
-FILEVERSION version_comma
-PRODUCTVERSION version_comma
+FILEVERSION $version_comma
+PRODUCTVERSION $version_comma
 FILETYPE VFT_DLL
 {
 	BLOCK "StringFileInfo"
