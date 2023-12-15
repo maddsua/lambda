@@ -128,7 +128,21 @@ namespace Lambda::HTTP {
 			}
 	};
 
-	enum struct Methods { GET, POST, PUT, DELETE, HEAD, OPTIONS, TRACE, PATCH, CONNECT };
+	enum struct Methods {
+		GET = 1,
+		POST = 2,
+		PUT = 3,
+		/*
+			"delete" is a C++ keyworks so it wont stop fucking with me unless I set it to comething else
+			it's just the enum tho, the http method name stays intact
+		*/
+		DEL = 4,
+		HEAD = 5,
+		OPTIONS = 6,
+		TRACE = 7,
+		PATCH = 8,
+		CONNECT = 8
+	};
 
 	class Method {
 		private:
