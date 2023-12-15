@@ -46,6 +46,9 @@ std::string Strings::toTittleCase(const std::string& str) {
 bool Strings::includes(const std::string& str, const std::string& substr) {
 	return str.find(substr) != std::string::npos;
 }
+bool Strings::includes(const std::string& str, char token) {
+	return str.find(token) != std::string::npos;
+}
 bool Strings::includes(const std::string& str, const std::vector <std::string>& substrs) {
 	for (auto& item : substrs) {
 		if (str.find(item) != std::string::npos)
