@@ -10,6 +10,8 @@ int main(int argc, char const *argv[]) {
 
 	auto handler = [&](const Request& req, const Context& context) {
 
+		auto console = context.console;
+
 		//	get record key
 		auto key = req.url.searchParams.get("record");
 		if (!key.size()) return HTTP::Response(HTTP::Status(400), "no record key provided");
@@ -17,17 +19,17 @@ int main(int argc, char const *argv[]) {
 		switch (req.method) {
 
 			case HTTP::Methods::GET: {
-				auto value = storage.getItem(key);
-				if (!value.size()) return HTTP::Response(HTTP::Status(404), "object not found");
-				return HTTP::Response(value);
+				return storage.hasItem(key) ?
+					HTTP::Response(storage.getItem(key)) :
+					HTTP::Response(HTTP::Status(404), "object not found");
 			} break;
 
 			case HTTP::Methods::POST: {
 				storage.setItem(key, req.body.text());
-				return HTTP::Response(204, "created");
+				return HTTP::Response(202, "created");
 			} break;
 
-			case HTTP::Methods::DELETE: {
+			case HTTP::Methods::DEL: {
 				storage.removeItem(key);
 				return HTTP::Response(200, "deleted");
 			} break;
@@ -39,6 +41,7 @@ int main(int argc, char const *argv[]) {
 	};
 
 	HttpServerConfig initparams;
+	initparams.loglevel.logRequests = true;
 	auto server = HttpServer(handler, initparams);
 	server.awaitFinished();
 
