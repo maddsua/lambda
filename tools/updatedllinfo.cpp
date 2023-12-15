@@ -3,10 +3,11 @@
 #include <vector>
 #include <stdexcept>
 
+#include "../lambda_version.hpp"
+
 struct Options {
 	std::string templateFile;
 	std::string outputFile;
-	std::string infoFile;
 };
 
 std::string loadFile(const std::string& path) {
@@ -34,7 +35,6 @@ int main(int argc, char const *argv[]) {
 
 		if (key == "template") opts.templateFile = value;
 		else if (key == "output") opts.outputFile = value;
-		else if (key == "info") opts.infoFile = value;
 	}
 
 	int isInitError = false;
@@ -47,23 +47,13 @@ int main(int argc, char const *argv[]) {
 		std::cerr << "ABORTED: Provide output file with --output=[filelocation]\n";
 		isInitError++;
 	}
-	if (!opts.infoFile.size()) {
-		std::cerr << "ABORTED: Provide info file with --info=[filelocation]\n";
-		isInitError++;
-	}
 
 	if (isInitError) return 1;
 
 	auto templateContent = loadFile(opts.templateFile);
-	auto infoContent = loadFile(opts.infoFile);
 
 	std::vector<std::string> infoLines;
 
-	size_t linePosStar = 0;
-	for (auto i = linePosStar; i < infoContent.size(); i++) {
-	//	if (infoContent[i] == '\n')
-	}
-	
 
 
 	auto dllinfoContent = templateContent;
