@@ -2,20 +2,12 @@
 #include <chrono>
 #include <cstdio>
 
-#include "./sysnetw.hpp"
 #include "./internal.hpp"
 #include "./network.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Network;
 
-
-void Network::setConnectionTimeouts(SOCKET hSocket, uint32_t timeoutsMs) {
-	if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutsMs, sizeof(timeoutsMs)))
-		throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
-	if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeoutsMs, sizeof(timeoutsMs)))
-		throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
-}
 
 TCPListenSocket::TCPListenSocket(const TCPListenConfig& init) {
 

@@ -6,64 +6,49 @@
 #ifndef __LIB_MADDSUA_LAMBDA_INTERNAL_NETWORK_TCPIP__
 #define __LIB_MADDSUA_LAMBDA_INTERNAL_NETWORK_TCPIP__
 
-#include <stdint.h>
+	#include <stdint.h>
 
-#include "./compat.hpp"
+	#ifdef _WIN32
 
-#ifdef _WIN32
+		#define WIN32_LEAN_AND_MEAN
+		#include <winsock2.h>
+		#include <ws2tcpip.h>
+		#include <stdexcept>
 
-	#define WIN32_LEAN_AND_MEAN
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-	#include <stdexcept>
+		#define getAPIError() (GetLastError())
 
-	#define getAPIError() GetLastError()
+		#define LNE_ADDRINUSE	WSAEADDRINUSE
+		#define LNE_TIMEDOUT	WSAETIMEDOUT
 
-	inline bool wsaWakeUp() {
+	#else
 
-		static bool wsaInitCalled = false;
-		if (wsaInitCalled) return false;
-		wsaInitCalled = true;
+		#include <sys/types.h>
+		#include <sys/socket.h>
+		#include <netdb.h>
+		#include <unistd.h>
+		#include <arpa/inet.h>
+		#include <cerrno>
 
-		WSADATA initdata;
-		if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-			throw std::runtime_error("WSA initialization failed: windows API error " + std::to_string(getAPIError()));
+		#ifndef INVALID_SOCKET
+			#define INVALID_SOCKET (-1)
+		#endif
 
-		return true;
-	}
+		#ifndef SOCKET_ERROR
+			#define SOCKET_ERROR (-1)
+		#endif
 
-	#define LNETWERR_IN_USE		WSAEADDRINUSE
-	#define LNETWERR_TIMED_OUT	WSAETIMEDOUT
+		#ifndef WSAETIMEDOUT
+			#define WSAETIMEDOUT (ETIMEDOUT)
+		#endif
 
-#else
+		#define getAPIError() errno
 
-	#include <sys/types.h>
-	#include <sys/socket.h>
-	#include <netdb.h>
-	#include <unistd.h>
-	#include <arpa/inet.h>
-	#include <cerrno>
+		#define closesocket(socketHandle) (close(socketHandle))
+		#define SD_BOTH (SHUT_RDWR)
 
-	#ifndef INVALID_SOCKET
-		#define INVALID_SOCKET (-1)
+		#define LNE_ADDRINUSE	EADDRINUSE
+		#define LNE_TIMEDOUT	ETIMEDOUT
+
 	#endif
-
-	#ifndef SOCKET_ERROR
-		#define SOCKET_ERROR (-1)
-	#endif
-
-	#ifndef WSAETIMEDOUT
-		#define WSAETIMEDOUT (ETIMEDOUT)
-	#endif
-
-	#define getAPIError() errno
-
-	#define closesocket(socketHandle) close(socketHandle)
-	#define SD_BOTH (SHUT_RDWR)
-
-	#define LNETWERR_IN_USE		EADDRINUSE
-	#define LNETWERR_TIMED_OUT	ETIMEDOUT
-
-#endif
 
 #endif

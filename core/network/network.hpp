@@ -1,81 +1,26 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK__
 #define __LIB_MADDSUA_LAMBDA_NETWORK__
 
-#include <vector>
+#include <stdint.h>
 #include <string>
-#include <mutex>
-
-#include "../http/http.hpp"
-#include "../polyfill/polyfill.hpp"
-#include "./compat.hpp"
 
 namespace Lambda::Network {
 
-	enum struct Constants : uint32_t {
-		Receive_ChunkSize = 2048,
-		Connection_TimeoutMs = 15000,
-		Connection_TimeoutMs_Max = 60000,
-		Connection_TimeoutMs_Min = 100,
+	enum struct ConnectionTransport : int16_t {
+		TCP, UDP
 	};
 
-	struct ConnInfo {
-		ShortID shortid;
-		std::string peerIP;
+	struct Address {
+		ConnectionTransport transport;
 		uint16_t port;
+		std::string hostname;
 	};
 
-	struct ConnCreateInit {
-		SOCKET hSocket;
-		ConnInfo info;
-		uint32_t connTimeout = 0;
-	};
+	#ifdef _WIN32
+		bool wsaWakeUp();
+	#endif
 
-	class TCPConnection {
-		protected:
-			SOCKET hSocket = INVALID_SOCKET;
-			ConnInfo info;
-			std::mutex readMutex;
-			std::mutex writeMutex;
-
-		public:
-			TCPConnection(ConnCreateInit init);
-			TCPConnection(TCPConnection&& other) noexcept;
-			~TCPConnection();
-
-			TCPConnection& operator= (const TCPConnection& other) = delete;
-			TCPConnection& operator= (TCPConnection&& other) noexcept;
-
-			std::vector<uint8_t> read();
-			std::vector<uint8_t> read(size_t expectedSize);
-			void write(const std::vector<uint8_t>& data);
-			const ConnInfo& getInfo() const noexcept;
-			void end();
-			bool isOpen() const noexcept;
-	};
-
-	struct TCPListenConfig {
-		bool allowPortReuse = false;
-		uint16_t port = 8180;
-	};
-
-	class TCPListenSocket {
-		protected:
-			SOCKET hSocket = INVALID_SOCKET;
-			TCPListenConfig config;
-
-		public:
-			TCPListenSocket(const TCPListenConfig& init);
-			TCPListenSocket(TCPListenSocket&& other);
-			~TCPListenSocket();
-
-			TCPListenSocket& operator=(const TCPListenSocket& other) = delete;
-			TCPListenSocket& operator=(TCPListenSocket&& other) noexcept;
-
-			TCPConnection acceptConnection();
-
-			bool ok() const noexcept;
-			TCPListenConfig getConfig() const noexcept;
-	};
+	void setConnectionTimeouts(SOCKET hSocket, uint32_t timeoutsMs);
 };
 
 #endif

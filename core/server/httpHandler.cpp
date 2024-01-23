@@ -1,6 +1,6 @@
 
 #include "./server.hpp"
-#include "../network/sysnetw.hpp"
+#include "../network/internal.hpp"
 #include "../compression/compression.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../crypto/crypto.hpp"
