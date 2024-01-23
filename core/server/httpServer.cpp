@@ -47,8 +47,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 
 						Server::handleHTTPConnection(std::move(conn), this->handler, {
 							this->config.loglevel,
-							this->config.transport,
-							contextID
+							this->config.transport
 						});
 
 					} catch(const std::exception& e) {
