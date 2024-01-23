@@ -18,8 +18,8 @@ LIB_CORE_COMPRESS		=	core/compression.a
 LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_RESS	=	core/server/resources/html/servicepage.res
-LIB_CORE_SERVER_OBJS	=	core/server/httpHandler.o core/server/httpServer.o core/server/serviceResponse.o core/server/console.o
+LIB_CORE_SERVER_RESS	=	core/resources/html/servicepage.res
+LIB_CORE_SERVER_OBJS	=	core/server/http.o core/server/httpServer.o core/server/http/errorPage.o core/server/console.o
 LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
@@ -116,20 +116,20 @@ core/compression/zlib.o: core/compression/zlib.cpp
 $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 	ar rvs $(LIB_CORE_SERVER) $(LIB_CORE_SERVER_DEPS)
 
-core/server/httpHandler.o: core/server/httpHandler.cpp
-	g++ -c $(CFLAGS) core/server/httpHandler.cpp -o core/server/httpHandler.o
+core/server/http.o: core/server/http.cpp
+	g++ -c $(CFLAGS) core/server/http.cpp -o core/server/http.o
 
 core/server/httpServer.o: core/server/httpServer.cpp
 	g++ -c $(CFLAGS) core/server/httpServer.cpp -o core/server/httpServer.o
 
-core/server/serviceResponse.o: core/server/serviceResponse.cpp
-	g++ -c $(CFLAGS) core/server/serviceResponse.cpp -o core/server/serviceResponse.o
+core/server/http/errorPage.o: core/server/http/errorPage.cpp
+	g++ -c $(CFLAGS) core/server/http/errorPage.cpp -o core/server/http/errorPage.o
 
 core/server/console.o: core/server/console.cpp
 	g++ -c $(CFLAGS) core/server/console.cpp -o core/server/console.o
 
-core/server/resources/html/servicepage.res: core/server/resources/html/servicepage.html
-	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 core/server/resources/html/servicepage.html core/server/resources/html/servicepage.res
+core/resources/html/servicepage.res: core/resources/html/servicepage.html
+	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 core/resources/html/servicepage.html core/resources/html/servicepage.res
 
 
 # crypto stuff

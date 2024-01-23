@@ -10,7 +10,6 @@
 using namespace Lambda;
 using namespace Lambda::Server;
 
-
 HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerConfig init) {
 
 	this->config = init;
