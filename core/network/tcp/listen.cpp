@@ -103,10 +103,16 @@ Connection ListenSocket::acceptConnection() {
 
 	//	try setting connection timeouts
 	try {
-		setConnectionTimeouts(next.hSocket, next.info.connTimeout);
-	} catch(...) {
-		if (next.hSocket == INVALID_SOCKET) return;
-		closesocket(next.hSocket);
+
+		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&next.info.connTimeout, sizeof(next.info.connTimeout)))
+			throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
+		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&next.info.connTimeout, sizeof(next.info.connTimeout)))
+			throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
+
+	} catch(const std::exception& err) {
+		if (next.hSocket != INVALID_SOCKET)
+			closesocket(next.hSocket);
+		throw err;
 	}
 
 	//	try getting peer host name
@@ -120,4 +126,8 @@ Connection ListenSocket::acceptConnection() {
 
 bool ListenSocket::ok() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
+}
+
+const ListenConfig& ListenSocket::getConfig() const noexcept {
+	return this->config;
 }
