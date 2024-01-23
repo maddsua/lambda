@@ -49,7 +49,7 @@ namespace Lambda::Network {
 			std::vector<uint8_t> read(size_t expectedSize);
 			void write(const std::vector<uint8_t>& data);
 			const ConnInfo& getInfo() const noexcept;
-			void close();
+			void end();
 			bool isOpen() const noexcept;
 	};
 

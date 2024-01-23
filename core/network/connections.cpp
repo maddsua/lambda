@@ -155,7 +155,7 @@ TCPConnection::~TCPConnection() {
 	closesocket(this->hSocket);
 }
 
-void TCPConnection::close() {
+void TCPConnection::end() {
 	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
@@ -201,7 +201,7 @@ std::vector<uint8_t> TCPConnection::read(size_t expectedSize) {
 
 	if (bytesReceived == 0) {
 
-		this->close();
+		this->end();
 		return {};
 
 	} else if (bytesReceived < 0) {
@@ -211,7 +211,7 @@ std::vector<uint8_t> TCPConnection::read(size_t expectedSize) {
 		switch (apiError) {
 
 			case LNETWERR_TIMED_OUT: {
-				this->close();
+				this->end();
 				return {};
 			} break;
 			
