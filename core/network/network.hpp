@@ -40,7 +40,7 @@ namespace Lambda::Network {
 
 	struct ConnectionInfo {
 		Address remoteAddr;
-		uint32_t connTimeout;
+		uint32_t timeout;
 		uint16_t hostPort;
 	};
 };
