@@ -25,16 +25,17 @@ ServerInstance::ServerInstance(HandlerFunction handlerInit, ServerConfig init) {
 
 		const auto& connInfo = conn.getInfo();
 
+		if (this->config.loglevel.logConnections) fprintf(stdout,
+			"%s %s:%i connected on %i\n",
+			Date().toHRTString().c_str(),
+			connInfo.remoteAddr.port,
+			connInfo.remoteAddr.hostname.c_str(),
+			connInfo.hostPort
+		);
+
 		try {
 
-			if (this->config.loglevel.logConnections) fprintf(stdout,
-				"%s %s:%i connected on %i\n",
-				Date().toHRTString().c_str(),
-				connInfo.remoteAddr.port,
-				connInfo.remoteAddr.hostname.c_str(),
-				connInfo.hostPort
-			);
-
+			//	I want to add an await here soo badly lol
 			Server::serveHTTP(std::move(conn), this->handler, {
 				this->config.loglevel,
 				this->config.transport
