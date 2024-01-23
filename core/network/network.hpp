@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string>
 
+#include "./compat.hpp"
+
 namespace Lambda::Network {
 
 	enum struct ConnectionTransport : int16_t {
@@ -11,9 +13,15 @@ namespace Lambda::Network {
 	};
 
 	struct Address {
-		ConnectionTransport transport;
-		uint16_t port;
 		std::string hostname;
+		uint16_t port;
+		ConnectionTransport transport;
+	};
+
+	struct ConnectionInfo {
+		Address remoteAddr;
+		uint32_t connTimeout;
+		uint16_t hostPort;
 	};
 
 	#ifdef _WIN32
