@@ -7,13 +7,13 @@
 
 using namespace Lambda::Storage;
 
-enum struct DiskLogWriteOps {
-	StartBlock = 0x06,
-	FieldSep = 0x1f,
-	BlockEnd = 0x00,
-	Set = 0x01,
-	Del = 0x02,
-	Drop = 0x03,
+enum DiskLogWriteOps {
+	WriteOpStartBlock = 0x06,
+	WriteOpFieldSep = 0x1f,
+	WriteOpBlockEnd = 0x00,
+	WriteOpSet = 0x01,
+	WriteOpDel = 0x02,
+	WriteOpDrop = 0x03,
 };
 
 LocalStorage::LocalStorage() {
@@ -60,7 +60,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 		if (rawcontent.size()) {
 			size_t lastMessageStart = 0;
 			for (size_t i = lastMessageStart; i < rawcontent.size(); i++) {
-				if (rawcontent[i] == DiskLogWriteOps::BlockEnd) {
+				if (rawcontent[i] == DiskLogWriteOps::WriteOpBlockEnd) {
 					messages.push_back(std::vector<uint8_t>(rawcontent.begin() + lastMessageStart, rawcontent.begin() + i));
 					lastMessageStart = i + 1;
 				}
@@ -71,14 +71,14 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 			const auto& entry = messages[i];
 
-			if (entry.at(0) != DiskLogWriteOps::StartBlock)
+			if (entry.at(0) != DiskLogWriteOps::WriteOpStartBlock)
 				throw std::runtime_error("Invalid start byte in message " + std::to_string(i));
 
 			auto getFields = [&entry]() {
 				std::vector<std::vector<uint8_t>> messageFields;
 				size_t lastFieldStart = 2;
 				for (size_t i = lastFieldStart; i < entry.size(); i++) {
-					if (entry[i] == DiskLogWriteOps::FieldSep) {
+					if (entry[i] == DiskLogWriteOps::WriteOpFieldSep) {
 						messageFields.push_back(std::vector<uint8_t>(entry.begin() + lastFieldStart, entry.begin() + i));
 						lastFieldStart = i + 1;
 					}
@@ -89,7 +89,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 			switch (entry.at(1)) {
 
-				case DiskLogWriteOps::Set: {
+				case DiskLogWriteOps::WriteOpSet: {
 
 					auto fields = getFields();
 
@@ -103,7 +103,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 				} break;
 
-				case DiskLogWriteOps::Del: {
+				case DiskLogWriteOps::WriteOpDel: {
 
 					auto fields = getFields();
 
@@ -114,7 +114,7 @@ void LocalStorage::loadFile(const std::string& dbfile) {
 
 				} break;
 
-				case DiskLogWriteOps::Drop: {
+				case DiskLogWriteOps::WriteOpDrop: {
 					this->data.clear();
 				} break;
 
@@ -138,19 +138,19 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 			if (!value) throw std::runtime_error("value pointer should be defined for write operation");
 
 			writeBuff.insert(writeBuff.end(), {
-				DiskLogWriteOps::StartBlock,
-				DiskLogWriteOps::Set,
+				DiskLogWriteOps::WriteOpStartBlock,
+				DiskLogWriteOps::WriteOpSet,
 			});
 
 			auto encodedKey = Encoding::toBase64(std::vector<uint8_t>(key->begin(), key->end()));
 			writeBuff.insert(writeBuff.end(), encodedKey.begin(), encodedKey.end());
 
-			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::FieldSep });
+			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::WriteOpFieldSep });
 			
 			auto encodedValue = Encoding::toBase64(std::vector<uint8_t>(value->begin(), value->end()));
 			writeBuff.insert(writeBuff.end(), encodedValue.begin(), encodedValue.end());
 			
-			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::BlockEnd });
+			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::WriteOpBlockEnd });
 
 		} break;
 
@@ -159,14 +159,14 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 			if (!key) throw std::runtime_error("key pointer should be defined for delete operation");
 
 			writeBuff.insert(writeBuff.end(), {
-				DiskLogWriteOps::StartBlock,
-				DiskLogWriteOps::Del,
+				DiskLogWriteOps::WriteOpStartBlock,
+				DiskLogWriteOps::WriteOpDel,
 			});
 
 			auto encodedKey = Encoding::toBase64(std::vector<uint8_t>(key->begin(), key->end()));
 			writeBuff.insert(writeBuff.end(), encodedKey.begin(), encodedKey.end());
 
-			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::BlockEnd });
+			writeBuff.insert(writeBuff.end(), { DiskLogWriteOps::WriteOpBlockEnd });
 
 			if (this->stats != nullptr) this->stats->deletions++;
 
@@ -175,9 +175,9 @@ void LocalStorage::handleTransaction(StorageTransaction tra, const std::string* 
 		case StorageTransaction::Clear: {
 
 			writeBuff.insert(writeBuff.end(), {
-				DiskLogWriteOps::StartBlock,
-				DiskLogWriteOps::Drop,
-				DiskLogWriteOps::BlockEnd
+				DiskLogWriteOps::WriteOpStartBlock,
+				DiskLogWriteOps::WriteOpDrop,
+				DiskLogWriteOps::WriteOpBlockEnd
 			});
 			
 		} break;
