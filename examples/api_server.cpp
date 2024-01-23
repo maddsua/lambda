@@ -17,6 +17,7 @@ int main(int argc, char const *argv[]) {
 
 		//	just setting a custom header
 		responseHeaders.set("x-serverless", "true");
+		responseHeaders.set("content-type", "application/json");
 
 		//	check if user visited before by a cookie
 		if (!req.cookies.has("userid")) {
