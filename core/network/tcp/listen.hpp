@@ -9,6 +9,7 @@ namespace Lambda::Network::TCP {
 	struct ListenConfig {
 		bool allowPortReuse = false;
 		uint16_t port = 8180;
+		uint32_t connectionTimeout = 15000;
 	};
 
 	class ListenSocket {
@@ -24,7 +25,7 @@ namespace Lambda::Network::TCP {
 			ListenSocket& operator=(const ListenSocket& other) = delete;
 			ListenSocket& operator=(ListenSocket&& other) noexcept;
 
-			TCPConnection acceptConnection();
+			Connection acceptConnection();
 
 			bool ok() const noexcept;
 			ListenConfig getConfig() const noexcept;
