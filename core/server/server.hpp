@@ -7,6 +7,8 @@
 
 #include "../http/http.hpp"
 #include "../network/network.hpp"
+#include "../network/tcp/connection.hpp"
+#include "../network/tcp/listen.hpp"
 
 namespace Lambda {
 
@@ -46,15 +48,19 @@ namespace Lambda {
 				void warn(std::initializer_list<LogItem> list) const;
 		};
 
+		struct ServerLogOptions {
+			bool logConnections = false;
+			bool logRequests = false;	
+		};
+
+		struct ServerTransportOptions {
+			bool useCompression = true;
+			bool reuseConnections = true;
+		};
+
 		struct ServeOptions {
-			struct {
-				bool logConnections = false;
-				bool logRequests = false;			
-			} loglevel;
-			struct {
-				bool useCompression = true;		
-				bool reuseConnections = true;
-			} transport;
+			ServerLogOptions loglevel;
+			ServerTransportOptions transport;
 		};
 
 		struct HttpHandlerOptions : ServeOptions {
@@ -63,12 +69,12 @@ namespace Lambda {
 
 		struct RequestContext {
 			std::string requestID;
-			Network::ConnInfo conninfo;
+			Network::ConnectionInfo conninfo;
 			Console console;
 		};
 
 		typedef std::function<HTTP::Response(const HTTP::Request& request, const RequestContext& context)> HttpHandlerFunction;
-		void handleHTTPConnection(Network::TCPConnection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options);
+		void handleHTTPConnection(Network::TCP::Connection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options);
 
 		HTTP::Response serviceResponse(int statusCode, std::optional<std::string> errorMessage);
 
@@ -83,7 +89,7 @@ namespace Lambda {
 
 		class HttpServer {
 			private:
-				Network::TCPListenSocket* listener = nullptr;
+				Network::TCP::ListenSocket* listener = nullptr;
 				Server::HttpHandlerFunction handler;
 				HttpServerConfig config;
 				std::thread watchdogWorker;
