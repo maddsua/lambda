@@ -123,7 +123,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			//	unpack cookies
 			auto cookieHeader = next.request.headers.get("cookie");
 			if (cookieHeader.size()) {
-				next.request.cookie = HTTP::Cookie(cookieHeader);
+				next.request.cookies = HTTP::Cookies(cookieHeader);
 			}
 
 			auto bodySizeHeader = next.request.headers.get("content-length");
@@ -194,6 +194,10 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 			}
 
 			response = serviceResponse(500, "Function handler crashed: unhandled exception");
+		}
+
+		if (response.setCookies.size()) {
+			response.headers.set("Set-Cookie", response.setCookies.stringify());
 		}
 
 		response.headers.set("date", responseDate.toUTCString());

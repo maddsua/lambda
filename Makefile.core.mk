@@ -54,8 +54,8 @@ core/polyfill/uid.o: core/polyfill/uid.cpp
 $(LIB_CORE_HTTP): $(LIB_CORE_HTTP_DEPS)
 	ar rvs $(LIB_CORE_HTTP) $(LIB_CORE_HTTP_DEPS)
 
-core/http/cookie.o: core/http/cookie.cpp
-	g++ -c $(CFLAGS) core/http/cookie.cpp -o core/http/cookie.o
+core/http/cookies.o: core/http/cookies.cpp
+	g++ -c $(CFLAGS) core/http/cookies.cpp -o core/http/cookies.o
 
 core/http/kvcontainer.o: core/http/kvcontainer.cpp
 	g++ -c $(CFLAGS) core/http/kvcontainer.cpp -o core/http/kvcontainer.o

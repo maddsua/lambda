@@ -3,7 +3,7 @@
 
 using namespace Lambda::HTTP;
 
-Cookie::Cookie(const std::string& cookies) {
+Cookies::Cookies(const std::string& cookies) {
 
 	auto entries = Strings::split(cookies, "; ");
 
@@ -21,7 +21,7 @@ Cookie::Cookie(const std::string& cookies) {
 	}
 }
 
-std::string Cookie::stringify() const {
+std::string Cookies::stringify() const {
 	
 	std::string temp;
 

@@ -34,6 +34,7 @@ namespace Lambda::HTTP {
 			std::vector<std::string> getAll(const std::string& key) const;
 			void append(const std::string& key, const std::string value);
 			std::vector<KVpair> entries() const;
+			size_t size() const noexcept;
 	};
 
 	typedef KVContainer Headers;
@@ -72,10 +73,10 @@ namespace Lambda::HTTP {
 			std::string href() const;
 	};
 
-	class Cookie : public KVContainer {
+	class Cookies : public KVContainer {
 		public:
-			Cookie() {};
-			Cookie(const std::string& cookies);
+			Cookies() {};
+			Cookies(const std::string& cookies);
 
 			std::string stringify() const;
 	};
@@ -161,7 +162,7 @@ namespace Lambda::HTTP {
 		URL url;
 		Method method;
 		Headers headers;
-		Cookie cookie;
+		Cookies cookies;
 		Body body;
 
 		Request() {}
@@ -195,6 +196,7 @@ namespace Lambda::HTTP {
 	struct Response {
 		Status status;
 		Headers headers;
+		Cookies setCookies;
 		Body body;
 
 		Response() {}

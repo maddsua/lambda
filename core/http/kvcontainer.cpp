@@ -74,3 +74,7 @@ std::vector<KVpair> KVContainer::entries() const {
 
 	return temp;
 }
+
+size_t KVContainer::size() const noexcept {
+	return this->data.size();
+}
