@@ -20,6 +20,19 @@
 		#define LNE_ADDRINUSE	WSAEADDRINUSE
 		#define LNE_TIMEDOUT	WSAETIMEDOUT
 
+		inline bool wsaWakeUp() {
+
+			static bool wsaInitCalled = false;
+			if (wsaInitCalled) return false;
+			wsaInitCalled = true;
+
+			WSADATA initdata;
+			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
+				throw std::runtime_error("WSA initialization failed: windows API error " + std::to_string(getAPIError()));
+
+			return true;
+		}
+
 	#else
 
 		#include <sys/types.h>
