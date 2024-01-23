@@ -13,19 +13,19 @@ namespace Lambda {
 			tm timestruct;
 		
 		public:
-			Date();
-			Date(time_t epoch);
+			Date() noexcept;
+			Date(time_t epoch) noexcept;
 
-			std::string getDate();
-			int getDay();
-			int getYear();
-			int getHours();
-			int getMinutes();
-			int getMonth();
-			int getSeconds();
-			time_t getTime();
-			std::string toUTCString();
-			std::string toHRTString();
+			std::string getDate() const noexcept;
+			int getDay() const noexcept;
+			int getYear() const noexcept;
+			int getHours() const noexcept;
+			int getMinutes() const noexcept;
+			int getMonth() const noexcept;
+			int getSeconds() const noexcept;
+			time_t getTime() const noexcept;
+			std::string toUTCString() const noexcept;
+			std::string toHRTString() const noexcept;
 	};
 
 	class ShortID {
