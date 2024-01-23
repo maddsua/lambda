@@ -12,7 +12,7 @@ LIB_CORE_ENCODING		=	core/encoding.a
 LIB_CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
 
 LIB_CORE_NETWORK		=	core/network.a
-LIB_CORE_NETWORK_DEPS	=	core/network/tcpconn.o
+LIB_CORE_NETWORK_DEPS	=	core/network/tcp/connection.o core/network/tcp/listen.o
 
 LIB_CORE_COMPRESS		=	core/compression.a
 LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
@@ -91,8 +91,11 @@ core/encoding/url.o: core/encoding/url.cpp
 $(LIB_CORE_NETWORK): $(LIB_CORE_NETWORK_DEPS)
 	ar rvs $(LIB_CORE_NETWORK) $(LIB_CORE_NETWORK_DEPS)
 
-core/network/tcpconn.o: core/network/tcpconn.cpp
-	g++ -c $(CFLAGS) core/network/tcpconn.cpp -o core/network/tcpconn.o
+core/network/tcp/connection.o: core/network/tcp/connection.cpp
+	g++ -c $(CFLAGS) core/network/tcp/connection.cpp -o core/network/tcp/connection.o
+
+core/network/tcp/listen.o: core/network/tcp/listen.cpp
+	g++ -c $(CFLAGS) core/network/tcp/listen.cpp -o core/network/tcp/listen.o
 
 
 # compression stuff
