@@ -8,7 +8,7 @@ int main(int argc, char const *argv[]) {
 
 	auto startAtPort = 8180;
 	
-	auto server = Network::TCPListenSocket(startAtPort, {});
+	auto server = Network::TCPListenSocket({});
 
 	std::cout << "Started server at port " + std::to_string(startAtPort) + "\n";
 
