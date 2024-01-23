@@ -23,12 +23,6 @@ namespace Lambda::Network {
 		uint32_t connTimeout;
 		uint16_t hostPort;
 	};
-
-	#ifdef _WIN32
-		bool wsaWakeUp();
-	#endif
-
-	void setConnectionTimeouts(SOCKET hSocket, uint32_t timeoutsMs);
 };
 
 #endif
