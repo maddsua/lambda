@@ -35,12 +35,6 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 					const auto& connfinfo = conn.getInfo();
 					auto contextID = connfinfo.shortid.toString();
 
-					HttpHandlerOptions handlerOptions = {
-						this->config.loglevel,
-						this->config.transport,
-						contextID
-					};
-
 					try {
 
 						if (this->config.loglevel.logConnections) {
@@ -51,7 +45,11 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 							);
 						}
 
-						Server::handleHTTPConnection(std::move(conn), this->handler, handlerOptions);
+						Server::handleHTTPConnection(std::move(conn), this->handler, {
+							this->config.loglevel,
+							this->config.transport,
+							contextID
+						});
 
 					} catch(const std::exception& e) {
 
