@@ -3,10 +3,9 @@
 
 using namespace Lambda;
 
-
 #ifdef _WIN32
 
-	bool Lambda::Network::wsaWakeUp() {
+	bool Network::wsaWakeUp() {
 
 		static bool wsaInitCalled = false;
 		if (wsaInitCalled) return false;
@@ -20,7 +19,6 @@ using namespace Lambda;
 	}
 
 #endif
-
 
 void Network::setConnectionTimeouts(SOCKET hSocket, uint32_t timeoutsMs) {
 	if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeoutsMs, sizeof(timeoutsMs)))
