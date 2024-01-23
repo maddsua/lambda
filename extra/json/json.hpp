@@ -37,7 +37,7 @@ namespace Lambda::JSON {
 
 		public:
 			Property();
-			Property(std::nullptr_t value);
+			Property(std::nullptr_t _nullval);
 
 			Property(long double value);
 			Property(double value);

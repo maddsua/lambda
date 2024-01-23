@@ -19,7 +19,7 @@ Property::Property() {
 	this->internalType = JSTypes::Undefined;
 }
 
-Property::Property(std::nullptr_t value) {
+Property::Property(std::nullptr_t _nullval) {
 	this->internalType = JSTypes::Null;
 }
 
@@ -73,12 +73,12 @@ Property::Property(const char* value) {
 	this->internalDataStr = new std::string(value);
 }
 
-Property::Property(const std::vector<Property>& value) {
+Property::Property(const Array& value) {
 	this->internalType = JSTypes::Array;
 	this->internalDataArray = new std::vector<Property>(value);
 }
 
-Property::Property(const std::unordered_map<std::string, Property>& value) {
+Property::Property(const Map& value) {
 	this->internalType = JSTypes::Map;
 	this->internalDataMap = new std::unordered_map<std::string, Property>(value);
 }
