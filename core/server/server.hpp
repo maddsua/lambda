@@ -53,18 +53,14 @@ namespace Lambda {
 			bool logRequests = false;	
 		};
 
-		struct ServerTransportOptions {
+		struct HTTPTransportOptions {
 			bool useCompression = true;
 			bool reuseConnections = true;
 		};
 
 		struct ServeOptions {
 			ServerLogOptions loglevel;
-			ServerTransportOptions transport;
-		};
-
-		struct HttpHandlerOptions : ServeOptions {
-			std::string contextID;
+			HTTPTransportOptions transport;
 		};
 
 		struct RequestContext {
@@ -74,7 +70,7 @@ namespace Lambda {
 		};
 
 		typedef std::function<HTTP::Response(const HTTP::Request& request, const RequestContext& context)> HttpHandlerFunction;
-		void handleHTTPConnection(Network::TCP::Connection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options);
+		void handleHTTPConnection(Network::TCP::Connection&& conn, HttpHandlerFunction handler, const ServeOptions& options);
 
 		HTTP::Response serviceResponse(int statusCode, std::optional<std::string> errorMessage);
 
