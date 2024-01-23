@@ -1,4 +1,4 @@
-#include "../server.hpp"
+#include "../handlers.hpp"
 
 extern char _binary_core_resources_html_servicepage_html_start;
 extern char _binary_core_resources_html_servicepage_html_end;
@@ -23,7 +23,7 @@ std::string populateTemplate(const TemplateContent& content) {
 	return result;
 }
 
-HTTP::Response Lambda::serviceResponse(int statusCode, std::optional<std::string> errorMessage) {
+HTTP::Response Server::errorResponse(int statusCode, std::optional<std::string> errorMessage) {
 
 	auto httpstatus = HTTP::Status(statusCode);
 

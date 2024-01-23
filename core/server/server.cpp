@@ -1,5 +1,6 @@
 
 #include "./server.hpp"
+#include "./handlers.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
@@ -9,10 +10,10 @@
 
 using namespace Lambda;
 
-Server::Server(HttpHandlerFunction handlerFunction, ServerConfig init) {
+ServerInstance::ServerInstance(HandlerFunction handlerInit, ServerConfig init) {
 
 	this->config = init;
-	this->handler = handlerFunction;
+	this->handler = handlerInit;
 
 	Network::TCP::ListenConfig listenInitOpts;
 	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
@@ -43,7 +44,7 @@ Server::Server(HttpHandlerFunction handlerFunction, ServerConfig init) {
 							);
 						}
 
-						handleHTTPConnection(std::move(conn), this->handler, {
+						Server::serveHTTP(std::move(conn), this->handler, {
 							this->config.loglevel,
 							this->config.transport
 						});
@@ -86,7 +87,7 @@ Server::Server(HttpHandlerFunction handlerFunction, ServerConfig init) {
 	printf("[Service] Started server at http://localhost:%i/\n", this->config.service.port);
 };
 
-void Server::softShutdownn() {
+void ServerInstance::softShutdownn() {
 
 	printf("[Service] Initiating graceful shutdown...\n");
 
@@ -97,7 +98,7 @@ void Server::softShutdownn() {
 	printf("[Service] Server shut down\n");
 }
 
-void Server::immediateShutdownn() {
+void ServerInstance::immediateShutdownn() {
 
 	printf("[Service] Terminating server now\n");
 
@@ -108,15 +109,15 @@ void Server::immediateShutdownn() {
 		this->watchdogWorker.join();
 }
 
-void Server::awaitFinished() {
+void ServerInstance::awaitFinished() {
 	if (this->watchdogWorker.joinable())
 		this->watchdogWorker.join();
 }
 
-Server::~Server() {
+ServerInstance::~ServerInstance() {
 	this->immediateShutdownn();
 }
 
-const ServerConfig& Server::getConfig() const noexcept {
+const ServerConfig& ServerInstance::getConfig() const noexcept {
 	return this->config;
 }

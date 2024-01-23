@@ -7,13 +7,11 @@
 
 #include "../http/http.hpp"
 #include "../network/network.hpp"
-#include "../network/tcp/connection.hpp"
-#include "../network/tcp/listen.hpp"
 #include "./console/handlerConsole.hpp"
 
 namespace Lambda {
 
-	struct ServerLogOptions {
+	struct LogOptions {
 		bool logConnections = false;
 		bool logRequests = false;	
 	};
@@ -24,7 +22,7 @@ namespace Lambda {
 	};
 
 	struct ServeOptions {
-		ServerLogOptions loglevel;
+		LogOptions loglevel;
 		HTTPTransportOptions transport;
 	};
 
@@ -34,10 +32,7 @@ namespace Lambda {
 		Console console;
 	};
 
-	typedef std::function<HTTP::Response(const HTTP::Request& request, const RequestContext& context)> HttpHandlerFunction;
-	void handleHTTPConnection(Network::TCP::Connection&& conn, HttpHandlerFunction handler, const ServeOptions& options);
-
-	HTTP::Response serviceResponse(int statusCode, std::optional<std::string> errorMessage);
+	typedef std::function<HTTP::Response(const HTTP::Request& request, const RequestContext& context)> HandlerFunction;
 
 	struct ServiceOptions {
 		uint16_t port = 8180;
@@ -48,17 +43,17 @@ namespace Lambda {
 		ServiceOptions service;
 	};
 
-	class Server {
+	class ServerInstance {
 		private:
 			Network::TCP::ListenSocket* listener = nullptr;
-			HttpHandlerFunction handler;
+			HandlerFunction handler;
 			ServerConfig config;
 			std::thread watchdogWorker;
 			bool terminated = false;
 
 		public:
-			Server(HttpHandlerFunction handlerFunction, ServerConfig init);
-			~Server();
+			ServerInstance(HandlerFunction handlerInit, ServerConfig init);
+			~ServerInstance();
 
 			void softShutdownn();
 			void immediateShutdownn();

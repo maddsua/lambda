@@ -43,6 +43,12 @@ namespace Lambda::Network {
 		uint32_t timeout;
 		uint16_t hostPort;
 	};
+
+	namespace TCP {
+		class Connection;
+		class ListenSocket;
+	};
+
 };
 
 #endif

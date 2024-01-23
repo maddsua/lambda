@@ -1,5 +1,5 @@
 
-#include "../server.hpp"
+#include "../handlers.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
@@ -16,7 +16,6 @@
 
 using namespace Lambda;
 using namespace Lambda::Network;
-
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -40,7 +39,7 @@ struct PipelineItem {
 	bool keepAlive = false;
 };
 
-void Lambda::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction handler, const ServeOptions& options) {
+void Server::serveHTTP(TCP::Connection&& conn, HandlerFunction handler, const ServeOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMutex;
@@ -183,7 +182,7 @@ void Lambda::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction ha
 				printf("%s %s crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
 			}
 			
-			response = serviceResponse(500, std::string("Function handler crashed: ") + e.what());
+			response = Server::errorResponse(500, std::string("Function handler crashed: ") + e.what());
 
 		} catch(...) {
 
@@ -191,7 +190,7 @@ void Lambda::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction ha
 				printf("%s %s crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
 			}
 
-			response = serviceResponse(500, "Function handler crashed: unhandled exception");
+			response = Server::errorResponse(500, "Function handler crashed: unhandled exception");
 		}
 
 		if (response.setCookies.size()) {
