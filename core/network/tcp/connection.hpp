@@ -6,7 +6,6 @@
 #include <mutex>
 
 #include "../network.hpp"
-#include "../compat.hpp"
 
 namespace Lambda::Network::TCP {
 
