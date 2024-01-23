@@ -7,8 +7,6 @@ using namespace Lambda::JSON;
 
 int main(int argc, char const *argv[]) {
 
-	auto storage = Lambda::Storage::LocalStorage();
-
 	auto handler = [&](const Request& req, const Context& context) {
 
 		bool isFirstFisit = false;
