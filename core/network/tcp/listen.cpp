@@ -87,7 +87,7 @@ Connection ListenSocket::acceptConnection() {
 	//	copy connection params
 	ConnCreateInit next;
 	next.info.hostPort = this->config.port;
-	next.info.connTimeout = this->config.connectionTimeout;
+	next.info.timeout = this->config.connectionTimeout;
 	next.info.remoteAddr.port = 80;
 	next.info.remoteAddr.transport = ConnectionTransport::TCP;
 
@@ -104,9 +104,9 @@ Connection ListenSocket::acceptConnection() {
 	//	try setting connection timeouts
 	try {
 
-		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&next.info.connTimeout, sizeof(next.info.connTimeout)))
+		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&next.info.timeout, sizeof(next.info.timeout)))
 			throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
-		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&next.info.connTimeout, sizeof(next.info.connTimeout)))
+		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&next.info.timeout, sizeof(next.info.timeout)))
 			throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
 
 	} catch(const std::exception& err) {
