@@ -1,5 +1,5 @@
 
-CFLAGS					=	-Wall -std=c++20 -g
+CFLAGS					=	-Wall -Werror -std=c++20 -g
 
 LAMBDA_LIBSTATIC		=	lambda.a
 LAMBDA_LIBSHARED		=	lambda.dll
