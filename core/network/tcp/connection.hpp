@@ -5,53 +5,42 @@
 #include <string>
 #include <mutex>
 
+#include "../network.hpp"
 #include "../compat.hpp"
 
 namespace Lambda::Network::TCP {
 
-	enum struct Constants : uint32_t {
-		Receive_ChunkSize = 2048,
-		Connection_TimeoutMs = 15000,
-		Connection_TimeoutMs_Max = 60000,
-		Connection_TimeoutMs_Min = 100,
-	};
-
-	enum struct ConnectionType {
-		TCP, UDP
-	};
-
-	struct ConnInfo {
-		std::string peerIP;
-		uint16_t port;
-	};
-
 	struct ConnCreateInit {
 		SOCKET hSocket;
-		ConnInfo info;
-		uint32_t connTimeout = 0;
+		ConnectionInfo info;
 	};
 
-	class TCPConnection {
+	class Connection {
 		protected:
 			SOCKET hSocket = INVALID_SOCKET;
-			ConnInfo info;
+			ConnectionInfo info;
 			std::mutex readMutex;
 			std::mutex writeMutex;
 
 		public:
-			TCPConnection(ConnCreateInit init);
-			TCPConnection(TCPConnection&& other) noexcept;
-			~TCPConnection();
+			Connection(ConnCreateInit init);
+			Connection(Connection&& other) noexcept;
+			~Connection();
 
-			TCPConnection& operator= (const TCPConnection& other) = delete;
-			TCPConnection& operator= (TCPConnection&& other) noexcept;
+			Connection& operator= (const Connection& other) = delete;
+			Connection& operator= (Connection&& other) noexcept;
 
 			std::vector<uint8_t> read();
 			std::vector<uint8_t> read(size_t expectedSize);
 			void write(const std::vector<uint8_t>& data);
-			const ConnInfo& getInfo() const noexcept;
+			const ConnectionInfo& getInfo() const noexcept;
 			void end();
 			bool isOpen() const noexcept;
+
+			static const uint32_t TimeoutMs = 15000;
+			static const uint32_t TimeoutMs_Max = 60000;
+			static const uint32_t TimeoutMs_Min = 100;
+			static const uint32_t ReadChunkSize = 2048;
 	};
 };
 
