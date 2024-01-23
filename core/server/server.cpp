@@ -28,8 +28,8 @@ ServerInstance::ServerInstance(HandlerFunction handlerInit, ServerConfig init) {
 		if (this->config.loglevel.logConnections) fprintf(stdout,
 			"%s %s:%i connected on %i\n",
 			Date().toHRTString().c_str(),
-			connInfo.remoteAddr.port,
 			connInfo.remoteAddr.hostname.c_str(),
+			connInfo.remoteAddr.port,
 			connInfo.hostPort
 		);
 
@@ -66,8 +66,8 @@ ServerInstance::ServerInstance(HandlerFunction handlerInit, ServerConfig init) {
 		if (this->config.loglevel.logConnections) fprintf(stdout,
 			"%s %s:%i disconnected from %i\n",
 			Date().toHRTString().c_str(),
-			connInfo.remoteAddr.port,
 			connInfo.remoteAddr.hostname.c_str(),
+			connInfo.remoteAddr.port,
 			connInfo.hostPort
 		);
 
