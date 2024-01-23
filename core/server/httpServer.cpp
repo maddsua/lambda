@@ -16,11 +16,11 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 	this->config = init;
 	this->handler = handlerFunction;
 
-	Network::TCPListenConfig listenInitOpts;
+	Network::TCP::ListenConfig listenInitOpts;
 	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
 	listenInitOpts.port = this->config.service.port;
-	auto tempListener = Network::TCPListenSocket(listenInitOpts);
-	this->listener = new Network::TCPListenSocket(std::move(tempListener));
+	auto tempListener = Network::TCP::ListenSocket(listenInitOpts);
+	this->listener = new Network::TCP::ListenSocket(std::move(tempListener));
 
 	this->watchdogWorker = std::thread([&]() {
 
@@ -30,17 +30,17 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 
 				auto nextConn = this->listener->acceptConnection();
 
-				auto connectionWorker = std::thread([&](Network::TCPConnection&& conn) {
+				auto connectionWorker = std::thread([&](Network::TCP::Connection&& conn) {
 
 					const auto& connfinfo = conn.getInfo();
-					auto contextID = connfinfo.shortid.toString();
+					std::string contextID = "noid";
 
 					try {
 
 						if (this->config.loglevel.logConnections) {
 							printf("%s %s opens %s\n",
 								Date().toHRTString().c_str(),
-								connfinfo.peerIP.c_str(),
+								connfinfo.remoteAddr.hostname.c_str(),
 								contextID.c_str()
 							);
 						}
