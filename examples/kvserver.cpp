@@ -40,9 +40,9 @@ int main(int argc, char const *argv[]) {
 		return HTTP::Response(HTTP::Status(400), "bad request");
 	};
 
-	HttpServerConfig initparams;
+	ServerConfig initparams;
 	initparams.loglevel.logRequests = true;
-	auto server = HttpServer(handler, initparams);
+	auto server = Server(handler, initparams);
 	server.awaitFinished();
 
 	return 0;

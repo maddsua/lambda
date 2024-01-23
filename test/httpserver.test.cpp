@@ -15,8 +15,8 @@ HTTP::Response httpHandler(const Request& req, const Context& context) {
 
 int main(int argc, char const *argv[]) {
 
-	HttpServerConfig initparams;
-	auto server = HttpServer(httpHandler, initparams);
+	ServerConfig initparams;
+	auto server = Server(httpHandler, initparams);
 	server.awaitFinished();
 
 	return 0;

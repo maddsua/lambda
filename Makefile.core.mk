@@ -19,7 +19,7 @@ LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o co
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_RESS	=	core/resources/html/servicepage.res
-LIB_CORE_SERVER_OBJS	=	core/server/http.o core/server/httpServer.o core/server/http/errorPage.o core/server/console.o
+LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/middleware.o core/server/http/errorPage.o core/server/console/handlerConsole.o
 LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
@@ -116,17 +116,17 @@ core/compression/zlib.o: core/compression/zlib.cpp
 $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 	ar rvs $(LIB_CORE_SERVER) $(LIB_CORE_SERVER_DEPS)
 
-core/server/http.o: core/server/http.cpp
-	g++ -c $(CFLAGS) core/server/http.cpp -o core/server/http.o
+core/server/server.o: core/server/server.cpp
+	g++ -c $(CFLAGS) core/server/server.cpp -o core/server/server.o
 
-core/server/httpServer.o: core/server/httpServer.cpp
-	g++ -c $(CFLAGS) core/server/httpServer.cpp -o core/server/httpServer.o
+core/server/http/middleware.o: core/server/http/middleware.cpp
+	g++ -c $(CFLAGS) core/server/http/middleware.cpp -o core/server/http/middleware.o
 
 core/server/http/errorPage.o: core/server/http/errorPage.cpp
 	g++ -c $(CFLAGS) core/server/http/errorPage.cpp -o core/server/http/errorPage.o
 
-core/server/console.o: core/server/console.cpp
-	g++ -c $(CFLAGS) core/server/console.cpp -o core/server/console.o
+core/server/console/handlerConsole.o: core/server/console/handlerConsole.cpp
+	g++ -c $(CFLAGS) core/server/console/handlerConsole.cpp -o core/server/console/handlerConsole.o
 
 core/resources/html/servicepage.res: core/resources/html/servicepage.html
 	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 core/resources/html/servicepage.html core/resources/html/servicepage.res

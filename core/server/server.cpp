@@ -8,9 +8,8 @@
 #include <thread>
 
 using namespace Lambda;
-using namespace Lambda::Server;
 
-HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerConfig init) {
+Server::Server(HttpHandlerFunction handlerFunction, ServerConfig init) {
 
 	this->config = init;
 	this->handler = handlerFunction;
@@ -44,7 +43,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 							);
 						}
 
-						Server::handleHTTPConnection(std::move(conn), this->handler, {
+						handleHTTPConnection(std::move(conn), this->handler, {
 							this->config.loglevel,
 							this->config.transport
 						});
@@ -87,7 +86,7 @@ HttpServer::HttpServer(Server::HttpHandlerFunction handlerFunction, HttpServerCo
 	printf("[Service] Started server at http://localhost:%i/\n", this->config.service.port);
 };
 
-void HttpServer::softShutdownn() {
+void Server::softShutdownn() {
 
 	printf("[Service] Initiating graceful shutdown...\n");
 
@@ -98,7 +97,7 @@ void HttpServer::softShutdownn() {
 	printf("[Service] Server shut down\n");
 }
 
-void HttpServer::immediateShutdownn() {
+void Server::immediateShutdownn() {
 
 	printf("[Service] Terminating server now\n");
 
@@ -109,15 +108,15 @@ void HttpServer::immediateShutdownn() {
 		this->watchdogWorker.join();
 }
 
-void HttpServer::awaitFinished() {
+void Server::awaitFinished() {
 	if (this->watchdogWorker.joinable())
 		this->watchdogWorker.join();
 }
 
-HttpServer::~HttpServer() {
+Server::~Server() {
 	this->immediateShutdownn();
 }
 
-const HttpServerConfig& HttpServer::getConfig() const noexcept {
+const ServerConfig& Server::getConfig() const noexcept {
 	return this->config;
 }

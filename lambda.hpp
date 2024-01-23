@@ -14,4 +14,10 @@
 #include "./core/core.hpp"
 #include "./extra/extra.hpp"
 
+namespace Lambda {
+	typedef HTTP::Request Request;
+	typedef HTTP::Response Response;
+	typedef RequestContext Context;
+};
+
 #endif

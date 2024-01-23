@@ -1,10 +1,10 @@
 
-#include "./server.hpp"
-#include "../network/sysnetw.hpp"
-#include "../compression/compression.hpp"
-#include "../polyfill/polyfill.hpp"
-#include "../crypto/crypto.hpp"
-#include "../../lambda_build_options.hpp"
+#include "../server.hpp"
+#include "../../network/sysnetw.hpp"
+#include "../../compression/compression.hpp"
+#include "../../polyfill/polyfill.hpp"
+#include "../../crypto/crypto.hpp"
+#include "../../../lambda_build_options.hpp"
 
 #include <queue>
 #include <mutex>
@@ -16,7 +16,6 @@
 
 using namespace Lambda;
 using namespace Lambda::Network;
-using namespace Lambda::Server;
 
 
 static const std::string patternEndHeader = "\r\n\r\n";
@@ -41,7 +40,7 @@ struct PipelineItem {
 	bool keepAlive = false;
 };
 
-void Server::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction handler, const ServeOptions& options) {
+void Lambda::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction handler, const ServeOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMutex;
