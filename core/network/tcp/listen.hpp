@@ -1,7 +1,6 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
 
-#include "../compat.hpp"
 #include "./connection.hpp"
 
 namespace Lambda::Network::TCP {
