@@ -41,7 +41,7 @@ struct PipelineItem {
 	bool keepAlive = false;
 };
 
-void Server::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options) {
+void Server::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction handler, const ServeOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMutex;
@@ -167,18 +167,13 @@ void Server::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction ha
 		auto responseDate = Date();
 
 		auto requestID = ShortID(next.id).toString();
-		auto uinqueID = options.contextID.size() ? (options.contextID + '-' + requestID) : requestID;
-
-		if (options.loglevel.logRequests) {
-			printf("%s %s creates %s\n", responseDate.toHRTString().c_str(), options.contextID.c_str(), requestID.c_str());
-		}
 
 		HTTP::Response response;
 
 		try {
 
 			response = handler(next.request, {
-				uinqueID,
+				requestID,
 				conn.getInfo(),
 				Console(requestID)
 			});
@@ -206,7 +201,7 @@ void Server::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction ha
 
 		response.headers.set("date", responseDate.toUTCString());
 		response.headers.set("server", "maddsua/lambda");
-		response.headers.set("x-request-id", uinqueID);
+		response.headers.set("x-request-id", requestID);
 		if (next.keepAlive) response.headers.set("connection", "keep-alive");
 		if (!response.headers.has("content-type")) response.headers.set("content-type", "text/html; charset=utf-8");
 
@@ -254,22 +249,14 @@ void Server::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction ha
 		if (bodySize) conn.write(responseBody);
 
 		if (options.loglevel.logRequests) {
-			options.loglevel.logConnections ? 
-				printf("%s %s %s %s --> %i\n",
-					responseDate.toHRTString().c_str(),
-					requestID.c_str(),
-					static_cast<std::string>(next.request.method).c_str(),
-					next.request.url.pathname.c_str(),
-					response.status.code()
-				) :
-				printf("%s %s (%s) %s %s --> %i\n",
-					responseDate.toHRTString().c_str(),
-					requestID.c_str(),
-					conn.getInfo().remoteAddr.hostname.c_str(),
-					static_cast<std::string>(next.request.method).c_str(),
-					next.request.url.pathname.c_str(),
-					response.status.code()
-				);
+			printf("%s [%s] %s %s %s --> %i\n",
+				responseDate.toHRTString().c_str(),
+				requestID.c_str(),
+				conn.getInfo().remoteAddr.hostname.c_str(),
+				static_cast<std::string>(next.request.method).c_str(),
+				next.request.url.pathname.c_str(),
+				response.status.code()
+			);
 		}
 
 		std::lock_guard<std::mutex>lock(pipelineMutex);
