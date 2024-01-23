@@ -161,6 +161,7 @@ namespace Lambda::HTTP {
 		URL url;
 		Method method;
 		Headers headers;
+		Cookie cookie;
 		Body body;
 
 		Request() {}

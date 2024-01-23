@@ -120,6 +120,12 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 				}
 			}
 
+			//	unpack cookies
+			auto cookieHeader = next.request.headers.get("cookie");
+			if (cookieHeader.size()) {
+				next.request.cookie = HTTP::Cookie(cookieHeader);
+			}
+
 			auto bodySizeHeader = next.request.headers.get("content-length");
 			size_t bodySize = bodySizeHeader.size() ? std::stoull(bodySizeHeader) : 0;
 
