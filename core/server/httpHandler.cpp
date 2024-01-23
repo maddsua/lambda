@@ -1,6 +1,6 @@
 
 #include "./server.hpp"
-#include "../network/internal.hpp"
+#include "../network/sysnetw.hpp"
 #include "../compression/compression.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../crypto/crypto.hpp"
@@ -41,7 +41,7 @@ struct PipelineItem {
 	bool keepAlive = false;
 };
 
-void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options) {
+void Server::handleHTTPConnection(TCP::Connection&& conn, HttpHandlerFunction handler, const HttpHandlerOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMutex;
@@ -95,9 +95,13 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 				next.request.headers.append(headerKey, headerValue);
 			}
 
+			//	construct request URL
 			auto hostHeader = next.request.headers.get("host");
-			if (Strings::includes(hostHeader, '/')) throw std::runtime_error("invalid \"Host\" header");
-			next.request.url = HTTP::URL(std::string("http://") + (hostHeader.size() ? hostHeader : ("lambdahost:" + conn.getInfo().port)) + requestUrlString);
+			if (hostHeader.size()) {
+				next.request.url = HTTP::URL("http://" + hostHeader + requestUrlString);
+			} else {
+				next.request.url = HTTP::URL("http://lambdahost:" + conn.getInfo().hostPort + requestUrlString);
+			}
 
 			if (options.transport.reuseConnections) {
 				auto connectionHeader = next.request.headers.get("connection");
@@ -261,7 +265,7 @@ void Server::handleHTTPConnection(TCPConnection&& conn, HttpHandlerFunction hand
 				printf("%s %s (%s) %s %s --> %i\n",
 					responseDate.toHRTString().c_str(),
 					requestID.c_str(),
-					conn.getInfo().peerIP.c_str(),
+					conn.getInfo().remoteAddr.hostname.c_str(),
 					static_cast<std::string>(next.request.method).c_str(),
 					next.request.url.pathname.c_str(),
 					response.status.code()
