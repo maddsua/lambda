@@ -11,7 +11,7 @@ void RequestQueue::push(const RequestQueueItem& item) {
 	this->m_queue.push(item);
 }
 
-void RequestQueue::close() noexcept {
+void RequestQueue::finish() noexcept {
 	this->m_done = true;
 }
 
