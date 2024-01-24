@@ -10,6 +10,8 @@
 
 using namespace Lambda;
 
+void connectionHandler(Network::TCP::Connection&& conn, const Router& serverRouter, const ServerConfig& config);
+
 ServerInstance::ServerInstance(const Router& routerInit, ServerConfig init) {
 
 	this->config = init;
