@@ -7,7 +7,21 @@
 
 namespace Lambda::Server {
 
-	void serveHTTP(Network::TCP::Connection&& conn, HandlerFunction handler, const ServeOptions& options);
+	enum struct ContentEncodings {
+		None = 0,
+		Brotli = 1,
+		Gzip = 2,
+		Deflate = 3,
+	};
+
+	struct PipelineItem {
+		HTTP::Request request;
+		uint32_t id;
+		ContentEncodings acceptsEncoding = ContentEncodings::None;
+		bool keepAlive = false;
+	};
+
+	void httpPipeline(Network::TCP::Connection&& conn, HandlerFunction handler, const ServeOptions& options);
 	HTTP::Response errorResponse(int statusCode, std::optional<std::string> errorMessage);
 
 };
