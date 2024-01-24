@@ -10,7 +10,7 @@
 
 using namespace Lambda;
 
-ServerInstance::ServerInstance(Router routerInit, ServerConfig init) {
+ServerInstance::ServerInstance(const Router& routerInit, ServerConfig init) {
 
 	this->config = init;
 	this->router = routerInit;
