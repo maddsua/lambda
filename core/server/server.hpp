@@ -7,6 +7,7 @@
 #include "../http/http.hpp"
 #include "../network/network.hpp"
 #include "./handlers.hpp"
+#include "./router.hpp"
 
 namespace Lambda {
 
@@ -38,13 +39,13 @@ namespace Lambda {
 	class ServerInstance {
 		private:
 			Network::TCP::ListenSocket* listener = nullptr;
-			Server::Handlers::HandlerFunction handler;
+			Router router;
 			ServerConfig config;
 			std::thread watchdogWorker;
 			bool terminated = false;
 
 		public:
-			ServerInstance(Server::Handlers::HandlerFunction handlerCallback, ServerConfig init);
+			ServerInstance(Router routerInit, ServerConfig init);
 			~ServerInstance();
 
 			void softShutdownn();
