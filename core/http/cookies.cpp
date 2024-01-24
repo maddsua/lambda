@@ -17,7 +17,7 @@ Cookies::Cookies(const std::string& cookies) {
 
 		if (!key.size() || !value.size()) continue;
 
-		this->data[key] = { value };
+		this->m_data[key] = { value };
 	}
 }
 
@@ -25,7 +25,7 @@ std::string Cookies::stringify() const {
 	
 	std::string temp;
 
-	for (const auto& entry : this->data) {
+	for (const auto& entry : this->m_data) {
 		if (temp.size()) temp += "; ";
 		temp += entry.first + "=" + entry.second.at(0);
 	}
