@@ -4,6 +4,7 @@
 #include "./handlers.hpp"
 
 #include <optional>
+#include <string>
 #include <unordered_map>
 
 namespace Lambda {
@@ -16,6 +17,7 @@ namespace Lambda {
 		private:
 			std::unordered_map<std::string, RouteContext> m_router;
 			std::optional<RouteContext> staticHandler;
+			std::vector<std::string> globRoutes;
 
 		public:
 			Router() {}
