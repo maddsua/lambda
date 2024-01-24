@@ -4,9 +4,9 @@
 #include <functional>
 #include <thread>
 
+#include "./router.hpp"
 #include "../http/http.hpp"
 #include "../network/network.hpp"
-#include "./router.hpp"
 
 namespace Lambda {
 
