@@ -6,7 +6,6 @@
 
 #include "../http/http.hpp"
 #include "../network/network.hpp"
-#include "./handlers.hpp"
 #include "./router.hpp"
 
 namespace Lambda {
