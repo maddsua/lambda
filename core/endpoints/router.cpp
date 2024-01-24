@@ -20,7 +20,7 @@ Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>
 
 	for (const auto& item : routerInit) {
 
-		auto keyNormalized = Strings::toLowerCase(item.first);
+		auto keyNormalized = Strings::trim(Strings::toLowerCase(item.first));
 		if (keyNormalized.ends_with('/')) {
 			keyNormalized.erase(keyNormalized.size() - 1);
 		}
@@ -31,6 +31,7 @@ Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>
 
 		if (keyNormalized.ends_with("/*")) {
 			keyNormalized.erase(keyNormalized.size() - 2);
+			this->globRoutes.push_back(keyNormalized);
 		}
 
 		this->m_router[keyNormalized] = item.second;
@@ -74,6 +75,14 @@ std::optional<RouteContext> Router::match(const std::string& pathname) const {
 	auto directMatch = this->m_router.find(pathname);
 	if (directMatch != this->m_router.end()) {
 		return directMatch->second;
+	}
+
+	for (const auto& item : this->globRoutes) {
+		if (pathname.starts_with(item + '/')) {
+			auto globMatch = this->m_router.find(item);
+			if (globMatch == this->m_router.end()) return std::nullopt;
+			return globMatch->second;
+		}
 	}
 
 	return std::nullopt;
