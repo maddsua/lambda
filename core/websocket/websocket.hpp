@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <queue>
 #include <cstdint>
 
 namespace Lambda::Websocket {
@@ -27,6 +28,7 @@ namespace Lambda::Websocket {
 			std::vector<uint8_t> m_buffer;
 			bool m_binary;
 			bool m_partial;
+			time_t m_timestamp;
 
 		public:
 			Message(const std::string& init);
@@ -38,8 +40,14 @@ namespace Lambda::Websocket {
 			bool isBinary() const noexcept;
 			bool isPartial() const noexcept;
 			size_t size() const noexcept;
+			time_t timstamp();
 	};
 
+	class WebsocketStream {
+		private:
+			std::queue<Message> rxQueue;
+			std::queue<Message> txQueue;
+	};
 };
 
 #endif
