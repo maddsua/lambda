@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <array>
 
 namespace Lambda::Crypto {
 
@@ -11,15 +10,17 @@ namespace Lambda::Crypto {
 		private:
 			void* hashctx = nullptr;
 			void sha1_transform();
+			void update(const uint8_t* data, size_t dataSize);
 
 		public:
 			static const size_t BlockSize = 20;
 
 			SHA1();
 			~SHA1();
-			void reset();
-			void update(const std::vector<uint8_t>& data);
-			std::array <uint8_t, SHA1::BlockSize> digest();
+			SHA1& reset();
+			SHA1& update(const std::vector<uint8_t>& buffer);
+			SHA1& update(const std::string& text);
+			std::vector <uint8_t> digest();
 	};
 
 }
