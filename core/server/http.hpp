@@ -20,6 +20,7 @@ namespace Lambda::Server {
 
 	struct RequestQueueItem {
 		HTTP::Request request;
+		std::string requestUrlString;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};
