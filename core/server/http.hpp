@@ -18,25 +18,25 @@ namespace Lambda::Server {
 		Deflate = 3,
 	};
 
-	struct PipelineItem {
+	struct RequestQueueItem {
 		HTTP::Request request;
 		uint32_t id;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};
 
-	class PipelineQueue {
+	class RequestQueue {
 		private:
-			std::queue<PipelineItem> m_queue;
+			std::queue<RequestQueueItem> m_queue;
 			std::mutex m_mutex;
 			bool m_done = false;
 
 		public:
 			bool await();
 			bool hasNext() const noexcept;
-			void push(const PipelineItem& item);
+			void push(const RequestQueueItem& item);
 			void close() noexcept;
-			PipelineItem next();
+			RequestQueueItem next();
 	};
 
 	void httpPipeline(Network::TCP::Connection&& conn, HandlerFunction handler, const ServeOptions& options);

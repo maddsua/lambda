@@ -28,7 +28,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 
 void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallback, const ServeOptions& options) {
 
-	PipelineQueue requestQueue;
+	RequestQueue requestQueue;
 
 	auto receiveRoutine = std::async([&]() {
 
@@ -60,7 +60,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 			auto& requestMethodString = headerStartLine.at(0);
 			auto& requestUrlString = headerStartLine.at(1);
 
-			PipelineItem next;
+			RequestQueueItem next;
 			next.request.method = HTTP::Method(requestMethodString);
 
 			for (size_t i = 1; i < headerFields.size(); i++) {
