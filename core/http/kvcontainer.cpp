@@ -3,6 +3,10 @@
 
 using namespace Lambda::HTTP;
 
+KVContainer::KVContainer(const KVContainer& other) {
+	this->data = other.data;
+}
+
 KVContainer::KVContainer(const std::vector<KVpair>& entries) {
 
 	for (const auto& entry : entries) {
