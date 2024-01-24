@@ -156,14 +156,37 @@ namespace Lambda::HTTP {
 		Body body;
 
 		Response() {}
-		Response(const Status& statusinit);
-		Response(const Body& bodyinit);
-		Response(const Headers& headersinit);
-		Response(const Headers& headersinit, const Body& bodyinit);
-		Response(const Status& statusinit, const Headers& headersinit);
-		Response(const Status& statusinit, const Body& bodyinit);
-		Response(const Status& statusinit, const Headers& headersinit, const Body& body);
-		Response(const Body& body, const Headers& headersinit, const Status& statusinit);
+		Response(
+			const Status& statusinit
+		) : status(statusinit) {}
+		Response(
+			const Headers& headersinit
+		) : headers(headersinit) {}
+		Response(
+			const Body& bodyinit
+		) : body(bodyinit) {}
+		Response(
+			const Headers& headersinit,
+			const Body& bodyinit
+		) : headers(headersinit), body(bodyinit) {}
+		Response(
+			const Status& statusinit,
+			const Headers& headersinit
+		) : status(statusinit), headers(headersinit) {}
+		Response(
+			const Status& statusinit,
+			const Body& bodyinit
+		) : status(statusinit), body(bodyinit) {}
+		Response(
+			const Status& statusinit,
+			const Headers& headersinit,
+			const Body& body
+		) : status(statusinit), headers(headersinit), body(body) {}
+		Response(
+			const Body& body,
+			const Headers& headersinit,
+			const Status& statusinit
+		) : status(statusinit), headers(headersinit), body(body) {}
 	};
 
 	struct Request {
@@ -174,10 +197,22 @@ namespace Lambda::HTTP {
 		Body body;
 
 		Request() {}
-		Request(const URL& urlinit);
-		Request(const URL& urlinit, const Headers& headersinit);
-		Request(const URL& urlinit, const Body& bodyinit);
-		Request(const URL& urlinit, const Headers& headersinit, Body& bodyinit);
+		Request(
+			const URL& urlinit
+		) : url(urlinit) {}
+		Request(
+			const URL& urlinit,
+			const Headers& headersinit
+		) : url(urlinit), headers(headersinit) {}
+		Request(
+			const URL& urlinit,
+			const Body& bodyinit
+		) : url(urlinit), body(bodyinit) {}
+		Request(
+			const URL& urlinit,
+			const Headers& headersinit,
+			Body& bodyinit
+		) : url(urlinit), headers(headersinit), body(bodyinit) {}
 
 		Response upgrageToWebsocket() const noexcept;
 	};
