@@ -25,7 +25,7 @@ void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerC
 	try {
 
 		//	I want to add an await here soo badly lol
-		Server::serveHTTP(std::move(conn), handlerCallback, {
+		Server::httpPipeline(std::move(conn), handlerCallback, {
 			config.loglevel,
 			config.transport
 		});
