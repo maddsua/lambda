@@ -26,7 +26,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
-void Server::httpPipeline(TCP::Connection&& conn, Server::Handlers::HandlerFunction handlerCallback, const ServeOptions& options) {
+void Server::httpPipeline(TCP::Connection&& conn, const Router& serverRouter, const ServeOptions& options) {
 
 	RequestQueue requestQueue;
 	const auto& conninfo = conn.getInfo();
@@ -149,11 +149,17 @@ void Server::httpPipeline(TCP::Connection&& conn, Server::Handlers::HandlerFunct
 
 		try {
 
-			response = handlerCallback(next.request, {
-				requestID,
-				conninfo,
-				Server::Handlers::Console(requestID)
-			});
+			auto routeHandler = matchRoute(serverRouter, next.request.url.pathname);
+
+			if (routeHandler.has_value()) {
+				response = routeHandler.value().handler(next.request, {
+					requestID,
+					conninfo,
+					Server::Handlers::Console(requestID)
+				});
+			} else {
+				response = Server::errorResponse(404, "route not found");
+			}
 
 		} catch(const std::exception& e) {
 
