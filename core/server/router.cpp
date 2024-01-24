@@ -6,7 +6,18 @@ using namespace Lambda::Server::Handlers;
 
 const std::initializer_list<char> eraseAfterPoints = { '?', '#' };
 
+Router::Router(const RouteContext& routerInit) {
+	this->m_router["/"] = routerInit;
+}
+
+Router::Router(const Server::Handlers::HandlerFunction& routerInit) {
+	this->m_router["/"] = {
+		routerInit
+	};
+}
+
 Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>& routerInit) {
+
 	for (const auto& item : routerInit) {
 
 		auto keyNormalized = Strings::toLowerCase(item.first);
