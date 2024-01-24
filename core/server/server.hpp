@@ -13,7 +13,7 @@ namespace Lambda {
 
 	struct LogOptions {
 		bool logConnections = false;
-		bool logRequests = true;	
+		bool logRequests = false;	
 	};
 
 	struct HTTPTransportOptions {
