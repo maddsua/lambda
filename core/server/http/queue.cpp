@@ -2,6 +2,15 @@
 
 using namespace Lambda::Server;
 
+RequestQueue::RequestQueue(const std::initializer_list<RequestQueueItem>& init) {
+	this->m_queue = std::queue<RequestQueueItem>(init);
+}
+
+RequestQueue::RequestQueue(const Lambda::Server::RequestQueue& other) {
+	this->m_done = other.m_done;
+	this->m_queue = other.m_queue;
+}
+
 bool RequestQueue::hasNext() const noexcept {
 	return this->m_queue.size() > 0;
 }
