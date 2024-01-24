@@ -19,7 +19,7 @@ LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o co
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_RESS	=	core/resources/html/servicepage.res
-LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/pipeline.o core/server/http/queue.o core/server/http/errorPage.o core/server/console/handlers/console.o
+LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/pipeline.o core/server/http/queue.o core/server/http/errorPage.o core/server/console/console.o
 LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
@@ -128,8 +128,8 @@ core/server/http/queue.o: core/server/http/queue.cpp
 core/server/http/errorPage.o: core/server/http/errorPage.cpp
 	g++ -c $(CFLAGS) core/server/http/errorPage.cpp -o core/server/http/errorPage.o
 
-core/server/console/handlers/console.o: core/server/console/handlers/console.cpp
-	g++ -c $(CFLAGS) core/server/console/handlers/console.cpp -o core/server/console/handlers/console.o
+core/server/console.o: core/server/console.cpp
+	g++ -c $(CFLAGS) core/server/console.cpp -o core/server/console.o
 
 core/resources/html/servicepage.res: core/resources/html/servicepage.html
 	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 core/resources/html/servicepage.html core/resources/html/servicepage.res
