@@ -15,16 +15,10 @@
 #include <set>
 
 using namespace Lambda;
+using namespace Lambda::Server;
 using namespace Lambda::Network;
 
 static const std::string patternEndHeader = "\r\n\r\n";
-
-enum struct ContentEncodings {
-	None = 0,
-	Brotli = 1,
-	Gzip = 2,
-	Deflate = 3,
-};
 
 static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Brotli, "br" },
@@ -32,14 +26,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
-struct PipelineItem {
-	HTTP::Request request;
-	uint32_t id;
-	ContentEncodings acceptsEncoding = ContentEncodings::None;
-	bool keepAlive = false;
-};
-
-void Server::serveHTTP(TCP::Connection&& conn, HandlerFunction handlerCallback, const ServeOptions& options) {
+void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallback, const ServeOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMutex;
