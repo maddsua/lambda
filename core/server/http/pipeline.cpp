@@ -226,7 +226,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 		if (bodySize) conn.write(responseBody);
 
 		if (options.loglevel.logRequests) {
-			printf("%s [%s] %s %s %s --> %i\n",
+			printf("%s [%s] (%s) %s %s --> %i\n",
 				responseDate.toHRTString().c_str(),
 				requestID.c_str(),
 				conn.getInfo().remoteAddr.hostname.c_str(),
