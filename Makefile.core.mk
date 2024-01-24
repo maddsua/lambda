@@ -25,6 +25,9 @@ LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 LIB_CORE_CRYPTO			=	core/crypto.a
 LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o
 
+LIB_CORE_WEBSOCKET		=	core/websocket.a
+LIB_CORE_WEBSOCKET_DEPS	=	core/websocket/websocket.o core/websocket/proto.o
+
 
 # target object
 lambda.core: $(LIB_CORE)
@@ -144,3 +147,14 @@ $(LIB_CORE_CRYPTO): $(LIB_CORE_CRYPTO_DEPS)
 
 core/crypto/sha1.o: core/crypto/sha1.cpp
 	g++ -c $(CFLAGS) core/crypto/sha1.cpp -o core/crypto/sha1.o
+
+
+# websocket stuff
+$(LIB_CORE_WEBSOCKET): $(LIB_CORE_WEBSOCKET_DEPS)
+	ar rvs $(LIB_CORE_WEBSOCKET) $(LIB_CORE_WEBSOCKET_DEPS)
+
+core/websocket/websocket.o: core/websocket/websocket.cpp
+	g++ -c $(CFLAGS) core/websocket/websocket.cpp -o core/websocket/websocket.o
+
+core/websocket/proto.o: core/websocket/proto.cpp
+	g++ -c $(CFLAGS) core/websocket/proto.cpp -o core/websocket/proto.o
