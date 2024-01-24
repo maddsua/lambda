@@ -7,10 +7,11 @@
 #include "../websocket.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Network;
 using namespace Lambda::Websocket;
 
-WebsocketStream::WebsocketStream() {
-
+WebsocketStream::WebsocketStream(TCP::Connection& conn, const WebsocketInfo& infoInit) {
+	this->info = infoInit;
 }
 
 WebsocketStream::~WebsocketStream() {
