@@ -23,6 +23,8 @@ namespace Lambda::Websocket {
 			std::future<void> ioworker;
 
 		public:
+			~WebsocketStream();
+
 			bool available() const noexcept;
 			bool ok() const noexcept;
 			Message getMessage();
