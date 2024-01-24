@@ -10,7 +10,7 @@ namespace Lambda::Endpoints {
 
 	class Console {
 		public:
-			Console(const std::string& setid) : id(setid) {}
+			Console(const std::string& setid) : context_id(setid) {}
 
 			struct Entry {
 				Entry(const std::string& thing);
@@ -38,7 +38,7 @@ namespace Lambda::Endpoints {
 			void warn(std::initializer_list<Entry> list) const;
 
 		private:
-			std::string id;
+			std::string context_id;
 			std::string serializeEntries(const std::initializer_list<Entry>& list) const;
 	};
 
