@@ -39,7 +39,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 		do {
 
 			auto headerEnded = recvBuff.end();
-			while (conn.isOpen() && headerEnded == recvBuff.end()) {
+			while (conn.ok() && headerEnded == recvBuff.end()) {
 
 				auto newBytes = conn.read();
 				if (!newBytes.size()) break;
@@ -117,7 +117,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 
 			if (bodySize) {
 
-				if (!conn.isOpen()) throw std::runtime_error("connection was terminated before request body could be received");
+				if (!conn.ok()) throw std::runtime_error("connection was terminated before request body could be received");
 
 				auto bodyRemaining = bodySize - recvBuff.size();
 				if (bodyRemaining) {
@@ -132,12 +132,12 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 
 			requestQueue.push(std::move(next));
 
-		} while (conn.isOpen() && connectionKeepAlive);
+		} while (conn.ok() && connectionKeepAlive);
 
 		requestQueue.finish();
 	});
 
-	while (conn.isOpen() && requestQueue.await()) {
+	while (conn.ok() && requestQueue.await()) {
 
 		auto next = requestQueue.next();
 		auto responseDate = Date();
