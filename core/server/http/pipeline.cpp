@@ -133,9 +133,6 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 				recvBuff.erase(recvBuff.begin(), recvBuff.begin() + bodySize);
 			}
 
-			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-			next.id = (timeHighres & ~0UL) ^ (totalReadSize & ~0UL);
-
 			requestQueue.push(std::move(next));
 
 		} while (connectionKeepAlive);
@@ -148,7 +145,8 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 		auto next = requestQueue.next();
 		auto responseDate = Date();
 
-		auto requestID = ShortID(next.id).toString();
+		time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+		auto requestID = ShortID((timeHighres & ~0UL)).toString();
 
 		HTTP::Response response;
 
