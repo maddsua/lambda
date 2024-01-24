@@ -17,9 +17,13 @@ namespace Lambda {
 		Server::Handlers::HandlerFunction handler;
 	};
 
-	typedef std::unordered_map<std::string, RouteContext> Router;
-
-	std::optional<RouteContext> matchRoute(const Router& router, const std::string& pathname);
+	class Router {
+		private:
+			std::unordered_map<std::string, RouteContext> m_router;
+		public:
+			Router(const std::initializer_list<std::pair<std::string, RouteContext>>& routerInit);
+			std::optional<RouteContext> match(const std::string& pathname) const;
+	};
 
 };
 
