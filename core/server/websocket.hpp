@@ -28,9 +28,14 @@ namespace Lambda::Websocket {
 		TLSHandshakeFailed = 1015
 	};
 
+	enum struct StreamTerminateFlags {
+		None, Failed, Closed, Terminated
+	};
+
 	class WebsocketStream {
 		private:
 			Lambda::Network::TCP::Connection* conn = nullptr;
+			StreamTerminateFlags terminateFlags = StreamTerminateFlags::None;
 			std::queue<Message> rxQueue;
 			std::mutex readMutex;
 			std::vector<uint8_t> txQueue;
@@ -38,6 +43,7 @@ namespace Lambda::Websocket {
 			std::future<void> ioworker;
 
 		public:
+			WebsocketStream();
 			~WebsocketStream();
 
 			bool available() const noexcept;
