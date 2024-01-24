@@ -39,7 +39,7 @@ struct PipelineItem {
 	bool keepAlive = false;
 };
 
-void Server::serveHTTP(TCP::Connection&& conn, HandlerFunction handler, const ServeOptions& options) {
+void Server::serveHTTP(TCP::Connection&& conn, HandlerFunction handlerCallback, const ServeOptions& options) {
 
 	std::queue<PipelineItem> pipeline;
 	std::mutex pipelineMutex;
@@ -170,7 +170,7 @@ void Server::serveHTTP(TCP::Connection&& conn, HandlerFunction handler, const Se
 
 		try {
 
-			response = handler(next.request, {
+			response = handlerCallback(next.request, {
 				requestID,
 				conn.getInfo(),
 				Console(requestID)

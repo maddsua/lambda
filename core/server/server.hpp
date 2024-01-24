@@ -52,7 +52,7 @@ namespace Lambda {
 			bool terminated = false;
 
 		public:
-			ServerInstance(HandlerFunction handlerInit, ServerConfig init);
+			ServerInstance(HandlerFunction handlerCallback, ServerConfig init);
 			~ServerInstance();
 
 			void softShutdownn();

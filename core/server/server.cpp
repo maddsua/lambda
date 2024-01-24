@@ -10,68 +10,63 @@
 
 using namespace Lambda;
 
-ServerInstance::ServerInstance(HandlerFunction handlerInit, ServerConfig init) {
+void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerCallback, const ServerConfig& config) {
+
+	const auto& connInfo = conn.getInfo();
+
+	if (config.loglevel.logConnections) fprintf(stdout,
+		"%s %s:%i connected on %i\n",
+		Date().toHRTString().c_str(),
+		connInfo.remoteAddr.hostname.c_str(),
+		connInfo.remoteAddr.port,
+		connInfo.hostPort
+	);
+
+	try {
+
+		//	I want to add an await here soo badly lol
+		Server::serveHTTP(std::move(conn), handlerCallback, {
+			config.loglevel,
+			config.transport
+		});
+
+	} catch(const std::exception& e) {
+
+		if (config.loglevel.logRequests) fprintf(stderr,
+			"%s [Service] Connection to %s terminated: %s\n",
+			Date().toHRTString().c_str(),
+			connInfo.remoteAddr.hostname.c_str(),
+			e.what()
+		);
+
+	} catch(...) {
+
+		if (config.loglevel.logRequests) fprintf(stderr,
+			"%s [Service] Connection to %s terminated (unknown error)\n",
+			Date().toHRTString().c_str(),
+			connInfo.remoteAddr.hostname.c_str()
+		);
+	}
+
+	if (config.loglevel.logConnections) fprintf(stdout,
+		"%s %s:%i disconnected from %i\n",
+		Date().toHRTString().c_str(),
+		connInfo.remoteAddr.hostname.c_str(),
+		connInfo.remoteAddr.port,
+		connInfo.hostPort
+	);
+}
+
+ServerInstance::ServerInstance(HandlerFunction handlerCallback, ServerConfig init) {
 
 	this->config = init;
-	this->handler = handlerInit;
+	this->handler = handlerCallback;
 
 	Network::TCP::ListenConfig listenInitOpts;
 	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
 	listenInitOpts.port = this->config.service.port;
 	auto tempListener = Network::TCP::ListenSocket(listenInitOpts);
 	this->listener = new Network::TCP::ListenSocket(std::move(tempListener));
-
-	auto connectionHandler = [&](Network::TCP::Connection&& conn) {
-
-		const auto& connInfo = conn.getInfo();
-
-		if (this->config.loglevel.logConnections) fprintf(stdout,
-			"%s %s:%i connected on %i\n",
-			Date().toHRTString().c_str(),
-			connInfo.remoteAddr.hostname.c_str(),
-			connInfo.remoteAddr.port,
-			connInfo.hostPort
-		);
-
-		try {
-
-			//	I want to add an await here soo badly lol
-			Server::serveHTTP(std::move(conn), this->handler, {
-				this->config.loglevel,
-				this->config.transport
-			});
-
-		} catch(const std::exception& e) {
-
-			if (this->terminated) return;
-
-			if (this->config.loglevel.logRequests) fprintf(stderr,
-				"%s [Service] Connection to %s terminated: %s\n",
-				Date().toHRTString().c_str(),
-				connInfo.remoteAddr.hostname.c_str(),
-				e.what()
-			);
-
-		} catch(...) {
-
-			if (this->terminated) return;
-
-			if (this->config.loglevel.logRequests) fprintf(stderr,
-				"%s [Service] Connection to %s terminated (unknown error)\n",
-				Date().toHRTString().c_str(),
-				connInfo.remoteAddr.hostname.c_str()
-			);
-		}
-
-		if (this->config.loglevel.logConnections) fprintf(stdout,
-			"%s %s:%i disconnected from %i\n",
-			Date().toHRTString().c_str(),
-			connInfo.remoteAddr.hostname.c_str(),
-			connInfo.remoteAddr.port,
-			connInfo.hostPort
-		);
-
-	};
 
 	this->watchdogWorker = std::thread([&]() {
 
@@ -80,7 +75,7 @@ ServerInstance::ServerInstance(HandlerFunction handlerInit, ServerConfig init) {
 			try {
 
 				auto nextConn = this->listener->acceptConnection();
-				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn));
+				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn), this->handler, this->config);
 				connectionWorker.detach();
 
 			} catch(const std::exception& e) {
@@ -94,7 +89,7 @@ ServerInstance::ServerInstance(HandlerFunction handlerInit, ServerConfig init) {
 	});
 
 	printf("[Service] Started server at http://localhost:%i/\n", this->config.service.port);
-};
+}
 
 void ServerInstance::softShutdownn() {
 
