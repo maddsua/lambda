@@ -1,17 +1,16 @@
-#ifndef __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKET__
-#define __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKET__
+#ifndef __LIB_MADDSUA_LAMBDA_COREWEBSOCKET__
+#define __LIB_MADDSUA_LAMBDA_COREWEBSOCKET__
 
 #include <string>
 #include <vector>
 #include <queue>
 #include <cstdint>
 #include <mutex>
-
-#include "../network/network.hpp"
+#include <future>
 
 namespace Lambda::Websocket {
 
-	enum struct CloseCode {
+	enum struct CloseCode : int {
 		Normal = 1000,
 		GoingAway = 1001,
 		ProtocolError = 1002,
@@ -44,24 +43,6 @@ namespace Lambda::Websocket {
 			bool isPartial() const noexcept;
 			size_t size() const noexcept;
 			time_t timstamp()const noexcept;
-	};
-
-	class WebsocketStream {
-		private:
-			Lambda::Network::TCP::Connection* conn = nullptr;
-			std::queue<Message> rxQueue;
-			std::mutex readMutex;
-			std::vector<uint8_t> txQueue;
-			std::mutex writeMutex;
-			bool closed = false;
-
-		public:
-			bool available() const noexcept;
-			bool ok() const noexcept;
-			Message getMessage();
-			void sendMessage(const Message& msg);
-			void close();
-			void close(CloseCode reason);
 	};
 };
 
