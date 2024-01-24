@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]) {
 	};
 
 	ServerConfig initparams;
-	initparams.loglevel.logRequests = true;
+	initparams.loglevel.requests = true;
 	auto server = ServerInstance(handler, initparams);
 	server.awaitFinished();
 

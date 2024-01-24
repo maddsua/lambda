@@ -14,7 +14,7 @@ void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerC
 
 	const auto& connInfo = conn.getInfo();
 
-	if (config.loglevel.logConnections) fprintf(stdout,
+	if (config.loglevel.connections) fprintf(stdout,
 		"%s %s:%i connected on %i\n",
 		Date().toHRTString().c_str(),
 		connInfo.remoteAddr.hostname.c_str(),
@@ -32,7 +32,7 @@ void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerC
 
 	} catch(const std::exception& e) {
 
-		if (config.loglevel.logRequests) fprintf(stderr,
+		if (config.loglevel.requests) fprintf(stderr,
 			"%s [Service] Connection to %s terminated: %s\n",
 			Date().toHRTString().c_str(),
 			connInfo.remoteAddr.hostname.c_str(),
@@ -41,14 +41,14 @@ void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerC
 
 	} catch(...) {
 
-		if (config.loglevel.logRequests) fprintf(stderr,
+		if (config.loglevel.requests) fprintf(stderr,
 			"%s [Service] Connection to %s terminated (unknown error)\n",
 			Date().toHRTString().c_str(),
 			connInfo.remoteAddr.hostname.c_str()
 		);
 	}
 
-	if (config.loglevel.logConnections) fprintf(stdout,
+	if (config.loglevel.connections) fprintf(stdout,
 		"%s %s:%i disconnected from %i\n",
 		Date().toHRTString().c_str(),
 		connInfo.remoteAddr.hostname.c_str(),

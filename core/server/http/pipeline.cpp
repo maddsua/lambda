@@ -157,7 +157,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 
 		} catch(const std::exception& e) {
 
-			if (options.loglevel.logRequests) {
+			if (options.loglevel.requests) {
 				printf("%s %s crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
 			}
 			
@@ -165,7 +165,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 
 		} catch(...) {
 
-			if (options.loglevel.logRequests) {
+			if (options.loglevel.requests) {
 				printf("%s %s crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
 			}
 
@@ -225,9 +225,9 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 		conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 		if (bodySize) conn.write(responseBody);
 
-		if (options.loglevel.logRequests) {
-			printf("%s [%s] (%s) %s %s --> %i\n",
-				responseDate.toHRTString().c_str(),
+		if (options.loglevel.requests) {
+			printf("%s[%s] (%s) %s %s --> %i\n",
+				options.loglevel.timestamps ? (responseDate.toHRTString() + " ").c_str() : "",
 				requestID.c_str(),
 				conn.getInfo().remoteAddr.hostname.c_str(),
 				static_cast<std::string>(next.request.method).c_str(),
