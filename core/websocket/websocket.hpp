@@ -53,6 +53,7 @@ namespace Lambda::Websocket {
 			std::mutex readMutex;
 			std::queue<Message> txQueue;
 			std::mutex writeMutex;
+			bool closed = false;
 
 		public:
 			bool available() const noexcept;
