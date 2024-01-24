@@ -56,7 +56,7 @@ Console::Entry::Entry(long double thing) {
 
 std::string Console::serializeEntries(const std::initializer_list<Entry>& list) const {
 
-	std::string temp = Date().toHRTString() + " [" + this->id + "]";
+	std::string temp = Date().toHRTString() + " [" + this->context_id + "]";
 
 	for (auto elem : list) {
 		if (temp.size()) temp.push_back(' ');
