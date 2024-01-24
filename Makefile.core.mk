@@ -26,7 +26,7 @@ LIB_CORE_CRYPTO			=	core/crypto.a
 LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o
 
 LIB_CORE_WEBSOCKET		=	core/websocket.a
-LIB_CORE_WEBSOCKET_DEPS	=	core/websocket/websocket.o core/websocket/proto.o
+LIB_CORE_WEBSOCKET_DEPS	=	core/websocket/websocket.o core/websocket/proto.o core/websocket/transport.o
 
 
 # target object
@@ -158,3 +158,6 @@ core/websocket/websocket.o: core/websocket/websocket.cpp
 
 core/websocket/proto.o: core/websocket/proto.cpp
 	g++ -c $(CFLAGS) core/websocket/proto.cpp -o core/websocket/proto.o
+
+core/websocket/transport.o: core/websocket/transport.cpp
+	g++ -c $(CFLAGS) core/websocket/transport.cpp -o core/websocket/transport.o
