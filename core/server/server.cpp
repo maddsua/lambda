@@ -30,7 +30,7 @@ ServerInstance::ServerInstance(const Router& routerInit, ServerConfig init) {
 			try {
 
 				auto nextConn = this->listener->acceptConnection();
-				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn), this->router, this->config);
+				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn), std::ref(this->router), std::ref(this->config));
 				connectionWorker.detach();
 
 			} catch(const std::exception& e) {
