@@ -1,7 +1,7 @@
 #include <ctime>
 
-#include "./internal.hpp"
-#include "./websocket.hpp"
+#include "./proto.hpp"
+#include "./message.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
