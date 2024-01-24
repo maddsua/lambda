@@ -1,5 +1,5 @@
-#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_HANDLERS__
-#define __LIB_MADDSUA_LAMBDA_CORE_SERVER_HANDLERS__
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTP__
+#define __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTP__
 
 #include "../network/tcp/connection.hpp"
 #include "../network/tcp/listen.hpp"
