@@ -27,9 +27,9 @@ enum struct ContentEncodings {
 };
 
 static const std::map<ContentEncodings, std::string> contentEncodingMap = {
-	{  ContentEncodings::Brotli, "br" },
-	{  ContentEncodings::Gzip, "gzip" },
-	{  ContentEncodings::Deflate, "deflate" },
+	{ ContentEncodings::Brotli, "br" },
+	{ ContentEncodings::Gzip, "gzip" },
+	{ ContentEncodings::Deflate, "deflate" },
 };
 
 struct PipelineItem {
