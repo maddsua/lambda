@@ -9,6 +9,10 @@
 using namespace Lambda;
 using namespace Lambda::Websocket;
 
+WebsocketStream::WebsocketStream() {
+
+}
+
 WebsocketStream::~WebsocketStream() {
 	if (this->ioworker.valid()) {
 		try { this->ioworker.get(); } catch(...) {}
@@ -47,6 +51,8 @@ void WebsocketStream::close() {
 
 void WebsocketStream::close(CloseCode reason) {
 
+	this->terminateFlags = StreamTerminateFlags::Closed;
+
 	std::array<uint8_t, 4> closeFrame;
 
 	auto closeReasonByte = static_cast<std::underlying_type_t<CloseCode>>(reason);
@@ -69,6 +75,7 @@ void WebsocketStream::close(CloseCode reason) {
 }
 
 void WebsocketStream::terminate() {
+	this->terminateFlags = StreamTerminateFlags::Terminated;
 	if (this->ioworker.valid()) {
 		this->ioworker.get();
 	}
