@@ -51,7 +51,7 @@ namespace Lambda::Websocket {
 			Lambda::Network::TCP::Connection* conn = nullptr;
 			std::queue<Message> rxQueue;
 			std::mutex readMutex;
-			std::queue<Message> txQueue;
+			std::vector<uint8_t> txQueue;
 			std::mutex writeMutex;
 			bool closed = false;
 
