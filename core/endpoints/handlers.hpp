@@ -12,34 +12,34 @@ namespace Lambda::Endpoints {
 		public:
 			Console(const std::string& setid) : id(setid) {}
 
-			struct LogItem {
-				LogItem(const std::string& thing);
-				LogItem(const char* thing);
-				LogItem(bool thing);
-				LogItem(char thing);
-				LogItem(unsigned char thing);
-				LogItem(short thing);
-				LogItem(unsigned short thing);
-				LogItem(int thing);
-				LogItem(unsigned int thing);
-				LogItem(float thing);
-				LogItem(double thing);
-				LogItem(long thing);
-				LogItem(unsigned long thing);
-				LogItem(long long thing);
-				LogItem(unsigned long long thing);
-				LogItem(long double thing);
+			struct Entry {
+				Entry(const std::string& thing);
+				Entry(const char* thing);
+				Entry(bool thing);
+				Entry(char thing);
+				Entry(unsigned char thing);
+				Entry(short thing);
+				Entry(unsigned short thing);
+				Entry(int thing);
+				Entry(unsigned int thing);
+				Entry(float thing);
+				Entry(double thing);
+				Entry(long thing);
+				Entry(unsigned long thing);
+				Entry(long long thing);
+				Entry(unsigned long long thing);
+				Entry(long double thing);
 
 				std::string value;
 			};
 
-			void log(std::initializer_list<LogItem> list) const;
-			void error(std::initializer_list<LogItem> list) const;
-			void warn(std::initializer_list<LogItem> list) const;
+			void log(std::initializer_list<Entry> list) const;
+			void error(std::initializer_list<Entry> list) const;
+			void warn(std::initializer_list<Entry> list) const;
 
 		private:
 			std::string id;
-			std::string serializeEntries(const std::initializer_list<LogItem>& list) const;
+			std::string serializeEntries(const std::initializer_list<Entry>& list) const;
 	};
 
 	struct RequestContext {
