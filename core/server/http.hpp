@@ -41,7 +41,7 @@ namespace Lambda::Server {
 			RequestQueueItem next();
 	};
 
-	void httpPipeline(Network::TCP::Connection&& conn, Server::Handlers::HandlerFunction handler, const ServeOptions& options);
+	void httpPipeline(Network::TCP::Connection&& conn, const Router& serverRouter, const ServeOptions& options);
 	HTTP::Response errorResponse(int statusCode, std::optional<std::string> errorMessage);
 
 };
