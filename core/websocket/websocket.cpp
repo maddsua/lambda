@@ -1,117 +1,58 @@
-#include "./websocket.hpp"
-#include "./internal.hpp"
 #include <ctime>
+#include <array>
+
+#include "../network/tcp/connection.hpp"
+#include "./internal.hpp"
+#include "./websocket.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
 
-Message::Message(const std::string& init) {
-	this->m_binary = false;
-	this->m_partial = false;
-	this->m_buffer = std::vector<uint8_t>(init.begin(), init.end());
-	this->m_timestamp = std::time(nullptr);
+bool WebsocketStream::available() const noexcept {
+	return this->rxQueue.size();
 }
 
-Message::Message(const std::string& init, bool partial) {
-	this->m_binary = false;
-	this->m_partial = partial;
-	this->m_buffer = std::vector<uint8_t>(init.begin(), init.end());
-	this->m_timestamp = std::time(nullptr);
+bool WebsocketStream::ok() const noexcept {
+	if (this->conn == nullptr) return false;
+	return this->conn->ok();
 }
 
-Message::Message(const std::vector<uint8_t>& init) : m_buffer(init) {
-	this->m_binary = true;
-	this->m_partial = false;
-	this->m_timestamp = std::time(nullptr);
+Message WebsocketStream::getMessage() {
+
+	if (!this->available()) throw std::runtime_error("no messages available");
+
+	std::lock_guard<std::mutex> lock(this->writeMutex);
+
+	Message temp = this->rxQueue.front();
+	this->rxQueue.pop();
+	return temp;
 }
 
-Message::Message(const std::vector<uint8_t>& init, bool partial) : m_buffer(init) {
-	this->m_binary = true;
-	this->m_partial = partial;
-	this->m_timestamp = std::time(nullptr);
+void WebsocketStream::sendMessage(const Message& msg) {
+	auto messageBuffer = serializeMessage(msg);
+	std::lock_guard<std::mutex> lock(this->writeMutex);
+	this->txQueue.insert(this->txQueue.end(), messageBuffer.begin(), messageBuffer.end());
 }
 
-const std::vector<uint8_t>& Message::data() const noexcept {
-	return this->m_buffer;
+void WebsocketStream::close() {
+	this->close(CloseCode::Normal);
 }
 
-std::string Message::text() const {
-	return std::string(this->m_buffer.begin(), this->m_buffer.end());
-}
+void WebsocketStream::close(CloseCode reason) {
 
-bool Message::isBinary() const noexcept {
-	return this->m_binary;
-}
+	std::array<uint8_t, 4> closeFrame;
 
-bool Message::isPartial() const noexcept {
-	return this->m_partial;
-}
+	auto closeReasonByte = static_cast<std::underlying_type_t<CloseCode>>(reason);
 
-size_t Message::size() const noexcept {
-	return this->data().size();
-}
+	//	control frame and close opcode
+	closeFrame[0] = 0x88;
+	//	should always be 2 bytes, we only send a status code with no text
+	closeFrame[1] = sizeof(closeReasonByte);
+	//	the status code itself. I hate the ppl who decided not to align ws header fields. just effing masterminds.
+	closeFrame[2] = (closeReasonByte >> 8) & 0xFF;
+	closeFrame[3] = closeReasonByte & 0xFF;
 
-time_t Message::timstamp()const noexcept {
-	return this->m_timestamp;
-}
-
-WebsocketFrameHeader Websocket::parseFrameHeader(const std::vector<uint8_t>& buffer) {
-
-	WebsocketFrameHeader header;
-
-	header.finbit = (buffer.at(0) & 0x80) >> 7;
-	header.opcode = buffer.at(0) & 0x0F;
-
-	size_t headerOffset = 2;
-	header.payloadSize = buffer.at(1) & 0x7F;
-
-	if (header.payloadSize == 126) {
-		headerOffset += 2;
-		header.payloadSize = (buffer.at(2) << 8) | buffer.at(3);
-	} else if (header.payloadSize == 127) {
-		headerOffset += 8;
-		header.payloadSize = 0;
-		for (int i = 0; i < 8; i++) {
-			header.payloadSize |= (buffer.at(2 + i) << ((7 - i) * 8));
-		}
-	}
-
-	header.mask = (buffer.at(1) & 0x80) >> 7;
-
-	if (header.mask && buffer.size() >= headerOffset + sizeof(header.maskKey)) {
-		memcpy(header.maskKey, buffer.data() + headerOffset, sizeof(header.maskKey));
-	}
-
-	return header;
-}
-
-std::vector <uint8_t> Websocket::serializeMessage(const Message& message) {
-
-	//	create frame buffer
-	std::vector<uint8_t> resultBuffer;
-
-	// set FIN bit and opcode
-	uint8_t finBit = static_cast<std::underlying_type_t<WebsockBits>>(message.isPartial() ? WebsockBits::BitContinue : WebsockBits::BitFinal);
-	uint8_t contentOpCode = static_cast<std::underlying_type_t<WebsockBits>>(message.isBinary() ? WebsockBits::Binary : WebsockBits::Text);
-	resultBuffer.push_back(finBit | contentOpCode);
-
-	// set payload length
-	const auto dataSize = message.size();
-	if (dataSize < 126) {
-		resultBuffer.push_back(dataSize & 0x7F);
-	} else if (dataSize >= 126 && dataSize <= 65535) {
-		resultBuffer.push_back(126);
-		resultBuffer.push_back((dataSize >> 8) & 255);
-		resultBuffer.push_back(dataSize & 255);
-	} else {
-		resultBuffer.push_back(127);
-		for (int i = 0; i < 8; i++) {
-			resultBuffer.push_back((dataSize >> ((7 - i) * 8)) & 0xFF);
-		}
-	}
-
-	const auto& messageData = message.data();
-	resultBuffer.insert(resultBuffer.end(), messageData.begin(), messageData.end());
-
-	return resultBuffer;
+	//	send and forget it
+	std::lock_guard<std::mutex> lock(this->writeMutex);
+	this->txQueue.insert(this->txQueue.end(), closeFrame.begin(), closeFrame.end());
 }
