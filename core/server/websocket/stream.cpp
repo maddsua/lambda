@@ -2,8 +2,8 @@
 #include <array>
 
 #include "../../network/tcp/connection.hpp"
-#include "../../websocket/websocket.hpp"
-#include "../../websocket/internal.hpp"
+#include "../../websocket/message.hpp"
+#include "../../websocket/proto.hpp"
 #include "../websocket.hpp"
 
 using namespace Lambda;
@@ -63,6 +63,12 @@ void WebsocketStream::close(CloseCode reason) {
 	std::lock_guard<std::mutex> lock(this->writeMutex);
 	this->txQueue.insert(this->txQueue.end(), closeFrame.begin(), closeFrame.end());
 
+	if (this->ioworker.valid()) {
+		this->ioworker.get();
+	}
+}
+
+void WebsocketStream::terminate() {
 	if (this->ioworker.valid()) {
 		this->ioworker.get();
 	}
