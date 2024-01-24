@@ -39,9 +39,11 @@ Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>
 
 Router& Router::operator= (const Router& other) noexcept {
 	this->m_router = other.m_router;
+	return *this;
 }
 Router& Router::operator= (Router&& other) noexcept {
 	this->m_router = std::move(other.m_router);
+	return *this;
 }
 
 std::optional<RouteContext> Router::match(const std::string& pathname) const {
@@ -68,6 +70,5 @@ std::optional<RouteContext> Router::match(const std::string& pathname) const {
 		return directMatch->second;
 	}
 
-	return;
-	
+	return std::nullopt;
 }
