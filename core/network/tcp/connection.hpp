@@ -22,6 +22,7 @@ namespace Lambda::Network::TCP {
 			std::mutex writeMutex;
 
 		public:
+			//Connection() {}
 			Connection(ConnCreateInit init);
 			Connection(Connection&& other) noexcept;
 			~Connection();
@@ -34,7 +35,7 @@ namespace Lambda::Network::TCP {
 			void write(const std::vector<uint8_t>& data);
 			const ConnectionInfo& getInfo() const noexcept;
 			void closeconn();
-			bool isOpen() const noexcept;
+			bool ok() const noexcept;
 
 			static const uint32_t TimeoutMs = 15000;
 			static const uint32_t TimeoutMs_Max = 60000;
