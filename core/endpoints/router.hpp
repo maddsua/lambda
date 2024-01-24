@@ -17,7 +17,7 @@ namespace Lambda {
 		private:
 			std::unordered_map<std::string, RouteContext> m_router;
 			std::optional<RouteContext> staticHandler;
-			std::vector<std::string> globRoutes;
+			std::vector<std::pair<std::string, std::string>> globRoutes;
 
 		public:
 			Router() {}
