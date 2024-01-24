@@ -10,8 +10,6 @@
 
 using namespace Lambda;
 
-void connectionHandler(Network::TCP::Connection&& conn, const Router& serverRouter, const ServerConfig& config);
-
 ServerInstance::ServerInstance(const Router& routerInit, ServerConfig init) {
 
 	this->config = init;
@@ -30,8 +28,54 @@ ServerInstance::ServerInstance(const Router& routerInit, ServerConfig init) {
 			try {
 
 				auto nextConn = this->listener->acceptConnection();
-				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn), std::ref(this->router), std::ref(this->config));
-				connectionWorker.detach();
+
+				std::thread([&](Network::TCP::Connection&& conn) {
+
+					const auto& connInfo = conn.getInfo();
+
+					if (this->config.loglevel.connections) fprintf(stdout,
+						"%s %s:%i connected on %i\n",
+						Date().toHRTString().c_str(),
+						connInfo.remoteAddr.hostname.c_str(),
+						connInfo.remoteAddr.port,
+						connInfo.hostPort
+					);
+
+					try {
+
+						//	I want to add an await here soo badly lol
+						Server::httpPipeline(std::move(conn), this->router, {
+							this->config.loglevel,
+							this->config.transport
+						});
+
+					} catch(const std::exception& e) {
+
+						if (config.loglevel.requests) fprintf(stderr,
+							"%s [Service] Connection to %s terminated: %s\n",
+							Date().toHRTString().c_str(),
+							connInfo.remoteAddr.hostname.c_str(),
+							e.what()
+						);
+
+					} catch(...) {
+
+						if (this->config.loglevel.requests) fprintf(stderr,
+							"%s [Service] Connection to %s terminated (unknown error)\n",
+							Date().toHRTString().c_str(),
+							connInfo.remoteAddr.hostname.c_str()
+						);
+					}
+
+					if (this->config.loglevel.connections) fprintf(stdout,
+						"%s %s:%i disconnected from %i\n",
+						Date().toHRTString().c_str(),
+						connInfo.remoteAddr.hostname.c_str(),
+						connInfo.remoteAddr.port,
+						connInfo.hostPort
+					);
+
+				}, std::move(nextConn)).detach();
 
 			} catch(const std::exception& e) {
 				if (this->terminated) return;
@@ -79,51 +123,4 @@ ServerInstance::~ServerInstance() {
 
 const ServerConfig& ServerInstance::getConfig() const noexcept {
 	return this->config;
-}
-
-void connectionHandler(Network::TCP::Connection&& conn, const Router& serverRouter, const ServerConfig& config) {
-
-	const auto& connInfo = conn.getInfo();
-
-	if (config.loglevel.connections) fprintf(stdout,
-		"%s %s:%i connected on %i\n",
-		Date().toHRTString().c_str(),
-		connInfo.remoteAddr.hostname.c_str(),
-		connInfo.remoteAddr.port,
-		connInfo.hostPort
-	);
-
-	try {
-
-		//	I want to add an await here soo badly lol
-		Server::httpPipeline(std::move(conn), serverRouter, {
-			config.loglevel,
-			config.transport
-		});
-
-	} catch(const std::exception& e) {
-
-		if (config.loglevel.requests) fprintf(stderr,
-			"%s [Service] Connection to %s terminated: %s\n",
-			Date().toHRTString().c_str(),
-			connInfo.remoteAddr.hostname.c_str(),
-			e.what()
-		);
-
-	} catch(...) {
-
-		if (config.loglevel.requests) fprintf(stderr,
-			"%s [Service] Connection to %s terminated (unknown error)\n",
-			Date().toHRTString().c_str(),
-			connInfo.remoteAddr.hostname.c_str()
-		);
-	}
-
-	if (config.loglevel.connections) fprintf(stdout,
-		"%s %s:%i disconnected from %i\n",
-		Date().toHRTString().c_str(),
-		connInfo.remoteAddr.hostname.c_str(),
-		connInfo.remoteAddr.port,
-		connInfo.hostPort
-	);
 }
