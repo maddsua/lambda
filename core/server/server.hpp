@@ -2,8 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_CORE_SERVER__
 
 #include <functional>
-#include <future>
-#include <optional>
+#include <thread>
 
 #include "../http/http.hpp"
 #include "../network/network.hpp"

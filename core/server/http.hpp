@@ -5,6 +5,10 @@
 #include "../network/tcp/listen.hpp"
 #include "./server.hpp"
 
+#include <future>
+#include <optional>
+#include <queue>
+
 namespace Lambda::Server {
 
 	enum struct ContentEncodings {
@@ -19,6 +23,20 @@ namespace Lambda::Server {
 		uint32_t id;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
+	};
+
+	class PipelineQueue {
+		private:
+			std::queue<PipelineItem> m_queue;
+			std::mutex m_mutex;
+			bool m_done = false;
+
+		public:
+			bool await();
+			bool hasNext() const noexcept;
+			void push(const PipelineItem& item);
+			void close() noexcept;
+			PipelineItem next();
 	};
 
 	void httpPipeline(Network::TCP::Connection&& conn, HandlerFunction handler, const ServeOptions& options);

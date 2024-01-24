@@ -1,4 +1,4 @@
-#include "../handlers.hpp"
+#include "../http.hpp"
 
 extern char _binary_core_resources_html_servicepage_html_start;
 extern char _binary_core_resources_html_servicepage_html_end;

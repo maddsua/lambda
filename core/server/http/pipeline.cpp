@@ -1,5 +1,5 @@
 
-#include "../handlers.hpp"
+#include "../http.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
@@ -28,8 +28,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 
 void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallback, const ServeOptions& options) {
 
-	std::queue<PipelineItem> pipeline;
-	std::mutex pipelineMutex;
+	PipelineQueue requestQueue;
 
 	auto receiveRoutine = std::async([&]() {
 
@@ -137,18 +136,15 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 			next.id = (timeHighres & ~0UL) ^ (totalReadSize & ~0UL);
 
-			std::lock_guard<std::mutex>lock(pipelineMutex);
-			pipeline.push(std::move(next));
+			requestQueue.push(std::move(next));
 
 		} while (connectionKeepAlive);
 
 	});
 
-	while ((receiveRoutine.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready || pipeline.size()) && conn.isOpen()) {
+	while (conn.isOpen() && requestQueue.await()) {
 
-		if (!pipeline.size()) continue;
-
-		auto& next = pipeline.front();
+		auto next = requestQueue.next();
 		auto responseDate = Date();
 
 		auto requestID = ShortID(next.id).toString();
@@ -243,9 +239,6 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 				response.status.code()
 			);
 		}
-
-		std::lock_guard<std::mutex>lock(pipelineMutex);
-		pipeline.pop();
 	}
 
 	receiveRoutine.get();
