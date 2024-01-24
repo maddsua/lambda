@@ -22,7 +22,6 @@ namespace Lambda::Network::TCP {
 			std::mutex writeMutex;
 
 		public:
-			//Connection() {}
 			Connection(ConnCreateInit init);
 			Connection(Connection&& other) noexcept;
 			~Connection();
