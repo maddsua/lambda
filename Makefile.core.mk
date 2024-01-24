@@ -22,7 +22,7 @@ LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o co
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_RESS	=	core/resources/html/servicepage.res
-LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/pipeline.o core/server/http/queue.o core/server/http/errorPage.o
+LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/pipeline.o core/server/queue.o core/server/errorPage.o
 LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
@@ -133,14 +133,14 @@ $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 core/server/server.o: core/server/server.cpp
 	g++ -c $(CFLAGS) core/server/server.cpp -o core/server/server.o
 
-core/server/http/pipeline.o: core/server/http/pipeline.cpp
-	g++ -c $(CFLAGS) core/server/http/pipeline.cpp -o core/server/http/pipeline.o
+core/server/pipeline.o: core/server/pipeline.cpp
+	g++ -c $(CFLAGS) core/server/pipeline.cpp -o core/server/pipeline.o
 
-core/server/http/queue.o: core/server/http/queue.cpp
-	g++ -c $(CFLAGS) core/server/http/queue.cpp -o core/server/http/queue.o
+core/server/queue.o: core/server/queue.cpp
+	g++ -c $(CFLAGS) core/server/queue.cpp -o core/server/queue.o
 
-core/server/http/errorPage.o: core/server/http/errorPage.cpp
-	g++ -c $(CFLAGS) core/server/http/errorPage.cpp -o core/server/http/errorPage.o
+core/server/errorPage.o: core/server/errorPage.cpp
+	g++ -c $(CFLAGS) core/server/errorPage.cpp -o core/server/errorPage.o
 
 core/resources/html/servicepage.res: core/resources/html/servicepage.html
 	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 core/resources/html/servicepage.html core/resources/html/servicepage.res
