@@ -16,10 +16,14 @@ void RequestQueue::finish() noexcept {
 }
 
 bool RequestQueue::await() {
-	while (!this->m_done && !this->m_queue.size()) {
+
+	while (true) {
+
+		if (this->m_queue.size() > 0) return true;
+		else if (this->m_done) return false;
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	}
-	return !this->m_done;
+	}	
 }
 
 RequestQueueItem RequestQueue::next() {
