@@ -22,6 +22,8 @@ namespace Lambda {
 			std::unordered_map<std::string, RouteContext> m_router;
 		public:
 			Router() {}
+			Router(const RouteContext& routerInit);
+			Router(const Server::Handlers::HandlerFunction& routerInit);
 			Router(const std::initializer_list<std::pair<std::string, RouteContext>>& routerInit);
 			Router& operator= (const Router& other) noexcept;
 			Router& operator= (Router&& other) noexcept;
