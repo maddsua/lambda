@@ -26,7 +26,7 @@ Response::Response(
 Response::Response(
 	const Status& statusinit,
 	const Headers& headersinit,
-	const Body& bod
+	const Body& body
 ) : status(statusinit), headers(headersinit), body(body) {}
 
 Response::Response(
