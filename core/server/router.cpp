@@ -6,7 +6,27 @@ using namespace Lambda::Server::Handlers;
 
 const std::initializer_list<char> eraseAfterPoints = { '?', '#' };
 
-std::optional<RouteContext> Lambda::matchRoute(const Router& router, const std::string& pathname) {
+Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>& routerInit) {
+	for (const auto& item : routerInit) {
+
+		auto keyNormalized = Strings::toLowerCase(item.first);
+		if (keyNormalized.ends_with('/')) {
+			keyNormalized.erase(keyNormalized.size() - 1);
+		}
+
+		if (!keyNormalized.starts_with('/')) {
+			keyNormalized.insert(keyNormalized.begin(), '/');
+		}
+
+		if (keyNormalized.ends_with("/*")) {
+			keyNormalized.erase(keyNormalized.size() - 2);
+		}
+
+		this->m_router[keyNormalized] = item.second;
+	}
+}
+
+std::optional<RouteContext> Router::match(const std::string& pathname) const {
 
 	auto routename = pathname;
 	for (const auto& breakpoint : eraseAfterPoints) {
@@ -18,17 +38,18 @@ std::optional<RouteContext> Lambda::matchRoute(const Router& router, const std::
 	}
 
 	if (!pathname.starts_with('/')) {
-		routename = '/' + pathname;
+		routename.insert(routename.begin(), '/');
 	}
 
 	if (pathname.ends_with('/')) {
 		routename.erase(routename.size() - 1);
 	}
 
-	auto directMatch = router.find(pathname);
-	if (directMatch != router.end()) {
+	auto directMatch = this->m_router.find(pathname);
+	if (directMatch != this->m_router.end()) {
 		return directMatch->second;
 	}
 
 	return;
+	
 }
