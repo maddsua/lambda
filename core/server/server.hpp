@@ -4,7 +4,7 @@
 #include <functional>
 #include <thread>
 
-#include "./router.hpp"
+#include "../endpoints/router.hpp"
 #include "../http/http.hpp"
 #include "../network/network.hpp"
 
