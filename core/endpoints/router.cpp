@@ -27,11 +27,13 @@ Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>
 
 		if (!keyNormalized.starts_with('/')) {
 			keyNormalized.insert(keyNormalized.begin(), '/');
-		}
-
-		if (keyNormalized.ends_with("/*")) {
-			keyNormalized.erase(keyNormalized.size() - 2);
-			this->globRoutes.push_back(keyNormalized);
+		} else if (keyNormalized.ends_with("/*")) {
+			auto globKeyPrefix = keyNormalized.substr(0, keyNormalized.size() - 2);
+			this->globRoutes.push_back({
+				keyNormalized.substr(0, keyNormalized.size() - 1),
+				globKeyPrefix
+			});
+			keyNormalized = globKeyPrefix;
 		}
 
 		this->m_router[keyNormalized] = item.second;
@@ -41,11 +43,13 @@ Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>
 Router& Router::operator= (const Router& other) noexcept {
 	this->m_router = other.m_router;
 	this->staticHandler = other.staticHandler;
+	this->globRoutes = other.globRoutes;
 	return *this;
 }
 Router& Router::operator= (Router&& other) noexcept {
 	this->m_router = std::move(other.m_router);
-	this->staticHandler = other.staticHandler;
+	this->staticHandler = std::move(other.staticHandler);
+	this->globRoutes = std::move(other.globRoutes);
 	return *this;
 }
 
@@ -55,7 +59,7 @@ std::optional<RouteContext> Router::match(const std::string& pathname) const {
 		return this->staticHandler;
 	}
 
-	auto routename = pathname;
+	auto routename = Strings::trim(pathname);
 	for (const auto& breakpoint : eraseAfterPoints) {
 		auto idx = routename.find(breakpoint);
 		if (idx != std::string::npos) {
@@ -64,22 +68,22 @@ std::optional<RouteContext> Router::match(const std::string& pathname) const {
 		}
 	}
 
-	if (!pathname.starts_with('/')) {
-		routename.insert(routename.begin(), '/');
+	if (!routename.starts_with('/')) {
+		return std::nullopt;
 	}
 
-	if (pathname.ends_with('/')) {
+	if (routename.ends_with('/')) {
 		routename.erase(routename.size() - 1);
 	}
 
-	auto directMatch = this->m_router.find(pathname);
+	auto directMatch = this->m_router.find(routename);
 	if (directMatch != this->m_router.end()) {
 		return directMatch->second;
 	}
 
 	for (const auto& item : this->globRoutes) {
-		if (pathname.starts_with(item + '/')) {
-			auto globMatch = this->m_router.find(item);
+		if (routename.starts_with(item.first)) {
+			auto globMatch = this->m_router.find(item.second);
 			if (globMatch == this->m_router.end()) return std::nullopt;
 			return globMatch->second;
 		}
