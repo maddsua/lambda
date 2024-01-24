@@ -55,11 +55,8 @@ void Server::httpPipeline(TCP::Connection&& conn, const Router& serverRouter, co
 
 			auto headerStartLine = Strings::split(headerFields.at(0), ' ');
 	
-			auto& requestMethodString = headerStartLine.at(0);
-			auto& requestUrlString = headerStartLine.at(1);
-
 			RequestQueueItem next;
-			next.request.method = HTTP::Method(requestMethodString);
+			next.request.method = HTTP::Method(headerStartLine.at(0));
 
 			for (size_t i = 1; i < headerFields.size(); i++) {
 
@@ -78,11 +75,12 @@ void Server::httpPipeline(TCP::Connection&& conn, const Router& serverRouter, co
 			}
 
 			//	construct request URL
+			next.requestUrlString = headerStartLine.at(1);
 			auto hostHeader = next.request.headers.get("host");
 			if (hostHeader.size()) {
-				next.request.url = HTTP::URL("http://" + hostHeader + requestUrlString);
+				next.request.url = HTTP::URL("http://" + hostHeader + next.requestUrlString);
 			} else {
-				next.request.url = HTTP::URL("http://lambdahost:" + conninfo.hostPort + requestUrlString);
+				next.request.url = HTTP::URL("http://lambdahost:" + conninfo.hostPort + next.requestUrlString);
 			}
 
 			if (options.transport.reuseConnections) {
@@ -149,7 +147,7 @@ void Server::httpPipeline(TCP::Connection&& conn, const Router& serverRouter, co
 
 		try {
 
-			auto routeHandler = matchRoute(serverRouter, next.request.url.pathname);
+			auto routeHandler = serverRouter.match(next.requestUrlString);
 
 			if (routeHandler.has_value()) {
 				response = routeHandler.value().handler(next.request, {
