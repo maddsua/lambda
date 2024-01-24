@@ -5,6 +5,8 @@
 #include <vector>
 #include <cstdint>
 
+#include "./websocket.hpp"
+
 namespace Lambda::Websocket {
 
 	struct WebsocketFrameHeader {
