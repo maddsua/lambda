@@ -31,6 +31,7 @@ namespace Lambda::Server {
 			bool m_done = false;
 
 		public:
+			RequestQueue() {}
 			RequestQueue(const std::initializer_list<RequestQueueItem>& init);
 			RequestQueue(const Lambda::Server::RequestQueue& other);
 			bool await();
