@@ -29,6 +29,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallback, const ServeOptions& options) {
 
 	RequestQueue requestQueue;
+	const auto& conninfo = conn.getInfo();
 
 	auto receiveRoutine = std::async([&]() {
 
@@ -81,7 +82,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 			if (hostHeader.size()) {
 				next.request.url = HTTP::URL("http://" + hostHeader + requestUrlString);
 			} else {
-				next.request.url = HTTP::URL("http://lambdahost:" + conn.getInfo().hostPort + requestUrlString);
+				next.request.url = HTTP::URL("http://lambdahost:" + conninfo.hostPort + requestUrlString);
 			}
 
 			if (options.transport.reuseConnections) {
@@ -150,7 +151,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 
 			response = handlerCallback(next.request, {
 				requestID,
-				conn.getInfo(),
+				conninfo,
 				Console(requestID)
 			});
 
@@ -228,7 +229,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 			printf("%s[%s] (%s) %s %s --> %i\n",
 				options.loglevel.timestamps ? (responseDate.toHRTString() + " ").c_str() : "",
 				requestID.c_str(),
-				conn.getInfo().remoteAddr.hostname.c_str(),
+				conninfo.remoteAddr.hostname.c_str(),
 				static_cast<std::string>(next.request.method).c_str(),
 				next.request.url.pathname.c_str(),
 				response.status.code()
