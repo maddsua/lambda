@@ -35,7 +35,7 @@ namespace Lambda::Server {
 			bool await();
 			bool hasNext() const noexcept;
 			void push(const RequestQueueItem& item);
-			void close() noexcept;
+			void finish() noexcept;
 			RequestQueueItem next();
 	};
 
