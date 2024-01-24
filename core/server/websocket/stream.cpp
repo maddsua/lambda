@@ -9,6 +9,12 @@
 using namespace Lambda;
 using namespace Lambda::Websocket;
 
+WebsocketStream::~WebsocketStream() {
+	if (this->ioworker.valid()) {
+		try { this->ioworker.get(); } catch(...) {}
+	}
+}
+
 bool WebsocketStream::available() const noexcept {
 	return this->rxQueue.size();
 }
@@ -56,4 +62,8 @@ void WebsocketStream::close(CloseCode reason) {
 	//	send and forget it
 	std::lock_guard<std::mutex> lock(this->writeMutex);
 	this->txQueue.insert(this->txQueue.end(), closeFrame.begin(), closeFrame.end());
+
+	if (this->ioworker.valid()) {
+		this->ioworker.get();
+	}
 }
