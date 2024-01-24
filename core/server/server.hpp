@@ -45,7 +45,7 @@ namespace Lambda {
 			bool terminated = false;
 
 		public:
-			ServerInstance(Router routerInit, ServerConfig init);
+			ServerInstance(const Router& routerInit, ServerConfig init);
 			~ServerInstance();
 
 			void softShutdownn();
