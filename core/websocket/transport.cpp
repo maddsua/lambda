@@ -1,27 +1,34 @@
 #include "./websocket.hpp"
 #include "./internal.hpp"
+#include <ctime>
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
 
 Message::Message(const std::string& init) {
 	this->m_binary = false;
+	this->m_partial = false;
 	this->m_buffer = std::vector<uint8_t>(init.begin(), init.end());
+	this->m_timestamp = std::time(nullptr);
 }
 
 Message::Message(const std::string& init, bool partial) {
 	this->m_binary = false;
 	this->m_partial = partial;
 	this->m_buffer = std::vector<uint8_t>(init.begin(), init.end());
+	this->m_timestamp = std::time(nullptr);
 }
 
 Message::Message(const std::vector<uint8_t>& init) : m_buffer(init) {
 	this->m_binary = true;
+	this->m_partial = false;
+	this->m_timestamp = std::time(nullptr);
 }
 
 Message::Message(const std::vector<uint8_t>& init, bool partial) : m_buffer(init) {
 	this->m_binary = true;
 	this->m_partial = partial;
+	this->m_timestamp = std::time(nullptr);
 }
 
 const std::vector<uint8_t>& Message::data() const noexcept {
