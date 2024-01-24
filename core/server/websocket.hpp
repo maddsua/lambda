@@ -9,6 +9,7 @@
 #include <future>
 
 #include "../network/network.hpp"
+#include "../http/http.hpp"
 #include "../websocket/message.hpp"
 
 namespace Lambda::Websocket {
@@ -32,6 +33,12 @@ namespace Lambda::Websocket {
 		None, Failed, Closed, Terminated
 	};
 
+	struct WebsocketInfo {
+		std::string requestID;
+		//HTTP::Headers headers;
+		//HTTP::Cookies cookies;
+	};
+
 	class WebsocketStream {
 		private:
 			Lambda::Network::TCP::Connection* conn = nullptr;
@@ -41,9 +48,10 @@ namespace Lambda::Websocket {
 			std::vector<uint8_t> txQueue;
 			std::mutex writeMutex;
 			std::future<void> ioworker;
+			WebsocketInfo info;
 
 		public:
-			WebsocketStream();
+			WebsocketStream(TCP::Connection& conn, const WebsocketInfo& infoInit);
 			~WebsocketStream();
 
 			bool available() const noexcept;
