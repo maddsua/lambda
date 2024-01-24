@@ -5,6 +5,9 @@
 #include <vector>
 #include <queue>
 #include <cstdint>
+#include <mutex>
+
+#include "../network/network.hpp"
 
 namespace Lambda::Websocket {
 
@@ -40,13 +43,16 @@ namespace Lambda::Websocket {
 			bool isBinary() const noexcept;
 			bool isPartial() const noexcept;
 			size_t size() const noexcept;
-			time_t timstamp();
+			time_t timstamp()const noexcept;
 	};
 
 	class WebsocketStream {
 		private:
+			Lambda::Network::TCP::Connection* conn = nullptr;
 			std::queue<Message> rxQueue;
+			std::mutex readMutex;
 			std::queue<Message> txQueue;
+			std::mutex writeMutex;
 
 		public:
 			bool available() const noexcept;
