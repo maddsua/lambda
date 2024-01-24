@@ -35,7 +35,6 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 		std::vector<uint8_t> recvBuff;
 
 		bool connectionKeepAlive = false;
-		size_t totalReadSize = 0;
 
 		do {
 
@@ -52,7 +51,6 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 			if (!recvBuff.size() || headerEnded == recvBuff.end()) break;
 
 			auto headerFields = Strings::split(std::string(recvBuff.begin(), headerEnded), "\r\n");
-			totalReadSize += recvBuff.size();
 			recvBuff.erase(recvBuff.begin(), headerEnded + patternEndHeader.size());
 
 			auto headerStartLine = Strings::split(headerFields.at(0), ' ');
@@ -129,13 +127,12 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 				}
 
 				next.request.body = std::vector<uint8_t>(recvBuff.begin(), recvBuff.begin() + bodySize);
-				totalReadSize += recvBuff.size();
 				recvBuff.erase(recvBuff.begin(), recvBuff.begin() + bodySize);
 			}
 
 			requestQueue.push(std::move(next));
 
-		} while (connectionKeepAlive);
+		} while (conn.isOpen() && connectionKeepAlive);
 
 		requestQueue.finish();
 	});
