@@ -1,6 +1,6 @@
 
 #include "./server.hpp"
-#include "./http.hpp"
+#include "./internal.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
