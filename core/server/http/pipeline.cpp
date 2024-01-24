@@ -140,6 +140,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 
 		} while (connectionKeepAlive);
 
+		requestQueue.finish();
 	});
 
 	while (conn.isOpen() && requestQueue.await()) {
