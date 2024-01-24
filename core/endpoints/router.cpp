@@ -7,11 +7,11 @@ using namespace Lambda::Endpoints;
 const std::initializer_list<char> eraseAfterPoints = { '?', '#' };
 
 Router::Router(const RouteContext& routerInit) {
-	this->m_router["/"] = routerInit;
+	this->staticHandler = routerInit;
 }
 
 Router::Router(const HandlerFunction& routerInit) {
-	this->m_router["/"] = {
+	this->staticHandler = {
 		routerInit
 	};
 }
@@ -39,14 +39,20 @@ Router::Router(const std::initializer_list<std::pair<std::string, RouteContext>>
 
 Router& Router::operator= (const Router& other) noexcept {
 	this->m_router = other.m_router;
+	this->staticHandler = other.staticHandler;
 	return *this;
 }
 Router& Router::operator= (Router&& other) noexcept {
 	this->m_router = std::move(other.m_router);
+	this->staticHandler = other.staticHandler;
 	return *this;
 }
 
 std::optional<RouteContext> Router::match(const std::string& pathname) const {
+
+	if (this->staticHandler.has_value()) {
+		return this->staticHandler;
+	}
 
 	auto routename = pathname;
 	for (const auto& breakpoint : eraseAfterPoints) {
