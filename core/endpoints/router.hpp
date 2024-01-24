@@ -15,6 +15,8 @@ namespace Lambda {
 	class Router {
 		private:
 			std::unordered_map<std::string, RouteContext> m_router;
+			std::optional<RouteContext> staticHandler;
+
 		public:
 			Router() {}
 			Router(const RouteContext& routerInit);
