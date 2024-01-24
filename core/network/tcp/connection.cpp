@@ -39,21 +39,23 @@ const ConnectionInfo& Connection::getInfo() const noexcept {
 	return this->info;
 }
 
-bool Connection::isOpen() const noexcept {
+bool Connection::ok() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
 }
 
 void Connection::write(const std::vector<uint8_t>& data) {
 
 	if (this->hSocket == INVALID_SOCKET)
-		throw std::runtime_error("cann't write to a closed connection");
+		throw std::runtime_error("can't write to a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->writeMutex);
 
 	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
-	if (static_cast<size_t>(bytesSent) != data.size())
-		throw std::runtime_error("network error while sending data: code " + std::to_string(getAPIError()));
+	if (static_cast<size_t>(bytesSent) != data.size()) {
+		this->hSocket = INVALID_SOCKET;
+		throw std::runtime_error("write failed: network error " + std::to_string(getAPIError()));
+	}
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -88,9 +90,11 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 				return {};
 			} break;
 			
-			default:
-				throw std::runtime_error("network error while getting data: code " + std::to_string(apiError));
-		}		
+			default: {
+				this->hSocket = INVALID_SOCKET;
+				throw std::runtime_error("read failed: network error " + std::to_string(apiError));
+			}
+		}
 	}
 
 	chunk.resize(bytesReceived);
