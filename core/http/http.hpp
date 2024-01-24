@@ -128,22 +128,6 @@ namespace Lambda::HTTP {
 			operator Methods () const noexcept;
 	};
 
-	struct Request {
-		URL url;
-		Method method;
-		Headers headers;
-		Cookies cookies;
-		Body body;
-
-		Request() {}
-		Request(const URL& urlinit) : url(urlinit) {}
-		Request(const URL& urlinit, const Headers& headersinit) : url(urlinit), headers(headersinit) {}
-		Request(const URL& urlinit, const Body& bodyinit) : url(urlinit), body(bodyinit) {}
-		Request(const URL& urlinit, const Headers& headersinit, Body& bodyinit) : url(urlinit), headers(headersinit), body(bodyinit) {}
-
-		Response upgrageToWebsocket() const noexcept;
-	};
-
 	class Status {
 		private:
 			int internalCode;
@@ -180,6 +164,22 @@ namespace Lambda::HTTP {
 		Response(const Status& statusinit, const Body& bodyinit);
 		Response(const Status& statusinit, const Headers& headersinit, const Body& body);
 		Response(const Body& body, const Headers& headersinit, const Status& statusinit);
+	};
+
+	struct Request {
+		URL url;
+		Method method;
+		Headers headers;
+		Cookies cookies;
+		Body body;
+
+		Request() {}
+		Request(const URL& urlinit);
+		Request(const URL& urlinit, const Headers& headersinit);
+		Request(const URL& urlinit, const Body& bodyinit);
+		Request(const URL& urlinit, const Headers& headersinit, Body& bodyinit);
+
+		Response upgrageToWebsocket() const noexcept;
 	};
 };
 
