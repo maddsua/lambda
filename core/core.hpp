@@ -7,5 +7,6 @@
 #include "./compression/compression.hpp"
 #include "./network/network.hpp"
 #include "./server/server.hpp"
+#include "./server/handlers.hpp"
 
 #endif
