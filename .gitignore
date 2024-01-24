@@ -7,8 +7,9 @@
 *.def
 *.res
 
-**/node_modules/**
-**/dist/**
+node_modules
+dist
+temp
 
 deps/build/package-lock.json
 
