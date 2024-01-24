@@ -6,7 +6,7 @@
 
 #include "../http/http.hpp"
 #include "../network/network.hpp"
-#include "./console/handlerConsole.hpp"
+#include "./handlers.hpp"
 
 namespace Lambda {
 
@@ -26,14 +26,6 @@ namespace Lambda {
 		HTTPTransportOptions transport;
 	};
 
-	struct RequestContext {
-		std::string requestID;
-		Network::ConnectionInfo conninfo;
-		Console console;
-	};
-
-	typedef std::function<HTTP::Response(const HTTP::Request& request, const RequestContext& context)> HandlerFunction;
-
 	struct ServiceOptions {
 		uint16_t port = 8180;
 		bool fastPortReuse = false;
@@ -46,13 +38,13 @@ namespace Lambda {
 	class ServerInstance {
 		private:
 			Network::TCP::ListenSocket* listener = nullptr;
-			HandlerFunction handler;
+			Server::Handlers::HandlerFunction handler;
 			ServerConfig config;
 			std::thread watchdogWorker;
 			bool terminated = false;
 
 		public:
-			ServerInstance(HandlerFunction handlerCallback, ServerConfig init);
+			ServerInstance(Server::Handlers::HandlerFunction handlerCallback, ServerConfig init);
 			~ServerInstance();
 
 			void softShutdownn();
