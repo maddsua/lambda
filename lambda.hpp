@@ -17,7 +17,7 @@
 namespace Lambda {
 	typedef HTTP::Request Request;
 	typedef HTTP::Response Response;
-	typedef RequestContext Context;
+	typedef Server::Handlers::RequestContext Context;
 };
 
 #endif
