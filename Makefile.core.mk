@@ -6,7 +6,7 @@ LIB_CORE_POLYFILL		=	core/polyfill.a
 LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/uid.o
 
 LIB_CORE_HTTP			=	core/http.a
-LIB_CORE_HTTP_DEPS		=	core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
+LIB_CORE_HTTP_DEPS		=	core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o
 
 LIB_CORE_ENCODING		=	core/encoding.a
 LIB_CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
@@ -71,6 +71,9 @@ core/http/method.o: core/http/method.cpp
 
 core/http/status.o: core/http/status.cpp
 	g++ -c $(CFLAGS) core/http/status.cpp -o core/http/status.o
+
+core/http/body.o: core/http/body.cpp
+	g++ -c $(CFLAGS) core/http/body.cpp -o core/http/body.o
 
 
 # encoding stuff
