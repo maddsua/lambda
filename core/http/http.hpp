@@ -25,6 +25,7 @@ namespace Lambda::HTTP {
 
 		public:
 			KVContainer() {};
+			KVContainer(const KVContainer& other);
 			KVContainer(const std::vector<KVpair>& entries);
 
 			std::string get(const std::string& key) const;
@@ -84,49 +85,35 @@ namespace Lambda::HTTP {
 	class Body {
 
 		private:
-			std::vector<uint8_t> internalContent;
+			std::vector<uint8_t> m_data;
 
 		public:
 
 			/**
 			 * Creates HTTP Body object
 			*/
-			Body() {};
+			Body() {}
+			Body(const Body& other);
+			Body(const char* content);
+			Body(const std::string& content);
+			Body(const std::vector<uint8_t>& content);
 
-			Body(const char* content) {
-				this->internalContent = std::vector<uint8_t>(content, content + strlen(content));
-			};
-			Body(const std::string& content) {
-				this->internalContent = std::vector<uint8_t>(content.begin(), content.end());
-			};
-			Body(const std::vector<uint8_t>& content) {
-				this->internalContent = content;
-			};
-
-			operator std::string () const {
-				return this->text();
-			}
+			operator std::string () const;
 
 			/**
 			 * Returns body text reoresentation
 			*/
-			std::string text() const {
-				return std::string(this->internalContent.begin(), this->internalContent.end());
-			}
+			std::string text() const;
 			
 			/**
 			 * Returns raw byte buffer
 			*/
-			const std::vector<uint8_t>& buffer() const {
-				return this->internalContent;
-			}
+			const std::vector<uint8_t>& buffer() const;
 
 			/**
 			 * Returns body buffer size
 			*/
-			size_t size() const {
-				return this->internalContent.size();
-			}
+			size_t size() const;
 	};
 
 	enum struct Methods {
