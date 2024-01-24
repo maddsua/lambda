@@ -9,9 +9,24 @@
 #include <future>
 
 #include "../network/network.hpp"
-#include "../websocket/websocket.hpp"
+#include "../websocket/message.hpp"
 
 namespace Lambda::Websocket {
+
+	enum struct CloseCode : int {
+		Normal = 1000,
+		GoingAway = 1001,
+		ProtocolError = 1002,
+		UnsupportedData = 1003,
+		NoStatusReceived = 1005,
+		AbnormalClose = 1006,
+		InvalidPayload = 1007,
+		PolicyViolation = 1008,
+		MessageTooBig = 1009,
+		MandatoryExtension = 1010,
+		InternalServerError = 1011,
+		TLSHandshakeFailed = 1015
+	};
 
 	class WebsocketStream {
 		private:
@@ -29,6 +44,7 @@ namespace Lambda::Websocket {
 			bool ok() const noexcept;
 			Message getMessage();
 			void sendMessage(const Message& msg);
+			void terminate();
 			void close();
 			void close(CloseCode reason);
 	};
