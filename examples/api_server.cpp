@@ -40,9 +40,13 @@ int main(int argc, char const *argv[]) {
 		return HTTP::Response(responseHeaders, stringify(Property(testMap)));
 	};
 
+	auto serverRouter = Router({
+		{ "/*", RouteContext(handler) }
+	});
+
 	ServerConfig initparams;
 	initparams.loglevel.requests = true;
-	auto server = ServerInstance(Router(handler), initparams);
+	auto server = ServerInstance(serverRouter, initparams);
 	server.awaitFinished();
 
 	return 0;
