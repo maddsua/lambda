@@ -153,7 +153,7 @@ void Server::httpPipeline(TCP::Connection&& conn, const Router& serverRouter, co
 				response = routeHandler.value().handler(next.request, {
 					requestID,
 					conninfo,
-					Server::Handlers::Console(requestID)
+					Endpoints::Console(requestID)
 				});
 			} else {
 				response = Server::errorResponse(404, "route not found");
