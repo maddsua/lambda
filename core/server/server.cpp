@@ -44,7 +44,7 @@ ServerInstance::ServerInstance(const Router& routerInit, ServerConfig init) {
 					try {
 
 						//	I want to add an await here soo badly lol
-						Server::httpPipeline(std::move(conn), this->router, {
+						Server::httpPipeline(std::move(conn), std::ref(this->router), {
 							this->config.loglevel,
 							this->config.transport
 						});
