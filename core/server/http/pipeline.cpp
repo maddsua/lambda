@@ -33,7 +33,6 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 	auto receiveRoutine = std::async([&]() {
 
 		std::vector<uint8_t> recvBuff;
-
 		bool connectionKeepAlive = false;
 
 		do {
