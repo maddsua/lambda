@@ -51,6 +51,10 @@ size_t Message::size() const noexcept {
 	this->data().size();
 }
 
+time_t Message::timstamp()const noexcept {
+	return this->m_timestamp;
+}
+
 WebsocketFrameHeader Websocket::parseFrameHeader(const std::vector<uint8_t>& buffer) {
 
 	WebsocketFrameHeader header;
