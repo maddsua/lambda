@@ -8,25 +8,20 @@
 
 namespace Lambda::HTTP {
 
-	template<typename T, typename U>
-	struct Record {
-		T key;
-		U value;
-	};
-
-	typedef Record<std::string, std::string> KVpair;
+	typedef std::pair<std::string, std::string> KVpair;
+	typedef std::pair<const std::string, std::vector<std::string>> MultiValueKVpair;
 
 	/**
 	 * This vector-based kv container provides base for Headers, URLSearchParams and Cookie classes
 	*/
 	class KVContainer {
 		protected:
-			std::unordered_map<std::string, std::vector<std::string>> data;
+			std::unordered_map<std::string, std::vector<std::string>> m_data;
 
 		public:
 			KVContainer() {};
 			KVContainer(const KVContainer& other);
-			KVContainer(const std::vector<KVpair>& entries);
+			KVContainer(const std::initializer_list<KVpair>& init);
 
 			std::string get(const std::string& key) const;
 			bool has(const std::string& key) const;
@@ -117,19 +112,7 @@ namespace Lambda::HTTP {
 	};
 
 	enum struct Methods {
-		GET = 1,
-		POST = 2,
-		PUT = 3,
-		/*
-			"delete" is a C++ keyworks so it wont stop fucking with me unless I set it to comething else
-			it's just the enum tho, the http method name stays intact
-		*/
-		DEL = 4,
-		HEAD = 5,
-		OPTIONS = 6,
-		TRACE = 7,
-		PATCH = 8,
-		CONNECT = 8
+		GET, POST, PUT, DEL, HEAD, OPTIONS, TRACE, PATCH, CONNECT
 	};
 
 	class Method {
@@ -157,6 +140,8 @@ namespace Lambda::HTTP {
 		Request(const URL& urlinit, const Headers& headersinit) : url(urlinit), headers(headersinit) {}
 		Request(const URL& urlinit, const Body& bodyinit) : url(urlinit), body(bodyinit) {}
 		Request(const URL& urlinit, const Headers& headersinit, Body& bodyinit) : url(urlinit), headers(headersinit), body(bodyinit) {}
+
+		Response upgrageToWebsocket() const noexcept;
 	};
 
 	class Status {
@@ -170,7 +155,7 @@ namespace Lambda::HTTP {
 				this->internalText = "OK";
 			}
 			Status(int code);
-			Status(int code, const std::string& text) : internalCode(code), internalText(text) {}
+			Status(int code, const std::string& text);
 
 			int code() const {
 				return this->internalCode;
@@ -187,12 +172,14 @@ namespace Lambda::HTTP {
 		Body body;
 
 		Response() {}
-		Response(const Status& statusinit) : status(statusinit) {}
-		Response(const Body& bodyinit) : body(bodyinit) {}
-		Response(const Headers& headersinit, const Body& bodyinit) : headers(headersinit), body(bodyinit) {}
-		Response(const Status& statusinit, const Headers& headersinit) : status(statusinit), headers(headersinit) {}
-		Response(const Status& statusinit, const Body& bodyinit) : status(statusinit), body(bodyinit) {}
-		Response(const Status& statusinit, const Headers& headersinit, const Body& body) : status(statusinit), headers(headersinit), body(body) {}
+		Response(const Status& statusinit);
+		Response(const Body& bodyinit);
+		Response(const Headers& headersinit);
+		Response(const Headers& headersinit, const Body& bodyinit);
+		Response(const Status& statusinit, const Headers& headersinit);
+		Response(const Status& statusinit, const Body& bodyinit);
+		Response(const Status& statusinit, const Headers& headersinit, const Body& body);
+		Response(const Body& body, const Headers& headersinit, const Status& statusinit);
 	};
 };
 
