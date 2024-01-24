@@ -28,7 +28,7 @@ Connection::~Connection() {
 	closesocket(this->hSocket);
 }
 
-void Connection::end() {
+void Connection::closeconn() {
 	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
@@ -74,7 +74,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	if (bytesReceived == 0) {
 
-		this->end();
+		this->closeconn();
 		return {};
 
 	} else if (bytesReceived < 0) {
@@ -84,7 +84,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 		switch (apiError) {
 
 			case LNE_TIMEDOUT: {
-				this->end();
+				this->closeconn();
 				return {};
 			} break;
 			
