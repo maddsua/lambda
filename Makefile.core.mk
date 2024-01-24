@@ -8,6 +8,9 @@ LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyf
 LIB_CORE_HTTP			=	core/http.a
 LIB_CORE_HTTP_DEPS		=	core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o
 
+LIB_CORE_ENDPOINTS		=	core/endpoints.a
+LIB_CORE_ENDPOINTS_DEPS	=	core/endpoints/router.o core/endpoints/console.o
+
 LIB_CORE_ENCODING		=	core/encoding.a
 LIB_CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
 
@@ -19,7 +22,7 @@ LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o co
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_RESS	=	core/resources/html/servicepage.res
-LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/pipeline.o core/server/http/queue.o core/server/http/errorPage.o core/server/console.o core/server/router.o
+LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/pipeline.o core/server/http/queue.o core/server/http/errorPage.o
 LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
@@ -71,6 +74,17 @@ core/http/method.o: core/http/method.cpp
 
 core/http/status.o: core/http/status.cpp
 	g++ -c $(CFLAGS) core/http/status.cpp -o core/http/status.o
+
+
+# endpoint stuff
+$(LIB_CORE_ENDPOINTS): $(LIB_CORE_ENDPOINTS_DEPS)
+	ar rvs $(LIB_CORE_ENDPOINTS) $(LIB_CORE_ENDPOINTS_DEPS)
+
+core/endpoints/console.o: core/endpoints/console.cpp
+	g++ -c $(CFLAGS) core/endpoints/console.cpp -o core/endpoints/console.o
+
+core/endpoints/router.o: core/endpoints/router.cpp
+	g++ -c $(CFLAGS) core/endpoints/router.cpp -o core/endpoints/router.o
 
 
 # encoding stuff
@@ -127,12 +141,6 @@ core/server/http/queue.o: core/server/http/queue.cpp
 
 core/server/http/errorPage.o: core/server/http/errorPage.cpp
 	g++ -c $(CFLAGS) core/server/http/errorPage.cpp -o core/server/http/errorPage.o
-
-core/server/console.o: core/server/console.cpp
-	g++ -c $(CFLAGS) core/server/console.cpp -o core/server/console.o
-
-core/server/router.o: core/server/router.cpp
-	g++ -c $(CFLAGS) core/server/router.cpp -o core/server/router.o
 
 core/resources/html/servicepage.res: core/resources/html/servicepage.html
 	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 core/resources/html/servicepage.html core/resources/html/servicepage.res
