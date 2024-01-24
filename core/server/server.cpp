@@ -10,7 +10,7 @@
 
 using namespace Lambda;
 
-void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerCallback, const ServerConfig& config) {
+void connectionHandler(Network::TCP::Connection&& conn, Server::Handlers::HandlerFunction handlerCallback, const ServerConfig& config) {
 
 	const auto& connInfo = conn.getInfo();
 
@@ -57,7 +57,7 @@ void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerC
 	);
 }
 
-ServerInstance::ServerInstance(HandlerFunction handlerCallback, ServerConfig init) {
+ServerInstance::ServerInstance(Server::Handlers::HandlerFunction handlerCallback, ServerConfig init) {
 
 	this->config = init;
 	this->handler = handlerCallback;
