@@ -6,7 +6,7 @@ using namespace Lambda::Server::Handlers;
 
 const std::initializer_list<char> eraseAfterPoints = { '?', '#' };
 
-std::optional<RouteContext> matchRoute(const Router& router, const std::string& pathname) {
+std::optional<RouteContext> Lambda::matchRoute(const Router& router, const std::string& pathname) {
 
 	auto routename = pathname;
 	for (const auto& breakpoint : eraseAfterPoints) {
