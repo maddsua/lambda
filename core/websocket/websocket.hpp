@@ -47,6 +47,14 @@ namespace Lambda::Websocket {
 		private:
 			std::queue<Message> rxQueue;
 			std::queue<Message> txQueue;
+
+		public:
+			bool available() const noexcept;
+			bool ok() const noexcept;
+			Message getMessage();
+			void sendMessage(const Message& msg);
+			void close();
+			void close(CloseCode reason);
 	};
 };
 
