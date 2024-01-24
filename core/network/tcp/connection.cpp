@@ -46,7 +46,7 @@ bool Connection::isOpen() const noexcept {
 void Connection::write(const std::vector<uint8_t>& data) {
 
 	if (this->hSocket == INVALID_SOCKET)
-		throw std::runtime_error("cann't write to a closed connection");
+		throw std::runtime_error("can't write to a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->writeMutex);
 
