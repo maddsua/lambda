@@ -26,13 +26,18 @@ namespace Lambda::Websocket {
 		private:
 			std::vector<uint8_t> m_buffer;
 			bool m_binary;
+			bool m_partial;
 
 		public:
 			Message(const std::string& init);
+			Message(const std::string& init, bool partial);
 			Message(const std::vector<uint8_t>& init);
+			Message(const std::vector<uint8_t>& init, bool partial);
 			const std::vector<uint8_t>& data() const noexcept;
 			std::string text() const;
 			bool isBinary() const noexcept;
+			bool isPartial() const noexcept;
+			size_t size() const noexcept;
 	};
 
 };
