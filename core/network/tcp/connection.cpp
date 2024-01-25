@@ -5,8 +5,19 @@ using namespace Lambda::Network;
 using namespace Lambda::Network::TCP;
 
 Connection::Connection(ConnCreateInit init) {
-	this->info = init.info;
+
 	this->hSocket = init.hSocket;
+	this->info = init.info;
+
+	auto connTimeoutValue = init.info.timeout > 0 ? init.info.timeout : Connection::TimeoutMs_Default;
+
+	try {
+		this->setTimeouts(connTimeoutValue);
+	} catch(const std::exception& err) {
+		if (this->hSocket != INVALID_SOCKET)
+			closesocket(this->hSocket);
+		throw err;
+	}
 }
 
 Connection& Connection::operator= (Connection&& other) noexcept {
@@ -101,4 +112,21 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 	chunk.shrink_to_fit();
 
 	return chunk;
+}
+
+void Connection::setTimeouts(uint32_t value) {
+	this->setTimeout(value, SetConnectionTimeoutDirection::Both);
+}
+
+void Connection::setTimeout(uint32_t value, SetConnectionTimeoutDirection direction) {
+
+	if (direction != SetConnectionTimeoutDirection::Tx) {
+		if (setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&value, sizeof(value)))
+			throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
+	}
+
+	if (direction != SetConnectionTimeoutDirection::Rx) {
+		if (setsockopt(this->hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&value, sizeof(value)))
+			throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
+	}
 }
