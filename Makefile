@@ -1,20 +1,19 @@
 
+TEMPBIN = .bin/
+CFLAGS					=	-Wall -Werror -std=c++20 -g
+LAMBDA_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
+LINK_OTHER_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
+
 ifeq ($(OS),Windows_NT)
 	EXEEXT = .exe
 	DLLEXT = .dll
+	LINK_SYSTEM_LIBS	=	-lws2_32
 else
 	DLLEXT = .so
 endif
 
-CFLAGS					=	-Wall -Werror -std=c++20 -g
-
 LAMBDA_LIBSTATIC		=	lambda.a
 LAMBDA_LIBSHARED		=	lambda$(DLLEXT)
-
-LAMBDA_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
-
-LINK_COMPRESS_LIBS		=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
-LINK_SYSTEM_LIBS		=	-lws2_32
 
 .PHONY: all all-before all-after action-custom
 all: all-before $(LAMBDA_LIBSTATIC) all-after
@@ -41,7 +40,7 @@ $(LAMBDA_LIBSTATIC): $(LAMBDA_DEPS)
 libshared: $(LAMBDA_LIBSHARED)
 
 $(LAMBDA_LIBSHARED): $(LAMBDA_DEPS) dllinfo.res
-	g++ $(CFLAGS) $(LAMBDA_DEPS) $(LINK_COMPRESS_LIBS) $(LINK_SYSTEM_LIBS) dllinfo.res -s -shared -o $(LAMBDA_LIBSHARED) -Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
+	g++ $(CFLAGS) $(LAMBDA_DEPS) $(LINK_OTHER_LIBS) $(LINK_SYSTEM_LIBS) dllinfo.res -s -shared -o $(LAMBDA_LIBSHARED) -Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
 
 dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
