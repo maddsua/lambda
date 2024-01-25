@@ -9,10 +9,8 @@ Connection::Connection(ConnCreateInit init) {
 	this->hSocket = init.hSocket;
 	this->info = init.info;
 
-	auto connTimeoutValue = init.info.timeout > 0 ? init.info.timeout : Connection::TimeoutMs_Default;
-
 	try {
-		this->setTimeouts(connTimeoutValue);
+		this->setTimeouts(Connection::TimeoutMs_Default, SetTimeoutDirection::Both);
 	} catch(const std::exception& err) {
 		if (this->hSocket != INVALID_SOCKET)
 			closesocket(this->hSocket);
@@ -115,18 +113,20 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 }
 
 void Connection::setTimeouts(uint32_t value) {
-	this->setTimeout(value, SetConnectionTimeoutDirection::Both);
+	this->setTimeouts(value, SetTimeoutDirection::Both);
 }
 
-void Connection::setTimeout(uint32_t value, SetConnectionTimeoutDirection direction) {
+void Connection::setTimeouts(uint32_t value, SetTimeoutDirection direction) {
 
-	if (direction != SetConnectionTimeoutDirection::Tx) {
+	if (direction != SetTimeoutDirection::Tx) {
 		if (setsockopt(this->hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&value, sizeof(value)))
 			throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
+		this->info.timeouts.rx = value;
 	}
 
-	if (direction != SetConnectionTimeoutDirection::Rx) {
+	if (direction != SetTimeoutDirection::Rx) {
 		if (setsockopt(this->hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&value, sizeof(value)))
 			throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
+		this->info.timeouts.tx = value;
 	}
 }
