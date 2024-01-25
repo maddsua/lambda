@@ -1,8 +1,8 @@
 
 TEMPBIN = .bin/
 CFLAGS					=	-Wall -Werror -std=c++20 -g
-LAMBDA_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
-LINK_OTHER_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
+LIB_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
+EXTERNAL_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
 
 ifeq ($(OS),Windows_NT)
 	EXEEXT = .exe
@@ -34,14 +34,14 @@ include Makefile.examples.mk
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
 
-$(LAMBDA_LIBSTATIC): $(LAMBDA_DEPS)
-	ar rvs $(LAMBDA_LIBSTATIC) $(LAMBDA_DEPS)
+$(LAMBDA_LIBSTATIC): $(LIB_DEPS)
+	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_DEPS)
 
 # shared lib build
 libshared: $(LAMBDA_LIBSHARED)
 
-$(LAMBDA_LIBSHARED): $(LAMBDA_DEPS) $(WINDOWS_DLL_DEPS)
-	g++ $(CFLAGS) $(LAMBDA_DEPS) $(LINK_OTHER_LIBS) $(LINK_SYSTEM_LIBS) $(WINDOWS_DLL_DEPS) -s -shared -o $(LAMBDA_LIBSHARED) -Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
+$(LAMBDA_LIBSHARED): $(LIB_DEPS) $(WINDOWS_DLL_DEPS)
+	g++ $(CFLAGS) $(LIB_DEPS) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) $(WINDOWS_DLL_DEPS) -s -shared -o $(LAMBDA_LIBSHARED) -Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
 
 dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
