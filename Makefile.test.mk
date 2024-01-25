@@ -31,8 +31,8 @@ TEST_STRINGS_TARGET = $(TEST_TARGET_DIR)strings.test$(EXEEXT)
 test.strings: $(TEST_STRINGS_TARGET)
 	$(TEST_STRINGS_TARGET)
 
-$(TEST_STRINGS_TARGET): test/strings.test.o $(LIB_CORE_POLYFILL_DEPS)
-	g++ $(CFLAGS) test/strings.test.cpp $(LIB_CORE_POLYFILL_DEPS) -o $(TEST_STRINGS_TARGET)
+$(TEST_STRINGS_TARGET): test/strings.test.o $(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_ENCODING_DEPS)
+	g++ $(CFLAGS) test/strings.test.cpp $(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_ENCODING_DEPS) -o $(TEST_STRINGS_TARGET)
 
 test/strings.test.o: test/strings.test.cpp
 	g++ -c $(CFLAGS) test/strings.test.cpp -o test/strings.test.o
