@@ -5,52 +5,52 @@ using namespace Lambda::Network;
 using namespace Lambda::Network::TCP;
 
 Connection::Connection(ConnCreateInit init) {
-	this->info = init.info;
-	this->hSocket = init.hSocket;
+	this->m_info = init.info;
+	this->m_socket = init.hSocket;
 }
 
 Connection& Connection::operator= (Connection&& other) noexcept {
-	this->hSocket = other.hSocket;
-	this->info = other.info;
-	other.hSocket = INVALID_SOCKET;
+	this->m_socket = other.m_socket;
+	this->m_info = other.m_info;
+	other.m_socket = INVALID_SOCKET;
 	return *this;
 }
 
 Connection::Connection(Connection&& other) noexcept {
-	this->hSocket = other.hSocket;
-	this->info = other.info;
-	other.hSocket = INVALID_SOCKET;
+	this->m_socket = other.m_socket;
+	this->m_info = other.m_info;
+	other.m_socket = INVALID_SOCKET;
 }
 
 Connection::~Connection() {
-	if (this->hSocket == INVALID_SOCKET) return;
-	shutdown(this->hSocket, SD_BOTH);
-	closesocket(this->hSocket);
+	if (this->m_socket == INVALID_SOCKET) return;
+	shutdown(this->m_socket, SD_BOTH);
+	closesocket(this->m_socket);
 }
 
 void Connection::end() {
-	if (this->hSocket == INVALID_SOCKET) return;
-	shutdown(this->hSocket, SD_BOTH);
-	closesocket(this->hSocket);
-	this->hSocket = INVALID_SOCKET;
+	if (this->m_socket == INVALID_SOCKET) return;
+	shutdown(this->m_socket, SD_BOTH);
+	closesocket(this->m_socket);
+	this->m_socket = INVALID_SOCKET;
 }
 
-const ConnectionInfo& Connection::getInfo() const noexcept {
-	return this->info;
+const ConnectionInfo& Connection::info() const noexcept {
+	return this->m_info;
 }
 
 bool Connection::isOpen() const noexcept {
-	return this->hSocket != INVALID_SOCKET;
+	return this->m_socket != INVALID_SOCKET;
 }
 
 void Connection::write(const std::vector<uint8_t>& data) {
 
-	if (this->hSocket == INVALID_SOCKET)
+	if (this->m_socket == INVALID_SOCKET)
 		throw std::runtime_error("cann't write to a closed connection");
 
-	std::lock_guard<std::mutex> lock(this->writeMutex);
+	std::lock_guard<std::mutex> lock(this->m_writeMutex);
 
-	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
+	auto bytesSent = send(this->m_socket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
 		throw std::runtime_error("network error while sending data: code " + std::to_string(getAPIError()));
@@ -62,15 +62,15 @@ std::vector<uint8_t> Connection::read() {
 
 std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
-	if (this->hSocket == INVALID_SOCKET)
+	if (this->m_socket == INVALID_SOCKET)
 		throw std::runtime_error("can't read from a closed connection");
 
-	std::lock_guard<std::mutex> lock(this->readMutex);
+	std::lock_guard<std::mutex> lock(this->m_readMutex);
 
 	std::vector<uint8_t> chunk;
 	chunk.resize(expectedSize);
 
-	auto bytesReceived = recv(this->hSocket, (char*)chunk.data(), chunk.size(), 0);
+	auto bytesReceived = recv(this->m_socket, (char*)chunk.data(), chunk.size(), 0);
 
 	if (bytesReceived == 0) {
 
