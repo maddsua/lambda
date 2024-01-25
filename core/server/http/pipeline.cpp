@@ -26,7 +26,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
-void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallback, const ServeOptions& options) {
+void Server::serveHTTP(TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServeOptions& options) {
 
 	RequestQueue requestQueue;
 	const auto& conninfo = conn.getInfo();

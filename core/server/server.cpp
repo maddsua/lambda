@@ -10,7 +10,7 @@
 
 using namespace Lambda;
 
-void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerCallback, const ServerConfig& config) {
+void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) {
 
 	const auto& connInfo = conn.getInfo();
 
@@ -25,7 +25,7 @@ void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerC
 	try {
 
 		//	I want to add an await here soo badly lol
-		Server::httpPipeline(std::move(conn), handlerCallback, {
+		Server::serveHTTP(std::move(conn), handlerCallback, {
 			config.loglevel,
 			config.transport
 		});
@@ -57,7 +57,7 @@ void connectionHandler(Network::TCP::Connection&& conn, HandlerFunction handlerC
 	);
 }
 
-ServerInstance::ServerInstance(HandlerFunction handlerCallback, ServerConfig init) {
+ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init) {
 
 	this->config = init;
 	this->handler = handlerCallback;
