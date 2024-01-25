@@ -18,31 +18,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Prepare
+        run: |
+          apt-get install -y brotli
+          apt-get install -y zlib
+          mkdir .testbin
       - name: URL test
-        run: |
-          make test.url
-          ./url.test
+        run: make test.url
       - name: Encoding test
-        run: |
-          make encoding.url
-          ./url.encoding
-      - name: JSON test
-        run: |
-          make json.url
-          ./url.json
-      - name: Storage test
-        run: |
-          make storage.url
-          ./url.storage
-      - name: zlib test
-        run: |
-          make zlib.url
-          ./url.zlib
-      - name: brotli test
-        run: |
-          make brotli.url
-          ./url.brotli
+        run: make test.encoding
       - name: Strings test
-        run: |
-          make strings.url
-          ./url.strings
+        run: make test.strings
+      - name: JSON test
+        run: make test.json
+      - name: Storage test
+        run: make test.storage
+      - name: zlib test
+        run: test.zlib
+      - name: brotli test
+        run: test.brotli

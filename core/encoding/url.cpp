@@ -35,13 +35,12 @@ std::string Encoding::decodeURIComponent(const std::string& input) {
 	std::string result;
 	result.reserve(input.size());
 
-	for (size_t i = 0; i < input.size() - 1; i++) {
+	for (size_t i = 0; i < input.size(); i++) {
 		
 		if (input[i] == '%') {
 
 			HexByte temp;
-			temp.data.first = input[i];
-			temp.data.second = input[i + 1];
+			strncpy(temp.string, input.substr(i + 1, 2).c_str(), sizeof(temp.string));
 			result.push_back(hexToByte(temp));
 
 			i += 2;

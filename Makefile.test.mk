@@ -1,59 +1,86 @@
 
-# Test URL core module
-test.url: url.test$(EXEEXT)
+TEST_TARGET_DIR = .testbin/
 
-url.test$(EXEEXT): test/url.test.o $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL)
-	g++ $(CFLAGS) test/url.test.cpp $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL) -o url.test$(EXEEXT)
+
+# Test URL core module
+TEST_URL_TARGET = $(TEST_TARGET_DIR)url.test$(EXEEXT)
+test.url: $(TEST_URL_TARGET)
+	$(TEST_URL_TARGET)
+
+$(TEST_URL_TARGET): test/url.test.o $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL)
+	g++ $(CFLAGS) test/url.test.cpp $(LIB_CORE_HTTP) $(LIB_CORE_POLYFILL) -o $(TEST_URL_TARGET)
 
 test/url.test.o: test/url.test.cpp
 	g++ -c $(CFLAGS) test/url.test.cpp -o test/url.test.o
 
 
 # Test encoding core module
-test.encoding: encoding.test$(EXEEXT)
+TEST_ENCODING_TARGET = $(TEST_TARGET_DIR)encoding.test$(EXEEXT)
+test.encoding: $(TEST_ENCODING_TARGET)
+	$(TEST_ENCODING_TARGET)
 
-encoding.test$(EXEEXT): test/encoding.test.o $(LIB_CORE_ENCODING) $(LIB_CORE_POLYFILL)
-	g++ $(CFLAGS) test/encoding.test.cpp $(LIB_CORE_ENCODING) $(LIB_CORE_POLYFILL) -o encoding.test$(EXEEXT)
+$(TEST_ENCODING_TARGET): test/encoding.test.o $(LIB_CORE_ENCODING) $(LIB_CORE_POLYFILL)
+	g++ $(CFLAGS) test/encoding.test.cpp $(LIB_CORE_ENCODING) $(LIB_CORE_POLYFILL) -o $(TEST_ENCODING_TARGET)
 
 test/encoding.test.o: test/encoding.test.cpp
 	g++ -c $(CFLAGS) test/encoding.test.cpp -o test/encoding.test.o
 
 
-# Test JSON extra module
-test.json: json.test$(EXEEXT)
+# Test polyfill/strings core module
+TEST_STRINGS_TARGET = $(TEST_TARGET_DIR)strings.test$(EXEEXT)
+test.strings: $(TEST_STRINGS_TARGET)
+	$(TEST_STRINGS_TARGET)
 
-json.test$(EXEEXT): test/json.test.o $(LIB_EXTRA_JSON) $(LIB_CORE_POLYFILL)
-	g++ $(CFLAGS) test/json.test.cpp $(LIB_EXTRA_JSON) $(LIB_CORE_POLYFILL) -o json.test$(EXEEXT)
+$(TEST_STRINGS_TARGET): test/strings.test.o $(LIB_CORE_POLYFILL_DEPS)
+	g++ $(CFLAGS) test/strings.test.cpp $(LIB_CORE_POLYFILL_DEPS) -o $(TEST_STRINGS_TARGET)
+
+test/strings.test.o: test/strings.test.cpp
+	g++ -c $(CFLAGS) test/strings.test.cpp -o test/strings.test.o
+
+
+# Test JSON extra module
+TEST_JSON_TARGET = $(TEST_TARGET_DIR)json.test$(EXEEXT)
+test.json: $(TEST_JSON_TARGET)
+	$(TEST_JSON_TARGET)
+
+$(TEST_JSON_TARGET): test/json.test.o $(LIB_EXTRA_JSON) $(LIB_CORE_POLYFILL)
+	g++ $(CFLAGS) test/json.test.cpp $(LIB_EXTRA_JSON) $(LIB_CORE_POLYFILL) -o $(TEST_JSON_TARGET)
 
 test/json.test.o: test/json.test.cpp
 	g++ -c $(CFLAGS) test/json.test.cpp -o test/json.test.o
 
 
 # Test Storage extra module
-test.storage: storage.test$(EXEEXT)
+TEST_STORAGE_TARGET = $(TEST_TARGET_DIR)storage.test$(EXEEXT)
+test.storage: $(TEST_STORAGE_TARGET)
+	$(TEST_STORAGE_TARGET)
 
-storage.test$(EXEEXT): test/storage.test.o $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS)
-	g++ $(CFLAGS) test/storage.test.cpp $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) -o storage.test$(EXEEXT)
+$(TEST_STORAGE_TARGET): test/storage.test.o $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS)
+	g++ $(CFLAGS) test/storage.test.cpp $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) -o $(TEST_STORAGE_TARGET)
 
 test/storage.test.o: test/storage.test.cpp
 	g++ -c $(CFLAGS) test/storage.test.cpp -o test/storage.test.o
 
 
 # Test zlib compression module
-test.zlib: zlib.test$(EXEEXT)
+TEST_ZLIB_TARGET = $(TEST_TARGET_DIR)zlib.test$(EXEEXT)
+test.zlib: $(TEST_ZLIB_TARGET)
+	$(TEST_ZLIB_TARGET)
 
-zlib.test$(EXEEXT): test/zlib.test.o $(LIB_CORE_COMPRESS_DEPS)
-	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o zlib.test$(EXEEXT)
+$(TEST_ZLIB_TARGET): test/zlib.test.o $(LIB_CORE_COMPRESS_DEPS)
+	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o $(TEST_ZLIB_TARGET)
 
 test/zlib.test.o: test/zlib.test.cpp
 	g++ -c $(CFLAGS) test/zlib.test.cpp -o test/zlib.test.o
 
 
 # Test brotli compression module
-test.brotli: brotli.test$(EXEEXT)
+TEST_BROTLI_TARGET = $(TEST_TARGET_DIR)brotli.test$(EXEEXT)
+test.brotli: $(TEST_BROTLI_TARGET)
+	$(TEST_BROTLI_TARGET)
 
-brotli.test$(EXEEXT): test/brotli.test.o $(LIB_CORE_COMPRESS_DEPS)
-	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o brotli.test$(EXEEXT)
+$(TEST_BROTLI_TARGET): test/brotli.test.o $(LIB_CORE_COMPRESS_DEPS)
+	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o $(TEST_BROTLI_TARGET)
 
 test/brotli.test.o: test/brotli.test.cpp
 	g++ -c $(CFLAGS) test/brotli.test.cpp -o test/brotli.test.o
@@ -86,12 +113,3 @@ httpserver.test$(EXEEXT): test/httpserver.test.o $(LIB_CORE_DEPS)
 
 test/httpserver.test.o: test/httpserver.test.cpp
 	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o
-
-# Test polyfill/strings core module
-test.strings: strings.test$(EXEEXT)
-
-strings.test$(EXEEXT): test/strings.test.o $(LIB_CORE_POLYFILL_DEPS)
-	g++ $(CFLAGS) test/strings.test.cpp $(LIB_CORE_POLYFILL_DEPS) -o strings.test$(EXEEXT)
-
-test/strings.test.o: test/strings.test.cpp
-	g++ -c $(CFLAGS) test/strings.test.cpp -o test/strings.test.o

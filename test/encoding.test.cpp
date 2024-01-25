@@ -41,6 +41,10 @@ std::vector<std::pair<std::string, std::string>> test_data_url = {
 	{
 		"\\\\||//-*",
 		"%5C%5C%7C%7C%2F%2F-%2A"
+	},
+	{
+		"25% is 25%",
+		"25%25%20is%2025%25"
 	}
 };
 
