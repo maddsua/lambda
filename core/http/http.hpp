@@ -8,24 +8,20 @@
 
 namespace Lambda::HTTP {
 
-	template<typename T, typename U>
-	struct Record {
-		T key;
-		U value;
-	};
-
-	typedef Record<std::string, std::string> KVpair;
+	typedef std::pair<std::string, std::string> KVpair;
+	typedef std::pair<const std::string, std::vector<std::string>> MultiValueKVpair;
 
 	/**
 	 * This vector-based kv container provides base for Headers, URLSearchParams and Cookie classes
 	*/
 	class KVContainer {
 		protected:
-			std::unordered_map<std::string, std::vector<std::string>> data;
+			std::unordered_map<std::string, std::vector<std::string>> m_data;
 
 		public:
 			KVContainer() {};
-			KVContainer(const std::vector<KVpair>& entries);
+			KVContainer(const KVContainer& other);
+			KVContainer(const std::initializer_list<KVpair>& init);
 
 			std::string get(const std::string& key) const;
 			bool has(const std::string& key) const;
@@ -84,65 +80,39 @@ namespace Lambda::HTTP {
 	class Body {
 
 		private:
-			std::vector<uint8_t> internalContent;
+			std::vector<uint8_t> m_data;
 
 		public:
 
 			/**
 			 * Creates HTTP Body object
 			*/
-			Body() {};
+			Body() {}
+			Body(const Body& other);
+			Body(const char* content);
+			Body(const std::string& content);
+			Body(const std::vector<uint8_t>& content);
 
-			Body(const char* content) {
-				this->internalContent = std::vector<uint8_t>(content, content + strlen(content));
-			};
-			Body(const std::string& content) {
-				this->internalContent = std::vector<uint8_t>(content.begin(), content.end());
-			};
-			Body(const std::vector<uint8_t>& content) {
-				this->internalContent = content;
-			};
-
-			operator std::string () const {
-				return this->text();
-			}
+			operator std::string () const;
 
 			/**
 			 * Returns body text reoresentation
 			*/
-			std::string text() const {
-				return std::string(this->internalContent.begin(), this->internalContent.end());
-			}
+			std::string text() const;
 			
 			/**
 			 * Returns raw byte buffer
 			*/
-			const std::vector<uint8_t>& buffer() const {
-				return this->internalContent;
-			}
+			const std::vector<uint8_t>& buffer() const;
 
 			/**
 			 * Returns body buffer size
 			*/
-			size_t size() const {
-				return this->internalContent.size();
-			}
+			size_t size() const;
 	};
 
 	enum struct Methods {
-		GET = 1,
-		POST = 2,
-		PUT = 3,
-		/*
-			"delete" is a C++ keyworks so it wont stop fucking with me unless I set it to comething else
-			it's just the enum tho, the http method name stays intact
-		*/
-		DEL = 4,
-		HEAD = 5,
-		OPTIONS = 6,
-		TRACE = 7,
-		PATCH = 8,
-		CONNECT = 8
+		GET, POST, PUT, DEL, HEAD, OPTIONS, TRACE, PATCH, CONNECT
 	};
 
 	class Method {
@@ -158,20 +128,6 @@ namespace Lambda::HTTP {
 			operator Methods () const noexcept;
 	};
 
-	struct Request {
-		URL url;
-		Method method;
-		Headers headers;
-		Cookies cookies;
-		Body body;
-
-		Request() {}
-		Request(const URL& urlinit) : url(urlinit) {}
-		Request(const URL& urlinit, const Headers& headersinit) : url(urlinit), headers(headersinit) {}
-		Request(const URL& urlinit, const Body& bodyinit) : url(urlinit), body(bodyinit) {}
-		Request(const URL& urlinit, const Headers& headersinit, Body& bodyinit) : url(urlinit), headers(headersinit), body(bodyinit) {}
-	};
-
 	class Status {
 		private:
 			int internalCode;
@@ -183,7 +139,7 @@ namespace Lambda::HTTP {
 				this->internalText = "OK";
 			}
 			Status(int code);
-			Status(int code, const std::string& text) : internalCode(code), internalText(text) {}
+			Status(int code, const std::string& text);
 
 			int code() const {
 				return this->internalCode;
@@ -200,12 +156,47 @@ namespace Lambda::HTTP {
 		Body body;
 
 		Response() {}
-		Response(const Status& statusinit) : status(statusinit) {}
-		Response(const Body& bodyinit) : body(bodyinit) {}
-		Response(const Headers& headersinit, const Body& bodyinit) : headers(headersinit), body(bodyinit) {}
-		Response(const Status& statusinit, const Headers& headersinit) : status(statusinit), headers(headersinit) {}
-		Response(const Status& statusinit, const Body& bodyinit) : status(statusinit), body(bodyinit) {}
-		Response(const Status& statusinit, const Headers& headersinit, const Body& body) : status(statusinit), headers(headersinit), body(body) {}
+		Response(
+			const Status& statusinit
+		) : status(statusinit) {}
+		Response(
+			const Headers& headersinit,
+			const Status& statusinit
+		) : headers(headersinit), status(statusinit) {}
+		Response(
+			const Body& bodyinit
+		) : body(bodyinit) {}
+		Response(
+			const Status& statusinit,
+			const Headers& headersinit,
+			const Body& body
+		) : status(statusinit), headers(headersinit), body(body) {}
+	};
+
+	struct Request {
+		URL url;
+		Method method;
+		Headers headers;
+		Cookies cookies;
+		Body body;
+
+		Request() {}
+		Request(
+			const URL& urlinit
+		) : url(urlinit) {}
+		Request(
+			const URL& urlinit,
+			const Headers& headersinit
+		) : url(urlinit), headers(headersinit) {}
+		Request(
+			const URL& urlinit,
+			const Body& bodyinit
+		) : url(urlinit), body(bodyinit) {}
+		Request(
+			const URL& urlinit,
+			const Headers& headersinit,
+			Body& bodyinit
+		) : url(urlinit), headers(headersinit), body(bodyinit) {}
 	};
 };
 
