@@ -10,7 +10,7 @@
 
 using namespace Lambda;
 
-void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) {
+void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
 
 	const auto& connInfo = conn.info();
 
@@ -28,9 +28,9 @@ void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback hand
 		auto requestQueue = Server::HttpRequestQueue(conn, config.transport);
 
 		while (requestQueue.await()) {
-			auto next = requestQueue.next();
+			auto request = requestQueue.next();
 			//puts(next.request.url.pathname.c_str());
-			Server::handleHttpRequest(conn, next, handlerCallback, config, connInfo);
+			Server::handleHttpRequest(conn, request, handlerCallback, config, connInfo);
 		}
 
 	} catch(const std::exception& e) {
