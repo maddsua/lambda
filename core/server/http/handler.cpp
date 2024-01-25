@@ -26,7 +26,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
-void Server::handleHttpRequest(Network::TCP::Connection& conn, const RequestQueueItem& next, HTTPRequestCallback handlerCallback, const ServerConfig& options, const ConnectionInfo& conninfo) {
+HTTP::Response Server::handleHttpRequest(const RequestQueueItem& next, HTTPRequestCallback handlerCallback, const ServerConfig& options, const ConnectionInfo& conninfo) {
 
 	auto responseDate = Date();
 
@@ -70,36 +70,42 @@ void Server::handleHttpRequest(Network::TCP::Connection& conn, const RequestQueu
 	if (next.keepAlive) response.headers.set("connection", "keep-alive");
 	if (!response.headers.has("content-type")) response.headers.set("content-type", "text/html; charset=utf-8");
 
-	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
+	return response;
+}
 
-		std::vector<uint8_t> responseBody;
 
-		switch (next.acceptsEncoding) {
+void Server::writeHttpResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding) {
 
-			case ContentEncodings::Brotli: {
-				responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
-			} break;
+#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
-			case ContentEncodings::Gzip: {
-				responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
-			} break;
+	std::vector<uint8_t> responseBody;
 
-			case ContentEncodings::Deflate: {
-				responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
-			} break;
+	switch (useEncoding) {
 
-			default: {
-				responseBody = response.body.buffer();
-			} break;
-		}
+		case ContentEncodings::Brotli: {
+			responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
+		} break;
 
-		if (next.acceptsEncoding != ContentEncodings::None) {
-			response.headers.set("content-encoding", contentEncodingMap.at(next.acceptsEncoding));
-		}
+		case ContentEncodings::Gzip: {
+			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+		} break;
 
-	#else
-		auto& responseBody = response.body.buffer();
-	#endif
+		case ContentEncodings::Deflate: {
+			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+		} break;
+
+		default: {
+			responseBody = response.body.buffer();
+		} break;
+	}
+
+	if (useEncoding != ContentEncodings::None) {
+		response.headers.set("content-encoding", contentEncodingMap.at(useEncoding));
+	}
+
+#else
+	auto& responseBody = response.body.buffer();
+#endif
 
 	auto bodySize = responseBody.size();
 	response.headers.set("content-length", std::to_string(bodySize));
@@ -113,14 +119,4 @@ void Server::handleHttpRequest(Network::TCP::Connection& conn, const RequestQueu
 	conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 	if (bodySize) conn.write(responseBody);
 
-	if (options.loglevel.requests) {
-		printf("%s[%s] (%s) %s %s --> %i\n",
-			options.loglevel.timestamps ? (responseDate.toHRTString() + " ").c_str() : "",
-			requestID.c_str(),
-			conninfo.remoteAddr.hostname.c_str(),
-			static_cast<std::string>(next.request.method).c_str(),
-			next.request.url.pathname.c_str(),
-			response.status.code()
-		);
-	}
 }
