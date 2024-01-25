@@ -15,8 +15,7 @@
 #include <set>
 
 using namespace Lambda;
-using namespace Lambda::Server;
-using namespace Lambda::Server::HTTP;
+using namespace Lambda::HTTPServer;
 using namespace Lambda::Network;
 
 static const std::string patternEndHeader = "\r\n\r\n";
@@ -27,7 +26,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
-void Server::HTTP::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
+void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
 
 	const auto& conninfo = conn.info();
 
@@ -41,7 +40,7 @@ void Server::HTTP::connectionHandler(Network::TCP::Connection&& conn, HTTPReques
 
 	try {
 
-		auto requestQueue = Server::HTTP::HttpRequestQueue(conn, config.transport);
+		auto requestQueue = HTTPServer::HttpRequestQueue(conn, config.transport);
 
 		while (requestQueue.await()) {
 
@@ -67,7 +66,7 @@ void Server::HTTP::connectionHandler(Network::TCP::Connection&& conn, HTTPReques
 					printf("%s %s crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
 				}
 				
-				response = Server::HTTP::errorResponse(500, std::string("Function handler crashed: ") + e.what());
+				response = HTTPServer::errorResponse(500, std::string("Function handler crashed: ") + e.what());
 
 			} catch(...) {
 
@@ -75,7 +74,7 @@ void Server::HTTP::connectionHandler(Network::TCP::Connection&& conn, HTTPReques
 					printf("%s %s crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
 				}
 
-				response = Server::HTTP::errorResponse(500, "Function handler crashed: unhandled exception");
+				response = HTTPServer::errorResponse(500, "Function handler crashed: unhandled exception");
 			}
 
 			if (response.setCookies.size()) {
@@ -99,7 +98,7 @@ void Server::HTTP::connectionHandler(Network::TCP::Connection&& conn, HTTPReques
 				);
 			}
 
-			Server::HTTP::writeResponse(response, conn, nextRequest.acceptsEncoding);
+			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
 		}
 
 	} catch(const std::exception& e) {

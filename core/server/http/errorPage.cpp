@@ -23,7 +23,7 @@ std::string populateTemplate(const TemplateContent& content) {
 	return result;
 }
 
-HTTP::Response Server::HTTP::errorResponse(int statusCode, std::optional<std::string> errorMessage) {
+HTTP::Response HTTPServer::errorResponse(int statusCode, std::optional<std::string> errorMessage) {
 
 	auto httpstatus = Lambda::HTTP::Status(statusCode);
 

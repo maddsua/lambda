@@ -9,8 +9,7 @@
 #include <thread>
 
 using namespace Lambda;
-using namespace Lambda::Server;
-using namespace Lambda::Server::HTTP;
+using namespace Lambda::HTTPServer;
 
 ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init) {
 
