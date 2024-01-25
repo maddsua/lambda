@@ -155,7 +155,7 @@ namespace Lambda::HTTP {
 		Response(
 			const Headers& headersinit,
 			const Status& statusinit
-		) : headers(headersinit), status(statusinit) {}
+		) : status(statusinit), headers(headersinit) {}
 		Response(
 			const Body& bodyinit
 		) : body(bodyinit) {}
@@ -179,17 +179,23 @@ namespace Lambda::HTTP {
 		) : url(urlinit) {}
 		Request(
 			const URL& urlinit,
+			const Method& methodInit
+		) : url(urlinit), method(methodInit) {}
+		Request(
+			const URL& urlinit,
 			const Headers& headersinit
 		) : url(urlinit), headers(headersinit) {}
 		Request(
 			const URL& urlinit,
+			const Method& methodInit,
 			const Body& bodyinit
-		) : url(urlinit), body(bodyinit) {}
+		) : url(urlinit), method(methodInit), body(bodyinit) {}
 		Request(
 			const URL& urlinit,
+			const Method& methodInit,
 			const Headers& headersinit,
 			Body& bodyinit
-		) : url(urlinit), headers(headersinit), body(bodyinit) {}
+		) : url(urlinit), method(methodInit), headers(headersinit), body(bodyinit) {}
 	};
 };
 
