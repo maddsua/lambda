@@ -20,4 +20,4 @@ jobs:
       - uses: actions/checkout@v3
       - name: URL test
         run: make test.url
-      - run: ./test.url
+      - run: ./url.test
