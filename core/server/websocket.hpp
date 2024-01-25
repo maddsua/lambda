@@ -9,7 +9,8 @@
 #include <future>
 
 #include "../network/network.hpp"
-#include "../http/http.hpp"
+//#include "../network/tcp/connection.hpp"
+//#include "../http/http.hpp"
 #include "../websocket/message.hpp"
 
 namespace Lambda::Websocket {
@@ -35,8 +36,6 @@ namespace Lambda::Websocket {
 
 	struct WebsocketInfo {
 		std::string requestID;
-		//HTTP::Headers headers;
-		//HTTP::Cookies cookies;
 	};
 
 	class WebsocketStream {
@@ -51,7 +50,7 @@ namespace Lambda::Websocket {
 			WebsocketInfo info;
 
 		public:
-			WebsocketStream(TCP::Connection& conn, const WebsocketInfo& infoInit);
+			WebsocketStream(Lambda::Network::TCP::Connection& conn, const WebsocketInfo& infoInit);
 			~WebsocketStream();
 
 			bool available() const noexcept;
