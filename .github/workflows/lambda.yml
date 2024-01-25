@@ -11,14 +11,14 @@ jobs:
   build_lib:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v43
       - name: build
         run: make libstatic
   build_and_run_tests:
     needs: build_lib
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Prepare
         run: |
           sudo apt-get install -y brotli
@@ -35,6 +35,6 @@ jobs:
       - name: Storage test
         run: make test.storage
       - name: zlib test
-        run: test.zlib
+        run: make test.zlib
       - name: brotli test
-        run: test.brotli
+        run: make test.brotli
