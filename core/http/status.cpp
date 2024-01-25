@@ -66,6 +66,8 @@ static const std::map <int, std::string> statusCodeTable = {
 	{ 511, "Network Authentication Required" }
 };
 
+Status::Status(int code, const std::string& text) : internalCode(code), internalText(text) {}
+
 Status::Status(int code) {
 
 	const auto foundCode = statusCodeTable.find(code);
