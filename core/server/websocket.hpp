@@ -42,15 +42,13 @@ namespace Lambda::Websocket {
 		private:
 			Lambda::Network::TCP::Connection* conn = nullptr;
 			StreamTerminateFlags terminateFlags = StreamTerminateFlags::None;
-			std::queue<Message> rxQueue;
+			std::queue<Message> readQueue;
 			std::mutex readMutex;
-			std::vector<uint8_t> txQueue;
-			std::mutex writeMutex;
 			std::future<void> ioworker;
 			WebsocketInfo info;
 
 		public:
-			WebsocketStream(Lambda::Network::TCP::Connection& conn, const WebsocketInfo& infoInit);
+			WebsocketStream(Lambda::Network::TCP::Connection& tcpconn, const WebsocketInfo& infoInit);
 			~WebsocketStream();
 
 			bool available() const noexcept;
