@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
 			default: break;
 		}
 
-		return HTTP::Response(HTTP::Status(400), "bad request");
+		return HTTP::Response(400, "bad request");
 	};
 
 	ServerConfig initparams;
