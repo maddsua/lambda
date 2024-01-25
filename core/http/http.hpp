@@ -153,9 +153,13 @@ namespace Lambda::HTTP {
 			const Status& statusinit
 		) : status(statusinit) {}
 		Response(
-			const Headers& headersinit,
-			const Status& statusinit
+			const Status& statusinit,
+			const Headers& headersinit
 		) : status(statusinit), headers(headersinit) {}
+		Response(
+			const Status& statusinit,
+			const BodyBuffer& body
+		) : status(statusinit), body(body) {}
 		Response(
 			const BodyBuffer& bodyinit
 		) : body(bodyinit) {}
