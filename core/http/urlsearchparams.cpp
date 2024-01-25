@@ -18,13 +18,13 @@ URLSearchParams::URLSearchParams(const std::string& queries) {
 
 		if (!key.size() || !value.size()) continue;
 
-		this->data[key] = { value };
+		this->m_data[key] = { value };
 	}
 }
 
 std::string URLSearchParams::stringify() const {
 	auto result = std::string();
-	for (const auto& entry : this->data) {
+	for (const auto& entry : this->m_data) {
 		result += (result.size() ? "&" : "") + entry.first + "=" + entry.second.at(0);
 	}
 	return result;
