@@ -77,7 +77,7 @@ namespace Lambda::HTTP {
 			std::string stringify() const;
 	};
 
-	class Body {
+	class BodyBuffer {
 
 		private:
 			std::vector<uint8_t> m_data;
@@ -87,11 +87,11 @@ namespace Lambda::HTTP {
 			/**
 			 * Creates HTTP Body object
 			*/
-			Body() {}
-			Body(const Body& other);
-			Body(const char* content);
-			Body(const std::string& content);
-			Body(const std::vector<uint8_t>& content);
+			BodyBuffer() {}
+			BodyBuffer(const BodyBuffer& other);
+			BodyBuffer(const char* content);
+			BodyBuffer(const std::string& content);
+			BodyBuffer(const std::vector<uint8_t>& content);
 
 			operator std::string () const;
 
@@ -146,7 +146,7 @@ namespace Lambda::HTTP {
 		Status status;
 		Headers headers;
 		Cookies setCookies;
-		Body body;
+		BodyBuffer body;
 
 		Response() {}
 		Response(
@@ -157,12 +157,12 @@ namespace Lambda::HTTP {
 			const Status& statusinit
 		) : status(statusinit), headers(headersinit) {}
 		Response(
-			const Body& bodyinit
+			const BodyBuffer& bodyinit
 		) : body(bodyinit) {}
 		Response(
 			const Status& statusinit,
 			const Headers& headersinit,
-			const Body& body
+			const BodyBuffer& body
 		) : status(statusinit), headers(headersinit), body(body) {}
 	};
 
@@ -171,7 +171,7 @@ namespace Lambda::HTTP {
 		Method method;
 		Headers headers;
 		Cookies cookies;
-		Body body;
+		BodyBuffer body;
 
 		Request() {}
 		Request(
@@ -188,13 +188,13 @@ namespace Lambda::HTTP {
 		Request(
 			const URL& urlinit,
 			const Method& methodInit,
-			const Body& bodyinit
+			const BodyBuffer& bodyinit
 		) : url(urlinit), method(methodInit), body(bodyinit) {}
 		Request(
 			const URL& urlinit,
 			const Method& methodInit,
 			const Headers& headersinit,
-			Body& bodyinit
+			BodyBuffer& bodyinit
 		) : url(urlinit), method(methodInit), headers(headersinit), body(bodyinit) {}
 	};
 };
