@@ -29,19 +29,19 @@
 namespace Lambda::Network {
 
 	enum struct ConnectionTransport : int16_t {
-		TCP, UDP
+		Unknown, TCP, UDP
 	};
 
 	struct Address {
 		std::string hostname;
-		uint16_t port;
-		ConnectionTransport transport;
+		uint16_t port = 0;
+		ConnectionTransport transport = ConnectionTransport::Unknown;
 	};
 
 	struct ConnectionInfo {
 		Address remoteAddr;
-		uint32_t timeout;
-		uint16_t hostPort;
+		uint32_t timeout = 0;
+		uint16_t hostPort = 0;
 	};
 
 	namespace TCP {
