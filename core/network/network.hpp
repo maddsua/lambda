@@ -1,8 +1,9 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK__
 #define __LIB_MADDSUA_LAMBDA_NETWORK__
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
+#include <optional>
 
 #ifdef _WIN32
 
@@ -32,6 +33,11 @@ namespace Lambda::Network {
 		Unknown, TCP, UDP
 	};
 
+	struct ConnectionTimeouts {
+		uint32_t rx = 0;
+		uint32_t tx = 0;
+	};
+
 	struct Address {
 		std::string hostname;
 		uint16_t port = 0;
@@ -40,7 +46,7 @@ namespace Lambda::Network {
 
 	struct ConnectionInfo {
 		Address remoteAddr;
-		uint32_t timeout = 0;
+		ConnectionTimeouts timeouts;
 		uint16_t hostPort = 0;
 	};
 
