@@ -19,5 +19,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: URL test
-        run: make test.url
-      - run: ./url.test
+        run: |
+          make test.url
+          ./url.test
+      - name: Encoding test
+        run: |
+          make encoding.url
+          ./url.encoding
+      - name: JSON test
+        run: |
+          make json.url
+          ./url.json
+      - name: Storage test
+        run: |
+          make storage.url
+          ./url.storage
+      - name: zlib test
+        run: |
+          make zlib.url
+          ./url.zlib
+      - name: brotli test
+        run: |
+          make brotli.url
+          ./url.brotli
+      - name: Strings test
+        run: |
+          make strings.url
+          ./url.strings
