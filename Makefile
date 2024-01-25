@@ -1,8 +1,15 @@
 
+ifeq ($(OS),Windows_NT)
+	EXEEXT = .exe
+	DLLEXT = .dll
+else
+	DLLEXT = .so
+endif
+
 CFLAGS					=	-Wall -Werror -std=c++20 -g
 
 LAMBDA_LIBSTATIC		=	lambda.a
-LAMBDA_LIBSHARED		=	lambda.dll
+LAMBDA_LIBSHARED		=	lambda$(DLLEXT)
 
 LAMBDA_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
 
@@ -13,10 +20,10 @@ LINK_SYSTEM_LIBS		=	-lws2_32
 all: all-before $(LAMBDA_LIBSTATIC) all-after
 
 clean: action-custom
-	rm -rf *.o *.exe *.a *.dll *.res
+	rm -rf *.o *.exe *.a *.dll *.so *.res
 
 cleanw: action-custom
-	del /S *.o *.exe *.a *.dll *.res
+	del /S *.o *.exe *.a *.dll *.so *.res
 
 include Makefile.core.mk
 include Makefile.extra.mk
@@ -39,5 +46,5 @@ $(LAMBDA_LIBSHARED): $(LAMBDA_DEPS) dllinfo.res
 dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
 
-dllinfo.rc: updatedllinfo.exe
-	updatedllinfo.exe --template=dllinfo.template.rc --info=lambda_version.hpp --output=dllinfo.rc
+dllinfo.rc: updatedllinfo$(EXEEXT)
+	updatedllinfo$(EXEEXT) --template=dllinfo.template.rc --info=lambda_version.hpp --output=dllinfo.rc
