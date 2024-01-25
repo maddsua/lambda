@@ -11,7 +11,17 @@ using namespace Lambda::Network;
 using namespace Lambda::Websocket;
 
 WebsocketStream::WebsocketStream(TCP::Connection& conn, const WebsocketInfo& infoInit) {
+
 	this->info = infoInit;
+
+
+	this->ioworker = std::async([&](){
+
+		while (this->terminateFlags == StreamTerminateFlags::None && this->ok()) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+
+	});
 }
 
 WebsocketStream::~WebsocketStream() {
