@@ -28,9 +28,23 @@ void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback hand
 		auto requestQueue = Server::HttpRequestQueue(conn, config.transport);
 
 		while (requestQueue.await()) {
+
 			auto request = requestQueue.next();
 			//puts(next.request.url.pathname.c_str());
-			Server::handleHttpRequest(conn, request, handlerCallback, config, connInfo);
+			auto response = Server::handleHttpRequest(request, handlerCallback, config, connInfo);
+
+			/*if (config.loglevel.requests) {
+				printf("%s[%s] (%s) %s %s --> %i\n",
+					config.loglevel.timestamps ? (responseDate.toHRTString() + " ").c_str() : "",
+					requestID.c_str(),
+					conninfo.remoteAddr.hostname.c_str(),
+					static_cast<std::string>(next.request.method).c_str(),
+					next.request.url.pathname.c_str(),
+					response.status.code()
+				);
+			}*/
+
+			Server::writeHttpResponse(response, conn, request.acceptsEncoding);
 		}
 
 	} catch(const std::exception& e) {
