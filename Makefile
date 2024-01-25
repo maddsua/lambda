@@ -41,7 +41,7 @@ $(LAMBDA_LIBSTATIC): $(LIB_DEPS)
 libshared: $(LAMBDA_LIBSHARED)
 
 $(LAMBDA_LIBSHARED): $(LIB_DEPS) $(WINDOWS_DLL_DEPS)
-	g++ $(CFLAGS) $(LIB_DEPS) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) $(WINDOWS_DLL_DEPS) -fPIC -s -shared -o $(LAMBDA_LIBSHARED) -Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
+	g++ $(CFLAGS) $(LIB_DEPS) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) $(WINDOWS_DLL_DEPS) -s -shared -o $(LAMBDA_LIBSHARED) -Wl,-fPIC,--out-implib,lib$(LAMBDA_LIBSHARED).a
 
 dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
