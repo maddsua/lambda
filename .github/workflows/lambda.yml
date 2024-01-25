@@ -21,7 +21,7 @@ jobs:
       - name: Prepare
         run: |
           sudo apt-get install -y brotli
-          sudo apt-get install -y zlib
+          sudo apt-get install -y zlib1g-dev
           mkdir .testbin
       - name: URL test
         run: make test.url
