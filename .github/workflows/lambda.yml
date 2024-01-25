@@ -15,5 +15,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: build
+      - name: build static library
         run: make libstatic
+      - name: build example api server
+        run: make example.api_server
+      - name: build example kv storage server
+        run: make example.kvserver
