@@ -130,23 +130,16 @@ namespace Lambda::HTTP {
 
 	class Status {
 		private:
-			int internalCode;
-			std::string internalText;
+			uint32_t m_code;
+			std::string m_text;
 		
 		public:
-			Status() {
-				this->internalCode = 200;
-				this->internalText = "OK";
-			}
-			Status(int code);
-			Status(int code, const std::string& text);
+			Status();
+			Status(uint32_t code);
+			Status(uint32_t code, const std::string& text);
 
-			int code() const {
-				return this->internalCode;
-			}
-			const std::string& text() const {
-				return this->internalText;
-			}
+			uint32_t code() const noexcept;
+			const std::string& text() const noexcept;
 	};
 
 	struct Response {
