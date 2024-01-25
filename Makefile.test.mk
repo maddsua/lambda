@@ -65,7 +65,7 @@ test.zlib: $(TEST_ZLIB_TARGET)
 	$(TEST_ZLIB_TARGET)
 
 $(TEST_ZLIB_TARGET): test/zlib.test.o $(LIB_CORE_COMPRESS_DEPS)
-	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_OTHER_LIBS) -o $(TEST_ZLIB_TARGET)
+	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(EXTERNAL_LIBS) -o $(TEST_ZLIB_TARGET)
 
 test/zlib.test.o: test/zlib.test.cpp
 	g++ -c $(CFLAGS) test/zlib.test.cpp -o test/zlib.test.o
@@ -77,7 +77,7 @@ test.brotli: $(TEST_BROTLI_TARGET)
 	$(TEST_BROTLI_TARGET)
 
 $(TEST_BROTLI_TARGET): test/brotli.test.o $(LIB_CORE_COMPRESS_DEPS)
-	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_OTHER_LIBS) -o $(TEST_BROTLI_TARGET)
+	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(EXTERNAL_LIBS) -o $(TEST_BROTLI_TARGET)
 
 test/brotli.test.o: test/brotli.test.cpp
 	g++ -c $(CFLAGS) test/brotli.test.cpp -o test/brotli.test.o
@@ -96,7 +96,7 @@ test/tcp.test.o: test/tcp.test.cpp
 test.httptransport: httptransport.test$(EXEEXT)
 
 httptransport.test$(EXEEXT): test/httptransport.test.o $(LIB_CORE_DEPS)
-	g++ $(CFLAGS) test/httptransport.test.cpp $(LIB_CORE_DEPS) $(LINK_OTHER_LIBS) -lws2_32 -o httptransport.test$(EXEEXT)
+	g++ $(CFLAGS) test/httptransport.test.cpp $(LIB_CORE_DEPS) $(EXTERNAL_LIBS) -lws2_32 -o httptransport.test$(EXEEXT)
 
 test/httptransport.test.o: test/httptransport.test.cpp
 	g++ -c $(CFLAGS) test/httptransport.test.cpp -o test/httptransport.test.o
@@ -106,7 +106,7 @@ test/httptransport.test.o: test/httptransport.test.cpp
 test.httpserver: httpserver.test$(EXEEXT)
 
 httpserver.test$(EXEEXT): test/httpserver.test.o $(LIB_CORE_DEPS)
-	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_DEPS) $(LINK_OTHER_LIBS) -lws2_32 -o httpserver.test$(EXEEXT)
+	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_DEPS) $(EXTERNAL_LIBS) -lws2_32 -o httpserver.test$(EXEEXT)
 
 test/httpserver.test.o: test/httpserver.test.cpp
 	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o
