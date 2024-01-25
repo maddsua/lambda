@@ -73,11 +73,9 @@ ServerInstance::ServerInstance(HandlerFunction handlerCallback, ServerConfig ini
 		while (!this->terminated && this->listener->ok()) {
 
 			try {
-
 				auto nextConn = this->listener->acceptConnection();
 				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn), this->handler, this->config);
 				connectionWorker.detach();
-
 			} catch(const std::exception& e) {
 				if (this->terminated) return;
 				fprintf(stderr, "[Service] connection handler crashed: %s\n", e.what()); 
