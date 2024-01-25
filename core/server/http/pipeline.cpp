@@ -218,7 +218,7 @@ void Server::httpPipeline(TCP::Connection&& conn, HandlerFunction handlerCallbac
 
 		std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
 		for (const auto& header : response.headers.entries()) {
-			headerBuff += header.key + ": " + header.value + "\r\n";
+			headerBuff += header.first + ": " + header.second + "\r\n";
 		}
 		headerBuff += "\r\n";
 
