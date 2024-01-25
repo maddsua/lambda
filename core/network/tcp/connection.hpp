@@ -16,10 +16,10 @@ namespace Lambda::Network::TCP {
 
 	class Connection {
 		protected:
-			SOCKET hSocket = INVALID_SOCKET;
-			ConnectionInfo info;
-			std::mutex readMutex;
-			std::mutex writeMutex;
+			SOCKET m_socket = INVALID_SOCKET;
+			ConnectionInfo m_info;
+			std::mutex m_readMutex;
+			std::mutex m_writeMutex;
 
 		public:
 			Connection(ConnCreateInit init);
@@ -32,7 +32,7 @@ namespace Lambda::Network::TCP {
 			std::vector<uint8_t> read();
 			std::vector<uint8_t> read(size_t expectedSize);
 			void write(const std::vector<uint8_t>& data);
-			const ConnectionInfo& getInfo() const noexcept;
+			const ConnectionInfo& info() const noexcept;
 			void end();
 			bool isOpen() const noexcept;
 
