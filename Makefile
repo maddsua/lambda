@@ -1,7 +1,7 @@
 
 LIBNAME					=	lambda
 TEMPBIN = .bin/
-CFLAGS					=	-Wall -Werror -std=c++20 -fPIC
+CFLAGS					=	-Wall -Werror -std=c++20
 LIB_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
 EXTERNAL_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
 LAMBDA_LIBSTATIC		=	$(LIBNAME).a
@@ -13,8 +13,10 @@ ifeq ($(OS),Windows_NT)
 	LINK_SYSTEM_LIBS	=	-lws2_32
 	WINDOWS_DLL_DEPS	=	dllinfo.res
 	DLL_LDFLAGS			=	-Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
+	CFLAGS				+=	-g
 else
 	DLLEXT				=	.so
+	CFLAGS				+=	-fPIC
 endif
 
 .PHONY: all all-before all-after action-custom
