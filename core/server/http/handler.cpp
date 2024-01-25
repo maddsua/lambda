@@ -18,14 +18,6 @@ using namespace Lambda;
 using namespace Lambda::HTTPServer;
 using namespace Lambda::Network;
 
-static const std::string patternEndHeader = "\r\n\r\n";
-
-static const std::map<ContentEncodings, std::string> contentEncodingMap = {
-	{ ContentEncodings::Brotli, "br" },
-	{ ContentEncodings::Gzip, "gzip" },
-	{ ContentEncodings::Deflate, "deflate" },
-};
-
 void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
 
 	const auto& conninfo = conn.info();
