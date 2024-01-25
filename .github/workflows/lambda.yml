@@ -1,4 +1,4 @@
-name: Static library build
+name: Build lambda
 
 on:
   push:
@@ -8,11 +8,8 @@ on:
     branches: ['main']
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: build static library
