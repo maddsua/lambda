@@ -24,11 +24,18 @@ void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback hand
 
 	try {
 
+		auto requestQueue = Server::HttpRequestQueue(conn, config);
+
+		while (requestQueue.await()) {
+			auto next = requestQueue.next();
+			puts(next.request.url.pathname.c_str());
+		}
+
 		//	I want to add an await here soo badly lol
-		Server::serveHTTP(std::move(conn), handlerCallback, {
+		/*Server::serveHTTP(std::move(conn), handlerCallback, {
 			config.loglevel,
 			config.transport
-		});
+		});*/
 
 	} catch(const std::exception& e) {
 
