@@ -45,7 +45,9 @@ namespace Lambda::Server {
 
 	HTTP::Response errorResponse(int statusCode, std::optional<std::string> errorMessage);
 
-	void handleHttpRequest(Network::TCP::Connection& conn, const RequestQueueItem& request, HTTPRequestCallback handlerCallback, const ServerConfig& options, const Network::ConnectionInfo& conninfo);
+	HTTP::Response handleHttpRequest(const RequestQueueItem& request, HTTPRequestCallback handlerCallback, const ServerConfig& options, const Network::ConnectionInfo& conninfo);
+
+	void writeHttpResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding);
 
 };
 
