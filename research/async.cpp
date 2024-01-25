@@ -4,6 +4,7 @@
 #include <functional>
 #include <queue>
 #include <memory>
+#include <mutex>
 
 struct Response {
 	std::string data;
@@ -15,14 +16,16 @@ struct Request {
 
 class HttpRequestQueue {
 	private:
-		std::future<void> reader;
-		std::queue<Response> queue;
+		std::future<void> m_reader;
+		std::queue<Response> m_queue;
+		std::mutex m_lock;
+
 	public:
 		HttpRequestQueue();
 		~HttpRequestQueue();
 
-		HttpRequestQueue& operator= (const HttpRequestQueue& other) = delete;
-		HttpRequestQueue& operator= (HttpRequestQueue&& other) noexcept;
+		HttpRequestQueue& operator=(const HttpRequestQueue& other) = delete;
+		HttpRequestQueue& operator=(HttpRequestQueue&& other) noexcept;
 
 		bool await();
 		Response next();
@@ -30,79 +33,59 @@ class HttpRequestQueue {
 };
 
 HttpRequestQueue::HttpRequestQueue() {
-	this->reader = std::async([&](){
+	this->m_reader = std::async([&](){
 		for (size_t i = 0; i < 8; i++) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(33));
 			Response response;
 			response.data = "response #" + std::to_string(i);
-			this->queue.push(response);
+			this->m_queue.push(response);
 		}
 	});
 }
 
 HttpRequestQueue::~HttpRequestQueue() {
-	if (this->reader.valid()) {
-		try { this->reader.get(); }
+	if (this->m_reader.valid()) {
+		try { this->m_reader.get(); }
 			catch (...) {}
 	}
 }
 
-HttpRequestQueue& HttpRequestQueue::operator= (HttpRequestQueue&& other) noexcept {
-	this->reader = std::move(other.reader);
-	this->queue = std::move(other.queue);
+HttpRequestQueue& HttpRequestQueue::operator=(HttpRequestQueue&& other) noexcept {
+	this->m_reader = std::move(other.m_reader);
+	this->m_queue = std::move(other.m_queue);
 	return *this;
 }
 
 void HttpRequestQueue::push(const Response& item) {
-	this->queue.push(item);
+	std::lock_guard<std::mutex>lock(this->m_lock);
+	this->m_queue.push(item);
 }
 
 Response HttpRequestQueue::next() {
-	if (!this->queue.size()) throw "empty queue";
-	Response temp = this->queue.front();
-	this->queue.pop();
+	if (!this->m_queue.size()) throw "empty queue";
+	std::lock_guard<std::mutex>lock(this->m_lock);
+	Response temp = this->m_queue.front();
+	this->m_queue.pop();
 	return temp;
 }
 
 bool HttpRequestQueue::await() {
 
-	if (!reader.valid()) {
-		return this->queue.size();
+	if (!m_reader.valid()) {
+		return this->m_queue.size();
 	}
 
 	auto readerDone = false;
-	while (!readerDone && !this->queue.size()) {
-		readerDone = this->reader.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready;
+	while (!readerDone && !this->m_queue.size()) {
+		readerDone = this->m_reader.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready;
 	}
 
 	if (readerDone) {
-		this->reader.get();
+		this->m_reader.get();
 	}
 
-	return this->queue.size();
+	return this->m_queue.size();
 }
-
-//typedef std::function<Response(const Request& request)> Callback;
-
-/*HttpRequestQueue serve() {
-
-	auto futurePtr = std::make_shared<HttpRequestQueue>();
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(5));
-
-	futurePtr->reader = std::async([](std::shared_ptr<HttpRequestQueue> queue){
-		for (size_t i = 0; i < 8; i++) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(33));
-			Response response;
-			response.data = "response #" + std::to_string(i);
-			queue->push(response);
-		}
-	}, futurePtr);
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(3));
-
-	return futurePtr;
-}*/
 
 int main(int argc, char const *argv[]) {
 
