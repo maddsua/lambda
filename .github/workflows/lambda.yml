@@ -11,7 +11,7 @@ jobs:
   build_lib:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v43
+      - uses: actions/checkout@v4
       - name: build
         run: make libstatic
   build_and_run_tests:
