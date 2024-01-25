@@ -7,13 +7,10 @@ using namespace Lambda::Network::TCP;
 
 ListenSocket::ListenSocket(const ListenConfig& init) {
 
-	//	check that connection timeout values are in acceptable range
-	if (init.connectionTimeout > Connection::TimeoutMs_Max)
+	if (init.timeouts && init.timeouts > Connection::TimeoutMs_Max)
 		throw std::runtime_error("Cannot create a TCP connection: timeout is too big");
-	if (init.connectionTimeout < Connection::TimeoutMs_Min)
-		throw std::runtime_error("Cannot create a TCP connection: timeout is too small");
 
-	//	special threatment for windows and it's fucking WSA
+	//	special treatment for windows and it's fucking WSA
 	#ifdef _WIN32
 		wsaWakeUp();
 	#endif
@@ -87,10 +84,11 @@ Connection ListenSocket::acceptConnection() {
 	//	copy connection params
 	ConnCreateInit next;
 	next.info.hostPort = this->config.port;
-	next.info.timeout = this->config.connectionTimeout;
 	next.info.remoteAddr.port = 80;
 	next.info.remoteAddr.transport = ConnectionTransport::TCP;
-
+	next.info.timeouts.rx = this->config.timeouts;
+	next.info.timeouts.tx = this->config.timeouts;
+	
 	//	accept network connection
 	sockaddr_in peerAddr;
 	socklen_t clientAddrLen = sizeof(peerAddr);
