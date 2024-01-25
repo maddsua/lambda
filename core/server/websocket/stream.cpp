@@ -52,23 +52,24 @@ void WebsocketStream::close() {
 
 void WebsocketStream::close(CloseCode reason) {
 
+	if (this->terminateFlags != StreamTerminateFlags::None) return;
 	this->terminateFlags = StreamTerminateFlags::Closed;
 
-	std::array<uint8_t, 4> closeFrame;
+	std::array<uint8_t, 4> frameBuff;
 
 	auto closeReasonByte = static_cast<std::underlying_type_t<CloseCode>>(reason);
 
 	//	control frame and close opcode
-	closeFrame[0] = 0x88;
+	frameBuff[0] = 0x88;
 	//	should always be 2 bytes, we only send a status code with no text
-	closeFrame[1] = sizeof(closeReasonByte);
+	frameBuff[1] = sizeof(closeReasonByte);
 	//	the status code itself. I hate the ppl who decided not to align ws header fields. just effing masterminds.
-	closeFrame[2] = (closeReasonByte >> 8) & 0xFF;
-	closeFrame[3] = closeReasonByte & 0xFF;
+	frameBuff[2] = (closeReasonByte >> 8) & 0xFF;
+	frameBuff[3] = closeReasonByte & 0xFF;
 
 	//	send and forget it
 	std::lock_guard<std::mutex> lock(this->writeMutex);
-	this->txQueue.insert(this->txQueue.end(), closeFrame.begin(), closeFrame.end());
+	this->txQueue.insert(this->txQueue.end(), frameBuff.begin(), frameBuff.end());
 
 	if (this->ioworker.valid()) {
 		this->ioworker.get();
@@ -76,6 +77,7 @@ void WebsocketStream::close(CloseCode reason) {
 }
 
 void WebsocketStream::terminate() {
+	if (this->terminateFlags != StreamTerminateFlags::None) return;
 	this->terminateFlags = StreamTerminateFlags::Terminated;
 	if (this->ioworker.valid()) {
 		this->ioworker.get();
