@@ -1,6 +1,6 @@
 
 LIBNAME					=	lambda
-TEMPBIN = .bin/
+TEMPBIN					=	.bin/
 CFLAGS					=	-Wall -Werror -std=c++20
 LIB_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
 EXTERNAL_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
