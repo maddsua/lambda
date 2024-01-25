@@ -26,6 +26,70 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
+void Server::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
+
+	const auto& connInfo = conn.info();
+
+	if (config.loglevel.connections) fprintf(stdout,
+		"%s %s:%i connected on %i\n",
+		Date().toHRTString().c_str(),
+		connInfo.remoteAddr.hostname.c_str(),
+		connInfo.remoteAddr.port,
+		connInfo.hostPort
+	);
+
+	try {
+
+		auto connInfo = conn.info();
+		auto requestQueue = Server::HttpRequestQueue(conn, config.transport);
+
+		while (requestQueue.await()) {
+
+			auto request = requestQueue.next();
+			//puts(next.request.url.pathname.c_str());
+			auto response = Server::handleHttpRequest(request, handlerCallback, config, connInfo);
+
+			/*if (config.loglevel.requests) {
+				printf("%s[%s] (%s) %s %s --> %i\n",
+					config.loglevel.timestamps ? (responseDate.toHRTString() + " ").c_str() : "",
+					requestID.c_str(),
+					conninfo.remoteAddr.hostname.c_str(),
+					static_cast<std::string>(next.request.method).c_str(),
+					next.request.url.pathname.c_str(),
+					response.status.code()
+				);
+			}*/
+
+			Server::writeHttpResponse(response, conn, request.acceptsEncoding);
+		}
+
+	} catch(const std::exception& e) {
+
+		if (config.loglevel.requests) fprintf(stderr,
+			"%s [Service] Connection to %s terminated: %s\n",
+			Date().toHRTString().c_str(),
+			connInfo.remoteAddr.hostname.c_str(),
+			e.what()
+		);
+
+	} catch(...) {
+
+		if (config.loglevel.requests) fprintf(stderr,
+			"%s [Service] Connection to %s terminated (unknown error)\n",
+			Date().toHRTString().c_str(),
+			connInfo.remoteAddr.hostname.c_str()
+		);
+	}
+
+	if (config.loglevel.connections) fprintf(stdout,
+		"%s %s:%i disconnected from %i\n",
+		Date().toHRTString().c_str(),
+		connInfo.remoteAddr.hostname.c_str(),
+		connInfo.remoteAddr.port,
+		connInfo.hostPort
+	);
+}
+
 HTTP::Response Server::handleHttpRequest(const RequestQueueItem& next, HTTPRequestCallback handlerCallback, const ServerConfig& options, const ConnectionInfo& conninfo) {
 
 	auto responseDate = Date();
