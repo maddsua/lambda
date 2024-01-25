@@ -12,7 +12,7 @@ using namespace Lambda;
 
 void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) {
 
-	const auto& connInfo = conn.getInfo();
+	const auto& connInfo = conn.info();
 
 	if (config.loglevel.connections) fprintf(stdout,
 		"%s %s:%i connected on %i\n",
@@ -24,18 +24,14 @@ void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback hand
 
 	try {
 
-		auto requestQueue = Server::HttpRequestQueue(conn, config);
+		auto connInfo = conn.info();
+		auto requestQueue = Server::HttpRequestQueue(conn, config.transport);
 
 		while (requestQueue.await()) {
 			auto next = requestQueue.next();
-			puts(next.request.url.pathname.c_str());
+			//puts(next.request.url.pathname.c_str());
+			Server::handleHttpRequest(conn, next, handlerCallback, config, connInfo);
 		}
-
-		//	I want to add an await here soo badly lol
-		/*Server::serveHTTP(std::move(conn), handlerCallback, {
-			config.loglevel,
-			config.transport
-		});*/
 
 	} catch(const std::exception& e) {
 
