@@ -33,21 +33,38 @@ namespace Lambda::Network {
 		Unknown, TCP, UDP
 	};
 
-	struct ConnectionTimeouts {
-		uint32_t rx = 0;
-		uint32_t tx = 0;
-	};
-
 	struct Address {
 		std::string hostname;
 		uint16_t port = 0;
 		ConnectionTransport transport = ConnectionTransport::Unknown;
+
+		/*Address() {}
+		Address(
+			const std::string& hostInit,
+			uint16_t portInit,
+			ConnectionTransport transportInit
+		) : hostname(hostInit), port(portInit), transport(transportInit) {}*/
+	};
+
+	struct ConnectionTimeouts {
+		uint32_t rx = 0;
+		uint32_t tx = 0;
+
+		/*ConnectionTimeouts() {}
+		ConnectionTimeouts(uint32_t value) : tx(value), rx(value) {}*/
 	};
 
 	struct ConnectionInfo {
 		Address remoteAddr;
 		ConnectionTimeouts timeouts;
 		uint16_t hostPort = 0;
+
+		/*ConnectionInfo() {}
+		ConnectionInfo(
+			const Address& remoteAddrInit,
+			const ConnectionTimeouts& timeoutsInit,
+			uint16_t hostPortInit
+		) : remoteAddr(remoteAddrInit), timeouts(timeoutsInit), hostPort(hostPortInit) {}*/
 	};
 
 	namespace TCP {
