@@ -19,7 +19,7 @@ LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o co
 
 LIB_CORE_SERVER			=	core/server.a
 LIB_CORE_SERVER_RESS	=	core/resources/html/servicepage.res
-LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/handler.o core/server/http/queue.o core/server/http/errorPage.o core/server/console/handlerConsole.o
+LIB_CORE_SERVER_OBJS	=	core/server/server.o core/server/http/transport.o core/server/http/handler.o core/server/http/queue.o core/server/http/errorPage.o core/server/console/handlerConsole.o
 LIB_CORE_SERVER_DEPS	=	$(LIB_CORE_SERVER_OBJS) $(LIB_CORE_SERVER_RESS)
 
 LIB_CORE_CRYPTO			=	core/crypto.a
@@ -121,6 +121,9 @@ $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 
 core/server/server.o: core/server/server.cpp
 	g++ -c $(CFLAGS) core/server/server.cpp -o core/server/server.o
+
+core/server/http/transport.o: core/server/http/transport.cpp
+	g++ -c $(CFLAGS) core/server/http/transport.cpp -o core/server/http/transport.o
 
 core/server/http/handler.o: core/server/http/handler.cpp
 	g++ -c $(CFLAGS) core/server/http/handler.cpp -o core/server/http/handler.o
