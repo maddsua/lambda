@@ -24,6 +24,24 @@ namespace Lambda::Server {
 		bool keepAlive = false;
 	};
 
+	class HttpRequestQueue {
+		private:
+			std::future<void> m_reader;
+			std::queue<RequestQueueItem> m_queue;
+			std::mutex m_lock;
+
+		public:
+			HttpRequestQueue(Network::TCP::Connection& conn, const ServeOptions& options);
+			~HttpRequestQueue();
+
+			HttpRequestQueue& operator=(const HttpRequestQueue& other) = delete;
+			HttpRequestQueue& operator=(HttpRequestQueue&& other) noexcept;
+
+			bool await();
+			RequestQueueItem next();
+			void push(RequestQueueItem&& item);
+	};
+
 	class RequestQueue {
 		private:
 			std::queue<RequestQueueItem> m_queue;
