@@ -23,7 +23,7 @@ jobs:
         run: |
           sudo apt-get install -y brotli
           sudo apt-get install -y zlib1g-dev
-          mkdir .testbin
+          mkdir .bin
       - name: URL test
         run: make test.url
       - name: Encoding test
@@ -38,3 +38,17 @@ jobs:
         run: make test.zlib
       - name: brotli test
         run: make test.brotli
+  build_examples:
+    needs: build_lib
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare
+        run: |
+          sudo apt-get install -y brotli
+          sudo apt-get install -y zlib1g-dev
+          mkdir .bin
+      - name: API server example
+        run: make example.api_server
+      - name: KV server example
+        run: make example.kvserver
