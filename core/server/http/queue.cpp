@@ -4,7 +4,9 @@
 #include "../http.hpp"
 #include "../../polyfill/polyfill.hpp"
 
+using namespace Lambda;
 using namespace Lambda::Server;
+using namespace Lambda::Server::HTTP;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -45,7 +47,7 @@ HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTra
 			auto& requestUrlString = headerStartLine.at(1);
 
 			RequestQueueItem next;
-			next.request.method = HTTP::Method(requestMethodString);
+			next.request.method = Lambda::HTTP::Method(requestMethodString);
 
 			for (size_t i = 1; i < headerFields.size(); i++) {
 
@@ -72,9 +74,9 @@ HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTra
 			//	construct request URL
 			auto hostHeader = next.request.headers.get("host");
 			if (hostHeader.size()) {
-				next.request.url = HTTP::URL("http://" + hostHeader + requestUrlString);
+				next.request.url = Lambda::HTTP::URL("http://" + hostHeader + requestUrlString);
 			} else {
-				next.request.url = HTTP::URL("http://lambdahost:" + conninfo.hostPort + requestUrlString);
+				next.request.url = Lambda::HTTP::URL("http://lambdahost:" + conninfo.hostPort + requestUrlString);
 			}
 
 			if (options.reuseConnections) {
@@ -101,7 +103,7 @@ HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTra
 			//	unpack cookies
 			auto cookieHeader = next.request.headers.get("cookie");
 			if (cookieHeader.size()) {
-				next.request.cookies = HTTP::Cookies(cookieHeader);
+				next.request.cookies = Lambda::HTTP::Cookies(cookieHeader);
 			}
 
 			auto bodySizeHeader = next.request.headers.get("content-length");

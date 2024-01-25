@@ -9,6 +9,8 @@
 #include <thread>
 
 using namespace Lambda;
+using namespace Lambda::Server;
+using namespace Lambda::Server::HTTP;
 
 ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init) {
 
@@ -28,7 +30,7 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 			try {
 
 				auto nextConn = this->listener->acceptConnection();
-				auto connectionWorker = std::thread(Server::connectionHandler, std::move(nextConn), this->handler, this->config);
+				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn), this->handler, this->config);
 				connectionWorker.detach();
 
 			} catch(const std::exception& e) {

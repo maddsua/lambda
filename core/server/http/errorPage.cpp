@@ -23,9 +23,9 @@ std::string populateTemplate(const TemplateContent& content) {
 	return result;
 }
 
-HTTP::Response Server::errorResponse(int statusCode, std::optional<std::string> errorMessage) {
+HTTP::Response Server::HTTP::errorResponse(int statusCode, std::optional<std::string> errorMessage) {
 
-	auto httpstatus = HTTP::Status(statusCode);
+	auto httpstatus = Lambda::HTTP::Status(statusCode);
 
 	TemplateContent content = {
 		{ "${html_svcpage_statuscode}", std::to_string(statusCode) },
@@ -33,8 +33,8 @@ HTTP::Response Server::errorResponse(int statusCode, std::optional<std::string> 
 		{ "${html_svcpage_message_text}", (errorMessage.has_value() ? errorMessage.value() : "That's all we know.") }
 	};
 
-	HTTP::Headers headers;
+	Lambda::HTTP::Headers headers;
 	headers.set("Content-Type", "text/html");
 
-	return HTTP::Response(httpstatus, headers, populateTemplate(content));
+	return Lambda::HTTP::Response(httpstatus, headers, populateTemplate(content));
 }

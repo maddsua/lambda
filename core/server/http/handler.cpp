@@ -16,6 +16,7 @@
 
 using namespace Lambda;
 using namespace Lambda::Server;
+using namespace Lambda::Server::HTTP;
 using namespace Lambda::Network;
 
 static const std::string patternEndHeader = "\r\n\r\n";
@@ -26,7 +27,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
-void Server::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
+void Server::HTTP::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
 
 	const auto& conninfo = conn.info();
 
@@ -40,7 +41,7 @@ void Server::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallb
 
 	try {
 
-		auto requestQueue = Server::HttpRequestQueue(conn, config.transport);
+		auto requestQueue = Server::HTTP::HttpRequestQueue(conn, config.transport);
 
 		while (requestQueue.await()) {
 
@@ -50,7 +51,7 @@ void Server::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallb
 			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 			auto requestID = ShortID((timeHighres & ~0UL)).toString();
 
-			HTTP::Response response;
+			Lambda::HTTP::Response response;
 
 			try {
 
@@ -66,7 +67,7 @@ void Server::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallb
 					printf("%s %s crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
 				}
 				
-				response = Server::errorResponse(500, std::string("Function handler crashed: ") + e.what());
+				response = Server::HTTP::errorResponse(500, std::string("Function handler crashed: ") + e.what());
 
 			} catch(...) {
 
@@ -74,7 +75,7 @@ void Server::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallb
 					printf("%s %s crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
 				}
 
-				response = Server::errorResponse(500, "Function handler crashed: unhandled exception");
+				response = Server::HTTP::errorResponse(500, "Function handler crashed: unhandled exception");
 			}
 
 			if (response.setCookies.size()) {
@@ -98,7 +99,7 @@ void Server::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallb
 				);
 			}
 
-			Server::writeHttpResponse(response, conn, nextRequest.acceptsEncoding);
+			Server::HTTP::writeResponse(response, conn, nextRequest.acceptsEncoding);
 		}
 
 	} catch(const std::exception& e) {

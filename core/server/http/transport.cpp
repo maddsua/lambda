@@ -15,8 +15,9 @@
 #include <set>
 
 using namespace Lambda;
-using namespace Lambda::Server;
 using namespace Lambda::Network;
+using namespace Lambda::Server;
+using namespace Lambda::Server::HTTP;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -26,7 +27,11 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
-void Server::writeHttpResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding) {
+void Server::HTTP::asyncReader(Network::TCP::Connection& conn, HttpRequestQueue& queue) {
+
+}
+
+void Server::HTTP::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding) {
 
 #ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 

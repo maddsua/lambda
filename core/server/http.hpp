@@ -10,7 +10,7 @@
 #include <optional>
 #include <queue>
 
-namespace Lambda::Server {
+namespace Lambda::Server::HTTP {
 
 	enum struct ContentEncodings {
 		None = 0,
@@ -20,7 +20,7 @@ namespace Lambda::Server {
 	};
 
 	struct RequestQueueItem {
-		HTTP::Request request;
+		Lambda::HTTP::Request request;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};
@@ -44,8 +44,9 @@ namespace Lambda::Server {
 	};
 
 	void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept;
-	HTTP::Response errorResponse(int statusCode, std::optional<std::string> errorMessage);
-	void writeHttpResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding);
+	Lambda::HTTP::Response errorResponse(int statusCode, std::optional<std::string> errorMessage);
+	void writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding);
+	void asyncReader(Network::TCP::Connection& conn, HttpRequestQueue& queue);
 
 };
 
