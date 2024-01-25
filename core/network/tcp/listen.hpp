@@ -8,7 +8,7 @@ namespace Lambda::Network::TCP {
 	struct ListenConfig {
 		bool allowPortReuse = false;
 		uint16_t port = 8180;
-		uint32_t connectionTimeout = Connection::TimeoutMs_Default;
+		uint32_t timeouts = 0;
 	};
 
 	class ListenSocket {
