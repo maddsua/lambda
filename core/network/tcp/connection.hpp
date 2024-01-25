@@ -10,8 +10,12 @@
 namespace Lambda::Network::TCP {
 
 	struct ConnCreateInit {
-		SOCKET hSocket;
+		SOCKET hSocket = INVALID_SOCKET;
 		ConnectionInfo info;
+	};
+
+	enum struct SetConnectionTimeoutDirection {
+		Both, Rx, Tx
 	};
 
 	class Connection {
@@ -36,7 +40,10 @@ namespace Lambda::Network::TCP {
 			void closeconn();
 			bool ok() const noexcept;
 
-			static const uint32_t TimeoutMs = 15000;
+			void setTimeouts(uint32_t value);
+			void setTimeout(uint32_t value, SetConnectionTimeoutDirection direction);
+
+			static const uint32_t TimeoutMs_Default = 15000;
 			static const uint32_t TimeoutMs_Max = 60000;
 			static const uint32_t TimeoutMs_Min = 100;
 			static const uint32_t ReadChunkSize = 2048;
