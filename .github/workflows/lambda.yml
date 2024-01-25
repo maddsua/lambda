@@ -20,8 +20,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Prepare
         run: |
-          apt-get install -y brotli
-          apt-get install -y zlib
+          sudo apt-get install -y brotli
+          sudo apt-get install -y zlib
           mkdir .testbin
       - name: URL test
         run: make test.url
