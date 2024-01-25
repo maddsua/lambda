@@ -3,6 +3,7 @@
 
 #include "../network/tcp/connection.hpp"
 #include "../network/tcp/listen.hpp"
+#include "../network/network.hpp"
 #include "./server.hpp"
 
 #include <future>
@@ -31,7 +32,7 @@ namespace Lambda::Server {
 			std::mutex m_lock;
 
 		public:
-			HttpRequestQueue(Network::TCP::Connection& conn, const ServeOptions& options);
+			HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options);
 			~HttpRequestQueue();
 
 			HttpRequestQueue& operator=(const HttpRequestQueue& other) = delete;
@@ -42,25 +43,9 @@ namespace Lambda::Server {
 			void push(RequestQueueItem&& item);
 	};
 
-	class RequestQueue {
-		private:
-			std::queue<RequestQueueItem> m_queue;
-			std::mutex m_mutex;
-			bool m_done = false;
-
-		public:
-			RequestQueue() {}
-			RequestQueue(const std::initializer_list<RequestQueueItem>& init);
-			RequestQueue(const Lambda::Server::RequestQueue& other);
-			bool await();
-			bool hasNext() const noexcept;
-			void push(const RequestQueueItem& item);
-			void finish() noexcept;
-			RequestQueueItem next();
-	};
-
-	void serveHTTP(Network::TCP::Connection&& conn, HTTPRequestCallback handler, const ServeOptions& options);
 	HTTP::Response errorResponse(int statusCode, std::optional<std::string> errorMessage);
+
+	void handleHttpRequest(Network::TCP::Connection& conn, const RequestQueueItem& request, HTTPRequestCallback handlerCallback, const ServerConfig& options, const Network::ConnectionInfo& conninfo);
 
 };
 
