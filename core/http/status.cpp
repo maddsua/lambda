@@ -66,14 +66,29 @@ static const std::map <int, std::string> statusCodeTable = {
 	{ 511, "Network Authentication Required" }
 };
 
-Status::Status(int code, const std::string& text) : internalCode(code), internalText(text) {}
+Status::Status() {
+	this->m_code = 200;
+	this->m_text = "OK";
+}
 
-Status::Status(int code) {
+Status::Status(uint32_t code, const std::string& text) {
+	this->m_code = code;
+	this->m_text = text;
+}
+
+Status::Status(uint32_t code) {
 
 	const auto foundCode = statusCodeTable.find(code);
 	if (foundCode == statusCodeTable.end())
 		throw std::invalid_argument("provided http status code is unknown");
 
-	this->internalCode = foundCode->first;
-	this->internalText = foundCode->second;
+	this->m_code = foundCode->first;
+	this->m_text = foundCode->second;
+}
+
+uint32_t Status::code() const noexcept {
+	return this->m_code;
+}
+const std::string& Status::text() const noexcept {
+	return this->m_text;
 }
