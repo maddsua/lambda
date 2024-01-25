@@ -1,9 +1,6 @@
 
-TEST_TARGET_DIR = .testbin/
-
-
 # Test URL core module
-TEST_URL_TARGET = $(TEST_TARGET_DIR)url.test$(EXEEXT)
+TEST_URL_TARGET = $(TEMPBIN)url.test$(EXEEXT)
 test.url: $(TEST_URL_TARGET)
 	$(TEST_URL_TARGET)
 
@@ -15,7 +12,7 @@ test/url.test.o: test/url.test.cpp
 
 
 # Test encoding core module
-TEST_ENCODING_TARGET = $(TEST_TARGET_DIR)encoding.test$(EXEEXT)
+TEST_ENCODING_TARGET = $(TEMPBIN)encoding.test$(EXEEXT)
 test.encoding: $(TEST_ENCODING_TARGET)
 	$(TEST_ENCODING_TARGET)
 
@@ -27,7 +24,7 @@ test/encoding.test.o: test/encoding.test.cpp
 
 
 # Test polyfill/strings core module
-TEST_STRINGS_TARGET = $(TEST_TARGET_DIR)strings.test$(EXEEXT)
+TEST_STRINGS_TARGET = $(TEMPBIN)strings.test$(EXEEXT)
 test.strings: $(TEST_STRINGS_TARGET)
 	$(TEST_STRINGS_TARGET)
 
@@ -39,7 +36,7 @@ test/strings.test.o: test/strings.test.cpp
 
 
 # Test JSON extra module
-TEST_JSON_TARGET = $(TEST_TARGET_DIR)json.test$(EXEEXT)
+TEST_JSON_TARGET = $(TEMPBIN)json.test$(EXEEXT)
 test.json: $(TEST_JSON_TARGET)
 	$(TEST_JSON_TARGET)
 
@@ -51,7 +48,7 @@ test/json.test.o: test/json.test.cpp
 
 
 # Test Storage extra module
-TEST_STORAGE_TARGET = $(TEST_TARGET_DIR)storage.test$(EXEEXT)
+TEST_STORAGE_TARGET = $(TEMPBIN)storage.test$(EXEEXT)
 test.storage: $(TEST_STORAGE_TARGET)
 	$(TEST_STORAGE_TARGET)
 
@@ -63,24 +60,24 @@ test/storage.test.o: test/storage.test.cpp
 
 
 # Test zlib compression module
-TEST_ZLIB_TARGET = $(TEST_TARGET_DIR)zlib.test$(EXEEXT)
+TEST_ZLIB_TARGET = $(TEMPBIN)zlib.test$(EXEEXT)
 test.zlib: $(TEST_ZLIB_TARGET)
 	$(TEST_ZLIB_TARGET)
 
 $(TEST_ZLIB_TARGET): test/zlib.test.o $(LIB_CORE_COMPRESS_DEPS)
-	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o $(TEST_ZLIB_TARGET)
+	g++ $(CFLAGS) test/zlib.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_OTHER_LIBS) -o $(TEST_ZLIB_TARGET)
 
 test/zlib.test.o: test/zlib.test.cpp
 	g++ -c $(CFLAGS) test/zlib.test.cpp -o test/zlib.test.o
 
 
 # Test brotli compression module
-TEST_BROTLI_TARGET = $(TEST_TARGET_DIR)brotli.test$(EXEEXT)
+TEST_BROTLI_TARGET = $(TEMPBIN)brotli.test$(EXEEXT)
 test.brotli: $(TEST_BROTLI_TARGET)
 	$(TEST_BROTLI_TARGET)
 
 $(TEST_BROTLI_TARGET): test/brotli.test.o $(LIB_CORE_COMPRESS_DEPS)
-	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_COMPRESS_LIBS) -o $(TEST_BROTLI_TARGET)
+	g++ $(CFLAGS) test/brotli.test.cpp $(LIB_CORE_COMPRESS_DEPS) $(LINK_OTHER_LIBS) -o $(TEST_BROTLI_TARGET)
 
 test/brotli.test.o: test/brotli.test.cpp
 	g++ -c $(CFLAGS) test/brotli.test.cpp -o test/brotli.test.o
@@ -99,7 +96,7 @@ test/tcp.test.o: test/tcp.test.cpp
 test.httptransport: httptransport.test$(EXEEXT)
 
 httptransport.test$(EXEEXT): test/httptransport.test.o $(LIB_CORE_DEPS)
-	g++ $(CFLAGS) test/httptransport.test.cpp $(LIB_CORE_DEPS) $(LINK_COMPRESS_LIBS) -lws2_32 -o httptransport.test$(EXEEXT)
+	g++ $(CFLAGS) test/httptransport.test.cpp $(LIB_CORE_DEPS) $(LINK_OTHER_LIBS) -lws2_32 -o httptransport.test$(EXEEXT)
 
 test/httptransport.test.o: test/httptransport.test.cpp
 	g++ -c $(CFLAGS) test/httptransport.test.cpp -o test/httptransport.test.o
@@ -109,7 +106,7 @@ test/httptransport.test.o: test/httptransport.test.cpp
 test.httpserver: httpserver.test$(EXEEXT)
 
 httpserver.test$(EXEEXT): test/httpserver.test.o $(LIB_CORE_DEPS)
-	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_DEPS) $(LINK_COMPRESS_LIBS) -lws2_32 -o httpserver.test$(EXEEXT)
+	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_DEPS) $(LINK_OTHER_LIBS) -lws2_32 -o httpserver.test$(EXEEXT)
 
 test/httpserver.test.o: test/httpserver.test.cpp
 	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o
