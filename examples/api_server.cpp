@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
 			{"first_visit", isFirstFisit}
 		};
 
-		return HTTP::Response(responseHeaders, stringify(Property(testMap)));
+		return HTTP::Response(200, responseHeaders, stringify(Property(testMap)));
 	};
 
 	ServerConfig initparams;
