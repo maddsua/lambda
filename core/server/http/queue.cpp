@@ -7,14 +7,6 @@
 using namespace Lambda;
 using namespace Lambda::HTTPServer;
 
-static const std::string patternEndHeader = "\r\n\r\n";
-
-static const std::map<ContentEncodings, std::string> contentEncodingMap = {
-	{ ContentEncodings::Brotli, "br" },
-	{ ContentEncodings::Gzip, "gzip" },
-	{ ContentEncodings::Deflate, "deflate" },
-};
-
 HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
 	this->m_reader = std::async(asyncReader, std::ref(conn), std::ref(options), std::ref(*this));
 }
