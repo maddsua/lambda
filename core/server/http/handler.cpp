@@ -88,7 +88,7 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 					requestID.c_str(),
 					conninfo.remoteAddr.hostname.c_str(),
 					static_cast<std::string>(nextRequest.request.method).c_str(),
-					nextRequest.request.url.pathname.c_str(),
+					nextRequest.pathname.c_str(),
 					response.status.code()
 				);
 			}

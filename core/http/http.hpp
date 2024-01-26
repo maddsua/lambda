@@ -52,13 +52,9 @@ namespace Lambda::HTTP {
 			void parse(const std::string& href);
 
 		public:
-			URL() {}
-			URL(const std::string& href) {
-				this->parse(href);
-			}
-			URL(const char* href) {
-				this->parse(href);
-			}
+			URL() = default;
+			URL(const std::string& href);
+			URL(const char* href);
 
 			std::string protocol;
 			std::string username;
@@ -175,35 +171,20 @@ namespace Lambda::HTTP {
 	};
 
 	struct Request {
-		URL url;
+		std::string url;
 		Method method;
 		Headers headers;
-		Cookies cookies;
 		BodyBuffer body;
 
-		Request() {}
-		Request(
-			const URL& urlinit
-		) : url(urlinit) {}
-		Request(
-			const URL& urlinit,
-			const Method& methodInit
-		) : url(urlinit), method(methodInit) {}
-		Request(
-			const URL& urlinit,
-			const Headers& headersinit
-		) : url(urlinit), headers(headersinit) {}
-		Request(
-			const URL& urlinit,
-			const Method& methodInit,
-			const BodyBuffer& bodyinit
-		) : url(urlinit), method(methodInit), body(bodyinit) {}
-		Request(
-			const URL& urlinit,
-			const Method& methodInit,
-			const Headers& headersinit,
-			BodyBuffer& bodyinit
-		) : url(urlinit), method(methodInit), headers(headersinit), body(bodyinit) {}
+		Request() = default;
+		Request(const std::string& urlinit);
+		Request(const std::string& urlinit, const Method& methodInit);
+		Request(const std::string& urlinit, const Headers& headersinit);
+		Request( const std::string& urlinit, const Method& methodInit, const BodyBuffer& bodyinit);
+		Request(const std::string& urlinit, const Method& methodInit, const Headers& headersinit, BodyBuffer& bodyinit);
+
+		URL unwrapURL() const;
+		Cookies getCookies() const;
 	};
 };
 

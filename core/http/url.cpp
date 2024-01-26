@@ -11,6 +11,14 @@ using namespace Lambda::Strings;
  * https://user:password@example.com:443/document?search=query#fragment
 */
 
+URL::URL(const std::string& href) {
+	this->parse(href);
+}
+
+URL::URL(const char* href) {
+	this->parse(href);
+}
+
 void URL::parse(const std::string& href) {
 
 	try {

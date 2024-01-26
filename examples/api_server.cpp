@@ -17,8 +17,11 @@ int main(int argc, char const *argv[]) {
 		responseHeaders.set("x-serverless", "true");
 		responseHeaders.set("content-type", "application/json");
 
+		auto url = req.unwrapURL();
+		auto cookies = req.getCookies();
+
 		//	check if user visited before by a cookie
-		if (!req.cookies.has("userid")) {
+		if (!cookies.has("userid")) {
 			auto setCookies = HTTP::Cookies();
 			setCookies.set("userid", "test_user_0");
 			responseHeaders.set("Set-Cookie", setCookies.stringify());
@@ -27,7 +30,7 @@ int main(int argc, char const *argv[]) {
 
 		//	get search query "user" param
 		//	try opening url as http://localhost:8080/?user=maddsua
-		auto username = req.url.searchParams.get("user");
+		auto username = url.searchParams.get("user");
 		
 		//	create response json
 		JSON::Map testMap = {

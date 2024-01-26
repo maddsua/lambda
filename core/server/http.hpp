@@ -18,6 +18,7 @@ namespace Lambda::HTTPServer {
 
 	struct RequestQueueItem {
 		Lambda::HTTP::Request request;
+		std::string pathname;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};

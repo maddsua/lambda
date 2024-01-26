@@ -78,12 +78,31 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 			next.request.headers.append(headerKey, headerValue);
 		}
 
-		//	construct request URL
+		//	assemble request URL
+		if (!requestUrlString.starts_with('/')) {
+			throw std::runtime_error("invalid request URL");
+		}
+
 		auto hostHeader = next.request.headers.get("host");
 		if (hostHeader.size()) {
-			next.request.url = Lambda::HTTP::URL("http://" + hostHeader + requestUrlString);
+			next.request.url = "http://" + hostHeader + requestUrlString;
 		} else {
-			next.request.url = Lambda::HTTP::URL("http://lambdahost:" + conninfo.hostPort + requestUrlString);
+			next.request.url = "http://lambdahost:" + conninfo.hostPort + requestUrlString;
+		}
+
+		//	extract request path name
+		size_t pathnameEndLen = std::string::npos;
+		for (auto item : std::initializer_list<char>({ '?', '#' })) {
+			auto itempos = next.pathname.find(item);
+			if (itempos == std::string::npos) continue;
+			pathnameEndLen = itempos;
+			if (itempos == 0) break;
+		}
+
+		if (pathnameEndLen > 0 && pathnameEndLen < requestUrlString.size()) {
+			next.pathname = requestUrlString.substr(0, pathnameEndLen);
+		} else if (pathnameEndLen == 0) {
+			next.pathname = '/';
 		}
 
 		if (options.reuseConnections) {
@@ -105,12 +124,6 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 					break;
 				}
 			}
-		}
-
-		//	unpack cookies
-		auto cookieHeader = next.request.headers.get("cookie");
-		if (cookieHeader.size()) {
-			next.request.cookies = Lambda::HTTP::Cookies(cookieHeader);
 		}
 
 		auto bodySizeHeader = next.request.headers.get("content-length");
