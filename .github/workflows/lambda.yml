@@ -54,3 +54,5 @@ jobs:
         run: make example.api_server
       - name: KV server example
         run: make example.kvserver
+      - name: Default response example
+        run: make example.default
