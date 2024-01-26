@@ -74,14 +74,9 @@ namespace Lambda::HTTP {
 	class Cookies {
 		protected:
 
-			struct CookieProp : public KVpair {
-				CookieProp(const KVpair& init);
-				CookieProp(const std::string& init);
-			};
-
 			struct CookieInit {
 				std::string value;
-				std::vector<CookieProp> props;
+				std::vector<std::string> props;
 			};
 
 			std::unordered_map<std::string, std::string> m_data;
@@ -98,7 +93,7 @@ namespace Lambda::HTTP {
 			std::string get(const std::string& key) const;
 			bool has(const std::string& key) const;
 			void set(const std::string& key, const std::string& value);
-			void set(const std::string& key, const std::string& value, const std::initializer_list<CookieProp>& props);
+			void set(const std::string& key, const std::string& value, const std::vector<std::string>& props);
 			void del(const std::string& key);
 			std::vector<KVpair> entries() const;
 			size_t size() const noexcept;
