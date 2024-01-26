@@ -19,8 +19,7 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 	Network::TCP::ListenConfig listenInitOpts;
 	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
 	listenInitOpts.port = this->config.service.port;
-	auto tempListener = Network::TCP::ListenSocket(listenInitOpts);
-	this->listener = new Network::TCP::ListenSocket(std::move(tempListener));
+	this->listener = new Network::TCP::ListenSocket(listenInitOpts);
 
 	this->watchdogWorker = std::thread([&]() {
 
