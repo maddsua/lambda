@@ -56,7 +56,7 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 				response = handlerCallback(nextRequest.request, {
 					requestID,
 					conninfo,
-					Console(requestID)
+					Console(requestID, config.loglevel.timestamps)
 				});
 
 			} catch(const std::exception& e) {
