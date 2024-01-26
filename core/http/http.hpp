@@ -21,7 +21,11 @@ namespace Lambda::HTTP {
 		public:
 			KVContainer() {};
 			KVContainer(const KVContainer& other);
+			KVContainer(KVContainer&& other);
 			KVContainer(const std::initializer_list<KVpair>& init);
+
+			KVContainer& operator=(const KVContainer& other) noexcept;
+			KVContainer& operator=(KVContainer&& other) noexcept;
 
 			std::string get(const std::string& key) const;
 			bool has(const std::string& key) const;

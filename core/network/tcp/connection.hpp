@@ -24,6 +24,7 @@ namespace Lambda::Network::TCP {
 		public:
 			Connection(ConnCreateInit init);
 			Connection(Connection&& other) noexcept;
+			Connection(const Connection& other) = delete;
 			~Connection();
 
 			Connection& operator= (const Connection& other) = delete;

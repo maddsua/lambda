@@ -18,7 +18,8 @@ namespace Lambda::Network::TCP {
 
 		public:
 			ListenSocket(const ListenConfig& init);
-			ListenSocket(ListenSocket&& other);
+			ListenSocket(const ListenSocket& other) = delete;
+			ListenSocket(ListenSocket&& other) noexcept;
 			~ListenSocket();
 
 			ListenSocket& operator=(const ListenSocket& other) = delete;

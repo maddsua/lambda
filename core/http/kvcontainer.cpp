@@ -7,6 +7,10 @@ KVContainer::KVContainer(const KVContainer& other) {
 	this->m_data = other.m_data;
 }
 
+KVContainer::KVContainer(KVContainer&& other) {
+	this->m_data = std::move(other.m_data);
+}
+
 KVContainer::KVContainer(const std::initializer_list<KVpair>& init) {
 
 	for (const auto& entry : init) {
@@ -21,6 +25,16 @@ KVContainer::KVContainer(const std::initializer_list<KVpair>& init) {
 
 		element->second.push_back(entry.second);
 	}
+}
+
+KVContainer& KVContainer::operator=(const KVContainer& other) noexcept {
+	this->m_data = other.m_data;
+	return *this;
+}
+
+KVContainer& KVContainer::operator=(KVContainer&& other) noexcept {
+	this->m_data = std::move(other.m_data);
+	return *this;
 }
 
 bool KVContainer::has(const std::string& key) const {

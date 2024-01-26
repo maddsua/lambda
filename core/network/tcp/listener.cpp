@@ -64,7 +64,7 @@ ListenSocket::~ListenSocket() {
 	closesocket(this->hSocket);
 }
 
-ListenSocket::ListenSocket(ListenSocket&& other) {
+ListenSocket::ListenSocket(ListenSocket&& other) noexcept {
 	this->hSocket = other.hSocket;
 	this->config = other.config;
 	other.hSocket = INVALID_SOCKET;

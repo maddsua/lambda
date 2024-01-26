@@ -1,6 +1,5 @@
 #include "./encoding.hpp"
 
-#include <map>
 #include <stdexcept>
 
 using namespace Lambda;
