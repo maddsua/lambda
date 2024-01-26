@@ -24,7 +24,6 @@ Cookies::Cookies(const std::string& init) {
 Cookies::Cookies(const std::initializer_list<KVpair>& init) {
 	for (const auto& entry : init) {
 		const auto keyNormalized = Strings::toLowerCase(entry.first);
-		const auto element = this->m_data.find(keyNormalized);
 		this->m_data[keyNormalized] = entry.second;
 		this->m_set_queue[keyNormalized] = { entry.second };
 	}
@@ -40,10 +39,12 @@ Cookies::Cookies(Cookies&& other) {
 
 Cookies& Cookies::operator=(const Cookies& other) noexcept {
 	this->m_data = other.m_data;
+	return *this;
 }
 
 Cookies& Cookies::operator=(Cookies&& other) noexcept {
 	this->m_data = std::move(other.m_data);
+	return *this;
 }
 
 std::string Cookies::get(const std::string& key) const {
@@ -92,7 +93,7 @@ std::vector<std::string> Cookies::serialize() const {
 	std::vector<std::string> temp;
 	for (const auto& entry : this->m_set_queue) {
 		auto cookie = entry.first + '=' = entry.second.value;
-		for (const auto prop : entry.second.props)
+		for (const auto& prop : entry.second.props)
 			cookie += "; " + prop;
 		temp.push_back(cookie);
 	}
