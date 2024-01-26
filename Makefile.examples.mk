@@ -1,4 +1,5 @@
 
+# default service response example
 example.default: default.example$(EXEEXT)
 
 default.example$(EXEEXT): examples/default.o $(LAMBDA_LIBSHARED)
@@ -7,6 +8,8 @@ default.example$(EXEEXT): examples/default.o $(LAMBDA_LIBSHARED)
 examples/default.o: examples/default.cpp
 	g++ -c $(CFLAGS) examples/default.cpp -o examples/default.o
 
+
+# sample api server
 example.api_server: api_server.example$(EXEEXT)
 
 api_server.example$(EXEEXT): examples/api_server.o $(LAMBDA_LIBSHARED)
@@ -15,6 +18,8 @@ api_server.example$(EXEEXT): examples/api_server.o $(LAMBDA_LIBSHARED)
 examples/api_server.o: examples/api_server.cpp
 	g++ -c $(CFLAGS) examples/api_server.cpp -o examples/api_server.o
 
+
+# sample kv storage server
 example.kvserver: kvserver.example$(EXEEXT)
 
 kvserver.example$(EXEEXT): examples/kvserver.o $(LAMBDA_LIBSHARED)
