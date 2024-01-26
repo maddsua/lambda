@@ -4,8 +4,8 @@ example.default: default.example$(EXEEXT)
 default.example$(EXEEXT): examples/default.o $(LAMBDA_LIBSHARED)
 	g++ -s $(CFLAGS) examples/default.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o default.example$(EXEEXT)
 
-examples/api_server.o: examples/api_server.cpp
-	g++ -c $(CFLAGS) examples/api_server.cpp -o examples/api_server.o
+examples/default.o: examples/default.cpp
+	g++ -c $(CFLAGS) examples/default.cpp -o examples/default.o
 
 example.api_server: api_server.example$(EXEEXT)
 
