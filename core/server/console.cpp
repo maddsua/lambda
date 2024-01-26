@@ -1,60 +1,56 @@
 
-#include "../../polyfill/polyfill.hpp"
-#include "./handlerConsole.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "./console.hpp"
 
 using namespace Lambda;
 
-LogItem::LogItem(const std::string& thing) {
+Console::Entry::Entry(const std::string& thing) {
 	this->value = thing;
 }
-LogItem::LogItem(const char* thing) {
+Console::Entry::Entry(const char* thing) {
 	this->value = thing;
 }
-LogItem::LogItem(bool thing) {
+Console::Entry::Entry(bool thing) {
 	this->value = thing ? "true" : "false";
 }
-LogItem::LogItem(char thing) {
+Console::Entry::Entry(char thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(unsigned char thing) {
+Console::Entry::Entry(unsigned char thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(short thing) {
+Console::Entry::Entry(short thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(unsigned short thing) {
+Console::Entry::Entry(unsigned short thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(int thing) {
+Console::Entry::Entry(int thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(unsigned int thing) {
+Console::Entry::Entry(unsigned int thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(float thing) {
+Console::Entry::Entry(float thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(double thing) {
+Console::Entry::Entry(double thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(long thing) {
+Console::Entry::Entry(long thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(unsigned long thing) {
+Console::Entry::Entry(unsigned long thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(long long thing) {
+Console::Entry::Entry(long long thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(unsigned long long thing) {
+Console::Entry::Entry(unsigned long long thing) {
 	this->value = std::to_string(thing);
 }
-LogItem::LogItem(long double thing) {
+Console::Entry::Entry(long double thing) {
 	this->value = std::to_string(thing);
-}
-
-const std::string& LogItem::unwrap() {
-	return this->value;
 }
 
 Console::Console(
@@ -62,13 +58,13 @@ Console::Console(
 	bool useTimestamps
 ) : m_id(setid), m_timestamps(useTimestamps) {}
 
-std::string Console::serializeEntries(const std::initializer_list<LogItem>& list) const {
+std::string Console::serializeEntries(const std::initializer_list<Console::Entry>& list) const {
 
 	std::string temp = this->m_timestamps ? Date().toHRTString() + " [" + this->m_id + "]" : "[" + this->m_id + "]";
 
 	for (auto elem : list) {
 		if (temp.size()) temp.push_back(' ');
-		temp += elem.unwrap();
+		temp += elem.value;
 	}
 
 	temp += '\n';
@@ -76,17 +72,17 @@ std::string Console::serializeEntries(const std::initializer_list<LogItem>& list
 	return temp;
 }
 
-void Console::log(std::initializer_list<LogItem> list) const {
+void Console::log(std::initializer_list<Console::Entry> list) const {
 	std::string temp = this->serializeEntries(list);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stdout);
 }
 
-void Console::error(std::initializer_list<LogItem> list) const {
+void Console::error(std::initializer_list<Console::Entry> list) const {
 	std::string temp = this->serializeEntries(list);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }
 
-void Console::warn(std::initializer_list<LogItem> list) const {
+void Console::warn(std::initializer_list<Console::Entry> list) const {
 	std::string temp = this->serializeEntries(list);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }

@@ -6,7 +6,7 @@
 
 #include "../http/http.hpp"
 #include "../network/network.hpp"
-#include "./console/handlerConsole.hpp"
+#include "./console.hpp"
 
 namespace Lambda {
 
