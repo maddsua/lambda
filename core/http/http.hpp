@@ -17,9 +17,10 @@ namespace Lambda::HTTP {
 	class KVContainer {
 		protected:
 			std::unordered_map<std::string, std::vector<std::string>> m_data;
+			void mergeInitList(const std::initializer_list<KVpair>& init);
 
 		public:
-			KVContainer() {};
+			KVContainer() = default;
 			KVContainer(const KVContainer& other);
 			KVContainer(KVContainer&& other);
 			KVContainer(const std::initializer_list<KVpair>& init);
@@ -41,7 +42,7 @@ namespace Lambda::HTTP {
 
 	class URLSearchParams : public KVContainer {
 		public:
-			URLSearchParams() {};
+			URLSearchParams() = default;
 			URLSearchParams(const std::string& URLString);
 
 			std::string stringify() const;
@@ -71,8 +72,9 @@ namespace Lambda::HTTP {
 
 	class Cookies : public KVContainer {
 		public:
-			Cookies() {};
+			Cookies() = default;
 			Cookies(const std::string& cookies);
+			Cookies(const std::initializer_list<KVpair>& init);
 
 			std::string stringify() const;
 	};
@@ -87,7 +89,7 @@ namespace Lambda::HTTP {
 			/**
 			 * Creates HTTP Body object
 			*/
-			BodyBuffer() {}
+			BodyBuffer() = default;
 			BodyBuffer(const BodyBuffer& other);
 			BodyBuffer(const char* content);
 			BodyBuffer(const std::string& content);
@@ -145,29 +147,17 @@ namespace Lambda::HTTP {
 	struct Response {
 		Status status;
 		Headers headers;
-		Cookies setCookies;
 		BodyBuffer body;
 
-		Response() {}
-		Response(
-			const Status& statusinit
-		) : status(statusinit) {}
-		Response(
-			const Status& statusinit,
-			const Headers& headersinit
-		) : status(statusinit), headers(headersinit) {}
-		Response(
-			const Status& statusinit,
-			const BodyBuffer& body
-		) : status(statusinit), body(body) {}
-		Response(
-			const BodyBuffer& bodyinit
-		) : body(bodyinit) {}
-		Response(
-			const Status& statusinit,
-			const Headers& headersinit,
-			const BodyBuffer& body
-		) : status(statusinit), headers(headersinit), body(body) {}
+		Response() = default;
+		Response(const Status& statusinit);
+		Response(const Status& statusinit, const Headers& headersinit);
+		Response(const Status& statusinit, const BodyBuffer& body);
+		Response(const BodyBuffer& bodyinit);
+		Response(const Status& statusinit, const Headers& headersinit, const BodyBuffer& body);
+
+		void setCookies(const std::initializer_list<KVpair>& cookies);
+		void setCookies(const Cookies& cookies);
 	};
 
 	struct Request {
@@ -180,7 +170,7 @@ namespace Lambda::HTTP {
 		Request(const std::string& urlinit);
 		Request(const std::string& urlinit, const Method& methodInit);
 		Request(const std::string& urlinit, const Headers& headersinit);
-		Request( const std::string& urlinit, const Method& methodInit, const BodyBuffer& bodyinit);
+		Request(const std::string& urlinit, const Method& methodInit, const BodyBuffer& bodyinit);
 		Request(const std::string& urlinit, const Method& methodInit, const Headers& headersinit, BodyBuffer& bodyinit);
 
 		URL unwrapURL() const;

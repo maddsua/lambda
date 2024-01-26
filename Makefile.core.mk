@@ -6,7 +6,7 @@ LIB_CORE_POLYFILL		=	core/polyfill.a
 LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/uid.o
 
 LIB_CORE_HTTP			=	core/http.a
-LIB_CORE_HTTP_DEPS		=	core/http/request.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o
+LIB_CORE_HTTP_DEPS		=	core/http/request.o core/http/response.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o
 
 LIB_CORE_ENCODING		=	core/encoding.a
 LIB_CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
@@ -56,6 +56,9 @@ $(LIB_CORE_HTTP): $(LIB_CORE_HTTP_DEPS)
 
 core/http/request.o: core/http/request.cpp
 	g++ -c $(CFLAGS) core/http/request.cpp -o core/http/request.o
+
+core/http/response.o: core/http/response.cpp
+	g++ -c $(CFLAGS) core/http/response.cpp -o core/http/response.o
 
 core/http/cookies.o: core/http/cookies.cpp
 	g++ -c $(CFLAGS) core/http/cookies.cpp -o core/http/cookies.o

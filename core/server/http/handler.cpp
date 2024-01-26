@@ -69,10 +69,6 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 				response = HTTPServer::errorResponse(500, "Function handler crashed: unhandled exception");
 			}
 
-			if (response.setCookies.size()) {
-				response.headers.set("Set-Cookie", response.setCookies.stringify());
-			}
-
 			response.headers.set("date", responseDate.toUTCString());
 			response.headers.set("server", "maddsua/lambda");
 			response.headers.set("x-request-id", requestID);

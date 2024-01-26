@@ -9,8 +9,6 @@ int main(int argc, char const *argv[]) {
 
 	auto handler = [&](const Request& req, const Context& context) {
 
-		bool isFirstFisit = false;
-
 		auto responseHeaders = HTTP::Headers();
 
 		//	just setting a custom header
@@ -20,18 +18,13 @@ int main(int argc, char const *argv[]) {
 		auto url = req.unwrapURL();
 		auto cookies = req.getCookies();
 
-		//	check if user visited before by a cookie
-		if (!cookies.has("userid")) {
-			auto setCookies = HTTP::Cookies();
-			setCookies.set("userid", "test_user_0");
-			responseHeaders.set("Set-Cookie", setCookies.stringify());
-			isFirstFisit = true;
-		}
-
 		//	get search query "user" param
 		//	try opening url as http://localhost:8080/?user=maddsua
 		auto username = url.searchParams.get("user");
-		
+
+		//	check if user visited before by a cookie
+		bool isFirstFisit = !cookies.has("userid");
+
 		//	create response json
 		JSON::Map testMap = {
 			{"date", Date().toUTCString()},
@@ -40,7 +33,16 @@ int main(int argc, char const *argv[]) {
 			{"first_visit", isFirstFisit}
 		};
 
-		return HTTP::Response(200, responseHeaders, stringify(Property(testMap)));
+		auto response = HTTP::Response(200, responseHeaders, stringify(Property(testMap)));
+
+		//	set a user id cookie to check for on next request
+		if (isFirstFisit) {
+			auto newCookies = HTTP::Cookies();
+			newCookies.set("userid", "test_user_0");
+			response.setCookies(newCookies);
+		}
+
+		return response;
 	};
 
 	ServerConfig initparams;

@@ -11,8 +11,7 @@ KVContainer::KVContainer(KVContainer&& other) {
 	this->m_data = std::move(other.m_data);
 }
 
-KVContainer::KVContainer(const std::initializer_list<KVpair>& init) {
-
+void KVContainer::mergeInitList(const std::initializer_list<KVpair>& init) {
 	for (const auto& entry : init) {
 
 		const auto keyNormalized = Strings::toLowerCase(entry.first);
@@ -25,6 +24,10 @@ KVContainer::KVContainer(const std::initializer_list<KVpair>& init) {
 
 		element->second.push_back(entry.second);
 	}
+}
+
+KVContainer::KVContainer(const std::initializer_list<KVpair>& init) {
+	this->mergeInitList(init);
 }
 
 KVContainer& KVContainer::operator=(const KVContainer& other) noexcept {

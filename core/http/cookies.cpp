@@ -3,6 +3,10 @@
 
 using namespace Lambda::HTTP;
 
+Cookies::Cookies(const std::initializer_list<KVpair>& init) {
+	this->mergeInitList(init);
+}
+
 Cookies::Cookies(const std::string& cookies) {
 
 	auto entries = Strings::split(cookies, "; ");
