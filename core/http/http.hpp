@@ -17,7 +17,6 @@ namespace Lambda::HTTP {
 	class KVContainer {
 		protected:
 			std::unordered_map<std::string, std::vector<std::string>> m_data;
-			void mergeInitList(const std::initializer_list<KVpair>& init);
 
 		public:
 			KVContainer() = default;
