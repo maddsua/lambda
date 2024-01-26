@@ -34,5 +34,5 @@ void Response::setCookies(const std::initializer_list<KVpair>& cookies) {
 void Response::setCookies(const Cookies& cookies) {
 	auto entries = cookies.serialize();
 	for (const auto& entry : entries)
-		this->headers.set("Set-Cookie", entry);
+		this->headers.append("Set-Cookie", entry);
 }
