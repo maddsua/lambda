@@ -92,7 +92,7 @@ size_t Cookies::size() const noexcept {
 std::vector<std::string> Cookies::serialize() const {
 	std::vector<std::string> temp;
 	for (const auto& entry : this->m_set_queue) {
-		auto cookie = entry.first + '=' = entry.second.value;
+		auto cookie = entry.first + '=' + entry.second.value;
 		for (const auto& prop : entry.second.props)
 			cookie += "; " + prop;
 		temp.push_back(cookie);
