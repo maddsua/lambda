@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring>
 #include <unordered_map>
+#include <map>
 
 namespace Lambda::HTTP {
 
@@ -69,13 +70,32 @@ namespace Lambda::HTTP {
 			std::string href() const;
 	};
 
-	class Cookies : public KVContainer {
+	struct CookieInit {
+		std::string value;
+		//std::map
+	};
+
+	class Cookies {
+		protected:
+			std::unordered_map<std::string, std::string> m_data;
+			std::map<std::string, CookieInit> setCookieQueue;
+
 		public:
 			Cookies() = default;
-			Cookies(const std::string& cookies);
-			Cookies(const std::initializer_list<KVpair>& init);
+			Cookies(const Cookies& other);
+			Cookies(Cookies&& other);
 
-			std::string stringify() const;
+			Cookies& operator=(const Cookies& other) noexcept;
+			Cookies& operator=(Cookies&& other) noexcept;
+
+			std::string get(const std::string& key) const;
+			bool has(const std::string& key) const;
+			void set(const std::string& key, const std::string value);
+			void set(const std::string& key, const CookieInit& value);
+			void del(const std::string& key);
+			std::vector<KVpair> entries() const;
+			size_t size() const noexcept;
+			std::vector<std::string> serialize() const;
 	};
 
 	class BodyBuffer {
