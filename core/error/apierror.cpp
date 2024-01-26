@@ -11,6 +11,8 @@
 
 using namespace Lambda;
 
+static const size_t assumeMaxApiErrorMessageLength = 64;
+
 int32_t Lambda::getApiErrorCode() noexcept {
 	return (
 		#ifdef _WIN32
@@ -28,7 +30,9 @@ std::string Lambda::formaErrorMessage(int32_t errorCode) noexcept {
 	#ifdef _WIN32
 
 		char* tempMessage = nullptr;
-		auto formatResult = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, errorCode, 0, (LPSTR)&tempMessage, 0, NULL);
+		auto formatResult = FormatMessageA(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+			NULL, errorCode, 0, (LPSTR)&tempMessage, 0, NULL);
 		if (formatResult) {
 			message = tempMessage;
 			LocalFree(tempMessage);
@@ -38,12 +42,19 @@ std::string Lambda::formaErrorMessage(int32_t errorCode) noexcept {
 
 	#else
 
+		#ifdef sys_errlist
+			message = (errorCode < sys_nerr) ? 
+				sys_errlist[errorCode] :
+				("OS error " + std::to_string(errorCode));
+		#else
+			char tempBuff[128];
+			tempBuff[sizeof(tempBuff) - 1] = 0;
+			if (strerror_s(tempBuff, sizeof(tempBuff) - 1, errorCode)) {
+				message = "OS error " + std::to_string(errorCode);
+			} else message = tempBuff;
+		#endif
 
-		message = "ahh shit it's not implemented yet";
-		
 	#endif
- 
-	strerror_s();
 
 	return message;
 }
