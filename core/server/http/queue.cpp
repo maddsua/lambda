@@ -16,9 +16,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 };
 
 HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
-	this->m_reader = std::async([&](){
-		asyncReader(conn, options, *this);
-	});
+	this->m_reader = std::async(asyncReader, std::ref(conn), std::ref(options), std::ref(*this));
 }
 
 HttpRequestQueue::~HttpRequestQueue() {
