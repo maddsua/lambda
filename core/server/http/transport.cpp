@@ -158,36 +158,36 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 
 void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding) {
 
-#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
+	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
-	std::vector<uint8_t> responseBody;
+		std::vector<uint8_t> responseBody;
 
-	switch (useEncoding) {
+		switch (useEncoding) {
 
-		case ContentEncodings::Brotli: {
-			responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
-		} break;
+			case ContentEncodings::Brotli: {
+				responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
+			} break;
 
-		case ContentEncodings::Gzip: {
-			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
-		} break;
+			case ContentEncodings::Gzip: {
+				responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+			} break;
 
-		case ContentEncodings::Deflate: {
-			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
-		} break;
+			case ContentEncodings::Deflate: {
+				responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+			} break;
 
-		default: {
-			responseBody = response.body.buffer();
-		} break;
-	}
+			default: {
+				responseBody = response.body.buffer();
+			} break;
+		}
 
-	if (useEncoding != ContentEncodings::None) {
-		response.headers.set("content-encoding", contentEncodingMap.at(useEncoding));
-	}
+		if (useEncoding != ContentEncodings::None) {
+			response.headers.set("content-encoding", contentEncodingMap.at(useEncoding));
+		}
 
-#else
-	auto& responseBody = response.body.buffer();
-#endif
+	#else
+		auto& responseBody = response.body.buffer();
+	#endif
 
 	auto bodySize = responseBody.size();
 	response.headers.set("content-length", std::to_string(bodySize));
