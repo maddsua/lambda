@@ -70,7 +70,6 @@ namespace Lambda::HTTP {
 			std::string href() const;
 	};
 
-
 	class Cookies {
 		protected:
 			struct CookieInit {
