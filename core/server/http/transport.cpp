@@ -49,6 +49,9 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 		recvBuff.erase(recvBuff.begin(), headerEnded + patternEndHeader.size());
 
 		auto headerStartLine = Strings::split(headerFields.at(0), ' ');
+		if (headerStartLine.size() < 2) {
+			throw std::runtime_error("invalid HTTP request");
+		}
 
 		auto& requestMethodString = headerStartLine.at(0);
 		auto& requestUrlString = headerStartLine.at(1);
