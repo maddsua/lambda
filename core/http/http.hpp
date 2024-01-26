@@ -73,17 +73,17 @@ namespace Lambda::HTTP {
 
 	class Cookies {
 		protected:
-
 			struct CookieInit {
 				std::string value;
 				std::vector<std::string> props;
 			};
-
 			std::unordered_map<std::string, std::string> m_data;
-			std::map<std::string, CookieInit> setCookieQueue;
+			std::map<std::string, CookieInit> m_set_queue;
 
 		public:
 			Cookies() = default;
+			Cookies(const std::string& init);
+			Cookies(const std::initializer_list<KVpair>& init);
 			Cookies(const Cookies& other);
 			Cookies(Cookies&& other);
 
