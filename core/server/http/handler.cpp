@@ -79,6 +79,9 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 			if (nextRequest.keepAlive) response.headers.set("connection", "keep-alive");
 			if (!response.headers.has("content-type")) response.headers.set("content-type", "text/html; charset=utf-8");
 
+
+			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
+
 			if (config.loglevel.requests) {
 				printf("%s[%s] (%s) %s %s --> %i\n",
 					config.loglevel.timestamps ? (responseDate.toHRTString() + " ").c_str() : "",
@@ -89,8 +92,6 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 					response.status.code()
 				);
 			}
-
-			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
 		}
 
 	} catch(const std::exception& e) {
