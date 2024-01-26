@@ -32,7 +32,7 @@ namespace Lambda {
 		Console console;
 	};
 
-	typedef std::function<HTTP::Response(const HTTP::Request& request, const RequestContext& context)> HTTPRequestCallback;
+	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> HTTPRequestCallback;
 
 	struct ServiceOptions {
 		uint16_t port = 8180;
