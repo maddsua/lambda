@@ -3,28 +3,68 @@
 
 using namespace Lambda::HTTP;
 
-Cookies::Cookies(const std::initializer_list<KVpair>& init) {
-	this->mergeInitList(init);
+Cookies::Cookies(const Cookies& other) {
+	this->m_data = other.m_data;
 }
 
-Cookies::Cookies(const std::string& cookies) {
+Cookies::Cookies(Cookies&& other) {
+	this->m_data = std::move(other.m_data);
+}
 
-	auto entries = Strings::split(cookies, "; ");
+Cookies& Cookies::operator=(const Cookies& other) noexcept {
+	this->m_data = other.m_data;
+}
 
-	for (const auto& entry : entries) {
+Cookies& Cookies::operator=(Cookies&& other) noexcept {
+	this->m_data = std::move(other.m_data);
+}
 
-		auto kvSeparatorIdx = entry.find('=');
-		if (kvSeparatorIdx == std::string::npos || kvSeparatorIdx == 0 || kvSeparatorIdx == entry.size() - 1) continue;
+std::string Cookies::get(const std::string& key) const {
+	const auto keyNormalized = Strings::toLowerCase(key);
+	const auto element = this->m_data.find(keyNormalized);
+	if (element == this->m_data.end()) return {};
+	return element->second;
+}
 
-		auto key = Strings::trim(entry.substr(0, kvSeparatorIdx));
-		auto value = Strings::trim(entry.substr(kvSeparatorIdx + 1));
+bool Cookies::has(const std::string& key) const {
+	const auto keyNormalized = Strings::toLowerCase(key);
+	return this->m_data.contains(keyNormalized);
+}
 
-		if (!key.size() || !value.size()) continue;
+void Cookies::set(const std::string& key, const std::string value) {
+	const auto keyNormalized = Strings::toLowerCase(key);
+	this->m_data[keyNormalized] = value;
+	this->setCookieQueue[keyNormalized] = { value };
+}
 
-		this->m_data[key] = { value };
+std::vector<KVpair> Cookies::entries() const {
+
+	std::vector<KVpair> temp;
+
+	for (const auto& entry : this->m_data) {
+		temp.push_back({ entry.first, entry.second });
 	}
+
+	return temp;
 }
 
+size_t Cookies::size() const noexcept {
+	return this->m_data.size();
+}
+
+std::vector<std::string> Cookies::serialize() const {
+	
+	std::vector<std::string> temp;
+
+	for (const auto& entry : this->setCookieQueue) {
+		auto cookie = entry.first + '=' = entry.second.value;
+		temp.push_back(cookie);
+	}
+
+	return temp;
+}
+
+/*
 std::string Cookies::stringify() const {
 	
 	std::string temp;
@@ -36,3 +76,4 @@ std::string Cookies::stringify() const {
 
 	return temp;
 }
+*/
