@@ -9,10 +9,10 @@ std::string HTML::renderTemplate(const std::string& templateSource, const Templa
 	auto result = templateSource;
 
 	for (const auto& item : props) {
-		auto templateVariable = "{{" + item.first + "}}";
+		auto templateLiteral = "{{" + item.first + "}}";
 		auto matchIdx = std::string::npos;
-		while ((matchIdx = result.find(templateVariable)) != std::string::npos) {
-			result.replace(matchIdx, templateVariable.size(), item.second);
+		while ((matchIdx = result.find(templateLiteral)) != std::string::npos) {
+			result.replace(matchIdx, templateLiteral.size(), item.second);
 		}
 	}
 
