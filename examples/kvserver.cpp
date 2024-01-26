@@ -13,7 +13,7 @@ int main(int argc, char const *argv[]) {
 		auto console = context.console;
 
 		//	get record key
-		auto key = req.url.searchParams.get("record");
+		auto key = req.unwrapURL().searchParams.get("record");
 		if (!key.size()) return HTTP::Response(HTTP::Status(400), "no record key provided");
 
 		switch (req.method) {
