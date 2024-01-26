@@ -13,10 +13,7 @@
 namespace Lambda::HTTPServer {
 
 	enum struct ContentEncodings {
-		None = 0,
-		Brotli = 1,
-		Gzip = 2,
-		Deflate = 3,
+		None, Brotli, Gzip, Deflate,
 	};
 
 	struct RequestQueueItem {
