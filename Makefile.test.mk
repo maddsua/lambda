@@ -40,8 +40,8 @@ TEST_JSON_TARGET = $(TEMPBIN)json.test$(EXEEXT)
 test.json: $(TEST_JSON_TARGET)
 	$(TEST_JSON_TARGET)
 
-$(TEST_JSON_TARGET): test/json.test.o $(LIB_EXTRA_JSON) $(LIB_CORE_POLYFILL)
-	g++ $(CFLAGS) test/json.test.cpp $(LIB_EXTRA_JSON) $(LIB_CORE_POLYFILL) -o $(TEST_JSON_TARGET)
+$(TEST_JSON_TARGET): test/json.test.o $(LIB_CORE_JSON) $(LIB_CORE_POLYFILL)
+	g++ $(CFLAGS) test/json.test.cpp $(LIB_CORE_JSON) $(LIB_CORE_POLYFILL) -o $(TEST_JSON_TARGET)
 
 test/json.test.o: test/json.test.cpp
 	g++ -c $(CFLAGS) test/json.test.cpp -o test/json.test.o
