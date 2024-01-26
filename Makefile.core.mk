@@ -1,6 +1,6 @@
 
 LIB_CORE				=	core/core.a
-LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS)
+LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS) $(LIB_CORE_ERROR_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
 LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/uid.o
@@ -29,6 +29,9 @@ LIB_CORE_JSON_DEPS		=	core/json/property.o core/json/parse.o core/json/stringify
 
 LIB_CORE_CRYPTO			=	core/crypto.a
 LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o
+
+LIB_CORE_ERROR			=	core/error.a
+LIB_CORE_ERROR_DEPS		=	core/error/apierror.o
 
 
 # target object
@@ -178,3 +181,10 @@ $(LIB_CORE_CRYPTO): $(LIB_CORE_CRYPTO_DEPS)
 
 core/crypto/sha1.o: core/crypto/sha1.cpp
 	g++ -c $(CFLAGS) core/crypto/sha1.cpp -o core/crypto/sha1.o
+
+# error handling
+$(LIB_CORE_ERROR): $(LIB_CORE_ERROR_DEPS)
+	ar rvs $(LIB_CORE_ERROR) $(LIB_CORE_ERROR_DEPS)
+
+core/error/apierror.o: core/error/apierror.cpp
+	g++ -c $(CFLAGS) core/error/apierror.cpp -o core/error/apierror.o
