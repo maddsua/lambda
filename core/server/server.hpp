@@ -21,14 +21,14 @@ namespace Lambda {
 		bool reuseConnections = true;
 	};
 
-	enum struct ServicePageType {
+	enum struct ErrorResponseType {
 		HTML, JSON
 	};
 
 	struct ServeOptions {
 		LogOptions loglevel;
 		HTTPTransportOptions transport;
-		ServicePageType servicePageType = ServicePageType::HTML;
+		ErrorResponseType errorResponseType = ErrorResponseType::HTML;
 	};
 
 	struct RequestContext {

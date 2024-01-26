@@ -77,7 +77,7 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 			}
 
 			if (handlerError.has_value()) {
-				response = config.servicePageType == ServicePageType::JSON ? 
+				response = config.errorResponseType == ErrorResponseType::JSON ? 
 					composeServerErrorResponse(handlerError.value()) :
 					renderServerErrorPage(handlerError.value());
 			}
