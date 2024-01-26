@@ -31,10 +31,23 @@ bool Cookies::has(const std::string& key) const {
 	return this->m_data.contains(keyNormalized);
 }
 
-void Cookies::set(const std::string& key, const std::string value) {
+void Cookies::set(const std::string& key, const std::string& value) {
 	const auto keyNormalized = Strings::toLowerCase(key);
 	this->m_data[keyNormalized] = value;
 	this->setCookieQueue[keyNormalized] = { value };
+}
+
+void Cookies::set(const std::string& key, const std::string& value, const std::vector<CookieProp>& props) {
+	const auto keyNormalized = Strings::toLowerCase(key);
+	this->m_data[keyNormalized] = value;
+	this->setCookieQueue[keyNormalized] = { value, props };
+}
+
+void Cookies::del(const std::string& key) {
+	const auto keyNormalized = Strings::toLowerCase(key);
+	if (!this->m_data.contains(keyNormalized)) return;
+	this->m_data.erase(keyNormalized);
+	this->setCookieQueue[keyNormalized] = { "", { "expires", "Thu, Jan 01 1970 00:00:00 UTC" } };
 }
 
 std::vector<KVpair> Cookies::entries() const {
@@ -57,11 +70,29 @@ std::vector<std::string> Cookies::serialize() const {
 	std::vector<std::string> temp;
 
 	for (const auto& entry : this->setCookieQueue) {
+
 		auto cookie = entry.first + '=' = entry.second.value;
+
+		for (const auto prop : entry.second.props) {
+			if (prop.second.size()) {
+				cookie += "; " + prop.first + '=' + prop.second;
+			} else {
+				cookie += "; " + prop.first;
+			}
+		}
+
 		temp.push_back(cookie);
 	}
 
 	return temp;
+}
+
+Cookies::CookieProp::CookieProp(const std::pair<std::string, std::string>& init) {
+	*this = init;
+}
+
+Cookies::CookieProp::CookieProp(const std::string& init) {
+	this->first = init;
 }
 
 /*
