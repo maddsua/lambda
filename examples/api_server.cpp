@@ -39,6 +39,10 @@ int main(int argc, char const *argv[]) {
 		if (isFirstFisit) {
 			auto newCookies = HTTP::Cookies();
 			newCookies.set("userid", "test_user_0");
+			newCookies.set("some_control", {
+				"Secure",
+				{ "expires", "123" }
+			});
 			response.setCookies(newCookies);
 		}
 
