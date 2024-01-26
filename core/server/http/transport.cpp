@@ -3,7 +3,6 @@
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
-#include "../../crypto/crypto.hpp"
 #include "../../../lambda_build_options.hpp"
 
 #include <queue>
