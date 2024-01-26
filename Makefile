@@ -8,13 +8,17 @@ LAMBDA_LIBSTATIC		=	$(LIBNAME).a
 LAMBDA_LIBSHARED		=	$(LIBNAME)$(DLLEXT)
 
 ifeq ($(OS),Windows_NT)
+	CLEAN_COMMAND		=	del /S *.o *.exe *.a *.dll *.so *.res
 	EXEEXT				=	.exe
 	DLLEXT				=	.dll
 	LINK_SYSTEM_LIBS	=	-lws2_32
 	WINDOWS_DLL_DEPS	=	dllinfo.res
 	DLL_LDFLAGS			=	-Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
+	BINRES_TARGET		=	pe-x86-64
 	CFLAGS				+=	-g
 else
+	CLEAN_COMMAND		=	rm -rf *.o *.exe *.a *.dll *.so *.res
+	BINRES_TARGET		=	elf64-x86-64 
 	DLLEXT				=	.so
 	CFLAGS				+=	-fPIC
 endif
@@ -23,10 +27,7 @@ endif
 all: all-before $(LAMBDA_LIBSTATIC) all-after
 
 clean: action-custom
-	rm -rf *.o *.exe *.a *.dll *.so *.res
-
-cleanw: action-custom
-	del /S *.o *.exe *.a *.dll *.so *.res
+	$(CLEAN_COMMAND)
 
 include Makefile.core.mk
 include Makefile.extra.mk

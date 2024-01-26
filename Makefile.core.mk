@@ -144,7 +144,7 @@ core/server/console/handlerConsole.o: core/server/console/handlerConsole.cpp
 	g++ -c $(CFLAGS) core/server/console/handlerConsole.cpp -o core/server/console/handlerConsole.o
 
 core/resources/html/servicepage.res: core/resources/html/servicepage.html
-	objcopy --input-target binary --output-target elf64-x86-64 --binary-architecture i386 core/resources/html/servicepage.html core/resources/html/servicepage.res
+	objcopy --input-target binary --output-target $(BINRES_TARGET) --binary-architecture i386:x86-64 core/resources/html/servicepage.html core/resources/html/servicepage.res
 
 
 # crypto stuff
