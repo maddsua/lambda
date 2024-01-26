@@ -4,6 +4,7 @@
 #include "../network/tcp/connection.hpp"
 #include "../network/tcp/listener.hpp"
 #include "../network/network.hpp"
+#include "../html/templates.hpp"
 #include "./server.hpp"
 
 #include <future>
@@ -42,7 +43,7 @@ namespace Lambda::HTTPServer {
 	};
 
 	void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept;
-	Lambda::HTTP::Response errorResponse(int statusCode, std::optional<std::string> errorMessage);
+	Lambda::HTTP::Response errorResponse(uint32_t statusCode, std::optional<std::string> errorMessage);
 	void writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding);
 	void asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue);
 
