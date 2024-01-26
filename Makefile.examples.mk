@@ -1,12 +1,22 @@
 
-# default service response example
-example.default: default.example$(EXEEXT)
+# service page response example
+example.servicepage: servicepage.example$(EXEEXT)
 
-default.example$(EXEEXT): examples/default.o $(LAMBDA_LIBSHARED)
-	g++ -s $(CFLAGS) examples/default.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o default.example$(EXEEXT)
+servicepage.example$(EXEEXT): examples/servicepage.o $(LAMBDA_LIBSHARED)
+	g++ -s $(CFLAGS) examples/servicepage.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o servicepage.example$(EXEEXT)
 
-examples/default.o: examples/default.cpp
-	g++ -c $(CFLAGS) examples/default.cpp -o examples/default.o
+examples/servicepage.o: examples/servicepage.cpp
+	g++ -c $(CFLAGS) examples/servicepage.cpp -o examples/servicepage.o
+
+
+# service crash example
+example.crash: crash.example$(EXEEXT)
+
+crash.example$(EXEEXT): examples/crash.o $(LAMBDA_LIBSHARED)
+	g++ -s $(CFLAGS) examples/crash.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o crash.example$(EXEEXT)
+
+examples/crash.o: examples/crash.cpp
+	g++ -c $(CFLAGS) examples/crash.cpp -o examples/crash.o
 
 
 # sample api server

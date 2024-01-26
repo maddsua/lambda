@@ -33,11 +33,12 @@ namespace Lambda {
 
 	class Console {
 		private:
-			std::string id;
+			std::string m_id;
+			bool m_timestamps;
 			std::string serializeEntries(const std::initializer_list<LogItem>& list) const;
 
 		public:
-			Console(const std::string& setid) : id(setid) {}
+			Console(const std::string& setid, bool useTimestamps);
 
 			void log(std::initializer_list<LogItem> list) const;
 			void error(std::initializer_list<LogItem> list) const;

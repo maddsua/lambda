@@ -1,10 +1,12 @@
 
+#include "../../../lambda_build_options.hpp"
 #include "../http.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
 #include "../../crypto/crypto.hpp"
-#include "../../../lambda_build_options.hpp"
+#include "../../html/templates.hpp"
+#include "../../json/json.hpp"
 
 #include <queue>
 #include <mutex>
@@ -13,10 +15,14 @@
 #include <algorithm>
 #include <map>
 #include <set>
+#include <optional>
 
 using namespace Lambda;
 using namespace Lambda::HTTPServer;
 using namespace Lambda::Network;
+
+HTTP::Response renderServerErrorPage(std::string message);
+HTTP::Response composeServerErrorResponse(std::string message);
 
 void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
 
@@ -43,6 +49,7 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 			auto requestID = ShortID((timeHighres & ~0UL)).toString();
 
 			Lambda::HTTP::Response response;
+			std::optional<std::string> handlerError;
 
 			try {
 
@@ -57,8 +64,8 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 				if (config.loglevel.requests) {
 					printf("%s %s crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
 				}
-				
-				response = HTTPServer::errorResponse(500, std::string("Function handler crashed: ") + e.what());
+
+				handlerError = e.what();
 
 			} catch(...) {
 
@@ -66,15 +73,28 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 					printf("%s %s crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
 				}
 
-				response = HTTPServer::errorResponse(500, "Function handler crashed: unhandled exception");
+				handlerError = "unhandled exception";
+			}
+
+			if (handlerError.has_value()) {
+				response = config.servicePageType == ServicePageType::JSON ? 
+					composeServerErrorResponse(handlerError.value()) :
+					renderServerErrorPage(handlerError.value());
 			}
 
 			response.headers.set("date", responseDate.toUTCString());
 			response.headers.set("server", "maddsua/lambda");
 			response.headers.set("x-request-id", requestID);
-			if (nextRequest.keepAlive) response.headers.set("connection", "keep-alive");
-			if (!response.headers.has("content-type")) response.headers.set("content-type", "text/html; charset=utf-8");
 
+			//	set connection header to acknowledge keep-alive mode
+			if (nextRequest.keepAlive) {
+				response.headers.set("connection", "keep-alive");
+			}
+
+			//	set content type in case it's not provided in response
+			if (!response.headers.has("content-type")) {
+				response.headers.set("content-type", "text/html; charset=utf-8");
+			}
 
 			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
 
@@ -115,4 +135,33 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 		conninfo.remoteAddr.port,
 		conninfo.hostPort
 	);
+}
+
+HTTP::Response renderServerErrorPage(std::string message) {
+
+	auto templateSource = HTML::Templates::servicePage();
+
+	auto pagehtml = HTML::renderTemplate(templateSource, {
+		{ "svcpage_statuscode", std::to_string(500) },
+		{ "svcpage_statustext", "service error" },
+		{ "svcpage_message_text", "Function handler crashed: " + message }
+	});
+
+	return Lambda::HTTP::Response(500, {
+		{ "Content-Type", "text/html" }
+	}, pagehtml);
+}
+
+HTTP::Response composeServerErrorResponse(std::string message) {
+
+	JSON::Map responseObject = {
+		{ "ok", false },
+		{ "status", "failed" },
+		{ "context", "function handler crashed" },
+		{ "what", message }
+	};
+
+	return HTTP::Response(500, {
+		{"content-type", "application/json"}
+	}, JSON::stringify(responseObject));
 }

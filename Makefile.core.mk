@@ -1,6 +1,6 @@
 
 LIB_CORE				=	core/core.a
-LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML)
+LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
 LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/uid.o
@@ -18,11 +18,14 @@ LIB_CORE_COMPRESS		=	core/compression.a
 LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_DEPS	=	core/server/server.o core/server/http/transport.o core/server/http/handler.o core/server/http/queue.o core/server/http/errorPage.o core/server/console/handlerConsole.o
+LIB_CORE_SERVER_DEPS	=	core/server/server.o core/server/http/transport.o core/server/http/handler.o core/server/http/queue.o core/server/console/handlerConsole.o
 
 LIB_CORE_HTML			=	core/html.a
 LIB_CORE_HTML_TEMPLATES	=	core/html/resources/servicepage.res
-LIB_CORE_HTML_DEPS		=	core/html/engine.o $(LIB_CORE_HTML_TEMPLATES)
+LIB_CORE_HTML_DEPS		=	core/html/templates.o core/html/engine.o $(LIB_CORE_HTML_TEMPLATES)
+
+LIB_CORE_JSON			=	core/json.a
+LIB_CORE_JSON_DEPS		=	core/json/property.o core/json/parse.o core/json/stringify.o
 
 LIB_CORE_CRYPTO			=	core/crypto.a
 LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o
@@ -139,9 +142,6 @@ core/server/http/handler.o: core/server/http/handler.cpp
 core/server/http/queue.o: core/server/http/queue.cpp
 	g++ -c $(CFLAGS) core/server/http/queue.cpp -o core/server/http/queue.o
 
-core/server/http/errorPage.o: core/server/http/errorPage.cpp
-	g++ -c $(CFLAGS) core/server/http/errorPage.cpp -o core/server/http/errorPage.o
-
 core/server/console/handlerConsole.o: core/server/console/handlerConsole.cpp
 	g++ -c $(CFLAGS) core/server/console/handlerConsole.cpp -o core/server/console/handlerConsole.o
 
@@ -150,11 +150,27 @@ core/server/console/handlerConsole.o: core/server/console/handlerConsole.cpp
 $(LIB_CORE_HTML): $(LIB_CORE_HTML_DEPS)
 	ar rvs $(LIB_CORE_HTML) $(LIB_CORE_HTML_DEPS)
 
+core/html/templates.o: core/html/templates.cpp
+	g++ -c $(CFLAGS) core/html/templates.cpp -o core/html/templates.o
+
 core/html/engine.o: core/html/engine.cpp
 	g++ -c $(CFLAGS) core/html/engine.cpp -o core/html/engine.o
 
 core/html/resources/servicepage.res: core/html/resources/servicepage.html
 	objcopy --input-target binary --output-target $(BINRES_TARGET) --binary-architecture i386:x86-64 core/html/resources/servicepage.html core/html/resources/servicepage.res
+
+# jisson stuff
+$(LIB_CORE_JSON): $(LIB_CORE_JSON_DEPS)
+	ar rvs $(LIB_CORE_JSON) $(LIB_CORE_JSON_DEPS)
+
+core/json/parse.o: core/json/parse.cpp
+	g++ -c $(CFLAGS) core/json/parse.cpp -o core/json/parse.o
+
+core/json/stringify.o: core/json/stringify.cpp
+	g++ -c $(CFLAGS) core/json/stringify.cpp -o core/json/stringify.o
+
+core/json/property.o: core/json/property.cpp
+	g++ -c $(CFLAGS) core/json/property.cpp -o core/json/property.o
 
 # crypto stuff
 $(LIB_CORE_CRYPTO): $(LIB_CORE_CRYPTO_DEPS)

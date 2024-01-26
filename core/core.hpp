@@ -7,5 +7,7 @@
 #include "./compression/compression.hpp"
 #include "./network/network.hpp"
 #include "./server/server.hpp"
+#include "./json/json.hpp"
+#include "./html/templates.hpp"
 
 #endif

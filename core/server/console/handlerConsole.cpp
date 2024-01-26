@@ -57,9 +57,14 @@ const std::string& LogItem::unwrap() {
 	return this->value;
 }
 
+Console::Console(
+	const std::string& setid,
+	bool useTimestamps
+) : m_id(setid), m_timestamps(useTimestamps) {}
+
 std::string Console::serializeEntries(const std::initializer_list<LogItem>& list) const {
 
-	std::string temp = Date().toHRTString() + " [" + this->id + "]";
+	std::string temp = this->m_timestamps ? Date().toHRTString() + " [" + this->m_id + "]" : "[" + this->m_id + "]";
 
 	for (auto elem : list) {
 		if (temp.size()) temp.push_back(' ');
