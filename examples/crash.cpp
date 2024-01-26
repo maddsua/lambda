@@ -13,7 +13,7 @@ int main(int argc, char const *argv[]) {
 	};
 
 	ServerConfig initparams;
-	initparams.servicePageType = ServicePageType::JSON;
+	initparams.errorResponseType = ErrorResponseType::JSON;
 	initparams.loglevel.requests = true;
 	auto server = ServerInstance(handler, initparams);
 	server.awaitFinished();
