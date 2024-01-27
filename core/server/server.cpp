@@ -4,6 +4,7 @@
 #include "../polyfill/polyfill.hpp"
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
+#include "../network/tcp/listener.hpp"
 
 #include <cstdio>
 #include <thread>
@@ -63,6 +64,7 @@ void ServerInstance::awaitFinished() {
 
 ServerInstance::~ServerInstance() {
 	this->terminate();
+	delete this->listener;
 }
 
 const ServerConfig& ServerInstance::getConfig() const noexcept {

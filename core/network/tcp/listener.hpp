@@ -1,8 +1,10 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
 
-#include <optional>
 #include "./connection.hpp"
+#include "../sysnetw.hpp"
+
+#include <optional>
 
 namespace Lambda::Network::TCP {
 
@@ -18,6 +20,7 @@ namespace Lambda::Network::TCP {
 			ListenConfig config;
 
 		public:
+			ListenSocket() = default;
 			ListenSocket(const ListenConfig& init);
 			ListenSocket(const ListenSocket& other) = delete;
 			ListenSocket(ListenSocket&& other) noexcept;

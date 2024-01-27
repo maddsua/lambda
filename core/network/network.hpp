@@ -4,28 +4,6 @@
 #include <stdint.h>
 #include <string>
 
-#ifdef _WIN32
-
-	#ifndef SOCKET
-		typedef uint64_t SOCKET;
-	#endif
-
-	#ifndef INVALID_SOCKET
-		#define INVALID_SOCKET (-1ULL)
-	#endif
-
-#else
-
-	#ifndef SOCKET
-		typedef int SOCKET;
-	#endif
-
-	#ifndef INVALID_SOCKET
-		#define INVALID_SOCKET (-1)
-	#endif
-
-#endif
-
 namespace Lambda::Network {
 
 	enum struct ConnectionTransport : int16_t {

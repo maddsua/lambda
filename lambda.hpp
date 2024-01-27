@@ -11,8 +11,18 @@
 
 #include "./lambda_version.hpp"
 
-#include "./core/core.hpp"
-#include "./extra/extra.hpp"
+//	include core "modules"
+#include "./core/http/http.hpp"
+#include "./core/server/server.hpp"
+#include "./core/polyfill/polyfill.hpp"
+#include "./core/json/json.hpp"
+#include "./core/encoding/encoding.hpp"
+#include "./core/crypto/crypto.hpp"
+#include "./core/compression/compression.hpp"
+#include "./core/error/error.hpp"
+
+//	include extra "modules"
+#include "./extra/storage/storage.hpp"
 
 namespace Lambda {
 	typedef HTTP::Request Request;
