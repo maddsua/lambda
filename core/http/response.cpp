@@ -27,10 +27,6 @@ Response::Response(
 	const BodyBuffer& body
 ) : status(statusinit), headers(headersinit), body(body) {}
 
-void Response::setCookies(const std::initializer_list<KVpair>& cookies) {
-	this->setCookies(Cookies(cookies));
-}
-
 void Response::setCookies(const Cookies& cookies) {
 	auto entries = cookies.serialize();
 	for (const auto& entry : entries)

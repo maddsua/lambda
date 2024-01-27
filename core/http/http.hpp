@@ -72,17 +72,27 @@ namespace Lambda::HTTP {
 
 	class Cookies {
 		protected:
-			struct CookieInit {
+
+			struct SetParam {
+				std::string key;
 				std::string value;
-				std::vector<std::string> props;
+
+				SetParam(const std::string& init);
+				SetParam(const char* init);
+				SetParam(std::initializer_list<std::string> init);
 			};
+
+			struct SetItem {
+				std::string value;
+				std::initializer_list<SetParam> props;
+			};
+
 			std::unordered_map<std::string, std::string> m_data;
-			std::map<std::string, CookieInit> m_set_queue;
+			std::map<std::string, SetItem> m_set_queue;
 
 		public:
 			Cookies() = default;
-			Cookies(const std::string& init);
-			Cookies(const std::initializer_list<KVpair>& init);
+			Cookies(const std::string& cookiestring);
 			Cookies(const Cookies& other);
 			Cookies(Cookies&& other);
 
@@ -92,7 +102,7 @@ namespace Lambda::HTTP {
 			std::string get(const std::string& key) const;
 			bool has(const std::string& key) const;
 			void set(const std::string& key, const std::string& value);
-			void set(const std::string& key, const std::string& value, const std::vector<std::string>& props);
+			void set(const std::string& key, const std::string& value, const std::initializer_list<SetParam>& props);
 			void del(const std::string& key);
 			std::vector<KVpair> entries() const;
 			size_t size() const noexcept;
@@ -100,7 +110,6 @@ namespace Lambda::HTTP {
 	};
 
 	class BodyBuffer {
-
 		private:
 			std::vector<uint8_t> m_data;
 
@@ -176,7 +185,6 @@ namespace Lambda::HTTP {
 		Response(const BodyBuffer& bodyinit);
 		Response(const Status& statusinit, const Headers& headersinit, const BodyBuffer& body);
 
-		void setCookies(const std::initializer_list<KVpair>& cookies);
 		void setCookies(const Cookies& cookies);
 	};
 

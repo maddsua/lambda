@@ -3,9 +3,9 @@
 
 using namespace Lambda::HTTP;
 
-Cookies::Cookies(const std::string& init) {
+Cookies::Cookies(const std::string& cookiestring) {
 
-	auto entries = Strings::split(init, "; ");
+	auto entries = Strings::split(cookiestring, "; ");
 
 	for (const auto& entry : entries) {
 
@@ -18,14 +18,6 @@ Cookies::Cookies(const std::string& init) {
 		if (!key.size() || !value.size()) continue;
 
 		this->m_data[key] = { value };
-	}
-}
-
-Cookies::Cookies(const std::initializer_list<KVpair>& init) {
-	for (const auto& entry : init) {
-		const auto keyNormalized = Strings::toLowerCase(entry.first);
-		this->m_data[keyNormalized] = entry.second;
-		this->m_set_queue[keyNormalized] = { entry.second };
 	}
 }
 
@@ -65,7 +57,7 @@ void Cookies::set(const std::string& key, const std::string& value) {
 	this->m_set_queue[keyNormalized] = { value };
 }
 
-void Cookies::set(const std::string& key, const std::string& value, const std::vector<std::string>& props) {
+void Cookies::set(const std::string& key, const std::string& value, const std::initializer_list<SetParam>& props) {
 	const auto keyNormalized = Strings::toLowerCase(key);
 	this->m_data[keyNormalized] = value;
 	this->m_set_queue[keyNormalized] = { value, props };
@@ -93,9 +85,35 @@ std::vector<std::string> Cookies::serialize() const {
 	std::vector<std::string> temp;
 	for (const auto& entry : this->m_set_queue) {
 		auto cookie = entry.first + '=' + entry.second.value;
-		for (const auto& prop : entry.second.props)
-			cookie += "; " + prop;
+		for (const auto& prop : entry.second.props) {
+			if (!prop.key.size()) continue;
+			cookie += "; " + (prop.value.size() ? prop.key + '=' + prop.value : prop.key);
+		}
 		temp.push_back(cookie);
 	}
 	return temp;
+}
+
+Cookies::SetParam::SetParam(const std::string& init) {
+	this->key = init;
+}
+
+Cookies::SetParam::SetParam(const char* init) {
+	this->key = init;
+}
+
+Cookies::SetParam::SetParam(std::initializer_list<std::string> init) {
+
+	bool gotKey = false;
+	for (const auto& item : init) {
+
+		if (!gotKey) {
+			if (!item.size()) return;
+			this->key = item;
+			gotKey = true;
+		}
+		
+		this->value = item;
+		return;
+	}
 }
