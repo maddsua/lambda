@@ -49,9 +49,9 @@ std::string Errors::formatMessage(int32_t errorCode) noexcept {
 		#else
 
 			char tempBuff[128];
-			if (!strerror_r(errorCode, tempBuff, sizeof(tempBuff)))
-				return "OS error " + std::to_string(errorCode);
-			return tempBuff;
+			auto messagePtr = strerror_r(errorCode, tempBuff, sizeof(tempBuff));
+			if (messagePtr != nullptr) return messagePtr;
+			return "OS error " + std::to_string(errorCode);
 
 		#endif
 
