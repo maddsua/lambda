@@ -66,17 +66,23 @@ std::string Console::serializeEntries(const std::initializer_list<Console::Entry
 
 	std::string temp;
 
-	if (this->m_timestamps)
-		temp += Date().toHRTString() + ' ' ;
-	if (this->m_id.size())
-		temp += "[" + this->m_id + "] ";
+	if (this->m_timestamps) {
+		temp.append(Date().toHRTString());
+		temp.push_back(' ');
+	}
+
+	if (this->m_id.size()) {
+		temp.push_back('[');
+		temp.append(this->m_id);
+		temp.append("] ");
+	}
 
 	for (auto elem : list) {
 		if (temp.size()) temp.push_back(' ');
 		temp += elem.value;
 	}
 
-	temp += '\n';
+	temp.push_back('\n');
 
 	return temp;
 }
