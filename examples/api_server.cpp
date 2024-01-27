@@ -53,6 +53,7 @@ int main(int argc, char const *argv[]) {
 	initparams.loglevel.requests = true;
 	initparams.loglevel.connections = true;
 	auto server = ServerInstance(handler, initparams);
+
 	server.awaitFinished();
 
 	return 0;
