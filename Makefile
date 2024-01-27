@@ -6,7 +6,13 @@ LIB_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
 EXTERNAL_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
 LAMBDA_LIBSTATIC		=	$(LIBNAME).a
 LAMBDA_LIBSHARED		=	$(LIBNAME)$(DLLEXT)
-build_target			=	$(target)
+BUILD_TARGET			=	$(target)
+
+ifeq ($(BUILD_TARGET),prod)
+	CFLAGS				+=	-s
+else
+	CFLAGS				+=	-g
+endif
 
 ifeq ($(OS),Windows_NT)
 	CLEAN_COMMAND		=	del /S *.o *.exe *.a *.dll *.so *.res
@@ -21,12 +27,6 @@ else
 	BINRES_TARGET		=	elf64-x86-64 
 	DLLEXT				=	.so
 	CFLAGS				+=	-fPIC
-endif
-
-ifeq ($(build_target),prod)
-	CFLAGS				+=	-s
-else
-	CFLAGS				+=	-g
 endif
 
 .PHONY: all all-before all-after action-custom
