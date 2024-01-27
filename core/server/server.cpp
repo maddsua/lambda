@@ -23,7 +23,7 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 
 	this->watchdogWorker = std::thread([&]() {
 
-		while (!this->terminated && this->listener->ok()) {
+		while (!this->terminated && this->listener->active()) {
 
 			try {
 
@@ -60,7 +60,7 @@ void ServerInstance::immediateShutdownn() {
 	printf("[Service] Terminating server now\n");
 
 	this->terminated = true;
-	delete this->listener;
+	this->listener->stop();
 
 	if (this->watchdogWorker.joinable())
 		this->watchdogWorker.join();
