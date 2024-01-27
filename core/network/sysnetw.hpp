@@ -7,6 +7,7 @@
 #define __LIB_MADDSUA_LAMBDA_INTERNAL_NETWORK_TCPIP__
 
 	#include <stdint.h>
+	#include "../error/error.hpp"
 
 	#ifdef _WIN32
 
@@ -14,8 +15,6 @@
 		#include <winsock2.h>
 		#include <ws2tcpip.h>
 		#include <stdexcept>
-
-		#define getAPIError() (GetLastError())
 
 		#define LNE_ADDRINUSE	WSAEADDRINUSE
 		#define LNE_TIMEDOUT	WSAETIMEDOUT
@@ -28,7 +27,7 @@
 
 			WSADATA initdata;
 			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw std::runtime_error("WSA initialization failed: windows API error " + std::to_string(getAPIError()));
+				throw Lambda::APIError("WSA initialization failed:");
 
 			return true;
 		}
@@ -53,8 +52,6 @@
 		#ifndef WSAETIMEDOUT
 			#define WSAETIMEDOUT (ETIMEDOUT)
 		#endif
-
-		#define getAPIError() errno
 
 		#define closesocket(socketHandle) (close(socketHandle))
 		#define SD_BOTH (SHUT_RDWR)
