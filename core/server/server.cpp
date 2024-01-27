@@ -45,26 +45,16 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 	printf("[Service] Started server at http://localhost:%i/\n", this->config.service.port);
 }
 
-void ServerInstance::softShutdownn() {
-
-	printf("[Service] Initiating graceful shutdown...\n");
-
-	this->terminated = true;
-	if (this->watchdogWorker.joinable())
-		this->watchdogWorker.join();
-
+void ServerInstance::shutdownn() {
+	printf("[Service] Initiating shutdown...\n");
+	this->terminate();
 	printf("[Service] Server shut down\n");
 }
 
-void ServerInstance::immediateShutdownn() {
-
-	printf("[Service] Terminating server now\n");
-
+void ServerInstance::terminate() {
 	this->terminated = true;
 	this->listener->stop();
-
-	if (this->watchdogWorker.joinable())
-		this->watchdogWorker.join();
+	this->awaitFinished();
 }
 
 void ServerInstance::awaitFinished() {
@@ -73,7 +63,7 @@ void ServerInstance::awaitFinished() {
 }
 
 ServerInstance::~ServerInstance() {
-	this->immediateShutdownn();
+	this->terminate();
 }
 
 const ServerConfig& ServerInstance::getConfig() const noexcept {
