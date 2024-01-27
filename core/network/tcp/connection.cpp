@@ -86,7 +86,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 			case LNE_TIMEDOUT: {
 				this->end();
 				return {};
-			} break;
+			}
 
 			default:
 				throw apiError;
