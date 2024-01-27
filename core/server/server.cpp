@@ -46,9 +46,8 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 }
 
 void ServerInstance::shutdownn() {
-	printf("[Service] Initiating shutdown...\n");
+	printf("[Service] Shutting down...\n");
 	this->terminate();
-	printf("[Service] Server shut down\n");
 }
 
 void ServerInstance::terminate() {
