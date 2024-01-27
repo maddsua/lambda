@@ -3,6 +3,7 @@
 #ifdef _WIN32
 	#include <windows.h>
 	#define getAPIError() (GetLastError())
+	#define strerror_r(errnum, buf, buflen) (strerror_s(buf, buflen, errnum))
 #else
 	#include <cerrno>
 	#define getAPIError() errno
