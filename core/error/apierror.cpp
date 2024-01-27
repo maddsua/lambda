@@ -1,8 +1,7 @@
 #include "./error.hpp"
 
 #ifdef _WIN32
-	#include <errhandlingapi.h>
-	#include <winbase.h>
+	#include <windows.h>
 	#define getAPIError() (GetLastError())
 #else
 	#include <cerrno>
@@ -13,7 +12,7 @@ using namespace Lambda;
 
 static const size_t assumeMaxApiErrorMessageLength = 64;
 
-int32_t ErrorHandling::getApiErrorCode() noexcept {
+int32_t Errors::getApiErrorCode() noexcept {
 	return (
 		#ifdef _WIN32
 			GetLastError()
@@ -23,7 +22,7 @@ int32_t ErrorHandling::getApiErrorCode() noexcept {
 	);
 }
 
-std::string ErrorHandling::formatErrorMessage(int32_t errorCode) noexcept {
+std::string Errors::formatErrorMessage(int32_t errorCode) noexcept {
 
 	#ifdef _WIN32
 
@@ -57,8 +56,18 @@ std::string ErrorHandling::formatErrorMessage(int32_t errorCode) noexcept {
 }
 
 APIError::APIError() {
-	this->m_code = ErrorHandling::getApiErrorCode();
-	this->m_text = ErrorHandling::formatErrorMessage(this->m_code);
+	this->m_code = Errors::getApiErrorCode();
+	this->m_text = Errors::formatErrorMessage(this->m_code);
+}
+
+APIError::APIError(int32_t code) {
+	this->m_code = code;
+	this->m_text = Errors::formatErrorMessage(code);
+}
+
+APIError::APIError(const APIError& other) {
+	this->m_code = other.m_code;
+	this->m_text = other.m_text;
 }
 
 const char* APIError::what() const noexcept {
