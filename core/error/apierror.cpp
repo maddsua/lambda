@@ -10,8 +10,6 @@
 
 using namespace Lambda;
 
-static const size_t assumeMaxApiErrorMessageLength = 64;
-
 int32_t Errors::getApiError() noexcept {
 	return (
 		#ifdef _WIN32
