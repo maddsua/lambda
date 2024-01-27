@@ -6,7 +6,7 @@
 #include "../version.hpp"
 
 struct Options {
-	std::string templateFile;
+	std::string input;
 	std::string outputFile;
 };
 
@@ -42,13 +42,13 @@ int main(int argc, char const *argv[]) {
 		auto key = arg.substr(2, separatorPos - 2);
 		auto value = arg.substr(separatorPos + 1);
 
-		if (key == "template") opts.templateFile = value;
+		if (key == "template") opts.input = value;
 		else if (key == "output") opts.outputFile = value;
 	}
 
 	int isInitError = false;
 
-	if (!opts.templateFile.size()) {
+	if (!opts.input.size()) {
 		std::cerr << "ABORTED: Provide template file with --template=[filelocation]\n";
 		isInitError++;
 	}
@@ -59,7 +59,7 @@ int main(int argc, char const *argv[]) {
 
 	if (isInitError) return 1;
 
-	auto templateContent = loadFile(opts.templateFile);
+	auto templateContent = loadFile(opts.input);
 
 	std::vector<std::pair<std::string, std::string>> replaceList = {
 		{ "version_dot", LAMBDA_VERSION },
