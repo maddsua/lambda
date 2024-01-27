@@ -6,8 +6,8 @@
 	Congrats! This is the entry point. You're good to go!
 */
 
-#ifndef __LIB_MADDSUA_LAMBDA_ENTRYPOINT__
-#define __LIB_MADDSUA_LAMBDA_ENTRYPOINT__
+#ifndef __LIB_MADDSUA_LAMBDA__
+#define __LIB_MADDSUA_LAMBDA__
 
 #include "./version.hpp"
 
