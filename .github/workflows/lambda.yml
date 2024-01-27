@@ -40,6 +40,8 @@ jobs:
         run: make test.zlib
       - name: brotli test
         run: make test.brotli
+      - name: Error messages test
+        run: make test.errors
   build_examples:
     needs: build_lib
     runs-on: ubuntu-latest
