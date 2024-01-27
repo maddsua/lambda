@@ -1,6 +1,6 @@
 
 LIBNAME					=	lambda
-TEMPBIN					=	.bin/
+TEMPBIN					=	./.bin/
 CFLAGS					=	-Wall -Werror -std=c++20
 LIB_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
 EXTERNAL_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
@@ -50,8 +50,8 @@ $(LAMBDA_LIBSHARED): $(LIB_DEPS) $(WINDOWS_DLL_DEPS)
 dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
 
-dllinfo.rc: updatedllinfo$(EXEEXT)
-	updatedllinfo$(EXEEXT) --template=dllinfo.template.rc --info=version.hpp --output=dllinfo.rc
+dllinfo.rc: $(TOOL_UPDATEDLLINFO_TARGET)
+	$(TOOL_UPDATEDLLINFO_TARGET) --template=dllinfo.template.rc --info=version.hpp --output=dllinfo.rc
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
