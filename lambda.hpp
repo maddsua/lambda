@@ -20,6 +20,7 @@
 #include "./core/crypto/crypto.hpp"
 #include "./core/compression/compression.hpp"
 #include "./core/error/error.hpp"
+#include "./core/html/templates.hpp"
 
 //	include extra "modules"
 #include "./extra/storage/storage.hpp"
