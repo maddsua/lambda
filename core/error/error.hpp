@@ -8,7 +8,7 @@ namespace Lambda {
 
 	typedef std::exception Error;
 
-	namespace ErrorHandling {
+	namespace Errors {
 		int32_t getApiErrorCode() noexcept;
 		std::string formatErrorMessage(int32_t errorCode) noexcept;
 	};
@@ -19,7 +19,9 @@ namespace Lambda {
 			std::string m_text;
 
 		public:
-			APIError() = default;
+			APIError();
+			APIError(int32_t code);
+			APIError(const APIError& other);
 			const char* what() const noexcept override;
 			const std::string& message() const noexcept;
 			int32_t code() const noexcept;
