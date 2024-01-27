@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <stdexcept>
+#include <filesystem>
 
 #include "../version.hpp"
 #include "../core/polyfill/polyfill.hpp"
@@ -78,6 +79,10 @@ int main(int argc, char const *argv[]) {
 	for (const auto& item : replacementPairs) {
 		puts(item.second.c_str());
 	}
+
+	auto basePath = std::filesystem::path(opts.inputHeader).parent_path();
+    std::filesystem::path resolvedPath = std::filesystem::relative("./dir/file.ext", basePath);
+    std::cout << resolvedPath.generic_string();
 
 	return 0;
 }
