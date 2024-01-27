@@ -8,6 +8,7 @@ namespace Lambda {
 
 	class Console {
 		private:
+
 			struct Entry {
 				Entry(const std::string& thing);
 				Entry(const char* thing);
@@ -30,10 +31,12 @@ namespace Lambda {
 			};
 
 			std::string m_id;
-			bool m_timestamps;
+			bool m_timestamps = false;
 			std::string serializeEntries(const std::initializer_list<Console::Entry>& list) const;
 
 		public:
+			Console() = default;
+			Console(const std::string& setid);
 			Console(const std::string& setid, bool useTimestamps);
 
 			void log(std::initializer_list<Console::Entry> list) const;

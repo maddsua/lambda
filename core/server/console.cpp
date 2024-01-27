@@ -54,6 +54,10 @@ Console::Entry::Entry(long double thing) {
 }
 
 Console::Console(
+	const std::string& setid
+) : m_id(setid) {}
+
+Console::Console(
 	const std::string& setid,
 	bool useTimestamps
 ) : m_id(setid), m_timestamps(useTimestamps) {}
