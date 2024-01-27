@@ -54,3 +54,41 @@ std::string Errors::formatMessage(int32_t errorCode) noexcept {
 
 	#endif
 }
+
+
+APIError::APIError() {
+	this->m_code = Errors::getApiError();
+	this->m_text = Errors::formatMessage(this->m_code);
+}
+
+APIError::APIError(const std::string& commentText) {
+	this->m_code = Errors::getApiError();
+	this->m_text = commentText + " (" + Errors::formatMessage(this->m_code) + ")";
+}
+
+APIError::APIError(int32_t code) {
+	this->m_code = code;
+	this->m_text = Errors::formatMessage(code);
+}
+
+APIError::APIError(int32_t code, const std::string& commentText) {
+	this->m_code = code;
+	this->m_text = commentText + " (" + Errors::formatMessage(code) + ")";
+}
+
+APIError::APIError(const APIError& other) {
+	this->m_code = other.m_code;
+	this->m_text = other.m_text;
+}
+
+const char* APIError::what() const noexcept {
+	return this->m_text.c_str();
+}
+
+const std::string& APIError::message() const noexcept {
+	return this->m_text;
+}
+
+int32_t APIError::code() const noexcept {
+	return this->m_code;
+}
