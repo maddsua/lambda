@@ -27,7 +27,7 @@
 
 			WSADATA initdata;
 			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw Lambda::APIError("WSA initialization failed:");
+				throw std::runtime_error("WSA initialization failed:" + Lambda::Errors::formatMessage(Lambda::Errors::getApiError()));
 
 			return true;
 		}
