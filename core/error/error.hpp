@@ -21,6 +21,7 @@ namespace Lambda {
 		public:
 			APIError();
 			APIError(int32_t code);
+			APIError(const std::string& commentText);
 			APIError(const APIError& other);
 			const char* what() const noexcept override;
 			const std::string& message() const noexcept;
