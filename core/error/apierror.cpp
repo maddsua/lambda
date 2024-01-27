@@ -50,7 +50,7 @@ std::string Errors::formatMessage(int32_t errorCode) noexcept {
 
 			char tempBuff[128];
 			tempBuff[sizeof(tempBuff) - 1] = 0;
-			if (strerror_r(errorCode, tempBuff, sizeof(tempBuff) - 1))
+			if (!strerror_r(errorCode, tempBuff, sizeof(tempBuff) - 1))
 				return "OS error " + std::to_string(errorCode);
 			return tempBuff;
 
