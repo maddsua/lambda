@@ -67,11 +67,11 @@ int main(int argc, char const *argv[]) {
 		if (pathStart == std::string::npos)
 			throw std::runtime_error("invalid include statement path start");
 
-		auto pathEnd = line.find('\"', pathStart);
+		auto pathEnd = line.find('\"', pathStart + 1);
 		if (pathEnd == std::string::npos)
 			throw std::runtime_error("invalid include statement path end");
 
-		auto filePath = line.substr(pathStart, pathEnd - pathStart);
+		auto filePath = line.substr(pathStart + 1, pathEnd - pathStart - 1);
 		replacementPairs.push_back({ line, filePath });
 	}
 
