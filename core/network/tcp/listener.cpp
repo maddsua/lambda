@@ -23,16 +23,16 @@ ListenSocket::ListenSocket(const ListenConfig& init) {
 
 	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (this->hSocket == INVALID_SOCKET) {
-		throw std::runtime_error("failed to create listen socket:" + Errors::formatMessage(Errors::getApiError()));
+		throw Lambda::APIError("failed to create listen socket");
 	}
 	
 	//	allow fast port reuse
 	if (init.allowPortReuse) {
 		uint32_t sockoptReuseaddr = 1;
 		if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
-			auto apierror = Errors::getApiError();
+			auto apierror = Lambda::APIError("failed to create listen socket");
 			closesocket(this->hSocket);
-			throw std::runtime_error("failed to create listen socket:" + Errors::formatMessage(apierror));
+			throw apierror;
 		}
 		puts("Warning: fast port reuse enabled");
 	}
@@ -44,16 +44,16 @@ ListenSocket::ListenSocket(const ListenConfig& init) {
 	serverAddr.sin_port = htons(init.port);
 
 	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr))) {
-		auto apierror = Errors::getApiError();
+		auto apierror = Lambda::APIError("failed to bind socket");
 		closesocket(this->hSocket);
-		throw std::runtime_error("failed to bind socket:" + Errors::formatMessage(apierror));
+		throw apierror;
 	}
 
 	//	listen for incoming connections
 	if (listen(this->hSocket, SOMAXCONN)) {
-		auto apierror = Errors::getApiError();
+		auto apierror = Lambda::APIError("socket listen failed");
 		closesocket(this->hSocket);
-		throw std::runtime_error("socket listen failed:" + Errors::formatMessage(apierror));
+		throw apierror;
 	}
 }
 
@@ -97,16 +97,16 @@ Connection ListenSocket::acceptConnection() {
 
 	//	verify that we have a valid socket
 	if (next.hSocket == INVALID_SOCKET) {
-		throw std::runtime_error("socket accept failed:" + Errors::formatMessage(Errors::getApiError()));
+		throw Lambda::APIError("socket accept failed");
 	}
 
 	//	try setting connection timeouts
 	try {
 
 		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&next.info.timeout, sizeof(next.info.timeout)))
-			throw std::runtime_error("failed to set socket RX timeout:" + Errors::formatMessage(Errors::getApiError()));
+			throw Lambda::APIError("failed to set socket RX timeout");
 		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&next.info.timeout, sizeof(next.info.timeout)))
-			throw std::runtime_error("failed to set socket TX timeout:" + Errors::formatMessage(Errors::getApiError()));
+			throw Lambda::APIError("failed to set socket TX timeout");
 
 	} catch(const std::exception& err) {
 		if (next.hSocket != INVALID_SOCKET)
