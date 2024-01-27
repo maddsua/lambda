@@ -53,7 +53,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 	auto bytesSent = send(this->m_socket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
-		throw std::runtime_error("network error while sending data:" + Errors::formatMessage(Errors::getApiError()));
+		throw Lambda::APIError("network error while sending data");
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -79,17 +79,17 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	} else if (bytesReceived < 0) {
 
-		auto apiError = Errors::getApiError();
+		auto apiError = Lambda::APIError("network error while receiving data");
 
-		switch (apiError) {
+		switch (apiError.code()) {
 
 			case LNE_TIMEDOUT: {
 				this->end();
 				return {};
 			} break;
-			
+
 			default:
-				throw std::runtime_error("network error while getting data:" + Errors::formatMessage(apiError));
+				throw apiError;
 		}		
 	}
 
