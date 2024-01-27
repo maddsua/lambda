@@ -133,8 +133,12 @@ const ListenConfig& ListenSocket::getConfig() const noexcept {
 }
 
 void ListenSocket::stop() noexcept {
+
 	if (this->hSocket == INVALID_SOCKET) return;
-	shutdown(this->hSocket, SD_BOTH);
-	closesocket(this->hSocket);
+
+	auto tempHandle = this->hSocket;
 	this->hSocket = INVALID_SOCKET;
+
+	shutdown(tempHandle, SD_BOTH);
+	closesocket(tempHandle);
 }

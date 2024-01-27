@@ -29,10 +29,16 @@ Connection::~Connection() {
 }
 
 void Connection::end() noexcept {
+
 	if (this->hSocket == INVALID_SOCKET) return;
-	shutdown(this->hSocket, SD_BOTH);
-	closesocket(this->hSocket);
+
+	//	swapping handle to a temp variable so that
+	//	no race condition can occur further down the chain
+	auto tempHandle = this->hSocket;
 	this->hSocket = INVALID_SOCKET;
+
+	shutdown(tempHandle, SD_BOTH);
+	closesocket(tempHandle);
 }
 
 const ConnectionInfo& Connection::info() const noexcept {
