@@ -25,6 +25,10 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Deflate, "deflate" },
 };
 
+static const std::initializer_list<std::string> compressibleTypes = {
+	"text", "html", "json", "xml"
+};	
+
 void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue) {
 
 	const auto& conninfo = conn.info();
@@ -153,13 +157,23 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 	} while (conn.active() && connectionKeepAlive);
 }
 
-void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding) {
+void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
 		std::vector<uint8_t> responseBody;
 
-		switch (useEncoding) {
+		auto applyEncoding = ContentEncodings::None;
+		auto responseContentType = Strings::toLowerCase(response.headers.get("content-type"));
+
+		for (const auto& item : compressibleTypes) {
+			if (Strings::includes(responseContentType, item)) {
+				applyEncoding = preferEncoding;
+				break;
+			}
+		}
+
+		switch (applyEncoding) {
 
 			case ContentEncodings::Brotli: {
 				responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
@@ -178,8 +192,8 @@ void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::C
 			} break;
 		}
 
-		if (useEncoding != ContentEncodings::None) {
-			response.headers.set("content-encoding", contentEncodingMap.at(useEncoding));
+		if (applyEncoding != ContentEncodings::None) {
+			response.headers.set("content-encoding", contentEncodingMap.at(applyEncoding));
 		}
 
 	#else

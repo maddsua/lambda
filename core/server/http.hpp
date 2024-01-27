@@ -41,7 +41,7 @@ namespace Lambda::HTTPServer {
 	};
 
 	void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept;
-	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding);
+	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
 	void asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue);
 
 };

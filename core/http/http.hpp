@@ -182,8 +182,8 @@ namespace Lambda::HTTP {
 		Response(const Status& statusinit);
 		Response(const Status& statusinit, const Headers& headersinit);
 		Response(const Status& statusinit, const BodyBuffer& body);
-		Response(const BodyBuffer& bodyinit);
 		Response(const Status& statusinit, const Headers& headersinit, const BodyBuffer& body);
+		Response(const BodyBuffer& bodyinit);
 
 		void setCookies(const Cookies& cookies);
 		void setCookies(const std::initializer_list<KVpair>& cookies);
