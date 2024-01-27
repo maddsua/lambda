@@ -30,10 +30,10 @@ namespace Lambda::HTTP {
 
 			std::string get(const std::string& key) const;
 			bool has(const std::string& key) const;
-			void set(const std::string& key, const std::string value);
+			void set(const std::string& key, const std::string& value);
 			void del(const std::string& key);
 			std::vector<std::string> getAll(const std::string& key) const;
-			void append(const std::string& key, const std::string value);
+			void append(const std::string& key, const std::string& value);
 			std::vector<KVpair> entries() const;
 			size_t size() const noexcept;
 	};
@@ -186,6 +186,7 @@ namespace Lambda::HTTP {
 		Response(const Status& statusinit, const Headers& headersinit, const BodyBuffer& body);
 
 		void setCookies(const Cookies& cookies);
+		void setCookies(const std::initializer_list<KVpair>& cookies);
 	};
 
 	struct Request {
