@@ -123,10 +123,17 @@ Connection ListenSocket::acceptConnection() {
 	return Connection(next);
 }
 
-bool ListenSocket::ok() const noexcept {
+bool ListenSocket::active() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
 }
 
 const ListenConfig& ListenSocket::getConfig() const noexcept {
 	return this->config;
+}
+
+void ListenSocket::stop() noexcept {
+	if (this->hSocket == INVALID_SOCKET) return;
+	shutdown(this->hSocket, SD_BOTH);
+	closesocket(this->hSocket);
+	this->hSocket = INVALID_SOCKET;
 }
