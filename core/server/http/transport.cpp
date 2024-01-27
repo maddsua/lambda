@@ -93,20 +93,17 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 			next.request.url = "http://lambdahost:" + conninfo.hostPort + requestUrlString;
 		}
 
-		//	extract request path name
-		size_t pathnameEndLen = std::string::npos;
-		for (auto item : std::initializer_list<char>({ '?', '#' })) {
-			auto itempos = next.pathname.find(item);
-			if (itempos == std::string::npos) continue;
-			pathnameEndLen = itempos;
-			if (itempos == 0) break;
+		//	extract request url pathname
+		size_t pathnameEndPos = std::string::npos;
+		for (auto token : std::initializer_list<char>({ '?', '#' })) {
+			auto tokenPos = next.pathname.find(token);
+			if (tokenPos < pathnameEndPos)
+				pathnameEndPos = tokenPos;
 		}
 
-		if (pathnameEndLen > 0 && pathnameEndLen < requestUrlString.size()) {
-			next.pathname = requestUrlString.substr(0, pathnameEndLen);
-		} else if (pathnameEndLen == 0) {
-			next.pathname = '/';
-		}
+		next.pathname = pathnameEndPos == std::string::npos ?
+			requestUrlString :
+			(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
 
 		if (options.reuseConnections) {
 			auto connectionHeader = next.request.headers.get("connection");
