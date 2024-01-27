@@ -39,15 +39,19 @@ std::string Errors::formatMessage(int32_t errorCode) noexcept {
 	#else
 
 		#ifdef sys_errlist
-			return (errorCode < sys_nerr) ? 
-				sys_errlist[errorCode] :
-				("OS error " + std::to_string(errorCode));
+
+			if (errorCode < sys_nerr)
+				return sys_errlist[errorCode];
+			return "OS error " + std::to_string(errorCode);
+
 		#else
+
 			char tempBuff[128];
 			tempBuff[sizeof(tempBuff) - 1] = 0;
-			if (strerror_s(tempBuff, sizeof(tempBuff) - 1, errorCode)) {
+			if (strerror_r(errorCode, tempBuff, sizeof(tempBuff) - 1))
 				return "OS error " + std::to_string(errorCode);
-			} else return tempBuff;
+			return tempBuff;
+
 		#endif
 
 	#endif
