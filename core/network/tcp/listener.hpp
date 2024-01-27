@@ -27,7 +27,8 @@ namespace Lambda::Network::TCP {
 
 			Connection acceptConnection();
 
-			bool ok() const noexcept;
+			bool active() const noexcept;
+			void stop() noexcept;
 			const ListenConfig& getConfig() const noexcept;
 	};
 };
