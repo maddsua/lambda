@@ -76,7 +76,7 @@ ListenSocket& ListenSocket::operator= (ListenSocket&& other) noexcept {
 	return *this;
 }
 
-Connection ListenSocket::acceptConnection() {
+std::optional<Connection> ListenSocket::acceptConnection() {
 
 	//	check that we have a valid socket
 	if (this->hSocket == INVALID_SOCKET) {
@@ -97,6 +97,7 @@ Connection ListenSocket::acceptConnection() {
 
 	//	verify that we have a valid socket
 	if (next.hSocket == INVALID_SOCKET) {
+		if (this->hSocket == INVALID_SOCKET) return std::nullopt;
 		throw Lambda::APIError("socket accept failed");
 	}
 
