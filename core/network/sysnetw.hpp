@@ -16,7 +16,6 @@
 		#include <ws2tcpip.h>
 		#include <stdexcept>
 
-		#define LNE_ADDRINUSE	WSAEADDRINUSE
 		#define LNE_TIMEDOUT	WSAETIMEDOUT
 
 		inline bool wsaWakeUp() {
@@ -49,14 +48,9 @@
 			#define SOCKET_ERROR (-1)
 		#endif
 
-		#ifndef WSAETIMEDOUT
-			#define WSAETIMEDOUT (ETIMEDOUT)
-		#endif
-
 		#define closesocket(socketHandle) (close(socketHandle))
 		#define SD_BOTH (SHUT_RDWR)
 
-		#define LNE_ADDRINUSE	EADDRINUSE
 		#define LNE_TIMEDOUT	ETIMEDOUT
 
 	#endif
