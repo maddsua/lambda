@@ -1,3 +1,4 @@
+#include <string.h>
 #include "./error.hpp"
 
 #ifdef _WIN32
