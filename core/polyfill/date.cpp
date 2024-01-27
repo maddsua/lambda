@@ -4,7 +4,7 @@
 #include <ctime>
 
 #ifdef _WIN32
-#define gmtime_r(timettime, tmstruct) gmtime_s(tmstruct, timettime)
+	#define gmtime_r(timettime, tmstruct) gmtime_s(tmstruct, timettime)
 #endif
 
 using namespace Lambda;
