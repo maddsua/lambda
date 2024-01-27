@@ -64,7 +64,12 @@ Console::Console(
 
 std::string Console::serializeEntries(const std::initializer_list<Console::Entry>& list) const {
 
-	std::string temp = this->m_timestamps ? Date().toHRTString() + " [" + this->m_id + "]" : "[" + this->m_id + "]";
+	std::string temp;
+
+	if (this->m_timestamps)
+		temp += Date().toHRTString() + ' ' ;
+	if (this->m_id.size())
+		temp += "[" + this->m_id + "] ";
 
 	for (auto elem : list) {
 		if (temp.size()) temp.push_back(' ');
