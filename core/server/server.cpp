@@ -28,7 +28,8 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 			try {
 
 				auto nextConn = this->listener->acceptConnection();
-				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn), this->handler, this->config);
+				if (!nextConn.has_value()) break;
+				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn.value()), this->handler, this->config);
 				connectionWorker.detach();
 
 			} catch(const std::exception& e) {
