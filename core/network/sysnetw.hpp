@@ -40,6 +40,10 @@
 		#include <arpa/inet.h>
 		#include <cerrno>
 
+		#ifndef SOCKET
+			typedef int SOCKET;
+		#endif
+
 		#ifndef INVALID_SOCKET
 			#define INVALID_SOCKET (-1)
 		#endif
