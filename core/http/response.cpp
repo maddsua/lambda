@@ -32,3 +32,10 @@ void Response::setCookies(const Cookies& cookies) {
 	for (const auto& entry : entries)
 		this->headers.append("Set-Cookie", entry);
 }
+
+void Response::setCookies(const std::initializer_list<KVpair>& cookies) {
+	for (const auto& entry : cookies) {
+		if (!entry.first.size()) continue;
+		this->headers.append("Set-Cookie", entry.second.size() ? entry.first + '=' + entry.second : entry.first);
+	}
+}
