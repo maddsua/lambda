@@ -13,6 +13,7 @@ using namespace Lambda;
 static const size_t assumeMaxApiErrorMessageLength = 64;
 
 int32_t Errors::getApiErrorCode() noexcept {
+
 	return (
 		#ifdef _WIN32
 			GetLastError()
@@ -28,7 +29,7 @@ std::string Errors::formatErrorMessage(int32_t errorCode) noexcept {
 
 		char* tempMessage = nullptr;
 		auto formatResult = FormatMessageA(
-			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 			NULL, errorCode, 0, (LPSTR)&tempMessage, 0, NULL);
 		if (!formatResult) {
 			return "Windows API error " + std::to_string(errorCode);
