@@ -53,7 +53,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 	auto bytesSent = send(this->m_socket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
-		throw std::runtime_error("network error while sending data: code " + std::to_string(getAPIError()));
+		throw std::runtime_error("network error while sending data:" + Errors::formatMessage(Errors::getApiError()));
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -79,7 +79,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	} else if (bytesReceived < 0) {
 
-		auto apiError = getAPIError();
+		auto apiError = Errors::getApiError();
 
 		switch (apiError) {
 
@@ -89,7 +89,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 			} break;
 			
 			default:
-				throw std::runtime_error("network error while getting data: code " + std::to_string(apiError));
+				throw std::runtime_error("network error while getting data:" + Errors::formatMessage(apiError));
 		}		
 	}
 
