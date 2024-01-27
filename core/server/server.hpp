@@ -60,8 +60,8 @@ namespace Lambda {
 			ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init);
 			~ServerInstance();
 
-			void softShutdownn();
-			void immediateShutdownn();
+			void shutdownn();
+			void terminate();
 			void awaitFinished();
 
 			const ServerConfig& getConfig() const noexcept;
