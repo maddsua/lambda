@@ -8,8 +8,10 @@ namespace Lambda {
 
 	typedef std::exception Error;
 
-	int32_t getApiErrorCode() noexcept;
-	std::string formaErrorMessage(int32_t errorCode) noexcept;
+	namespace ErrorHandling {
+		int32_t getApiErrorCode() noexcept;
+		std::string formatErrorMessage(int32_t errorCode) noexcept;
+	};
 
 	class APIError : public Error {
 		private:
