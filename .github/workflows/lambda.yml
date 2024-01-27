@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: build static lib
-        run: make libstatic
+        run: make libstatic target=prod
       - name: build shared lib
-        run: make libshared
+        run: make libshared target=prod
   build_and_run_tests:
     needs: build_lib
     runs-on: ubuntu-latest
