@@ -1,6 +1,5 @@
 
 LIBNAME					=	lambda
-TEMPBIN					=	./.bin/
 CFLAGS					=	-Wall -Werror -std=c++20
 LIB_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
 EXTERNAL_LIBS			=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
@@ -58,3 +57,7 @@ libstatic: $(LAMBDA_LIBSTATIC)
 
 $(LAMBDA_LIBSTATIC): $(LIB_DEPS)
 	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_DEPS)
+
+# generate single file include
+gensfi: tool.generateinclude
+	$(TOOL_GENERATEINCLUDE_TARGET) --entrypoint=lambda.hpp --output=lambda_sfi.hpp
