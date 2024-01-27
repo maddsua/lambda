@@ -1,6 +1,7 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
 
+#include <optional>
 #include "./connection.hpp"
 
 namespace Lambda::Network::TCP {
@@ -25,7 +26,7 @@ namespace Lambda::Network::TCP {
 			ListenSocket& operator=(const ListenSocket& other) = delete;
 			ListenSocket& operator=(ListenSocket&& other) noexcept;
 
-			Connection acceptConnection();
+			std::optional<Connection> acceptConnection();
 
 			bool active() const noexcept;
 			void stop() noexcept;
