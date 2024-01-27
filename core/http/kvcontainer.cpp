@@ -47,12 +47,12 @@ void KVContainer::del(const std::string& key) {
 	this->m_data.erase(keyNormalized);
 }
 
-void KVContainer::set(const std::string& key, const std::string value) {
+void KVContainer::set(const std::string& key, const std::string& value) {
 	const auto keyNormalized = Strings::toLowerCase(key);
 	this->m_data[keyNormalized] = { value };
 }
 
-void KVContainer::append(const std::string& key, const std::string value) {
+void KVContainer::append(const std::string& key, const std::string& value) {
 
 	const auto keyNormalized = Strings::toLowerCase(key);
 	const auto element = this->m_data.find(keyNormalized);
