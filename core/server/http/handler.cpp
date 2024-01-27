@@ -66,24 +66,22 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 
 			} catch(const std::exception& e) {
 
-				if (config.loglevel.requests) {
-					fprintf(stdout, "%s%s crashed: %s\n",
-						createLogTimeStamp().c_str(),
-						requestID.c_str(),
-						e.what()
-					);
-				}
+				if (config.loglevel.requests) fprintf(stderr,
+					"%s%s crashed: %s\n",
+					createLogTimeStamp().c_str(),
+					requestID.c_str(),
+					e.what()
+				);
 
 				handlerError = e.what();
 
 			} catch(...) {
 
-				if (config.loglevel.requests) {
-					fprintf(stdout, "%s%s crashed: unhandled exception\n",
-						createLogTimeStamp().c_str(),
-						requestID.c_str()
-					);
-				}
+				if (config.loglevel.requests) fprintf(stderr,
+					"%s%s crashed: unhandled exception\n",
+					createLogTimeStamp().c_str(),
+					requestID.c_str()
+				);
 
 				handlerError = "unhandled exception";
 			}
@@ -110,16 +108,15 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 
 			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
 
-			if (config.loglevel.requests) {
-				fprintf(stdout, "%s[%s] (%s) %s %s --> %i\n",
-					createLogTimeStamp().c_str(),
-					requestID.c_str(),
-					conninfo.remoteAddr.hostname.c_str(),
-					static_cast<std::string>(nextRequest.request.method).c_str(),
-					nextRequest.pathname.c_str(),
-					response.status.code()
-				);
-			}
+			if (config.loglevel.requests) fprintf(stdout,
+				"%s[%s] (%s) %s %s --> %i\n",
+				createLogTimeStamp().c_str(),
+				requestID.c_str(),
+				conninfo.remoteAddr.hostname.c_str(),
+				static_cast<std::string>(nextRequest.request.method).c_str(),
+				nextRequest.pathname.c_str(),
+				response.status.code()
+			);
 		}
 
 	} catch(const std::exception& e) {
