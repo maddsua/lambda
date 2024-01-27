@@ -12,7 +12,7 @@ using namespace Lambda;
 
 static const size_t assumeMaxApiErrorMessageLength = 64;
 
-int32_t Errors::getApiErrorCode() noexcept {
+int32_t Errors::getApiError() noexcept {
 
 	return (
 		#ifdef _WIN32
@@ -23,7 +23,7 @@ int32_t Errors::getApiErrorCode() noexcept {
 	);
 }
 
-std::string Errors::formatErrorMessage(int32_t errorCode) noexcept {
+std::string Errors::formatMessage(int32_t errorCode) noexcept {
 
 	#ifdef _WIN32
 
@@ -57,18 +57,18 @@ std::string Errors::formatErrorMessage(int32_t errorCode) noexcept {
 }
 
 APIError::APIError() {
-	this->m_code = Errors::getApiErrorCode();
-	this->m_text = Errors::formatErrorMessage(this->m_code);
+	this->m_code = Errors::getApiError();
+	this->m_text = Errors::formatMessage(this->m_code);
 }
 
 APIError::APIError(const std::string& commentText) {
-	this->m_code = Errors::getApiErrorCode();
-	this->m_text = commentText + ' ' + Errors::formatErrorMessage(this->m_code);
+	this->m_code = Errors::getApiError();
+	this->m_text = commentText + " (" + Errors::formatMessage(this->m_code) + ")";
 }
 
 APIError::APIError(int32_t code) {
 	this->m_code = code;
-	this->m_text = Errors::formatErrorMessage(code);
+	this->m_text = Errors::formatMessage(code);
 }
 
 APIError::APIError(const APIError& other) {
