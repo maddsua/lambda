@@ -1,11 +1,11 @@
 #include "./polyfill.hpp"
 
-#include <map>
+#include <unordered_map>
 
 using namespace Lambda;
 
 //	kindly borrowed from https://github.com/micnic/mime.json
-static const std::map<std::string, std::string> mimetypeMap = {
+static const std::unordered_map<std::string, std::string> mimetypeMap = {
 	{ "htm", "text/html" },
 	{ "html", "text/html" },
 	{ "txt", "text/plain" },

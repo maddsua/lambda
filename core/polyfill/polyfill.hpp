@@ -28,19 +28,6 @@ namespace Lambda {
 			std::string toHRTString() const noexcept;
 	};
 
-	class ShortID {
-		private:
-			union {
-				uint32_t numeric = 0;
-				char buffer[sizeof(uint32_t)];
-			} internal;
-
-		public:
-			ShortID() {}
-			ShortID(uint32_t init);
-			std::string toString() const;
-	};
-
 	namespace Content {
 		//	Get mimetype for file extension
 		std::string getExtMimetype(const std::string& mimetype);

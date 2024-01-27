@@ -3,7 +3,7 @@ LIB_CORE				=	core/core.a
 LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS) $(LIB_CORE_ERROR_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
-LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o core/polyfill/uid.o
+LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
 
 LIB_CORE_HTTP			=	core/http.a
 LIB_CORE_HTTP_DEPS		=	core/http/request.o core/http/response.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o
@@ -28,7 +28,7 @@ LIB_CORE_JSON			=	core/json.a
 LIB_CORE_JSON_DEPS		=	core/json/property.o core/json/parse.o core/json/stringify.o
 
 LIB_CORE_CRYPTO			=	core/crypto.a
-LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o
+LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o  core/crypto/uid.o
 
 LIB_CORE_ERROR			=	core/error.a
 LIB_CORE_ERROR_DEPS		=	core/error/apierror.o
@@ -53,9 +53,6 @@ core/polyfill/date.o: core/polyfill/date.cpp
 
 core/polyfill/mimetype.o: core/polyfill/mimetype.cpp
 	g++ -c $(CFLAGS) core/polyfill/mimetype.cpp -o core/polyfill/mimetype.o
-
-core/polyfill/uid.o: core/polyfill/uid.cpp
-	g++ -c $(CFLAGS) core/polyfill/uid.cpp -o core/polyfill/uid.o
 
 
 # http stuff
@@ -162,6 +159,7 @@ core/html/engine.o: core/html/engine.cpp
 core/html/resources/servicepage.res: core/html/resources/servicepage.html
 	objcopy --input-target binary --output-target $(BINRES_TARGET) --binary-architecture i386:x86-64 core/html/resources/servicepage.html core/html/resources/servicepage.res
 
+
 # jisson stuff
 $(LIB_CORE_JSON): $(LIB_CORE_JSON_DEPS)
 	ar rvs $(LIB_CORE_JSON) $(LIB_CORE_JSON_DEPS)
@@ -175,12 +173,17 @@ core/json/stringify.o: core/json/stringify.cpp
 core/json/property.o: core/json/property.cpp
 	g++ -c $(CFLAGS) core/json/property.cpp -o core/json/property.o
 
+
 # crypto stuff
 $(LIB_CORE_CRYPTO): $(LIB_CORE_CRYPTO_DEPS)
 	ar rvs $(LIB_CORE_CRYPTO) $(LIB_CORE_CRYPTO_DEPS)
 
 core/crypto/sha1.o: core/crypto/sha1.cpp
 	g++ -c $(CFLAGS) core/crypto/sha1.cpp -o core/crypto/sha1.o
+
+core/crypto/uid.o: core/crypto/uid.cpp
+	g++ -c $(CFLAGS) core/crypto/uid.cpp -o core/crypto/uid.o
+
 
 # error handling
 $(LIB_CORE_ERROR): $(LIB_CORE_ERROR_DEPS)

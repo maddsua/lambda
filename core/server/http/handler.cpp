@@ -7,6 +7,7 @@
 #include "../../crypto/crypto.hpp"
 #include "../../html/templates.hpp"
 #include "../../json/json.hpp"
+#include "../../crypto/crypto.hpp"
 
 #include <queue>
 #include <mutex>
@@ -50,7 +51,7 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 		while (requestQueue.await()) {
 
 			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-			auto requestID = ShortID((timeHighres & ~0UL)).toString();
+			auto requestID = Crypto::ShortID((timeHighres & ~0UL)).toString();
 
 			auto nextRequest = requestQueue.next();
 			Lambda::HTTP::Response response;

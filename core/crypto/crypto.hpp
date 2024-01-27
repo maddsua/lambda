@@ -22,6 +22,19 @@ namespace Lambda::Crypto {
 			std::array <uint8_t, SHA1::BlockSize> digest();
 	};
 
+	class ShortID {
+		private:
+
+			union {
+				uint32_t numeric = 0;
+				char buffer[sizeof(uint32_t)];
+			} m_id;
+
+		public:
+			ShortID() {}
+			ShortID(uint32_t init);
+			std::string toString() const;
+	};
 }
 
 #endif
