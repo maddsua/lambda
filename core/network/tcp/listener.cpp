@@ -23,16 +23,16 @@ ListenSocket::ListenSocket(const ListenConfig& init) {
 
 	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (this->hSocket == INVALID_SOCKET) {
-		throw std::runtime_error("failed to create listen socket: code " + std::to_string(getAPIError()));
+		throw std::runtime_error("failed to create listen socket:" + Errors::formatMessage(Errors::getApiError()));
 	}
 	
 	//	allow fast port reuse
 	if (init.allowPortReuse) {
 		uint32_t sockoptReuseaddr = 1;
 		if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
-			auto apierror = getAPIError();
+			auto apierror = Errors::getApiError();
 			closesocket(this->hSocket);
-			throw std::runtime_error("failed to set socket reuse address option: code " + std::to_string(apierror));
+			throw std::runtime_error("failed to create listen socket:" + Errors::formatMessage(apierror));
 		}
 		puts("Warning: fast port reuse enabled");
 	}
@@ -44,17 +44,16 @@ ListenSocket::ListenSocket(const ListenConfig& init) {
 	serverAddr.sin_port = htons(init.port);
 
 	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr))) {
-		auto apierror = getAPIError();
+		auto apierror = Errors::getApiError();
 		closesocket(this->hSocket);
-		if (apierror == LNE_ADDRINUSE) throw std::runtime_error("failed to bind socket: address already in use");
-		throw std::runtime_error("failed to bind socket: code " + std::to_string(apierror));
+		throw std::runtime_error("failed to bind socket:" + Errors::formatMessage(apierror));
 	}
 
 	//	listen for incoming connections
 	if (listen(this->hSocket, SOMAXCONN)) {
-		auto apierror = getAPIError();
+		auto apierror = Errors::getApiError();
 		closesocket(this->hSocket);
-		throw std::runtime_error("socket listen failed: code " + std::to_string(apierror));
+		throw std::runtime_error("socket listen failed:" + Errors::formatMessage(apierror));
 	}
 }
 
@@ -98,16 +97,16 @@ Connection ListenSocket::acceptConnection() {
 
 	//	verify that we have a valid socket
 	if (next.hSocket == INVALID_SOCKET) {
-		throw std::runtime_error("socket accept failed: code " + std::to_string(getAPIError()));
+		throw std::runtime_error("socket accept failed:" + Errors::formatMessage(Errors::getApiError()));
 	}
 
 	//	try setting connection timeouts
 	try {
 
 		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&next.info.timeout, sizeof(next.info.timeout)))
-			throw std::runtime_error("failed to set socket RX timeout: code " + std::to_string(getAPIError()));
+			throw std::runtime_error("failed to set socket RX timeout:" + Errors::formatMessage(Errors::getApiError()));
 		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&next.info.timeout, sizeof(next.info.timeout)))
-			throw std::runtime_error("failed to set socket TX timeout: code " + std::to_string(getAPIError()));
+			throw std::runtime_error("failed to set socket TX timeout:" + Errors::formatMessage(Errors::getApiError()));
 
 	} catch(const std::exception& err) {
 		if (next.hSocket != INVALID_SOCKET)
