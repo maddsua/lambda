@@ -16,7 +16,7 @@ namespace Lambda::Network::TCP {
 
 	class Connection {
 		protected:
-			SOCKET m_socket = INVALID_SOCKET;
+			SOCKET hSocket = INVALID_SOCKET;
 			ConnectionInfo m_info;
 			std::mutex m_readMutex;
 			std::mutex m_writeMutex;
