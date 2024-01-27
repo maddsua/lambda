@@ -61,6 +61,11 @@ APIError::APIError() {
 	this->m_text = Errors::formatErrorMessage(this->m_code);
 }
 
+APIError::APIError(const std::string& commentText) {
+	this->m_code = Errors::getApiErrorCode();
+	this->m_text = commentText + ' ' + Errors::formatErrorMessage(this->m_code);
+}
+
 APIError::APIError(int32_t code) {
 	this->m_code = code;
 	this->m_text = Errors::formatErrorMessage(code);
