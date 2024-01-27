@@ -3,7 +3,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include "../lambda_version.hpp"
+#include "../version.hpp"
 
 struct Options {
 	std::string templateFile;

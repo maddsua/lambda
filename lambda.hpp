@@ -9,7 +9,7 @@
 #ifndef __LIB_MADDSUA_LAMBDA_ENTRYPOINT__
 #define __LIB_MADDSUA_LAMBDA_ENTRYPOINT__
 
-#include "./lambda_version.hpp"
+#include "./version.hpp"
 
 //	include core "modules"
 #include "./core/http/http.hpp"

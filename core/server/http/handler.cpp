@@ -1,5 +1,5 @@
 
-#include "../../../lambda_build_options.hpp"
+#include "../../../build_options.hpp"
 #include "../http.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"

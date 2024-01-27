@@ -3,7 +3,7 @@
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
-#include "../../../lambda_build_options.hpp"
+#include "../../../build_options.hpp"
 
 #include <queue>
 #include <mutex>

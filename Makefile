@@ -51,7 +51,7 @@ dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
 
 dllinfo.rc: updatedllinfo$(EXEEXT)
-	updatedllinfo$(EXEEXT) --template=dllinfo.template.rc --info=lambda_version.hpp --output=dllinfo.rc
+	updatedllinfo$(EXEEXT) --template=dllinfo.template.rc --info=version.hpp --output=dllinfo.rc
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
