@@ -34,7 +34,7 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 	do {
 
 		auto headerEnded = recvBuff.end();
-		while (conn.isOpen() && headerEnded == recvBuff.end()) {
+		while (conn.active() && headerEnded == recvBuff.end()) {
 
 			auto newBytes = conn.read();
 			if (!newBytes.size()) break;
@@ -131,7 +131,7 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 
 		if (bodySize) {
 
-			if (!conn.isOpen()) {
+			if (!conn.active()) {
 				throw std::runtime_error("connection was terminated before request body could be received");
 			}
 
@@ -150,7 +150,7 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 
 		queue.push(std::move(next));
 
-	} while (conn.isOpen() && connectionKeepAlive);
+	} while (conn.active() && connectionKeepAlive);
 }
 
 void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings useEncoding) {

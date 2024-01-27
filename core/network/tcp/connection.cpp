@@ -28,7 +28,7 @@ Connection::~Connection() {
 	closesocket(this->m_socket);
 }
 
-void Connection::end() {
+void Connection::end() noexcept {
 	if (this->m_socket == INVALID_SOCKET) return;
 	shutdown(this->m_socket, SD_BOTH);
 	closesocket(this->m_socket);
@@ -39,7 +39,7 @@ const ConnectionInfo& Connection::info() const noexcept {
 	return this->m_info;
 }
 
-bool Connection::isOpen() const noexcept {
+bool Connection::active() const noexcept {
 	return this->m_socket != INVALID_SOCKET;
 }
 

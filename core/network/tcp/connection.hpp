@@ -27,15 +27,15 @@ namespace Lambda::Network::TCP {
 			Connection(const Connection& other) = delete;
 			~Connection();
 
-			Connection& operator= (const Connection& other) = delete;
-			Connection& operator= (Connection&& other) noexcept;
+			Connection& operator=(const Connection& other) = delete;
+			Connection& operator=(Connection&& other) noexcept;
 
 			std::vector<uint8_t> read();
 			std::vector<uint8_t> read(size_t expectedSize);
 			void write(const std::vector<uint8_t>& data);
 			const ConnectionInfo& info() const noexcept;
-			void end();
-			bool isOpen() const noexcept;
+			void end() noexcept;
+			bool active() const noexcept;
 
 			static const uint32_t TimeoutMs = 15000;
 			static const uint32_t TimeoutMs_Max = 60000;
