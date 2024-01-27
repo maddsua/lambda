@@ -28,9 +28,16 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 
 	const auto& conninfo = conn.info();
 
+	auto createLogTimeStamp = [&]() {
+		if (config.loglevel.timestamps) {
+			return Date().toHRTString() + ' ';
+		}
+		return std::string();
+	};
+
 	if (config.loglevel.connections) fprintf(stdout,
-		"%s %s:%i connected on %i\n",
-		Date().toHRTString().c_str(),
+		"%s%s:%i connected on %i\n",
+		createLogTimeStamp().c_str(),
 		conninfo.remoteAddr.hostname.c_str(),
 		conninfo.remoteAddr.port,
 		conninfo.hostPort
@@ -42,12 +49,10 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 
 		while (requestQueue.await()) {
 
-			auto nextRequest = requestQueue.next();
-			auto responseDate = Date();
-
 			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 			auto requestID = ShortID((timeHighres & ~0UL)).toString();
 
+			auto nextRequest = requestQueue.next();
 			Lambda::HTTP::Response response;
 			std::optional<std::string> handlerError;
 
@@ -62,7 +67,11 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 			} catch(const std::exception& e) {
 
 				if (config.loglevel.requests) {
-					printf("%s %s crashed: %s\n", responseDate.toHRTString().c_str(), requestID.c_str(), e.what());
+					fprintf(stdout, "%s%s crashed: %s\n",
+						createLogTimeStamp().c_str(),
+						requestID.c_str(),
+						e.what()
+					);
 				}
 
 				handlerError = e.what();
@@ -70,7 +79,10 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 			} catch(...) {
 
 				if (config.loglevel.requests) {
-					printf("%s %s crashed: unhandled exception\n", responseDate.toHRTString().c_str(), requestID.c_str());
+					fprintf(stdout, "%s%s crashed: unhandled exception\n",
+						createLogTimeStamp().c_str(),
+						requestID.c_str()
+					);
 				}
 
 				handlerError = "unhandled exception";
@@ -82,7 +94,7 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 					renderServerErrorPage(handlerError.value());
 			}
 
-			response.headers.set("date", responseDate.toUTCString());
+			response.headers.set("date", Date().toUTCString());
 			response.headers.set("server", "maddsua/lambda");
 			response.headers.set("x-request-id", requestID);
 
@@ -99,8 +111,8 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
 
 			if (config.loglevel.requests) {
-				printf("%s[%s] (%s) %s %s --> %i\n",
-					config.loglevel.timestamps ? (responseDate.toHRTString() + " ").c_str() : "",
+				fprintf(stdout, "%s[%s] (%s) %s %s --> %i\n",
+					createLogTimeStamp().c_str(),
 					requestID.c_str(),
 					conninfo.remoteAddr.hostname.c_str(),
 					static_cast<std::string>(nextRequest.request.method).c_str(),
@@ -113,8 +125,8 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 	} catch(const std::exception& e) {
 
 		if (config.loglevel.requests) fprintf(stderr,
-			"%s [Service] Connection to %s terminated: %s\n",
-			Date().toHRTString().c_str(),
+			"%s[Service] Connection to %s terminated: %s\n",
+			createLogTimeStamp().c_str(),
 			conninfo.remoteAddr.hostname.c_str(),
 			e.what()
 		);
@@ -122,15 +134,15 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 	} catch(...) {
 
 		if (config.loglevel.requests) fprintf(stderr,
-			"%s [Service] Connection to %s terminated (unknown error)\n",
-			Date().toHRTString().c_str(),
+			"%s[Service] Connection to %s terminated (unknown error)\n",
+			createLogTimeStamp().c_str(),
 			conninfo.remoteAddr.hostname.c_str()
 		);
 	}
 
 	if (config.loglevel.connections) fprintf(stdout,
-		"%s %s:%i disconnected from %i\n",
-		Date().toHRTString().c_str(),
+		"%s%s:%i disconnected from %i\n",
+		createLogTimeStamp().c_str(),
 		conninfo.remoteAddr.hostname.c_str(),
 		conninfo.remoteAddr.port,
 		conninfo.hostPort
