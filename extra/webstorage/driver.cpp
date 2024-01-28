@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <vector>
 #include <iterator>
+#include <memory.h>
 
 using namespace Lambda::Storage;
 using namespace Lambda::Storage::WebStorage;
@@ -34,8 +35,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 		headerTotalRead += this->m_stream.gcount();
 
 		//	check if a file is even our db
-		std::string headerMagic(dbHeader.magic, sizeof(dbHeader.magic));
-		if (headerMagic != this->magicstring) {
+		if (memcmp(dbHeader.magic, this->magicstring, sizeof(dbHeader.magic))) {
 			throw std::runtime_error("File \"" + this->m_filename + "\" is not recognized as a db file");
 		}
 
