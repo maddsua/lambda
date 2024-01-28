@@ -22,7 +22,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
 	puts("creating driver");
 
-	if (!std::filesystem::exists(this->m_filename)) {
+	/*if (!std::filesystem::exists(this->m_filename)) {
 
 		auto readfile = std::ifstream(this->m_filename, std::ios::binary);
 		if (!readfile.is_open()) {
@@ -105,7 +105,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 				default: throw std::runtime_error("Invalid action byte in message " + std::to_string(i));
 			}
 		}
-	}
+	}*/
 
 	this->m_stream = std::fstream(this->m_filename, std::ios::out | std::ios::binary);
 	if (!this->m_stream.is_open()) {
@@ -118,11 +118,9 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 }
 
 KVDriver::~KVDriver() {
+	this->m_stream.flush();
+	this->m_stream.close();
 	puts("destructing driver");
-}
-
-void KVDriver::handleTransaction(const Transaction&) {
-	puts("handling a transaction");
 }
 
 std::unordered_map<std::string, std::string> KVDriver::sync() {
@@ -137,4 +135,37 @@ std::unordered_map<std::string, std::string> KVDriver::sync() {
 	this->m_init_data = nullptr;
 
 	return temp;
+}
+
+void KVDriver::handleTransaction(const Transaction& tractx) {
+
+	puts("handling a transaction");
+
+	KVDriver::RecordHeader record {
+		static_cast<std::underlying_type_t<TransactionType>>(tractx.type),
+		tractx.key->size(),
+		tractx.value->size()
+	};
+
+	this->m_stream.write((const char*)&record, sizeof(record));
+
+	if (tractx.type != TransactionType::Clear) {
+
+		if (tractx.key == nullptr) {
+			throw std::runtime_error("a transaction should specify a key to operate on");
+		}
+
+		this->m_stream.write(tractx.key->data(), tractx.key->size());
+	}
+
+	if (tractx.type == TransactionType::Create || tractx.type == TransactionType::Update) {
+
+		if (tractx.value == nullptr) {
+			throw std::runtime_error("a write transaction should provida a value");
+		}
+
+		this->m_stream.write(tractx.value->data(), tractx.value->size());
+	}
+
+	this->m_stream.flush();
 }
