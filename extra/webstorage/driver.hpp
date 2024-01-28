@@ -13,12 +13,14 @@ namespace Lambda::Storage::WebStorage {
 
 	class KVDriver {
 		private:
+			constexpr static char const magicstring[] = "mlkvdb";
+
 			const std::string m_filename;
 			std::fstream m_stream;
 			KVStorage* m_init_data = nullptr;
 
 			struct DBBasicHeader {
-				char magic[6];
+				char magic[sizeof(magicstring) - 1];
 				uint32_t version;
 			};
 
@@ -35,7 +37,6 @@ namespace Lambda::Storage::WebStorage {
 			std::optional<KVStorage> sync();
 
 			static const uint32_t version = 3;
-			constexpr static char const* const magicstring = "mlkvdb";
 	};
 
 };
