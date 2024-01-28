@@ -22,3 +22,4 @@ deps/build/package-lock.json
 *.bin
 *.ldb
 dllinfo.rc
+lambda_sfi.hpp
