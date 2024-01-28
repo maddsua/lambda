@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <filesystem>
 #include <unordered_set>
+#include <regex>
 
 #include "../version.hpp"
 #include "../core/polyfill/polyfill.hpp"
@@ -68,6 +69,11 @@ int main(int argc, char const *argv[]) {
 RecolvePathResult resolveHeaderIncludePath(const std::string input) {
 
 	size_t startIdx = std::string::npos;
+	bool isStdHeader = false;
+
+	auto pathStart = input.find('\"');
+	if (pathStart == std::string::npos)
+		throw std::runtime_error("invalid include statement path start");
 
 	for (auto sym : std::initializer_list<char>({ '\"', '<' })) {
 
