@@ -12,7 +12,7 @@ namespace Lambda::Storage {
 
 		class KVDriver;
 
-		enum struct TransactionType {
+		enum struct TransactionType : int8_t {
 			Create, Update, Remove, Clear
 		};
 
