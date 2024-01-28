@@ -22,6 +22,7 @@ ifeq ($(OS),Windows_NT)
 	DLL_LDFLAGS			=	-Wl,--out-implib,lib$(LAMBDA_LIBSHARED).a
 	BINRES_TARGET		=	pe-x86-64
 else
+	EXEPFX				=	./
 	CLEAN_COMMAND		=	rm -rf *.o *.exe *.a *.dll *.so *.res
 	BINRES_TARGET		=	elf64-x86-64 
 	DLLEXT				=	.so
