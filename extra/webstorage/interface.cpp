@@ -21,8 +21,7 @@ void KVInterface::setItem(const std::string& key, const std::string& value) {
 	std::lock_guard <std::mutex> lock(this->mtlock);
 
 	if (this->driver != nullptr) {
-		auto transaction = this->data.contains(key) ? TransactionType::Update : TransactionType::Create;
-		this->driver->handleTransaction({ transaction, &key, &value });
+		this->driver->handleTransaction({ TransactionType::Put, &key, &value });
 	}
 
 	this->data[key] = value;
@@ -33,8 +32,7 @@ void KVInterface::removeItem(const std::string& key) {
 	std::lock_guard <std::mutex> lock(this->mtlock);
 
 	if (this->driver != nullptr) {
-		auto transaction = TransactionType::Remove;
-		this->driver->handleTransaction({ transaction, &key });
+		this->driver->handleTransaction({ TransactionType::Remove, &key });
 	}
 
 	this->data.erase(key);

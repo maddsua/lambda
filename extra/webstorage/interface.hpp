@@ -15,7 +15,7 @@ namespace Lambda::Storage {
 		typedef std::unordered_map<std::string, std::string> KVStorage;
 
 		enum struct TransactionType : uint8_t {
-			Create, Update, Remove, Clear
+			Put, Remove, Clear
 		};
 
 		struct Transaction {
