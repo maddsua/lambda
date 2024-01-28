@@ -16,3 +16,7 @@ KVDriver::~KVDriver() {
 void KVDriver::handleTransaction(const Transaction&) {
 	puts("handling a transaction");
 }
+
+std::unordered_map<std::string, std::string> KVDriver::load() {
+	return {};
+}
