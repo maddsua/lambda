@@ -170,6 +170,9 @@ std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
 	result = std::regex_replace(result, std::regex("\\s*\\#ifndef.+LIB.*LAMBDA.+[\\r\\n]+\\s*\\#define.*"), "");
 	result = std::regex_replace(result, std::regex("[\\r\\n\\s]+\\#endif[\\r\\n\\s]+$"), "\n");
 
+	//	remove comment blocks
+	result = std::regex_replace(result, std::regex("\\/\\*[\\r\\n\t ](\\*(?!\\/)|[^*])*\\*\\/", ECMAScript | icase), "");
+
 	//	removed repeating new lines
 	auto newlineNormalized = std::regex_replace(result, std::regex("\\r", ECMAScript | icase), "");
 	result = std::regex_replace(newlineNormalized, std::regex("\\n{3,}", ECMAScript | icase), "\n\n");
