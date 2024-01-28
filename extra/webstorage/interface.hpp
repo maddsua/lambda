@@ -23,8 +23,8 @@ namespace Lambda::Storage {
 
 		struct Transaction {
 			TransactionType type;
-			std::optional<const std::string&> key;
-			std::optional<const std::string&> value;
+			const std::string* key = nullptr;
+			const std::string* value = nullptr;
 		};
 
 		typedef std::function<void(const Transaction&)> TransactionCallback;
