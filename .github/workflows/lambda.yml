@@ -16,6 +16,8 @@ jobs:
         run: make libstatic target=prod
       - name: build shared lib
         run: make libshared target=prod
+      - name: Generate single file include
+        run: make gensfi
   build_and_run_tests:
     needs: build_lib
     runs-on: ubuntu-latest
