@@ -41,9 +41,21 @@ namespace Lambda::Storage {
 				void clear();
 				size_t size() const noexcept;
 		};
+
+		class KVDriver;
 	};
 
-	typedef WebStorage::KVInterface sessionStorage;
+	typedef WebStorage::KVInterface SessionStorage;
+
+	class LocalStorage : public WebStorage::KVInterface {
+		private:
+			KVDriver* driver = nullptr;
+
+		public:
+			LocalStorage();
+			LocalStorage(const std::string& dbfile);
+			~LocalStorage();
+	};
 };
 
 #endif
