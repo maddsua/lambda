@@ -2,7 +2,14 @@
 #include "../encoding/encoding.hpp"
 #include "../polyfill/polyfill.hpp"
 
+#include <chrono>
+
 using namespace Lambda::Crypto;
+
+ShortID::ShortID() {
+	time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+	this->m_id.numeric = (timeHighres & ~0UL);
+}
 
 ShortID::ShortID(uint32_t init) {
 	this->m_id.numeric = init;
