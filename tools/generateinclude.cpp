@@ -172,6 +172,7 @@ std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
 
 	//	remove comment blocks
 	result = std::regex_replace(result, std::regex("\\/\\*[\\r\\n\t ](\\*(?!\\/)|[^*])*\\*\\/", ECMAScript | icase), "");
+	result = std::regex_replace(result, std::regex("[\\r\\n]\\s*\\/{2}.*[\\r\\n]", ECMAScript | icase), "\n");
 
 	//	removed repeating new lines
 	auto newlineNormalized = std::regex_replace(result, std::regex("\\r", ECMAScript | icase), "");
