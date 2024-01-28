@@ -24,7 +24,7 @@
 	#include "./core/html/templates.hpp"
 
 	//	include extra "modules"
-	#include "./extra/webstorage/storage.hpp"
+	#include "./extra/webstorage/interface.hpp"
 
 	namespace Lambda {
 		typedef HTTP::Request Request;
