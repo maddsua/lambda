@@ -13,6 +13,19 @@ struct Options {
 	std::string outputHeader;
 };
 
+struct IncludeCtx {
+	std::unordered_set<std::string> imported;
+};
+
+std::string includeHeader(const std::string& inputHeader, IncludeCtx& ctx);
+
+struct RecolvePathResult {
+	std::string path;
+	bool embeddable;
+};
+
+RecolvePathResult resolveHeaderIncludePath(const std::string input);
+
 int main(int argc, char const *argv[]) {
 
 	Options opts;
@@ -45,11 +58,29 @@ int main(int argc, char const *argv[]) {
 		return 1;
 	}
 
-	std::ifstream file(opts.inputHeader);
+	IncludeCtx context;
+
+	includeHeader(opts.inputHeader, context);
+
+	return 0;
+}
+
+RecolvePathResult resolveHeaderIncludePath(const std::string input) {
+
+	size_t startIdx = std::string::npos;
+
+	for (auto sym : std::initializer_list<char>({ '\"', '<' })) {
+
+	}
+
+}
+
+std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
+
+	std::ifstream file(inputHeaderPath);
 
 	if (!file.is_open()) {
-		std::cerr << "ahhh shit could'nt read the file \"" << opts.inputHeader << "\"\n";
-		return 1;
+		throw std::runtime_error("ahhh shit could'nt read the file \"" + inputHeaderPath + "\"\n");
 	}
 
 	std::vector<std::string> lines;
@@ -59,8 +90,7 @@ int main(int argc, char const *argv[]) {
 
 	file.close();
 
-	std::unordered_set<std::string> importedHeaders;
-	std::vector<std::pair<std::string, std::string>> replacementPairs;
+	std::vector<std::string> resultingLines;
 
 	for (const auto& line : lines) {
 
@@ -77,18 +107,18 @@ int main(int argc, char const *argv[]) {
 
 		auto filePath = line.substr(pathStart + 1, pathEnd - pathStart - 1);
 
-		auto basePath = std::filesystem::path(opts.inputHeader).parent_path();
+		auto basePath = std::filesystem::path(inputHeaderPath).parent_path();
 		auto resolvedPath = std::filesystem::relative(filePath, basePath.generic_string().size() ? basePath : "./").generic_string();
 
-		if (importedHeaders.contains(resolvedPath)) continue;
+		if (ctx.imported.contains(resolvedPath)) continue;
 
-		importedHeaders.insert(resolvedPath);
-		replacementPairs.push_back({ line, resolvedPath });
+		ctx.imported.insert(resolvedPath);
+		resultingLines.push_back(includeHeader(resolvedPath, ctx));
 	}
 
-	for (const auto& item : replacementPairs) {
-		puts(item.second.c_str());
+	for (const auto& item : resultingLines) {
+		puts(item.c_str());
 	}
 
-	return 0;
+	return {};
 }
