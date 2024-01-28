@@ -63,6 +63,7 @@ int main(int argc, char const *argv[]) {
 	for (const auto& line : lines) {
 
 		if (!Lambda::Strings::trim(line).starts_with("#include")) continue;
+		else if (Lambda::Strings::includes(line, '<')) continue;
 
 		auto pathStart = line.find('\"');
 		if (pathStart == std::string::npos)
@@ -73,16 +74,16 @@ int main(int argc, char const *argv[]) {
 			throw std::runtime_error("invalid include statement path end");
 
 		auto filePath = line.substr(pathStart + 1, pathEnd - pathStart - 1);
-		replacementPairs.push_back({ line, filePath });
+
+		auto basePath = std::filesystem::path(opts.inputHeader).parent_path();
+		std::filesystem::path resolvedPath = std::filesystem::relative(filePath, basePath.generic_string().size() ? basePath : "./");
+
+		replacementPairs.push_back({ line, resolvedPath.generic_string() });
 	}
 
 	for (const auto& item : replacementPairs) {
 		puts(item.second.c_str());
 	}
-
-	auto basePath = std::filesystem::path(opts.inputHeader).parent_path();
-    std::filesystem::path resolvedPath = std::filesystem::relative("./dir/file.ext", basePath);
-    std::cout << resolvedPath.generic_string();
 
 	return 0;
 }
