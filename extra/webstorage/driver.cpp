@@ -2,10 +2,105 @@
 #include "./interface.hpp"
 #include "./driver.hpp"
 
+#include <filesystem>
+#include <vector>
+#include <iterator>
+
 using namespace Lambda::Storage;
 using namespace Lambda::Storage::WebStorage;
 
-KVDriver::KVDriver(const std::string& filename) {
+KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
+
+	if (!std::filesystem::exists(this->m_filename)) {
+
+		auto readfile = std::ifstream(this->m_filename, std::ios::binary);
+		if (!readfile.is_open()) {
+			throw std::runtime_error("Could not open \"" + this->m_filename + "\" for read");
+		}
+
+		readfile.seekg(0, std::ios::end);
+		auto fileSize = readfile.tellg();
+		readfile.seekg(0, std::ios::beg);
+
+		std::vector<uint8_t> rawcontent;
+		rawcontent.reserve(fileSize);
+
+		rawcontent.insert(rawcontent.begin(), std::istream_iterator<uint8_t>(readfile), std::istream_iterator<uint8_t>());
+		readfile.close();
+
+		std::vector<std::vector<uint8_t>> messages;
+
+		if (rawcontent.size()) {
+			size_t lastMessageStart = 0;
+			for (size_t i = lastMessageStart; i < rawcontent.size(); i++) {
+				if (rawcontent[i] == DiskLogWriteOps::WriteOpBlockEnd) {
+					messages.push_back(std::vector<uint8_t>(rawcontent.begin() + lastMessageStart, rawcontent.begin() + i));
+					lastMessageStart = i + 1;
+				}
+			}
+		}
+
+		for (size_t i = 0; i < messages.size(); i++) {
+
+			const auto& entry = messages[i];
+
+			if (entry.at(0) != DiskLogWriteOps::WriteOpStartBlock)
+				throw std::runtime_error("Invalid start byte in message " + std::to_string(i));
+
+			auto getFields = [&entry]() {
+				std::vector<std::vector<uint8_t>> messageFields;
+				size_t lastFieldStart = 2;
+				for (size_t i = lastFieldStart; i < entry.size(); i++) {
+					if (entry[i] == DiskLogWriteOps::WriteOpFieldSep) {
+						messageFields.push_back(std::vector<uint8_t>(entry.begin() + lastFieldStart, entry.begin() + i));
+						lastFieldStart = i + 1;
+					}
+				}
+				messageFields.push_back(std::vector<uint8_t>(entry.begin() + lastFieldStart, entry.end()));
+				return messageFields;
+			};
+
+			switch (entry.at(1)) {
+
+				case DiskLogWriteOps::WriteOpSet: {
+
+					auto fields = getFields();
+
+					auto& key = fields.at(0);
+					auto decodedKey = Encoding::fromBase64(std::string(key.begin(), key.end()));
+
+					auto& value = fields.at(1);
+					auto decodedValue = Encoding::fromBase64(std::string(value.begin(), value.end()));
+
+					this->data[std::string(decodedKey.begin(), decodedKey.end())] = std::string(decodedValue.begin(), decodedValue.end());
+
+				} break;
+
+				case DiskLogWriteOps::WriteOpDel: {
+
+					auto fields = getFields();
+
+					auto& key = fields.at(0);
+					auto decodedKey = Encoding::fromBase64(std::string(key.begin(), key.end()));
+
+					this->data.erase(std::string(decodedKey.begin(), decodedKey.end()));
+
+				} break;
+
+				case DiskLogWriteOps::WriteOpDrop: {
+					this->data.clear();
+				} break;
+
+				default: throw std::runtime_error("Invalid action byte in message " + std::to_string(i));
+			}
+		}
+	}
+
+	this->m_stream = std::fstream(this->m_filename, std::ios::out | std::ios::binary);
+	if (!this->m_stream.is_open()) {
+		throw std::runtime_error("Failed to open db file for write: " + this->m_filename);
+	}
+
 	puts("creating driver");
 }
 
@@ -17,6 +112,6 @@ void KVDriver::handleTransaction(const Transaction&) {
 	puts("handling a transaction");
 }
 
-std::unordered_map<std::string, std::string> KVDriver::load() {
+std::unordered_map<std::string, std::string> KVDriver::sync() {
 	return {};
 }
