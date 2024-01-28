@@ -11,6 +11,19 @@
 
 using namespace std::regex_constants;
 
+static const std::string mainHeaderTemplate = R"(
+/*
+	lambda - an HTTP and Websocket server library
+	{{release_time}} maddsua
+	https://github.com/maddsua/lambda
+*/
+
+#ifndef __LIB_MADDSUA_LAMBDA__
+#define __LIB_MADDSUA_LAMBDA__
+{{merged_includes}}
+#endif
+)";
+
 struct Options {
 	std::string inputHeader;
 	std::string outputHeader;
@@ -63,7 +76,19 @@ int main(int argc, char const *argv[]) {
 
 	IncludeCtx context;
 
-	auto result = includeHeader(opts.inputHeader, context);
+	auto mergedIncludes = includeHeader(opts.inputHeader, context);
+
+	auto templateReplacements = std::initializer_list<std::pair<std::string, std::string>>({
+		{ "release_time", "2024" },
+		{ "merged_includes", mergedIncludes },
+	});
+
+	std::string result = mainHeaderTemplate;
+	for (const auto& item : templateReplacements) {
+		auto varexpr = std::regex("\\{\\s*\\{\\s*" + item.first + "\\s*\\}\\s*\\}", ECMAScript | icase);
+		result = std::regex_replace(result, varexpr, item.second);
+	}
+
 	printf("Writing \"%s\"\n", opts.outputHeader.c_str());
 
 	auto sfiHeader = std::fstream(opts.outputHeader, std::ios::out | std::ios::binary);
@@ -140,6 +165,10 @@ std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
 		result.insert(result.end(), item.begin(), item.end());
 		result.push_back('\n');
 	}
+
+	//	remove include guards
+	result = std::regex_replace(result, std::regex("\\s*\\#ifndef.+LIB.*LAMBDA.+[\\r\\n]+\\s*\\#define.*"), "");
+	result = std::regex_replace(result, std::regex("[\\r\\n\\s]+\\#endif[\\r\\n\\s]+$"), "\n");
 
 	return result;
 }
