@@ -59,8 +59,8 @@ int main(int argc, char const *argv[]) {
 
 	file.close();
 
-	std::vector<std::pair<std::string, std::string>> replacementPairs;
 	std::unordered_set<std::string> importedHeaders;
+	std::vector<std::pair<std::string, std::string>> replacementPairs;
 
 	for (const auto& line : lines) {
 
