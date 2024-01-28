@@ -1,5 +1,6 @@
 
 #include "./interface.hpp"
+#include "./driver.hpp"
 
 using namespace Lambda::Storage;
 using namespace Lambda::Storage::WebStorage;
@@ -52,4 +53,16 @@ void KVInterface::clear() {
 
 size_t KVInterface::size() const noexcept {
 	return this->data.size();
+}
+
+LocalStorage::LocalStorage() {
+	this->driver = new KVDriver("localstorage.ldb");
+}
+
+LocalStorage::LocalStorage(const std::string& dbfile) {
+	this->driver = new KVDriver(dbfile);
+}
+
+LocalStorage::~LocalStorage() {
+	delete this->driver;
 }
