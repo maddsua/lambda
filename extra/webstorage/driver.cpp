@@ -20,8 +20,6 @@ enum DiskLogWriteOps {
 
 KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
-	puts("creating driver");
-
 	if (std::filesystem::exists(this->m_filename)) {
 
 		this->m_stream = std::fstream(this->m_filename, std::ios::in | std::ios::binary);
@@ -34,6 +32,12 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 		size_t headerTotalRead = 0;
 		this->m_stream.read((char*)&dbHeader, sizeof(dbHeader));
 		headerTotalRead += this->m_stream.gcount();
+
+		//	check if a file is even our db
+		std::string headerMagic(dbHeader.magic, sizeof(dbHeader.magic));
+		if (headerMagic != this->magicstring) {
+			throw std::runtime_error("File \"" + this->m_filename + "\" is not recognized as a db file");
+		}
 
 		if (headerTotalRead != sizeof(dbHeader)) {
 			throw std::runtime_error("Corrupt db file: cound not read db version");
@@ -129,6 +133,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
 	DBBasicHeader dbHeader;
 	dbHeader.version = this->version;
+	memcpy(dbHeader.magic, this->magicstring, sizeof(dbHeader.magic));
 
 	this->m_stream.write((const char*)&dbHeader, sizeof(dbHeader));
 
