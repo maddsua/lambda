@@ -10,8 +10,6 @@
 #include <unordered_map>
 #include <mutex>
 #include <fstream>
-#include <functional>
-#include <optional>
 
 namespace Lambda::Storage::WebStorage {
 
@@ -20,6 +18,7 @@ namespace Lambda::Storage::WebStorage {
 			KVDriver(const std::string& filename);
 			~KVDriver();
 			void handleTransaction(const Transaction&);
+			std::unordered_map<std::string, std::string> load();
 	};
 
 };
