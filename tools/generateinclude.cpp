@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdexcept>
 #include <filesystem>
+#include <unordered_map>
 
 #include "../version.hpp"
 #include "../core/polyfill/polyfill.hpp"
@@ -58,7 +59,7 @@ int main(int argc, char const *argv[]) {
 
 	file.close();
 
-	std::vector<std::pair<std::string, std::string>> replacementPairs;
+	std::unordered_map<std::string, std::string> importedHeaders;
 
 	for (const auto& line : lines) {
 
@@ -76,13 +77,15 @@ int main(int argc, char const *argv[]) {
 		auto filePath = line.substr(pathStart + 1, pathEnd - pathStart - 1);
 
 		auto basePath = std::filesystem::path(opts.inputHeader).parent_path();
-		std::filesystem::path resolvedPath = std::filesystem::relative(filePath, basePath.generic_string().size() ? basePath : "./");
+		auto resolvedPath = std::filesystem::relative(filePath, basePath.generic_string().size() ? basePath : "./").generic_string();
 
-		replacementPairs.push_back({ line, resolvedPath.generic_string() });
+		if (importedHeaders.contains(resolvedPath)) continue;
+
+		importedHeaders[resolvedPath] = line;
 	}
 
-	for (const auto& item : replacementPairs) {
-		puts(item.second.c_str());
+	for (const auto& item : importedHeaders) {
+		puts(item.first.c_str());
 	}
 
 	return 0;
