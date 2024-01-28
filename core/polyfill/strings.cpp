@@ -163,6 +163,12 @@ void Strings::replace(std::string& base, const std::string& sub, const std::stri
 	base.replace(index, sub.size(), replacement);
 }
 
+std::string Strings::replace(const std::string& base, const std::string& sub, const std::string& replacement) {
+	auto temp = base;
+	replace(temp, sub, replacement);
+	return temp;
+}
+
 void Strings::replaceAll(std::string& base, const std::string& sub, const std::string& replacement) {
 	size_t index = base.find(sub);
 	while (index != std::string::npos) {
