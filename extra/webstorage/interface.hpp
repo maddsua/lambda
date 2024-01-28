@@ -15,6 +15,8 @@ namespace Lambda::Storage {
 
 	namespace WebStorage {
 
+		class KVDriver;
+
 		enum struct TransactionType {
 			Create, Update, Remove, Clear
 		};
@@ -31,7 +33,7 @@ namespace Lambda::Storage {
 			protected:
 				std::unordered_map<std::string, std::string> data;
 				std::mutex mtlock;
-				std::optional<WebStorage::TransactionCallback> callback;
+				KVDriver* driver = nullptr;
 
 			public:
 				std::string getItem(const std::string& key);
@@ -41,16 +43,11 @@ namespace Lambda::Storage {
 				void clear();
 				size_t size() const noexcept;
 		};
-
-		class KVDriver;
 	};
 
 	typedef WebStorage::KVInterface SessionStorage;
 
 	class LocalStorage : public WebStorage::KVInterface {
-		private:
-			KVDriver* driver = nullptr;
-
 		public:
 			LocalStorage();
 			LocalStorage(const std::string& dbfile);
