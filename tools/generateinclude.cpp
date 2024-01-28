@@ -87,7 +87,7 @@ int main(int argc, char const *argv[]) {
 	}
 
 	for (const auto& item : replacementPairs) {
-		puts(item.first.c_str());
+		puts(item.second.c_str());
 	}
 
 	return 0;
