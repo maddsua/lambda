@@ -78,7 +78,9 @@ namespace Lambda {
 		//	Combine multiple strings
 		std::string join(const std::vector<std::string>& strs, const char* token);
 
+		std::string replace(const std::string& base, const std::string& sub, const std::string& replacement);
 		void replace(std::string& base, const std::string& sub, const std::string& replacement);
+
 		void replaceAll(std::string& base, const std::string& sub, const std::string& replacement);
 		std::string replaceAll(const std::string& base, const std::string& sub, const std::string& replacement);
 	};
