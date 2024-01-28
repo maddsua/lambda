@@ -63,7 +63,12 @@ int main(int argc, char const *argv[]) {
 
 	IncludeCtx context;
 
-	includeHeader(opts.inputHeader, context);
+	auto result = includeHeader(opts.inputHeader, context);
+	printf("Writing \"%s\"\n", opts.outputHeader.c_str());
+
+	auto sfiHeader = std::fstream(opts.outputHeader, std::ios::out | std::ios::binary);
+	if (!sfiHeader.is_open()) throw std::runtime_error("Couldn't open file " + opts.outputHeader + " for write");
+	sfiHeader.write(result.data(), result.size());
 
 	return 0;
 }
@@ -85,6 +90,8 @@ std::string resolvePath(const std::string& base, const std::string& path) {
 
 	auto basePath = std::filesystem::relative(base).remove_filename().generic_string();
 	auto resolved = std::filesystem::relative(basePath + path).generic_string();
+
+	printf("--> Including \"%s\"...\n", resolved.c_str());
 	
 //	printf("%s | %s | %s | %s\n", base.c_str(), basePath.c_str(), path.c_str(), resolved.c_str());
 	return resolved;
@@ -121,7 +128,7 @@ std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
 		ctx.imported.insert(resolvedPath);
 
 		if (!includePath.embeddable) {
-			resultingLines.push_back(includePath.path);
+			resultingLines.push_back("#include " + includePath.path);
 			continue;
 		}
 
