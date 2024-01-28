@@ -22,7 +22,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
 	puts("creating driver");
 
-	if (!std::filesystem::exists(this->m_filename)) {
+	if (std::filesystem::exists(this->m_filename)) {
 
 		this->m_stream = std::fstream(this->m_filename, std::ios::in | std::ios::binary);
 		if (!this->m_stream.is_open()) {
