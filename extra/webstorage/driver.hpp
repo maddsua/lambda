@@ -18,7 +18,7 @@ namespace Lambda::Storage::WebStorage {
 			KVStorage* m_init_data = nullptr;
 
 			struct DBBasicHeader {
-				char magic[6] = { 'm', 'l', 'k', 'v', 'd', 'b' };
+				char magic[6];
 				uint32_t version;
 			};
 
@@ -35,6 +35,7 @@ namespace Lambda::Storage::WebStorage {
 			std::optional<KVStorage> sync();
 
 			static const uint32_t version = 3;
+			constexpr static char const* const magicstring = "mlkvdb";
 	};
 
 };
