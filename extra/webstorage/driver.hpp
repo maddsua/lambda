@@ -17,6 +17,11 @@ namespace Lambda::Storage::WebStorage {
 			std::fstream m_stream;
 			KVStorage* m_init_data = nullptr;
 
+			struct DBBasicHeader {
+				char magic[6] = { 'm', 'l', 'k', 'v', 'd', 'b' };
+				uint32_t version;
+			};
+
 			struct RecordHeader {
 				uint8_t type;
 				uint16_t keySize;
@@ -28,6 +33,8 @@ namespace Lambda::Storage::WebStorage {
 			~KVDriver();
 			void handleTransaction(const Transaction& tractx);
 			std::optional<KVStorage> sync();
+
+			static const uint32_t version = 3;
 	};
 
 };
