@@ -57,12 +57,12 @@ size_t KVInterface::size() const noexcept {
 
 LocalStorage::LocalStorage() {
 	this->driver = new KVDriver("localstorage.ldb");
-	this->data = this->driver->load();
+	this->data = this->driver->sync();
 }
 
 LocalStorage::LocalStorage(const std::string& dbfile) {
 	this->driver = new KVDriver(dbfile);
-	this->data = this->driver->load();
+	this->data = this->driver->sync();
 }
 
 LocalStorage::~LocalStorage() {
