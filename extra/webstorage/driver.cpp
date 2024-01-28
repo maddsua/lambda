@@ -9,7 +9,18 @@
 using namespace Lambda::Storage;
 using namespace Lambda::Storage::WebStorage;
 
+enum DiskLogWriteOps {
+	WriteOpStartBlock = 0x06,
+	WriteOpFieldSep = 0x1f,
+	WriteOpBlockEnd = 0x00,
+	WriteOpSet = 0x01,
+	WriteOpDel = 0x02,
+	WriteOpDrop = 0x03,
+};
+
 KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
+
+	puts("creating driver");
 
 	if (!std::filesystem::exists(this->m_filename)) {
 
@@ -101,7 +112,9 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 		throw std::runtime_error("Failed to open db file for write: " + this->m_filename);
 	}
 
-	puts("creating driver");
+	for (const auto& entry : *this->m_init_data) {
+		this->handleTransaction({ TransactionType::Create, &entry.first, &entry.second });
+	}
 }
 
 KVDriver::~KVDriver() {
@@ -113,5 +126,15 @@ void KVDriver::handleTransaction(const Transaction&) {
 }
 
 std::unordered_map<std::string, std::string> KVDriver::sync() {
-	return {};
+
+	if (this->m_init_data == nullptr) {
+		throw std::runtime_error("initial db data was already exported");
+	}
+
+	auto temp = std::move(*this->m_init_data);
+
+	delete this->m_init_data;
+	this->m_init_data = nullptr;
+
+	return temp;
 }
