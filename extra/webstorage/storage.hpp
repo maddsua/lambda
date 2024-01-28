@@ -8,21 +8,41 @@
 #include <unordered_map>
 #include <mutex>
 #include <fstream>
-
-/*
-	Storage object message
-	______________________
-	| [ACTION] SET         |
-	|----------------------|
-	| [KEY] cmVjb3JkX2lk   |
-	|----------------------|
-	| [VALUE] dGVzdCAxMjM  |
-	|----------------------|
-	| [EMPTY LINE]         |
-	|______________________|
-*/
+#include <functional>
+#include <optional>
 
 namespace Lambda::Storage {
+
+	namespace WebStorage {
+
+		enum struct TransactionType {
+			Create, Update, Remove, Clear
+		};
+
+		struct Transaction {
+			TransactionType type;
+			std::optional<const std::string&> key;
+			std::optional<const std::string&> value;
+		};
+
+		typedef std::function<void(Transaction)> TransactionCallback;
+
+		class KVInterface {
+			protected:
+				std::unordered_map<std::string, std::string> data;
+				std::mutex mtlock;
+				std::optional<WebStorage::TransactionCallback> callback;
+
+			public:
+				std::string getItem(const std::string& key);
+				bool hasItem(const std::string& key) const;
+				void setItem(const std::string& key, const std::string& value);
+				void removeItem(const std::string& key);
+				void clear();
+				size_t length() const;
+				size_t size() const;
+		};
+	};
 
 	enum struct StorageTransaction {
 		Remove = -1,
@@ -38,6 +58,7 @@ namespace Lambda::Storage {
 		protected:
 			std::unordered_map<std::string, std::string> data;
 			std::mutex mtlock;
+			std::optional<WebStorage::TransactionCallback> callback;
 
 		public:
 			std::string getItem(const std::string& key);
