@@ -9,6 +9,8 @@
 #include "../version.hpp"
 #include "../core/polyfill/polyfill.hpp"
 
+using namespace std::regex_constants;
+
 struct Options {
 	std::string inputHeader;
 	std::string outputHeader;
@@ -18,14 +20,14 @@ struct IncludeCtx {
 	std::unordered_set<std::string> imported;
 };
 
-std::string includeHeader(const std::string& inputHeader, IncludeCtx& ctx);
-
 struct RecolvePathResult {
 	std::string path;
 	bool embeddable;
 };
 
-RecolvePathResult resolveHeaderIncludePath(const std::string input);
+RecolvePathResult parseIncludePath(const std::string input);
+std::string resolvePath(const std::string& a, const std::string& b);
+std::string includeHeader(const std::string& inputHeader, IncludeCtx& ctx);
 
 int main(int argc, char const *argv[]) {
 
@@ -66,19 +68,26 @@ int main(int argc, char const *argv[]) {
 	return 0;
 }
 
-RecolvePathResult resolveHeaderIncludePath(const std::string input) {
+RecolvePathResult parseIncludePath(const std::string input) {
 
 	size_t startIdx = std::string::npos;
-	bool isStdHeader = false;
 
-	auto pathStart = input.find('\"');
-	if (pathStart == std::string::npos)
-		throw std::runtime_error("invalid include statement path start");
+	auto includePath = std::regex_replace(std::regex_replace(input, std::regex("^\\s*\\#include\\s*", ECMAScript | icase), ""), std::regex("\\s*$"), "");
+	bool isStdHeader = includePath.starts_with("<");
 
-	for (auto sym : std::initializer_list<char>({ '\"', '<' })) {
+	return {
+		isStdHeader ? includePath : includePath.substr(1, includePath.size() - 2),
+		!isStdHeader
+	};
+}
 
-	}
+std::string resolvePath(const std::string& base, const std::string& path) {
 
+	auto basePath = std::filesystem::relative(base).remove_filename().generic_string();
+	auto resolved = std::filesystem::relative(basePath + path).generic_string();
+	
+//	printf("%s | %s | %s | %s\n", base.c_str(), basePath.c_str(), path.c_str(), resolved.c_str());
+	return resolved;
 }
 
 std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
@@ -100,31 +109,30 @@ std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
 
 	for (const auto& line : lines) {
 
-		if (!Lambda::Strings::trim(line).starts_with("#include")) continue;
-		else if (Lambda::Strings::includes(line, '<')) continue;
+		if (!std::regex_match(line, std::regex("^\\s*\\#include.*$", ECMAScript | icase))) {
+			resultingLines.push_back(line);
+			continue;
+		}
 
-		auto pathStart = line.find('\"');
-		if (pathStart == std::string::npos)
-			throw std::runtime_error("invalid include statement path start");
-
-		auto pathEnd = line.find('\"', pathStart + 1);
-		if (pathEnd == std::string::npos)
-			throw std::runtime_error("invalid include statement path end");
-
-		auto filePath = line.substr(pathStart + 1, pathEnd - pathStart - 1);
-
-		auto basePath = std::filesystem::path(inputHeaderPath).parent_path();
-		auto resolvedPath = std::filesystem::relative(filePath, basePath.generic_string().size() ? basePath : "./").generic_string();
-
+		auto includePath = parseIncludePath(line);
+		auto resolvedPath = includePath.embeddable ? resolvePath(inputHeaderPath, includePath.path) : includePath.path;
+		
 		if (ctx.imported.contains(resolvedPath)) continue;
-
 		ctx.imported.insert(resolvedPath);
+
+		if (!includePath.embeddable) {
+			resultingLines.push_back(includePath.path);
+			continue;
+		}
+
 		resultingLines.push_back(includeHeader(resolvedPath, ctx));
 	}
 
+	std::string result;
 	for (const auto& item : resultingLines) {
-		puts(item.c_str());
+		result.insert(result.end(), item.begin(), item.end());
+		result.push_back('\n');
 	}
 
-	return {};
+	return result;
 }
