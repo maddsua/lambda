@@ -7,7 +7,6 @@
 #include <regex>
 
 #include "../version.hpp"
-#include "../core/polyfill/polyfill.hpp"
 
 using namespace std::regex_constants;
 
