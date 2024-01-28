@@ -22,7 +22,7 @@ void KVInterface::setItem(const std::string& key, const std::string& value) {
 
 	if (this->driver != nullptr) {
 		auto transaction = this->data.contains(key) ? TransactionType::Update : TransactionType::Create;
-		this->driver->handleTransaction({ transaction, key, value });
+		this->driver->handleTransaction({ transaction, &key, &value });
 	}
 
 	this->data[key] = value;
@@ -34,7 +34,7 @@ void KVInterface::removeItem(const std::string& key) {
 
 	if (this->driver != nullptr) {
 		auto transaction = TransactionType::Remove;
-		this->driver->handleTransaction({ transaction, key });
+		this->driver->handleTransaction({ transaction, &key });
 	}
 
 	this->data.erase(key);
