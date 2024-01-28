@@ -9,17 +9,17 @@
 #include <mutex>
 #include <fstream>
 
-/**
- * Storage object message
- *  ______________________
- * | [ACTION] SET         |
- * |----------------------|
- * | [KEY] cmVjb3JkX2lk   |
- * |----------------------|
- * | [VALUE] dGVzdCAxMjM  |
- * |----------------------|
- * | [EMPTY LINE]         |
- * |______________________|
+/*
+	Storage object message
+	______________________
+	| [ACTION] SET         |
+	|----------------------|
+	| [KEY] cmVjb3JkX2lk   |
+	|----------------------|
+	| [VALUE] dGVzdCAxMjM  |
+	|----------------------|
+	| [EMPTY LINE]         |
+	|______________________|
 */
 
 namespace Lambda::Storage {
