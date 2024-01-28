@@ -29,6 +29,21 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 			throw std::runtime_error("Could not open \"" + this->m_filename + "\" for read");
 		}
 
+		DBBasicHeader dbHeader;
+
+		size_t headerTotalRead = 0;
+		this->m_stream.read((char*)&dbHeader, sizeof(dbHeader));
+		headerTotalRead += this->m_stream.gcount();
+
+		if (headerTotalRead != sizeof(dbHeader)) {
+			throw std::runtime_error("Corrupt db file: cound not read db version");
+		}
+
+		//	replace it later with proper version handling
+		if (dbHeader.version != this->version) {
+			throw std::runtime_error("Unsupported db version");
+		}
+
 		this->m_init_data = new KVStorage();
 
 		while (this->m_stream.is_open() && !this->m_stream.eof()) {
@@ -111,6 +126,11 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 	if (!this->m_stream.is_open()) {
 		throw std::runtime_error("Failed to open db file for write: " + this->m_filename);
 	}
+
+	DBBasicHeader dbHeader;
+	dbHeader.version = this->version;
+
+	this->m_stream.write((const char*)&dbHeader, sizeof(dbHeader));
 
 	if (this->m_init_data != nullptr) {
 		for (const auto& entry : *this->m_init_data) {
