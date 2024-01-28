@@ -35,8 +35,11 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
 			KVDriver::RecordHeader recordHeader;
 			this->m_stream.read((char*)&recordHeader, sizeof(recordHeader));
+
+			auto lastRead = this->m_stream.gcount();
 			
-			if (this->m_stream.gcount() != sizeof(recordHeader)) {
+			if (lastRead != sizeof(recordHeader)) {
+				if (!lastRead) break;
 				throw std::runtime_error("Corrupt db file: incomplete record header");
 			}
 
