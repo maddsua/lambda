@@ -17,7 +17,7 @@ int main(int argc, char const *argv[]) {
 	localStorage.setItem("numbers woohooo", "100500");
 	localStorage.setItem("478", "775");
 	localStorage.setItem("to_remove", "this record will be removed");
-	localStorage.setItem("not_to_remove", "this record will be not removed");
+	localStorage.setItem("not_to_remove", "this record will not be removed");
 
 	localStorage.removeItem("to_remove");
 	localStorage.removeItem("undefined");
