@@ -16,10 +16,16 @@ namespace Lambda::Storage::WebStorage {
 			std::fstream m_stream;
 			std::unordered_map<std::string, std::string>* m_init_data = nullptr;
 
+			struct RecordHeader {
+				uint8_t type;
+				uint16_t keySize = 0;
+				uint32_t valueSize = 0;
+			};
+
 		public:
 			KVDriver(const std::string& filename);
 			~KVDriver();
-			void handleTransaction(const Transaction&);
+			void handleTransaction(const Transaction& tractx);
 			std::unordered_map<std::string, std::string> sync();
 	};
 
