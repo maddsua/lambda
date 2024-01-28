@@ -12,7 +12,9 @@ namespace Lambda::Storage {
 
 		class KVDriver;
 
-		enum struct TransactionType : int8_t {
+		typedef std::unordered_map<std::string, std::string> KVStorage;
+
+		enum struct TransactionType : uint8_t {
 			Create, Update, Remove, Clear
 		};
 
@@ -24,7 +26,7 @@ namespace Lambda::Storage {
 
 		class KVInterface {
 			protected:
-				std::unordered_map<std::string, std::string> data;
+				KVStorage data;
 				std::mutex mtlock;
 				KVDriver* driver = nullptr;
 

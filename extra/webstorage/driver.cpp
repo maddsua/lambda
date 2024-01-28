@@ -112,8 +112,10 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 		throw std::runtime_error("Failed to open db file for write: " + this->m_filename);
 	}
 
-	for (const auto& entry : *this->m_init_data) {
-		this->handleTransaction({ TransactionType::Create, &entry.first, &entry.second });
+	if (this->m_init_data != nullptr) {
+		for (const auto& entry : *this->m_init_data) {
+			this->handleTransaction({ TransactionType::Create, &entry.first, &entry.second });
+		}
 	}
 }
 
@@ -123,10 +125,10 @@ KVDriver::~KVDriver() {
 	puts("destructing driver");
 }
 
-std::unordered_map<std::string, std::string> KVDriver::sync() {
+std::optional<KVStorage> KVDriver::sync() {
 
 	if (this->m_init_data == nullptr) {
-		throw std::runtime_error("initial db data was already exported");
+		return std::nullopt;
 	}
 
 	auto temp = std::move(*this->m_init_data);
@@ -139,12 +141,10 @@ std::unordered_map<std::string, std::string> KVDriver::sync() {
 
 void KVDriver::handleTransaction(const Transaction& tractx) {
 
-	puts("handling a transaction");
-
 	KVDriver::RecordHeader record {
 		static_cast<std::underlying_type_t<TransactionType>>(tractx.type),
-		tractx.key->size(),
-		tractx.value->size()
+		static_cast<uint16_t>(tractx.key ? tractx.key->size() : 0),
+		static_cast<uint32_t>(tractx.value ? tractx.value->size() : 0)
 	};
 
 	this->m_stream.write((const char*)&record, sizeof(record));
