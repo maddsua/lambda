@@ -1,6 +1,6 @@
 
-#ifndef  __LIB_MADDSUA_LAMBDA_EXTRA_STORAGE__
-#define  __LIB_MADDSUA_LAMBDA_EXTRA_STORAGE__
+#ifndef  __LIB_MADDSUA_LAMBDA_EXTRA_WEB_STORAGE__
+#define  __LIB_MADDSUA_LAMBDA_EXTRA_WEB_STORAGE__
 
 #include <vector>
 #include <string>
@@ -25,7 +25,7 @@ namespace Lambda::Storage {
 			std::optional<const std::string&> value;
 		};
 
-		typedef std::function<void(Transaction)> TransactionCallback;
+		typedef std::function<void(const Transaction&)> TransactionCallback;
 
 		class KVInterface {
 			protected:
