@@ -1,6 +1,6 @@
 
 # Test URL core module
-TEST_URL_TARGET = url.test$(EXEEXT)
+TEST_URL_TARGET = $(EXEPFX)url.test$(EXEEXT)
 test.url: $(TEST_URL_TARGET)
 	$(TEST_URL_TARGET)
 
@@ -12,7 +12,7 @@ test/url.test.o: test/url.test.cpp
 
 
 # Test encoding core module
-TEST_ENCODING_TARGET = encoding.test$(EXEEXT)
+TEST_ENCODING_TARGET = $(EXEPFX)encoding.test$(EXEEXT)
 test.encoding: $(TEST_ENCODING_TARGET)
 	$(TEST_ENCODING_TARGET)
 
@@ -24,7 +24,7 @@ test/encoding.test.o: test/encoding.test.cpp
 
 
 # Test polyfill/strings core module
-TEST_STRINGS_TARGET = strings.test$(EXEEXT)
+TEST_STRINGS_TARGET = $(EXEPFX)strings.test$(EXEEXT)
 test.strings: $(TEST_STRINGS_TARGET)
 	$(TEST_STRINGS_TARGET)
 
@@ -36,7 +36,7 @@ test/strings.test.o: test/strings.test.cpp
 
 
 # Test JSON extra module
-TEST_JSON_TARGET = json.test$(EXEEXT)
+TEST_JSON_TARGET = $(EXEPFX)json.test$(EXEEXT)
 test.json: $(TEST_JSON_TARGET)
 	$(TEST_JSON_TARGET)
 
@@ -48,7 +48,7 @@ test/json.test.o: test/json.test.cpp
 
 
 # Test Storage extra module
-TEST_STORAGE_TARGET = storage.test$(EXEEXT)
+TEST_STORAGE_TARGET = $(EXEPFX)storage.test$(EXEEXT)
 test.storage: $(TEST_STORAGE_TARGET)
 	$(TEST_STORAGE_TARGET)
 
@@ -60,7 +60,7 @@ test/storage.test.o: test/storage.test.cpp
 
 
 # Test zlib compression module
-TEST_ZLIB_TARGET = zlib.test$(EXEEXT)
+TEST_ZLIB_TARGET = $(EXEPFX)zlib.test$(EXEEXT)
 test.zlib: $(TEST_ZLIB_TARGET)
 	$(TEST_ZLIB_TARGET)
 
@@ -72,7 +72,7 @@ test/zlib.test.o: test/zlib.test.cpp
 
 
 # Test brotli compression module
-TEST_BROTLI_TARGET = brotli.test$(EXEEXT)
+TEST_BROTLI_TARGET = $(EXEPFX)brotli.test$(EXEEXT)
 test.brotli: $(TEST_BROTLI_TARGET)
 	$(TEST_BROTLI_TARGET)
 
@@ -113,7 +113,7 @@ test/httpserver.test.o: test/httpserver.test.cpp
 
 
 # Test error handling module
-TEST_ERRORS_TARGET = errors.test$(EXEEXT)
+TEST_ERRORS_TARGET = $(EXEPFX)errors.test$(EXEEXT)
 test.errors: $(TEST_ERRORS_TARGET)
 	$(TEST_ERRORS_TARGET)
 
