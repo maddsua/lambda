@@ -27,8 +27,6 @@ namespace Lambda::Storage {
 			const std::string* value = nullptr;
 		};
 
-		typedef std::function<void(const Transaction&)> TransactionCallback;
-
 		class KVInterface {
 			protected:
 				std::unordered_map<std::string, std::string> data;
