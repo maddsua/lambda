@@ -10,9 +10,15 @@ int main(int argc, char const *argv[]) {
 	auto testData = std::initializer_list<std::pair<std::string, std::string>>({
 		{ "sample record", "sample value" },
 		{ "test_prop_1", "quick brown horse... whatever" },
-		{ "test_prop_2", "very long string lol no it's not" }
+		{ "test_prop_2", "very long string lol no it's not" },
+		{ "to_remove", "this record will be removed" },
+		{ "also_remove", "this record will not be removed" },
 	});
 
+	auto removeList = std::vector<std::string>({
+		"to_remove",
+		"also_remove"
+	});
 
 	//	put some stuff into storage
 	{
@@ -36,22 +42,27 @@ int main(int argc, char const *argv[]) {
 			}
 		}
 
+		for (const auto& item : removeList) {
+			localStorage.removeItem(item);
+		}
+
+		localStorage.removeItem("undefined");
+
 		puts("Data ok");
 	}
 
+	//	test record removal
+	{
+		LocalStorage localStorage("test/data/storage.db");
 
-	/*std::cout << "Get from local 'test_prop_1': " << localStorage.getItem("test_prop_1") << "\n";
-	std::cout << "Get from local 'not_to_remove': " << localStorage.getItem("not_to_remove") << "\n";
+		for (const auto& item : removeList) {
+			if (localStorage.hasItem(item)) {
+				throw std::runtime_error("record \"" + item + "\" was not removed");
+			}
+		}
 
-	localStorage.setItem("test_prop_1", "quick brown horse... whatever");
-	localStorage.setItem("test_prop_2", "very long string lol no it's not");
-	localStorage.setItem("numbers woohooo", "100500");
-	localStorage.setItem("478", "775");
-	localStorage.setItem("to_remove", "this record will be removed");
-	localStorage.setItem("not_to_remove", "this record will not be removed");
-
-	localStorage.removeItem("to_remove");
-	localStorage.removeItem("undefined");*/
+		puts("Record removal ok");
+	}
 
 	return 0;
 }
