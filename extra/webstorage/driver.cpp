@@ -20,17 +20,14 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 		}
 
 		DBBasicHeader dbHeader;
-
-		size_t headerTotalRead = 0;
 		this->m_stream.read((char*)&dbHeader, sizeof(dbHeader));
-		headerTotalRead += this->m_stream.gcount();
 
 		//	check if a file is even our db
 		if (memcmp(dbHeader.magic, this->magicstring, sizeof(dbHeader.magic))) {
 			throw std::runtime_error("File \"" + this->m_filename + "\" is not recognized as a db file");
 		}
 
-		if (headerTotalRead != sizeof(dbHeader)) {
+		if (this->m_stream.gcount() != sizeof(dbHeader)) {
 			throw std::runtime_error("Corrupt db file: cound not read db version");
 		}
 
