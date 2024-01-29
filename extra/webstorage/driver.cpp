@@ -117,6 +117,11 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 		}
 	}
 
+	auto dbfileParentDir = std::filesystem::path(this->m_filename).remove_filename();
+	if (!std::filesystem::exists(dbfileParentDir)) {
+		std::filesystem::create_directories(dbfileParentDir);
+	}
+
 	this->m_stream = std::fstream(this->m_filename, std::ios::out | std::ios::binary);
 	if (!this->m_stream.is_open()) {
 		throw std::runtime_error("Failed to open db file for write: " + this->m_filename);
