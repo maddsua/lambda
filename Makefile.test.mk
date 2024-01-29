@@ -83,35 +83,6 @@ test/brotli.test.o: test/brotli.test.cpp
 	g++ -c $(CFLAGS) test/brotli.test.cpp -o test/brotli.test.o
 
 
-# Test network/TCP core module
-test.tcp: tcp.test$(EXEEXT)
-
-tcp.test$(EXEEXT): test/tcp.test.o $(LIB_CORE_NETWORK) $(LIB_CORE_ERROR)
-	g++ $(CFLAGS) test/tcp.test.cpp $(LIB_CORE_NETWORK) $(LIB_CORE_ERROR) $(LINK_SYSTEM_LIBS) -o tcp.test$(EXEEXT)
-
-test/tcp.test.o: test/tcp.test.cpp
-	g++ -c $(CFLAGS) test/tcp.test.cpp -o test/tcp.test.o
-
-# Test network/transport/http core module
-test.httptransport: httptransport.test$(EXEEXT)
-
-httptransport.test$(EXEEXT): test/httptransport.test.o $(LIB_CORE_DEPS)
-	g++ $(CFLAGS) test/httptransport.test.cpp $(LIB_CORE_DEPS) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o httptransport.test$(EXEEXT)
-
-test/httptransport.test.o: test/httptransport.test.cpp
-	g++ -c $(CFLAGS) test/httptransport.test.cpp -o test/httptransport.test.o
-
-
-# Test http server core module
-test.httpserver: httpserver.test$(EXEEXT)
-
-httpserver.test$(EXEEXT): test/httpserver.test.o $(LIB_CORE_DEPS)
-	g++ $(CFLAGS) test/httpserver.test.cpp $(LIB_CORE_DEPS) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o httpserver.test$(EXEEXT)
-
-test/httpserver.test.o: test/httpserver.test.cpp
-	g++ -c $(CFLAGS) test/httpserver.test.cpp -o test/httpserver.test.o
-
-
 # Test error handling module
 TEST_ERRORS_TARGET = $(EXEPFX)errors.test$(EXEEXT)
 test.errors: $(TEST_ERRORS_TARGET)
@@ -122,3 +93,13 @@ $(TEST_ERRORS_TARGET): test/errors.test.o $(LIB_CORE_ERROR_DEPS)
 
 test/errors.test.o: test/errors.test.cpp
 	g++ -c $(CFLAGS) test/errors.test.cpp -o test/errors.test.o
+
+
+# Test network/TCP core module
+test.tcp: tcp.test$(EXEEXT)
+
+tcp.test$(EXEEXT): test/tcp.test.o $(LIB_CORE_NETWORK) $(LIB_CORE_ERROR)
+	g++ $(CFLAGS) test/tcp.test.cpp $(LIB_CORE_NETWORK) $(LIB_CORE_ERROR) $(LINK_SYSTEM_LIBS) -o tcp.test$(EXEEXT)
+
+test/tcp.test.o: test/tcp.test.cpp
+	g++ -c $(CFLAGS) test/tcp.test.cpp -o test/tcp.test.o
