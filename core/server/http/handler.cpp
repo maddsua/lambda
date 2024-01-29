@@ -50,8 +50,7 @@ void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestC
 
 		while (requestQueue.await()) {
 
-			time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-			auto requestID = Crypto::ShortID((timeHighres & ~0UL)).toString();
+			auto requestID = Crypto::ShortID().toString();
 
 			auto nextRequest = requestQueue.next();
 			Lambda::HTTP::Response response;
