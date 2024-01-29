@@ -19,7 +19,6 @@ deps/build/package-lock.json
 
 # app's stuff
 *.db
-!test/data/*.db
 *.bin
 *.ldb
 dllinfo.rc
