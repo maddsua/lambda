@@ -25,7 +25,7 @@ namespace Lambda::Storage::WebStorage {
 			};
 
 			struct RecordHeader {
-				uint8_t type;
+				uint16_t type;
 				uint16_t keySize;
 				uint32_t valueSize;
 			};
