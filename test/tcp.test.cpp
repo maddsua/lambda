@@ -1,20 +1,19 @@
 #include <iostream>
 
 #include "../lambda.hpp"
+#include "../core/network/tcp/listener.hpp"
 
 using namespace Lambda;
 
 int main(int argc, char const *argv[]) {
 
-	auto startAtPort = 8180;
-	
-	auto server = Network::TCPListenSocket({});
+	auto listener = Network::TCP::ListenSocket();
 
-	std::cout << "Started server at port " + std::to_string(startAtPort) + "\n";
+	std::cout << "Started server at http://localhost:" + std::to_string(listener.getConfig().port) + "/\n";
 
-	while (server.ok()) {
+	while (listener.active()) {
 
-		auto conn = server.acceptConnection();
+		auto conn = listener.acceptConnection().value();
 		std::cout << "Got a connection!\n-----\n";
 
 		auto readData = conn.read();
@@ -24,6 +23,6 @@ int main(int argc, char const *argv[]) {
 
 		conn.write(std::vector<uint8_t>(responseString.begin(), responseString.end()));
 	}
-	
+
 	return 0;
 }
