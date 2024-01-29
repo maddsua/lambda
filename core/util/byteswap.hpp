@@ -1,4 +1,10 @@
 
+/*
+	Lambda defaults to little-endian byte order.
+	Just for the sake of simplicity, as most systems
+	that it's intended to run on are x86-64
+*/
+
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_UTILS_BYTESWAP__
 #define __LIB_MADDSUA_LAMBDA_CORE_UTILS_BYTESWAP__
 
@@ -34,7 +40,7 @@
 		return (val << 32) | (val >> 32);
 	}
 
-	#ifdef _WIN32
+	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 		#define normalizeByteOrder(value) (value)
 	#else
 		#define normalizeByteOrder(value) (swapByteOrder(value))
