@@ -20,7 +20,6 @@ namespace Lambda::Network::TCP {
 			ListenConfig config;
 
 		public:
-			ListenSocket() = default;
 			ListenSocket(const ListenConfig& init);
 			ListenSocket(const ListenSocket& other) = delete;
 			ListenSocket(ListenSocket&& other) noexcept;
