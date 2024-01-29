@@ -93,7 +93,9 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 						throw std::runtime_error("Corrupt db file: incomplete record data");
 					}
 
-					this->m_init_data->erase(removeKey);
+					if (this->m_init_data->contains(removeKey)) {
+						this->m_init_data->erase(removeKey);
+					}
 					
 				} break;
 
