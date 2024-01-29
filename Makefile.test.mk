@@ -86,8 +86,8 @@ test/brotli.test.o: test/brotli.test.cpp
 # Test network/TCP core module
 test.tcp: tcp.test$(EXEEXT)
 
-tcp.test$(EXEEXT): test/tcp.test.o $(LIB_CORE_NETWORK)
-	g++ $(CFLAGS) test/tcp.test.cpp $(LIB_CORE_NETWORK) $(LINK_SYSTEM_LIBS) -o tcp.test$(EXEEXT)
+tcp.test$(EXEEXT): test/tcp.test.o $(LIB_CORE_NETWORK) $(LIB_CORE_ERROR)
+	g++ $(CFLAGS) test/tcp.test.cpp $(LIB_CORE_NETWORK) $(LIB_CORE_ERROR) $(LINK_SYSTEM_LIBS) -o tcp.test$(EXEEXT)
 
 test/tcp.test.o: test/tcp.test.cpp
 	g++ -c $(CFLAGS) test/tcp.test.cpp -o test/tcp.test.o
