@@ -21,7 +21,7 @@ namespace Lambda::Storage::WebStorage {
 
 			struct DBBasicHeader {
 				char magic[sizeof(magicstring) - 1];
-				uint32_t version;
+				uint16_t version;
 			};
 
 			struct RecordHeader {
