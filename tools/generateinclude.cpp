@@ -19,6 +19,7 @@ static const std::string mainHeaderTemplate = R"(
 
 #ifndef __LIB_MADDSUA_LAMBDA__
 #define __LIB_MADDSUA_LAMBDA__
+{{global_includes}}
 {{merged_includes}}
 #endif
 )";
@@ -30,6 +31,7 @@ struct Options {
 
 struct IncludeCtx {
 	std::unordered_set<std::string> imported;
+	std::vector<std::string> globalIncludeList;
 };
 
 struct RecolvePathResult {
@@ -74,11 +76,17 @@ int main(int argc, char const *argv[]) {
 	}
 
 	IncludeCtx context;
-
 	auto mergedIncludes = includeHeader(opts.inputHeader, context);
+
+	std::string globalIncludes;
+	for (const auto& item : context.globalIncludeList) {
+		globalIncludes.append("\n");
+		globalIncludes.append(item);
+	}
 
 	auto templateReplacements = std::initializer_list<std::pair<std::string, std::string>>({
 		{ "release_time", "2024" },
+		{ "global_includes", globalIncludes },
 		{ "merged_includes", mergedIncludes },
 	});
 
@@ -152,7 +160,7 @@ std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
 		ctx.imported.insert(resolvedPath);
 
 		if (!includePath.embeddable) {
-			resultingLines.push_back("#include " + includePath.path);
+			ctx.globalIncludeList.push_back("#include " + includePath.path);
 			continue;
 		}
 
