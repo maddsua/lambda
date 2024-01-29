@@ -7,7 +7,7 @@ using namespace Lambda::Storage;
 
 int main(int argc, char const *argv[]) {
 
-	LocalStorage localStorage;
+	LocalStorage localStorage("test/data/storage.db");
 
 	std::cout << "Get from local 'test_prop_1': " << localStorage.getItem("test_prop_1") << "\n";
 	std::cout << "Get from local 'not_to_remove': " << localStorage.getItem("not_to_remove") << "\n";
@@ -21,8 +21,6 @@ int main(int argc, char const *argv[]) {
 
 	localStorage.removeItem("to_remove");
 	localStorage.removeItem("undefined");
-
-	//localStorage.rebuild();
 
 	return 0;
 }
