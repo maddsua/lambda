@@ -42,7 +42,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
 		while (this->m_stream.is_open() && !this->m_stream.eof()) {
 
-			KVDriver::RecordHeader recordHeader;
+			RecordHeader recordHeader;
 			this->m_stream.read((char*)&recordHeader, sizeof(recordHeader));
 			auto lastRead = this->m_stream.gcount();
 			
