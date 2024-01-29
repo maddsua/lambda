@@ -51,7 +51,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 				throw std::runtime_error("Corrupt db file: incomplete record header");
 			}
 
-			auto opationType = normalizeByteOrder(static_cast<TransactionType>(recordHeader.type));
+			auto opationType = static_cast<TransactionType>(normalizeByteOrder(recordHeader.type));
 			recordHeader.keySize = normalizeByteOrder(recordHeader.keySize);
 			recordHeader.valueSize = normalizeByteOrder(recordHeader.valueSize);
 
