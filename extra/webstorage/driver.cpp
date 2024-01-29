@@ -120,7 +120,6 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 	}
 
 	DBBasicHeader dbHeader;
-	memset(&dbHeader, 0, sizeof(dbHeader));
 	memcpy(dbHeader.magic, this->magicstring, sizeof(dbHeader.magic));
 	dbHeader.version = this->version;
 
