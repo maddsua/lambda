@@ -1,74 +1,59 @@
-/**
- * In this simple demo we return some json to the client
- * Check the code below to find out more!
-*/
+#include <iostream>
 
 #include "../lambda.hpp"
-#include <cstdio>
 
 using namespace Lambda;
-using namespace Lambda::HTTP;
-using namespace Lambda::Encoding;
+using namespace Lambda::JSON;
 
-HTTP::Response callbackServerless(Request& request, Context& context) {
+int main(int argc, char const *argv[]) {
 
-	puts(("Request to \"" + request.url.pathname + "\" from " + context.clientIP).c_str());
+	auto handler = [&](const Request& req, const Context& context) {
 
-	auto response = Response();
+		auto responseHeaders = HTTP::Headers();
 
-	//	just setting a custom header
-	response.headers.set("x-serverless", "true");
+		//	just setting a custom header
+		responseHeaders.set("x-serverless", "true");
+		responseHeaders.set("content-type", "application/json");
 
-	//	get search query "user" param
-	//	try opening url as http://localhost:8080/?user=maddsua
-	auto username = request.url.searchParams.get("user");
-	
-	//	check if user visited before by a cookie
-	auto cookies = Cookies(request);
-	bool isFirstFisit = false;
+		auto url = req.unwrapURL();
+		auto cookies = req.getCookies();
 
-	if (!cookies.has("userid")) {
-		auto newCookies = Cookies();
-		newCookies.set("userid", "test_user_0");
-		response.headers.set("Set-Cookie", newCookies.stringify());
-		isFirstFisit = true;
-	}
+		//	get search query "user" param
+		//	try opening url as http://localhost:8080/?user=maddsua
+		auto username = url.searchParams.get("user");
 
-	//	create response json
-	auto responseBody = JSON_Object();
+		//	check if user visited before by a cookie
+		bool isFirstFisit = !cookies.has("userid");
 
-	responseBody.addString("timestamp", serverDate());
-	responseBody.addString("user", username.size() ? username : "anonymous");
-	responseBody.addString("useragent", request.headers.get("user-agent"));
-	responseBody.addBool("first_visit", isFirstFisit);
+		//	create response json
+		JSON::Map testMap = {
+			{"date", Date().toUTCString()},
+			{"user", username.size() ? username : "anonymous"},
+			{"useragent", req.headers.get("user-agent")},
+			{"first_visit", isFirstFisit}
+		};
 
-	response.setText(responseBody.stringify());
-	response.headers.append("content-type", "application/json");
+		auto response = HTTP::Response(200, responseHeaders, stringify(Property(testMap)));
 
-	return response;
-};
-
-int main() {
-
-	const int port = 8080;
-
-	auto server = Lambda::Server(port);
-
-	puts(("Server started at http://localhost:" + std::to_string(port)).c_str());
-
-	server.setServerlessCallback(&callbackServerless);
-
-	server.flags.compressionUseBrotli = true;
-	server.flags.compressionUseGzip = true;
-
-	while (server.isAlive()) {
-		
-		if (server.hasNewLogs()) {
-			puts(HTTP::stringJoin(server.logsText(), "\n").c_str());
+		//	set a user id cookie to check for on next request
+		if (isFirstFisit) {
+			auto newCookies = HTTP::Cookies();
+			newCookies.set("userid", "test_user_0");
+			newCookies.set("x_lambda", "control", {
+				"Secure",
+				{"expires", "23 Oct 2077 08:28:00 GMT"}
+			});
+			response.setCookies(newCookies);
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-	
+		return response;
+	};
+
+	ServerConfig initparams;
+	initparams.loglevel.requests = true;
+	auto server = ServerInstance(handler, initparams);
+
+	server.awaitFinished();
+
 	return 0;
 }
