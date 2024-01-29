@@ -85,9 +85,9 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	} else if (bytesReceived < 0) {
 
-		auto apiError = Lambda::APIError("network error while receiving data");
+		auto apiError = Errors::getApiError();
 
-		switch (apiError.code()) {
+		switch (apiError) {
 
 			case LNE_TIMEDOUT: {
 				this->end();
@@ -95,8 +95,8 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 			}
 
 			default:
-				throw apiError;
-		}		
+				throw Lambda::APIError(apiError, "network error while receiving data");
+		}	
 	}
 
 	chunk.resize(bytesReceived);
