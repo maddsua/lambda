@@ -31,22 +31,23 @@ void KVInterface::removeItem(const std::string& key) {
 
 	std::lock_guard <std::mutex> lock(this->mtlock);
 
+	if (!this->data.contains(key)) return;
+	this->data.erase(key);
+
 	if (this->driver != nullptr) {
 		this->driver->handleTransaction({ TransactionType::Remove, &key });
 	}
-
-	this->data.erase(key);
 }
 
 void KVInterface::clear() {
 
 	std::lock_guard <std::mutex> lock(this->mtlock);
 
+	this->data.clear();
+
 	if (this->driver != nullptr) {
 		this->driver->handleTransaction({ TransactionType::Clear });
 	}
-
-	this->data.clear();
 }
 
 size_t KVInterface::size() const noexcept {
