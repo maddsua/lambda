@@ -39,11 +39,6 @@ namespace Lambda::HTTPServer {
 			void push(RequestQueueItem&& item);
 	};
 
-	void httpServerlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept;
-	void httpExtendedHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const ConnectionCallback& handlerCallback) noexcept;
-	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
-	void asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue);
-
 	struct ReaderContext {
 		Network::TCP::Connection& conn;
 		const HTTPTransportOptions& options;
@@ -53,6 +48,11 @@ namespace Lambda::HTTPServer {
 	};
 
 	std::optional<RequestQueueItem> httpRequestReader(ReaderContext& ctx);
+
+	void httpServerlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept;
+	void httpExtendedHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const ConnectionCallback& handlerCallback) noexcept;
+	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
+	void asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue);
 
 };
 
