@@ -37,7 +37,14 @@ namespace Lambda {
 		Console console;
 	};
 
+	struct ServerConnection {
+		Network::TCP::Connection* rawconn = nullptr;
+		HTTP::Request nextRequest();
+		void respond(const HTTP::Response& response);
+	};
+
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> HTTPRequestCallback;
+	typedef std::function<void(ServerConnection&)> ConnectionCallback;
 
 	struct ServiceOptions {
 		uint16_t port = 8180;
@@ -51,7 +58,8 @@ namespace Lambda {
 	class ServerInstance {
 		private:
 			Network::TCP::ListenSocket* listener = nullptr;
-			HTTPRequestCallback handler;
+			HTTPRequestCallback httpHandler;
+			ConnectionCallback tcpHandler;
 			ServerConfig config;
 			std::thread watchdogWorker;
 			bool terminated = false;

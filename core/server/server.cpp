@@ -13,7 +13,7 @@ using namespace Lambda::HTTPServer;
 ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init) {
 
 	this->config = init;
-	this->handler = handlerCallback;
+	this->httpHandler = handlerCallback;
 
 	Network::TCP::ListenConfig listenInitOpts;
 	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
@@ -32,7 +32,7 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 				auto connectionWorker = std::thread(httpStreamHandler,
 					std::move(nextConn.value()),
 					std::ref(this->config),
-					std::ref(this->handler));
+					std::ref(this->httpHandler));
 
 				connectionWorker.detach();
 
