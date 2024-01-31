@@ -1,11 +1,12 @@
-#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTPSERVER__
-#define __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTPSERVER__
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_HANDLERS__
+#define __LIB_MADDSUA_LAMBDA_CORE_SERVER_HANDLERS__
 
 #include "./server.hpp"
 #include "../network/tcp/connection.hpp"
 
 #include <future>
 #include <queue>
+#include <optional>
 
 namespace Lambda::HTTPServer {
 
@@ -38,9 +39,20 @@ namespace Lambda::HTTPServer {
 			void push(RequestQueueItem&& item);
 	};
 
-	void httpStreamHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept;
+	void httpServerlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept;
+	void httpExtendedHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const ConnectionCallback& handlerCallback) noexcept;
 	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
 	void asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue);
+
+	struct ReaderContext {
+		Network::TCP::Connection& conn;
+		const HTTPTransportOptions& options;
+		const Network::ConnectionInfo& conninfo;
+		std::vector<uint8_t> buffer;
+		bool keepAlive = false;
+	};
+
+	std::optional<RequestQueueItem> httpRequestReader(ReaderContext& ctx);
 
 };
 

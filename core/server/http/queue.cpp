@@ -1,7 +1,7 @@
 #include <set>
 #include <map>
 
-#include "../http.hpp"
+#include "../handlers.hpp"
 
 using namespace Lambda;
 using namespace Lambda::HTTPServer;

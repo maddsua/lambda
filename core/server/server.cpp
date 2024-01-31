@@ -1,6 +1,6 @@
 
 #include "./server.hpp"
-#include "./http.hpp"
+#include "./handlers.hpp"
 #include "../crypto/crypto.hpp"
 #include "../network/tcp/listener.hpp"
 
@@ -38,7 +38,7 @@ void ServerInstance::setup() {
 				auto nextConn = this->listener->acceptConnection();
 				if (!nextConn.has_value()) break;
 
-				auto connectionWorker = std::thread(httpStreamHandler,
+				auto connectionWorker = std::thread(httpServerlessHandler,
 					std::move(nextConn.value()),
 					std::ref(this->config),
 					std::ref(this->httpHandler));
