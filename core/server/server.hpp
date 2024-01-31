@@ -64,9 +64,11 @@ namespace Lambda {
 			std::thread watchdogWorker;
 			bool terminated = false;
 			void terminate();
+			void setup();
 
 		public:
 			ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init);
+			ServerInstance(ConnectionCallback handlerCallback, ServerConfig init);
 			~ServerInstance();
 
 			void shutdownn();
