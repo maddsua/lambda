@@ -11,9 +11,18 @@ using namespace Lambda;
 using namespace Lambda::HTTPServer;
 
 ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init) {
-
 	this->config = init;
 	this->httpHandler = handlerCallback;
+	this->setup();
+}
+
+ServerInstance::ServerInstance(ConnectionCallback handlerCallback, ServerConfig init) {
+	this->config = init;
+	this->tcpHandler = handlerCallback;
+	this->setup();
+}
+
+void ServerInstance::setup() {
 
 	Network::TCP::ListenConfig listenInitOpts;
 	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
@@ -47,6 +56,7 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 	});
 
 	printf("[Service] Started server at http://localhost:%i/\n", this->config.service.port);
+
 }
 
 void ServerInstance::shutdownn() {
