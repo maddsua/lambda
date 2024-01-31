@@ -55,13 +55,13 @@ namespace Lambda {
 			ServerConfig config;
 			std::thread watchdogWorker;
 			bool terminated = false;
+			void terminate();
 
 		public:
 			ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init);
 			~ServerInstance();
 
 			void shutdownn();
-			void terminate();
 			void awaitFinished();
 
 			const ServerConfig& getConfig() const noexcept;

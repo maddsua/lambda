@@ -1,7 +1,7 @@
 
-#include "../../../build_options.hpp"
 #include "../http.hpp"
-#include "../../network/sysnetw.hpp"
+#include "../../http/http.hpp"
+#include "../../../build_options.hpp"
 #include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
 #include "../../crypto/crypto.hpp"
@@ -25,7 +25,7 @@ using namespace Lambda::Network;
 HTTP::Response renderServerErrorPage(std::string message);
 HTTP::Response composeServerErrorResponse(std::string message);
 
-void HTTPServer::connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept {
+void HTTPServer::httpStreamHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept {
 
 	const auto& conninfo = conn.info();
 

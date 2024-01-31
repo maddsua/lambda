@@ -1,9 +1,7 @@
 
 #include "./server.hpp"
 #include "./http.hpp"
-#include "../polyfill/polyfill.hpp"
 #include "../crypto/crypto.hpp"
-#include "../encoding/encoding.hpp"
 #include "../network/tcp/listener.hpp"
 
 #include <cstdio>
@@ -30,7 +28,12 @@ ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig
 
 				auto nextConn = this->listener->acceptConnection();
 				if (!nextConn.has_value()) break;
-				auto connectionWorker = std::thread(connectionHandler, std::move(nextConn.value()), this->handler, this->config);
+
+				auto connectionWorker = std::thread(httpStreamHandler,
+					std::move(nextConn.value()),
+					std::ref(this->config),
+					std::ref(this->handler));
+
 				connectionWorker.detach();
 
 			} catch(const std::exception& e) {

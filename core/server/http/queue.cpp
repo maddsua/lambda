@@ -2,7 +2,6 @@
 #include <map>
 
 #include "../http.hpp"
-#include "../../polyfill/polyfill.hpp"
 
 using namespace Lambda;
 using namespace Lambda::HTTPServer;

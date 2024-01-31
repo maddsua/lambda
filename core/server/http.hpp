@@ -1,10 +1,8 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTPSERVER__
 #define __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTPSERVER__
 
-#include "../network/tcp/connection.hpp"
-#include "../network/tcp/listener.hpp"
-#include "../network/network.hpp"
 #include "./server.hpp"
+#include "../network/tcp/connection.hpp"
 
 #include <future>
 #include <queue>
@@ -40,7 +38,7 @@ namespace Lambda::HTTPServer {
 			void push(RequestQueueItem&& item);
 	};
 
-	void connectionHandler(Network::TCP::Connection&& conn, HTTPRequestCallback handlerCallback, const ServerConfig& config) noexcept;
+	void httpStreamHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept;
 	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
 	void asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue);
 
