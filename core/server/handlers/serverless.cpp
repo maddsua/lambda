@@ -55,7 +55,7 @@ void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOpt
 
 			auto nextRequest = requestQueue.next();
 			auto requestID = Crypto::ShortID().toString();
-			Lambda::HTTP::Response response;
+			HTTP::Response response;
 			std::optional<std::string> handlerError;
 
 			try {
