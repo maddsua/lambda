@@ -27,7 +27,7 @@ using namespace Lambda::Network;
 Lambda::HTTP::Response renderServerErrorPage(std::string message);
 Lambda::HTTP::Response composeServerErrorResponse(std::string message);
 
-void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept {
+void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback) noexcept {
 
 	const auto& conninfo = conn.info();
 

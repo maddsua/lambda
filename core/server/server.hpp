@@ -54,7 +54,7 @@ namespace Lambda {
 			void respond(const HTTP::Response& response);
 	};
 
-	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> HTTPRequestCallback;
+	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
 	typedef std::function<void(IncomingConnection&)> ConnectionCallback;
 
 	struct ServiceOptions {
@@ -68,17 +68,27 @@ namespace Lambda {
 
 	class ServerInstance {
 		private:
+
+			enum struct HandlerType {
+				Undefined, Connection, Serverless
+			};
+
 			Network::TCP::ListenSocket* listener = nullptr;
-			HTTPRequestCallback httpHandler;
+
+			ServerlessCallback httpHandler;
 			ConnectionCallback tcpHandler;
+
 			ServerConfig config;
+			HandlerType handlerType = HandlerType::Undefined;
+
 			std::future<void> watchdogWorker;
 			bool terminated = false;
+
 			void terminate();
 			void setup();
 
 		public:
-			ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init);
+			ServerInstance(ServerlessCallback handlerCallback, ServerConfig init);
 			ServerInstance(ConnectionCallback handlerCallback, ServerConfig init);
 			~ServerInstance();
 
