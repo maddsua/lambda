@@ -3,7 +3,7 @@ name: Build and test
 on:
   push:
     branches: ['main']
-    paths: ['lambda.hpp', 'version.hpp', 'build_options.hpp']
+#    paths: ['lambda.hpp', 'version.hpp', 'build_options.hpp']
   pull_request:
     branches: ['main']
 

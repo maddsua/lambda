@@ -31,35 +31,25 @@ void ServerInstance::setup() {
 	listenInitOpts.port = this->config.service.port;
 	this->listener = new Network::TCP::ListenSocket(listenInitOpts);
 
-	this->watchdogWorker = std::thread([&]() {
+	this->watchdogWorker = std::async([&]() {
 
 		while (!this->terminated && this->listener->active()) {
 
-			try {
+			auto nextConn = this->listener->acceptConnection();
+			if (!nextConn.has_value()) break;
 
-				auto nextConn = this->listener->acceptConnection();
-				if (!nextConn.has_value()) break;
-
-				if (this->httpHandler) {
-					auto connectionWorker = std::thread(serverlessHandler,
-						std::move(nextConn.value()),
-						std::ref(this->config),
-						std::ref(this->httpHandler));
-					connectionWorker.detach();
-				} else {
-					auto connectionWorker = std::thread(connectionHandler,
-						std::move(nextConn.value()),
-						std::ref(this->config),
-						std::ref(this->tcpHandler));
-					connectionWorker.detach();
-				}
-
-			} catch(const std::exception& e) {
-				if (this->terminated) return;
-				fprintf(stderr, "[Service] connection handler crashed: %s\n", e.what()); 
-			} catch(...) {
-				if (this->terminated) return;
-				fprintf(stderr, "[Service] connection handler crashed with unknown error\n"); 
+			if (this->httpHandler) {
+				auto connectionWorker = std::thread(serverlessHandler,
+					std::move(nextConn.value()),
+					std::ref(this->config),
+					std::ref(this->httpHandler));
+				connectionWorker.detach();
+			} else {
+				auto connectionWorker = std::thread(connectionHandler,
+					std::move(nextConn.value()),
+					std::ref(this->config),
+					std::ref(this->tcpHandler));
+				connectionWorker.detach();
 			}
 		}
 	});
@@ -80,8 +70,8 @@ void ServerInstance::terminate() {
 }
 
 void ServerInstance::awaitFinished() {
-	if (this->watchdogWorker.joinable())
-		this->watchdogWorker.join();
+	if (this->watchdogWorker.valid())
+		this->watchdogWorker.get();
 }
 
 ServerInstance::~ServerInstance() {

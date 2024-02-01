@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <optional>
-#include <thread>
+#include <future>
 
 #include "../http/http.hpp"
 #include "../network/network.hpp"
@@ -72,7 +72,7 @@ namespace Lambda {
 			HTTPRequestCallback httpHandler;
 			ConnectionCallback tcpHandler;
 			ServerConfig config;
-			std::thread watchdogWorker;
+			std::future<void> watchdogWorker;
 			bool terminated = false;
 			void terminate();
 			void setup();
