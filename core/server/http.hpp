@@ -29,7 +29,6 @@ namespace Lambda::HTTPServer {
 
 	struct IncomingRequest : HTTPTransportContext {
 		HTTP::Request request;
-		std::string pathname;
 	};
 
 	struct WriterContext : HTTPTransportContext {
@@ -61,6 +60,8 @@ namespace Lambda::HTTPServer {
 	struct ConnectionContext : ReaderContext {
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 	};
+
+	std::optional<std::pair<std::string, std::string>> parseBasicAuth(const std::string& header);
 
 };
 

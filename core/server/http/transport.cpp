@@ -3,6 +3,7 @@
 #include "../http.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
+#include "../../encoding/encoding.hpp"
 #include "../../polyfill/polyfill.hpp"
 #include "../../../build_options.hpp"
 
@@ -66,17 +67,17 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 
 		const auto& headerline = headerFields[i];
 
-		auto separator = headerline.find(':');
+		const auto separator = headerline.find(':');
 		if (separator == std::string::npos) {
 			throw std::runtime_error("invalid header structure (no separation betwen name and header value)");
 		}
 
-		auto headerKey = Strings::trim(headerline.substr(0, separator));
+		const auto headerKey = Strings::trim(headerline.substr(0, separator));
 		if (!headerKey.size()) {
 			throw std::runtime_error("invalid header (empty header name)");
 		}
 
-		auto headerValue = Strings::trim(headerline.substr(separator + 1));
+		const auto headerValue = Strings::trim(headerline.substr(separator + 1));
 		if (!headerValue.size()) {
 			throw std::runtime_error("invalid header (empty header value)");
 		}
@@ -84,29 +85,49 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 		next.request.headers.append(headerKey, headerValue);
 	}
 
-	//	assemble request URL
-	if (!requestUrlString.starts_with('/')) {
-		throw std::runtime_error("invalid request URL");
-	}
+	//	parse request url
+	{
 
-	auto hostHeader = next.request.headers.get("host");
-	if (hostHeader.size()) {
-		next.request.url = "http://" + hostHeader + requestUrlString;
-	} else {
-		next.request.url = "http://lambdahost:" + ctx.conninfo.hostPort + requestUrlString;
-	}
+		const auto urlSearchPos = requestUrlString.find('?');
+		//	I'll leave it here for redundancy
+		const auto urlHashPos = requestUrlString.find('#', urlSearchPos != std::string::npos ? urlSearchPos : 0);
+		const auto pathnameEndPos = std::min({ urlSearchPos, urlHashPos });
 
-	//	extract request url pathname
-	size_t pathnameEndPos = std::string::npos;
-	for (auto token : std::initializer_list<char>({ '?', '#' })) {
-		auto tokenPos = next.pathname.find(token);
-		if (tokenPos < pathnameEndPos)
-			pathnameEndPos = tokenPos;
-	}
+		next.request.url.pathname = pathnameEndPos == std::string::npos ?
+			requestUrlString :
+			(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
 
-	next.pathname = pathnameEndPos == std::string::npos ?
-		requestUrlString :
-		(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
+		if (urlSearchPos != std::string::npos) {
+			auto trimSize = urlHashPos != std::string::npos ? (urlHashPos - urlSearchPos - 1) : 0;
+			next.request.url.searchParams = trimSize ?
+				requestUrlString.substr(urlSearchPos + 1, trimSize) :
+				requestUrlString.substr(urlSearchPos + 1);
+		}
+
+		const auto hostHeader = next.request.headers.get("host");
+		const auto hostHeaderSem = hostHeader.size() ? hostHeader.find(':') : std::string::npos;
+
+		next.request.url.host = hostHeader.size() ? hostHeader : "lambdahost:" + std::to_string(ctx.conninfo.hostPort);
+
+		next.request.url.hostname = hostHeader.size() ?
+			(hostHeaderSem != std::string::npos ?
+				hostHeader.substr(0, hostHeaderSem) : hostHeader) :
+			"lambdahost";
+
+		next.request.url.port = hostHeader.size() ?
+			(hostHeaderSem != std::string::npos ?
+				hostHeader.substr(hostHeaderSem + 1) : "") :
+			std::to_string(ctx.conninfo.hostPort);
+
+		const auto authHeader = next.request.headers.get("authorization");
+		if (authHeader.size()) {
+			auto basicAuthOpt = parseBasicAuth(authHeader);
+			if (basicAuthOpt.has_value()) {
+				next.request.url.username = basicAuthOpt.value().first;
+				next.request.url.password = basicAuthOpt.value().second;
+			}
+		}
+	}
 
 	if (ctx.options.reuseConnections) {
 		auto connectionHeader = next.request.headers.get("connection");
@@ -222,4 +243,29 @@ void HTTPServer::writeResponse(const HTTP::Response& response, const WriterConte
 	ctx.conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 	if (bodySize) ctx.conn.write(responseBody);
 
+}
+
+std::optional<std::pair<std::string, std::string>> HTTPServer::parseBasicAuth(const std::string& header) {
+
+	if (!Strings::includes(Strings::toLowerCase(header), "basic")) {
+		return std::nullopt;
+	}
+
+	const auto authStringStart = header.find_last_of(' ');
+	if (authStringStart == std::string::npos) {
+		return std::nullopt;
+	}
+
+	const auto authString = header.substr(authStringStart + 1);
+	if (!authString.size()) {
+		return std::nullopt;
+	}
+
+	const auto authStringDecoded = Encoding::fromBase64(authString);
+	const auto authComponents = Strings::split(std::string(authStringDecoded.begin(), authStringDecoded.end()), ":");
+	if (authComponents.size() < 2) {
+		return std::nullopt;
+	}
+
+	return std::make_pair(authComponents[0], authComponents[1]);
 }

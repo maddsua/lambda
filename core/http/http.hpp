@@ -48,7 +48,7 @@ namespace Lambda::HTTP {
 			std::string stringify() const;
 	};
 
-	class URL {	
+	struct URL {	
 		private:
 			void parse(const std::string& href);
 
@@ -190,7 +190,7 @@ namespace Lambda::HTTP {
 	};
 
 	struct Request {
-		std::string url;
+		URL url;
 		Method method;
 		Headers headers;
 		BodyBuffer body;
@@ -202,7 +202,6 @@ namespace Lambda::HTTP {
 		Request(const std::string& urlinit, const Method& methodInit, const BodyBuffer& bodyinit);
 		Request(const std::string& urlinit, const Method& methodInit, const Headers& headersinit, BodyBuffer& bodyinit);
 
-		URL unwrapURL() const;
 		Cookies getCookies() const;
 	};
 };

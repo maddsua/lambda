@@ -30,10 +30,6 @@ Request::Request(
 	BodyBuffer& bodyinit
 ) : url(urlinit), method(methodInit), headers(headersinit), body(bodyinit) {}
 
-URL Request::unwrapURL() const {
-	return URL(this->url);
-}
-
 Cookies Request::getCookies() const {
 	auto cookieHeader = this->headers.get("cookie");
 	if (!cookieHeader.size()) return {};

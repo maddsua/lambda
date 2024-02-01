@@ -11,6 +11,7 @@ int main(int argc, char const *argv[]) {
 
 		while (auto next = conn.nextRequest()) {
 			if (!next.has_value()) break;
+			printf("Request url: %s\n", next.value().url.href().c_str());
 			auto response = HTTP::Response("yo hi there");
 			conn.respond(response);
 		}
