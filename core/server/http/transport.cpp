@@ -87,6 +87,10 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 	//	parse request url
 	{
 
+		/**
+		 * Add http auth handling too
+		*/
+
 		//	extract request url pathname
 		size_t pathnameEndPos = std::string::npos;
 		for (auto token : std::initializer_list<char>({ '?', '#' })) {
