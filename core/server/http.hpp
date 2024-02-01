@@ -1,29 +1,49 @@
-#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTPSERVER__
-#define __LIB_MADDSUA_LAMBDA_CORE_SERVER_HTTPSERVER__
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_HTTPSERVER__
+#define __LIB_MADDSUA_LAMBDA_CORE_HTTPSERVER__
 
 #include "./server.hpp"
 #include "../network/tcp/connection.hpp"
 
 #include <future>
 #include <queue>
+#include <optional>
 
 namespace Lambda::HTTPServer {
+
+	struct ReaderContext {
+		Network::TCP::Connection& conn;
+		const HTTPTransportOptions& options;
+		const Network::ConnectionInfo& conninfo;
+		std::vector<uint8_t> buffer;
+		bool keepAlive = false;
+	};
 
 	enum struct ContentEncodings {
 		None, Brotli, Gzip, Deflate,
 	};
 
-	struct RequestQueueItem {
-		HTTP::Request request;
-		std::string pathname;
+	struct HTTPTransportContext {
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};
 
+	struct IncomingRequest : HTTPTransportContext {
+		HTTP::Request request;
+		std::string pathname;
+	};
+
+	struct WriterContext : HTTPTransportContext {
+		Network::TCP::Connection& conn;
+	};
+
+	std::optional<IncomingRequest> requestReader(ReaderContext& ctx);
+	void writeResponse(const HTTP::Response& response, const WriterContext& ctx);
+
 	class HttpRequestQueue {
 		private:
 			std::future<void> m_reader;
-			std::queue<RequestQueueItem> m_queue;
+			ReaderContext ctx;
+			std::queue<IncomingRequest> m_queue;
 			std::mutex m_lock;
 
 		public:
@@ -34,13 +54,13 @@ namespace Lambda::HTTPServer {
 			HttpRequestQueue& operator=(HttpRequestQueue&& other) noexcept;
 
 			bool await();
-			RequestQueueItem next();
-			void push(RequestQueueItem&& item);
+			IncomingRequest next();
+			void push(IncomingRequest&& item);
 	};
 
-	void httpStreamHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept;
-	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
-	void asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue);
+	struct ConnectionContext : ReaderContext {
+		ContentEncodings acceptsEncoding = ContentEncodings::None;
+	};
 
 };
 

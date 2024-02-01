@@ -1,4 +1,5 @@
 
+#include "../handlers.hpp"
 #include "../http.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
@@ -15,7 +16,9 @@
 
 using namespace Lambda;
 using namespace Lambda::Network;
+using namespace Lambda::Server;
 using namespace Lambda::HTTPServer;
+using namespace Lambda::Server::Handlers;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -27,148 +30,143 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 
 static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
-};	
+};
 
-void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue) {
+std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 
-	const auto& conninfo = conn.info();
-	std::vector<uint8_t> recvBuff;
-	bool connectionKeepAlive = false;
+	auto headerEnded = ctx.buffer.end();
+	while (ctx.conn.active() && headerEnded == ctx.buffer.end()) {
 
-	do {
+		auto newBytes = ctx.conn.read();
+		if (!newBytes.size()) break;
 
-		auto headerEnded = recvBuff.end();
-		while (conn.active() && headerEnded == recvBuff.end()) {
+		ctx.buffer.insert(ctx.buffer.end(), newBytes.begin(), newBytes.end());
+		headerEnded = std::search(ctx.buffer.begin(), ctx.buffer.end(), patternEndHeader.begin(), patternEndHeader.end());
+	}
 
-			auto newBytes = conn.read();
-			if (!newBytes.size()) break;
+	if (!ctx.buffer.size() || headerEnded == ctx.buffer.end()) {
+		return std::nullopt;
+	}
 
-			recvBuff.insert(recvBuff.end(), newBytes.begin(), newBytes.end());
-			headerEnded = std::search(recvBuff.begin(), recvBuff.end(), patternEndHeader.begin(), patternEndHeader.end());
+	auto headerFields = Strings::split(std::string(ctx.buffer.begin(), headerEnded), "\r\n");
+	ctx.buffer.erase(ctx.buffer.begin(), headerEnded + patternEndHeader.size());
+
+	auto headerStartLine = Strings::split(headerFields.at(0), ' ');
+	if (headerStartLine.size() < 2) {
+		throw std::runtime_error("invalid HTTP request");
+	}
+
+	auto& requestMethodString = headerStartLine.at(0);
+	auto& requestUrlString = headerStartLine.at(1);
+
+	IncomingRequest next;
+	next.request.method = Lambda::HTTP::Method(requestMethodString);
+
+	for (size_t i = 1; i < headerFields.size(); i++) {
+
+		const auto& headerline = headerFields[i];
+
+		auto separator = headerline.find(':');
+		if (separator == std::string::npos) {
+			throw std::runtime_error("invalid header structure (no separation betwen name and header value)");
 		}
 
-		if (!recvBuff.size() || headerEnded == recvBuff.end()) break;
-
-		auto headerFields = Strings::split(std::string(recvBuff.begin(), headerEnded), "\r\n");
-		recvBuff.erase(recvBuff.begin(), headerEnded + patternEndHeader.size());
-
-		auto headerStartLine = Strings::split(headerFields.at(0), ' ');
-		if (headerStartLine.size() < 2) {
-			throw std::runtime_error("invalid HTTP request");
+		auto headerKey = Strings::trim(headerline.substr(0, separator));
+		if (!headerKey.size()) {
+			throw std::runtime_error("invalid header (empty header name)");
 		}
 
-		auto& requestMethodString = headerStartLine.at(0);
-		auto& requestUrlString = headerStartLine.at(1);
-
-		RequestQueueItem next;
-		next.request.method = Lambda::HTTP::Method(requestMethodString);
-
-		for (size_t i = 1; i < headerFields.size(); i++) {
-
-			const auto& headerline = headerFields[i];
-
-			auto separator = headerline.find(':');
-			if (separator == std::string::npos) {
-				throw std::runtime_error("invalid header structure (no separation betwen name and header value)");
-			}
-
-			auto headerKey = Strings::trim(headerline.substr(0, separator));
-			if (!headerKey.size()) {
-				throw std::runtime_error("invalid header (empty header name)");
-			}
-
-			auto headerValue = Strings::trim(headerline.substr(separator + 1));
-			if (!headerValue.size()) {
-				throw std::runtime_error("invalid header (empty header value)");
-			}
-
-			next.request.headers.append(headerKey, headerValue);
+		auto headerValue = Strings::trim(headerline.substr(separator + 1));
+		if (!headerValue.size()) {
+			throw std::runtime_error("invalid header (empty header value)");
 		}
 
-		//	assemble request URL
-		if (!requestUrlString.starts_with('/')) {
-			throw std::runtime_error("invalid request URL");
-		}
+		next.request.headers.append(headerKey, headerValue);
+	}
 
-		auto hostHeader = next.request.headers.get("host");
-		if (hostHeader.size()) {
-			next.request.url = "http://" + hostHeader + requestUrlString;
-		} else {
-			next.request.url = "http://lambdahost:" + conninfo.hostPort + requestUrlString;
-		}
+	//	assemble request URL
+	if (!requestUrlString.starts_with('/')) {
+		throw std::runtime_error("invalid request URL");
+	}
 
-		//	extract request url pathname
-		size_t pathnameEndPos = std::string::npos;
-		for (auto token : std::initializer_list<char>({ '?', '#' })) {
-			auto tokenPos = next.pathname.find(token);
-			if (tokenPos < pathnameEndPos)
-				pathnameEndPos = tokenPos;
-		}
+	auto hostHeader = next.request.headers.get("host");
+	if (hostHeader.size()) {
+		next.request.url = "http://" + hostHeader + requestUrlString;
+	} else {
+		next.request.url = "http://lambdahost:" + ctx.conninfo.hostPort + requestUrlString;
+	}
 
-		next.pathname = pathnameEndPos == std::string::npos ?
-			requestUrlString :
-			(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
+	//	extract request url pathname
+	size_t pathnameEndPos = std::string::npos;
+	for (auto token : std::initializer_list<char>({ '?', '#' })) {
+		auto tokenPos = next.pathname.find(token);
+		if (tokenPos < pathnameEndPos)
+			pathnameEndPos = tokenPos;
+	}
 
-		if (options.reuseConnections) {
-			auto connectionHeader = next.request.headers.get("connection");
-			if (connectionKeepAlive) connectionKeepAlive = !Strings::includes(connectionHeader, "close");
-				else connectionKeepAlive = Strings::includes(connectionHeader, "keep-alive");
-			next.keepAlive = connectionKeepAlive;
-		}
+	next.pathname = pathnameEndPos == std::string::npos ?
+		requestUrlString :
+		(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
 
-		auto acceptEncodingHeader = next.request.headers.get("accept-encoding");
-		if (acceptEncodingHeader.size()) {
+	if (ctx.options.reuseConnections) {
+		auto connectionHeader = next.request.headers.get("connection");
+		if (ctx.keepAlive) ctx.keepAlive = !Strings::includes(connectionHeader, "close");
+			else ctx.keepAlive = Strings::includes(connectionHeader, "keep-alive");
+		next.keepAlive = ctx.keepAlive;
+	}
 
-			auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
-			auto acceptEncodingsSet = std::set<std::string>(encodingNames.begin(), encodingNames.end());
+	auto acceptEncodingHeader = next.request.headers.get("accept-encoding");
+	if (acceptEncodingHeader.size()) {
 
-			for (const auto& encoding : contentEncodingMap) {
-				if (acceptEncodingsSet.contains(encoding.second)) {
-					next.acceptsEncoding = encoding.first;
-					break;
-				}
+		auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
+		auto acceptEncodingsSet = std::set<std::string>(encodingNames.begin(), encodingNames.end());
+
+		for (const auto& encoding : contentEncodingMap) {
+			if (acceptEncodingsSet.contains(encoding.second)) {
+				next.acceptsEncoding = encoding.first;
+				break;
 			}
 		}
+	}
 
-		auto bodySizeHeader = next.request.headers.get("content-length");
-		size_t bodySize = bodySizeHeader.size() ? std::stoull(bodySizeHeader) : 0;
+	auto bodySizeHeader = next.request.headers.get("content-length");
+	size_t bodySize = bodySizeHeader.size() ? std::stoull(bodySizeHeader) : 0;
 
-		if (bodySize) {
+	if (bodySize) {
 
-			if (!conn.active()) {
-				throw std::runtime_error("connection was terminated before request body could be received");
-			}
-
-			auto bodyRemaining = bodySize - recvBuff.size();
-			if (bodyRemaining) {
-				auto temp = conn.read(bodyRemaining);
-				if (temp.size() != bodyRemaining) {
-					throw std::runtime_error("connection terminated while receiving request body");
-				}
-				recvBuff.insert(recvBuff.end(), temp.begin(), temp.end());
-			}
-
-			next.request.body = std::vector<uint8_t>(recvBuff.begin(), recvBuff.begin() + bodySize);
-			recvBuff.erase(recvBuff.begin(), recvBuff.begin() + bodySize);
+		if (!ctx.conn.active()) {
+			throw std::runtime_error("connection was terminated before request body could be received");
 		}
 
-		queue.push(std::move(next));
+		auto bodyRemaining = bodySize - ctx.buffer.size();
+		if (bodyRemaining) {
+			auto temp = ctx.conn.read(bodyRemaining);
+			if (temp.size() != bodyRemaining) {
+				throw std::runtime_error("connection terminated while receiving request body");
+			}
+			ctx.buffer.insert(ctx.buffer.end(), temp.begin(), temp.end());
+		}
 
-	} while (conn.active() && connectionKeepAlive);
+		next.request.body = std::vector<uint8_t>(ctx.buffer.begin(), ctx.buffer.begin() + bodySize);
+		ctx.buffer.erase(ctx.buffer.begin(), ctx.buffer.begin() + bodySize);
+	}
+
+	return next;
 }
 
-void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
+void HTTPServer::writeResponse(const HTTP::Response& response, const WriterContext& ctx) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
 		std::vector<uint8_t> responseBody;
+		auto responseHeaders = response.headers;
 
 		auto applyEncoding = ContentEncodings::None;
-		auto responseContentType = Strings::toLowerCase(response.headers.get("content-type"));
+		auto responseContentType = Strings::toLowerCase(responseHeaders.get("content-type"));
 
 		for (const auto& item : compressibleTypes) {
 			if (Strings::includes(responseContentType, item)) {
-				applyEncoding = preferEncoding;
+				applyEncoding = ctx.acceptsEncoding;
 				break;
 			}
 		}
@@ -193,7 +191,7 @@ void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::C
 		}
 
 		if (applyEncoding != ContentEncodings::None) {
-			response.headers.set("content-encoding", contentEncodingMap.at(applyEncoding));
+			responseHeaders.set("content-encoding", contentEncodingMap.at(applyEncoding));
 		}
 
 	#else
@@ -201,15 +199,27 @@ void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::C
 	#endif
 
 	auto bodySize = responseBody.size();
-	response.headers.set("content-length", std::to_string(bodySize));
+	responseHeaders.set("content-length", std::to_string(bodySize));
+	responseHeaders.set("date", Date().toUTCString());
+	responseHeaders.set("server", "maddsua/lambda");
+
+	//	set connection header to acknowledge keep-alive mode
+	if (ctx.keepAlive) {
+		responseHeaders.set("connection", "keep-alive");
+	}
+
+	//	set content type in case it's not provided in response
+	if (!response.headers.has("content-type")) {
+		responseHeaders.set("content-type", "text/html; charset=utf-8");
+	}
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
-	for (const auto& header : response.headers.entries()) {
+	for (const auto& header : responseHeaders.entries()) {
 		headerBuff += header.first + ": " + header.second + "\r\n";
 	}
 	headerBuff += "\r\n";
 
-	conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
-	if (bodySize) conn.write(responseBody);
+	ctx.conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
+	if (bodySize) ctx.conn.write(responseBody);
 
 }

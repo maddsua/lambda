@@ -1,4 +1,5 @@
 
+#include "../handlers.hpp"
 #include "../http.hpp"
 #include "../../http/http.hpp"
 #include "../../../build_options.hpp"
@@ -19,13 +20,15 @@
 #include <optional>
 
 using namespace Lambda;
+using namespace Lambda::Server;
 using namespace Lambda::HTTPServer;
+using namespace Lambda::Server::Handlers;
 using namespace Lambda::Network;
 
-HTTP::Response renderServerErrorPage(std::string message);
-HTTP::Response composeServerErrorResponse(std::string message);
+Lambda::HTTP::Response renderServerErrorPage(std::string message);
+Lambda::HTTP::Response composeServerErrorResponse(std::string message);
 
-void HTTPServer::httpStreamHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept {
+void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept {
 
 	const auto& conninfo = conn.info();
 
@@ -46,14 +49,13 @@ void HTTPServer::httpStreamHandler(Network::TCP::Connection&& conn, const ServeO
 
 	try {
 
-		auto requestQueue = HTTPServer::HttpRequestQueue(conn, config.transport);
+		auto requestQueue = HttpRequestQueue(conn, config.transport);
 
 		while (requestQueue.await()) {
 
-			auto requestID = Crypto::ShortID().toString();
-
 			auto nextRequest = requestQueue.next();
-			Lambda::HTTP::Response response;
+			auto requestID = Crypto::ShortID().toString();
+			HTTP::Response response;
 			std::optional<std::string> handlerError;
 
 			try {
@@ -92,21 +94,13 @@ void HTTPServer::httpStreamHandler(Network::TCP::Connection&& conn, const ServeO
 					renderServerErrorPage(handlerError.value());
 			}
 
-			response.headers.set("date", Date().toUTCString());
-			response.headers.set("server", "maddsua/lambda");
 			response.headers.set("x-request-id", requestID);
 
-			//	set connection header to acknowledge keep-alive mode
-			if (nextRequest.keepAlive) {
-				response.headers.set("connection", "keep-alive");
-			}
-
-			//	set content type in case it's not provided in response
-			if (!response.headers.has("content-type")) {
-				response.headers.set("content-type", "text/html; charset=utf-8");
-			}
-
-			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
+			writeResponse(response, {
+				nextRequest.acceptsEncoding,
+				nextRequest.keepAlive,
+				conn
+			});
 
 			if (config.loglevel.requests) fprintf(stdout,
 				"%s[%s] (%s) %s %s --> %i\n",
@@ -146,7 +140,7 @@ void HTTPServer::httpStreamHandler(Network::TCP::Connection&& conn, const ServeO
 	);
 }
 
-HTTP::Response renderServerErrorPage(std::string message) {
+Lambda::HTTP::Response renderServerErrorPage(std::string message) {
 
 	auto templateSource = HTML::Templates::servicePage();
 
@@ -161,7 +155,7 @@ HTTP::Response renderServerErrorPage(std::string message) {
 	}, pagehtml);
 }
 
-HTTP::Response composeServerErrorResponse(std::string message) {
+Lambda::HTTP::Response composeServerErrorResponse(std::string message) {
 
 	JSON::Map responseObject = {
 		{ "ok", false },
@@ -170,7 +164,7 @@ HTTP::Response composeServerErrorResponse(std::string message) {
 		{ "what", message }
 	};
 
-	return HTTP::Response(500, {
+	return Lambda::HTTP::Response(500, {
 		{"content-type", "application/json"}
 	}, JSON::stringify(responseObject));
 }

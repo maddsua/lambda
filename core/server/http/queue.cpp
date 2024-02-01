@@ -1,13 +1,29 @@
 #include <set>
 #include <map>
 
+#include "../handlers.hpp"
 #include "../http.hpp"
 
 using namespace Lambda;
 using namespace Lambda::HTTPServer;
+using namespace Lambda::Server::Handlers;
 
-HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
-	this->m_reader = std::async(asyncReader, std::ref(conn), std::ref(options), std::ref(*this));
+HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options)
+: ctx({ conn, options, conn.info() }) {
+
+	this->m_reader = std::async([&](Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
+
+		do {
+
+			auto next = requestReader(this->ctx);
+			if (!next.has_value()) break;
+
+			std::lock_guard<std::mutex>lock(this->m_lock);
+			this->m_queue.push(std::move(next.value()));
+
+		} while (conn.active() && this->ctx.keepAlive);
+
+	}, std::ref(conn), std::ref(options));
 }
 
 HttpRequestQueue::~HttpRequestQueue() {
@@ -23,12 +39,12 @@ HttpRequestQueue& HttpRequestQueue::operator=(HttpRequestQueue&& other) noexcept
 	return *this;
 }
 
-void HttpRequestQueue::push(RequestQueueItem&& item) {
+void HttpRequestQueue::push(IncomingRequest&& item) {
 	std::lock_guard<std::mutex>lock(this->m_lock);
 	this->m_queue.push(item);
 }
 
-RequestQueueItem HttpRequestQueue::next() {
+IncomingRequest HttpRequestQueue::next() {
 
 	if (!this->m_queue.size()) {
 		throw std::runtime_error("cannot get next item from an empty HttpRequestQueue");
@@ -36,7 +52,7 @@ RequestQueueItem HttpRequestQueue::next() {
 
 	std::lock_guard<std::mutex>lock(this->m_lock);
 
-	RequestQueueItem temp = this->m_queue.front();
+	IncomingRequest temp = this->m_queue.front();
 	this->m_queue.pop();
 
 	return temp;
