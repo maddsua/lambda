@@ -3,7 +3,6 @@
 #include "../http.hpp"
 #include "../../http/http.hpp"
 #include "../../../build_options.hpp"
-#include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
 #include "../../crypto/crypto.hpp"
 #include "../../html/templates.hpp"
