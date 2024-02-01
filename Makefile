@@ -30,7 +30,7 @@ else
 endif
 
 .PHONY: all all-before all-after action-custom
-all: all-before $(LAMBDA_LIBSTATIC) all-after
+all: all-before libshared all-after
 
 clean: action-custom
 	$(CLEAN_COMMAND)
