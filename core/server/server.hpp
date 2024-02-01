@@ -39,12 +39,12 @@ namespace Lambda {
 	};
 
 	namespace HTTPServer {
-		struct HTTPContext;
+		struct ConnectionContext;
 	};
 
 	struct IncomingConnection {
 		private:
-			HTTPServer::HTTPContext* ctx = nullptr;
+			HTTPServer::ConnectionContext* ctx = nullptr;
 
 		public:
 			IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts);
