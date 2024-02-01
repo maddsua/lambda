@@ -91,19 +91,23 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 		 * Add http auth handling too
 		*/
 
-		//	extract request url pathname
-		size_t pathnameEndPos = std::string::npos;
-		for (auto token : std::initializer_list<char>({ '?', '#' })) {
-			auto tokenPos = requestUrlString.find(token);
-			if (tokenPos < pathnameEndPos)
-				pathnameEndPos = tokenPos;
-		}
+		auto urlSearchPos = requestUrlString.find('?');
+		auto urlHashPos = requestUrlString.find('#', urlSearchPos != std::string::npos ? urlSearchPos : 0);
+		auto pathnameEndPos = std::min({ urlSearchPos, urlHashPos });
 
 		next.request.url.pathname = pathnameEndPos == std::string::npos ?
 			requestUrlString :
 			(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
-		
-		auto urlPathTail = pathnameEndPos != std::string::npos ? requestUrlString.substr(pathnameEndPos) : "";
+
+		next.request.url.hash = urlHashPos != std::string::npos ?
+			requestUrlString.substr(urlHashPos) : "";
+
+		if (urlSearchPos != std::string::npos) {
+			auto trimSize = urlHashPos != std::string::npos ? (urlHashPos - urlSearchPos - 1) : 0;
+			next.request.url.searchParams = trimSize ?
+				requestUrlString.substr(urlSearchPos + 1, trimSize) :
+				requestUrlString.substr(urlSearchPos + 1);
+		}
 
 		auto hostHeader = next.request.headers.get("host");
 		auto hostHeaderSem = hostHeader.size() ? hostHeader.find(':') : std::string::npos;
