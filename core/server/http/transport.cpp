@@ -95,24 +95,26 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 				pathnameEndPos = tokenPos;
 		}
 
-		auto urlPathName = pathnameEndPos == std::string::npos ?
+		next.request.url.pathname = pathnameEndPos == std::string::npos ?
 			requestUrlString :
 			(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
 		
-		auto hostHeader = next.request.headers.get("host");
-		auto urlHost = hostHeader.size() ? hostHeader : "lambdahost:" + std::to_string(ctx.conninfo.hostPort);
-		auto urlHostName = hostHeader.size() ? hostHeader : "lambdahost";
+		auto urlPathTail = pathnameEndPos != std::string::npos ? requestUrlString.substr(pathnameEndPos) : "";
 
-		next.request.url = HTTP::URL({
-			"http",
-			"",
-			"",
-			urlHost,
-			urlHostName,
-			urlPathName,
-			"",
-			{}
-		});
+		auto hostHeader = next.request.headers.get("host");
+		auto hostHeaderSem = hostHeader.size() ? hostHeader.find(':') : std::string::npos;
+
+		next.request.url.host = hostHeader.size() ? hostHeader : "lambdahost:" + std::to_string(ctx.conninfo.hostPort);
+
+		next.request.url.hostname = hostHeader.size() ?
+			(hostHeaderSem != std::string::npos ?
+				hostHeader.substr(0, hostHeaderSem) : hostHeader) :
+			"lambdahost";
+
+		next.request.url.port = hostHeader.size() ?
+			(hostHeaderSem != std::string::npos ?
+				hostHeader.substr(hostHeaderSem + 1) : "") :
+			std::to_string(ctx.conninfo.hostPort);
 	}
 
 	if (ctx.options.reuseConnections) {
