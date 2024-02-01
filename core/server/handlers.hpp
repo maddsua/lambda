@@ -20,7 +20,7 @@ namespace Lambda::Server::Handlers {
 	};
 
 	std::optional<HTTPServer::RequestQueueItem> requestReader(ReaderContext& ctx);
-	void writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, HTTPServer::ContentEncodings preferEncoding);
+	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, HTTPServer::ContentEncodings preferEncoding);
 
 	void asyncRequestReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HTTPServer::HttpRequestQueue& queue);
 
