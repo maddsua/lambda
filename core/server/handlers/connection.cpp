@@ -13,7 +13,7 @@ void Handlers::connectionHandler(Network::TCP::Connection&& conn, const ServeOpt
 }
 
 IncomingConnection::IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts) {
-	this->ctx = new HTTPContext { *conn, opts, conn->info() };
+	this->ctx = new ConnectionContext { *conn, opts, conn->info() };
 }
 
 IncomingConnection::~IncomingConnection() {
