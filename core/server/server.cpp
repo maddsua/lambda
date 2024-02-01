@@ -40,12 +40,19 @@ void ServerInstance::setup() {
 				auto nextConn = this->listener->acceptConnection();
 				if (!nextConn.has_value()) break;
 
-				auto connectionWorker = std::thread(serverlessHandler,
-					std::move(nextConn.value()),
-					std::ref(this->config),
-					std::ref(this->httpHandler));
-
-				connectionWorker.detach();
+				if (this->httpHandler) {
+					auto connectionWorker = std::thread(serverlessHandler,
+						std::move(nextConn.value()),
+						std::ref(this->config),
+						std::ref(this->httpHandler));
+					connectionWorker.detach();
+				} else {
+					auto connectionWorker = std::thread(connectionHandler,
+						std::move(nextConn.value()),
+						std::ref(this->config),
+						std::ref(this->tcpHandler));
+					connectionWorker.detach();
+				}
 
 			} catch(const std::exception& e) {
 				if (this->terminated) return;
