@@ -14,9 +14,9 @@
 #include <set>
 
 using namespace Lambda;
-using namespace Lambda::HTTPServer;
 using namespace Lambda::Network;
 using namespace Lambda::Server;
+using namespace Lambda::Server::Handlers;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 

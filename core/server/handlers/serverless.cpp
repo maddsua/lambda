@@ -19,7 +19,6 @@
 #include <optional>
 
 using namespace Lambda;
-using namespace Lambda::HTTPServer;
 using namespace Lambda::Server;
 using namespace Lambda::Server::Handlers;
 using namespace Lambda::Network;

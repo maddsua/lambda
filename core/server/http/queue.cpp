@@ -4,7 +4,6 @@
 #include "../handlers.hpp"
 
 using namespace Lambda;
-using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 
 HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options)
