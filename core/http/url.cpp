@@ -7,7 +7,7 @@ using namespace Lambda::HTTP;
 using namespace Lambda::Strings;
 
 /**
- * Just a memo of how URL schema looks
+ * Just a note of how URL schema looks
  * https://user:password@example.com:443/document?search=query#fragment
 */
 
