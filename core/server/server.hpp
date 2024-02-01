@@ -2,6 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_CORE_SERVER__
 
 #include <functional>
+#include <optional>
 #include <thread>
 
 #include "../http/http.hpp"
@@ -37,10 +38,20 @@ namespace Lambda {
 		Console console;
 	};
 
+	namespace HTTPServer {
+		struct HTTPContext;
+	};
+
 	struct ServerConnection {
-		Network::TCP::Connection* rawconn = nullptr;
-		HTTP::Request nextRequest();
-		void respond(const HTTP::Response& response);
+		private:
+			HTTPServer::HTTPContext* ctx = nullptr;
+
+		public:
+			ServerConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts);
+			~ServerConnection();
+
+			std::optional<HTTP::Request> nextRequest();
+			void respond(const HTTP::Response& response);
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> HTTPRequestCallback;
