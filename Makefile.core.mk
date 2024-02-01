@@ -139,6 +139,9 @@ core/server/http/transport.o: core/server/http/transport.cpp
 core/server/handlers/serverless.o: core/server/handlers/serverless.cpp
 	g++ -c $(CFLAGS) core/server/handlers/serverless.cpp -o core/server/handlers/serverless.o
 
+core/server/handlers/extended.o: core/server/handlers/extended.cpp
+	g++ -c $(CFLAGS) core/server/handlers/extended.cpp -o core/server/handlers/extended.o
+
 core/server/http/queue.o: core/server/http/queue.cpp
 	g++ -c $(CFLAGS) core/server/http/queue.cpp -o core/server/http/queue.o
 
