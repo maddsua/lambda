@@ -61,6 +61,8 @@ namespace Lambda::HTTPServer {
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 	};
 
+	std::optional<std::pair<std::string, std::string>> parseBasicAuth(const std::string& header);
+
 };
 
 #endif
