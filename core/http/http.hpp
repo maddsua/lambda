@@ -48,7 +48,7 @@ namespace Lambda::HTTP {
 			std::string stringify() const;
 	};
 
-	class URL {	
+	struct URL {	
 		private:
 			void parse(const std::string& href);
 
