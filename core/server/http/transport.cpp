@@ -154,11 +154,12 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 	return next;
 }
 
-void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
+void HTTPServer::writeResponse(const HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
 		std::vector<uint8_t> responseBody;
+		auto responseHeaders = response.headers;
 
 		auto applyEncoding = ContentEncodings::None;
 		auto responseContentType = Strings::toLowerCase(response.headers.get("content-type"));
@@ -190,7 +191,7 @@ void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::C
 		}
 
 		if (applyEncoding != ContentEncodings::None) {
-			response.headers.set("content-encoding", contentEncodingMap.at(applyEncoding));
+			responseHeaders.set("content-encoding", contentEncodingMap.at(applyEncoding));
 		}
 
 	#else
@@ -198,10 +199,10 @@ void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::C
 	#endif
 
 	auto bodySize = responseBody.size();
-	response.headers.set("content-length", std::to_string(bodySize));
+	responseHeaders.set("content-length", std::to_string(bodySize));
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
-	for (const auto& header : response.headers.entries()) {
+	for (const auto& header : responseHeaders.entries()) {
 		headerBuff += header.first + ": " + header.second + "\r\n";
 	}
 	headerBuff += "\r\n";
