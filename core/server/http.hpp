@@ -24,6 +24,7 @@ namespace Lambda::HTTPServer {
 
 	struct IncomingRequest {
 		HTTP::Request request;
+		std::string pathname;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};
