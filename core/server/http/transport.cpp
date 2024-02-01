@@ -96,6 +96,18 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 		next.request.url = "http://lambdahost:" + ctx.conninfo.hostPort + requestUrlString;
 	}
 
+	//	extract request url pathname
+	size_t pathnameEndPos = std::string::npos;
+	for (auto token : std::initializer_list<char>({ '?', '#' })) {
+		auto tokenPos = next.pathname.find(token);
+		if (tokenPos < pathnameEndPos)
+			pathnameEndPos = tokenPos;
+	}
+
+	next.pathname = pathnameEndPos == std::string::npos ?
+		requestUrlString :
+		(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
+
 	if (ctx.options.reuseConnections) {
 		auto connectionHeader = next.request.headers.get("connection");
 		if (ctx.keepAlive) ctx.keepAlive = !Strings::includes(connectionHeader, "close");
