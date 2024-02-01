@@ -42,20 +42,20 @@ namespace Lambda {
 		struct HTTPContext;
 	};
 
-	struct ServerConnection {
+	struct IncomingConnection {
 		private:
 			HTTPServer::HTTPContext* ctx = nullptr;
 
 		public:
-			ServerConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts);
-			~ServerConnection();
+			IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts);
+			~IncomingConnection();
 
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> HTTPRequestCallback;
-	typedef std::function<void(ServerConnection&)> ConnectionCallback;
+	typedef std::function<void(IncomingConnection&)> ConnectionCallback;
 
 	struct ServiceOptions {
 		uint16_t port = 8180;
