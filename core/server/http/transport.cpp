@@ -66,17 +66,17 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 
 		const auto& headerline = headerFields[i];
 
-		auto separator = headerline.find(':');
+		const auto separator = headerline.find(':');
 		if (separator == std::string::npos) {
 			throw std::runtime_error("invalid header structure (no separation betwen name and header value)");
 		}
 
-		auto headerKey = Strings::trim(headerline.substr(0, separator));
+		const auto headerKey = Strings::trim(headerline.substr(0, separator));
 		if (!headerKey.size()) {
 			throw std::runtime_error("invalid header (empty header name)");
 		}
 
-		auto headerValue = Strings::trim(headerline.substr(separator + 1));
+		const auto headerValue = Strings::trim(headerline.substr(separator + 1));
 		if (!headerValue.size()) {
 			throw std::runtime_error("invalid header (empty header value)");
 		}
@@ -92,9 +92,9 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 		 * (if it's possible lol)
 		*/
 
-		auto urlSearchPos = requestUrlString.find('?');
-		auto urlHashPos = requestUrlString.find('#', urlSearchPos != std::string::npos ? urlSearchPos : 0);
-		auto pathnameEndPos = std::min({ urlSearchPos, urlHashPos });
+		const auto urlSearchPos = requestUrlString.find('?');
+		const auto urlHashPos = requestUrlString.find('#', urlSearchPos != std::string::npos ? urlSearchPos : 0);
+		const auto pathnameEndPos = std::min({ urlSearchPos, urlHashPos });
 
 		next.request.url.pathname = pathnameEndPos == std::string::npos ?
 			requestUrlString :
@@ -107,8 +107,8 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 				requestUrlString.substr(urlSearchPos + 1);
 		}
 
-		auto hostHeader = next.request.headers.get("host");
-		auto hostHeaderSem = hostHeader.size() ? hostHeader.find(':') : std::string::npos;
+		const auto hostHeader = next.request.headers.get("host");
+		const auto hostHeaderSem = hostHeader.size() ? hostHeader.find(':') : std::string::npos;
 
 		next.request.url.host = hostHeader.size() ? hostHeader : "lambdahost:" + std::to_string(ctx.conninfo.hostPort);
 
@@ -121,6 +121,11 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 			(hostHeaderSem != std::string::npos ?
 				hostHeader.substr(hostHeaderSem + 1) : "") :
 			std::to_string(ctx.conninfo.hostPort);
+
+		const auto authHeader = next.request.headers.get("authorization");
+		if (Strings::includes(Strings::toLowerCase(authHeader), "basic")) {
+
+		}
 	}
 
 	if (ctx.options.reuseConnections) {
