@@ -38,25 +38,6 @@ namespace Lambda::HTTPServer {
 	std::optional<IncomingRequest> requestReader(ReaderContext& ctx);
 	void writeResponse(const HTTP::Response& response, const WriterContext& ctx);
 
-	class HttpRequestQueue {
-		private:
-			std::future<void> m_reader;
-			ReaderContext ctx;
-			std::queue<IncomingRequest> m_queue;
-			std::mutex m_lock;
-
-		public:
-			HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options);
-			~HttpRequestQueue();
-
-			HttpRequestQueue& operator=(const HttpRequestQueue& other) = delete;
-			HttpRequestQueue& operator=(HttpRequestQueue&& other) noexcept;
-
-			bool await();
-			IncomingRequest next();
-			void push(IncomingRequest&& item);
-	};
-
 	struct ConnectionContext : ReaderContext {
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 	};
