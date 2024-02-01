@@ -89,6 +89,7 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 
 		/**
 		 * Add http auth handling too
+		 * (if it's possible lol)
 		*/
 
 		auto urlSearchPos = requestUrlString.find('?');
@@ -98,9 +99,6 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 		next.request.url.pathname = pathnameEndPos == std::string::npos ?
 			requestUrlString :
 			(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
-
-		next.request.url.hash = urlHashPos != std::string::npos ?
-			requestUrlString.substr(urlHashPos) : "";
 
 		if (urlSearchPos != std::string::npos) {
 			auto trimSize = urlHashPos != std::string::npos ? (urlHashPos - urlSearchPos - 1) : 0;
