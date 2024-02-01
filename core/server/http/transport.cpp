@@ -14,8 +14,9 @@
 #include <set>
 
 using namespace Lambda;
-using namespace Lambda::Network;
 using namespace Lambda::HTTPServer;
+using namespace Lambda::Network;
+using namespace Lambda::Server;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -29,7 +30,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-std::optional<RequestQueueItem> HTTPServer::requestReader(ReaderContext& ctx) {
+std::optional<RequestQueueItem> Handlers::requestReader(ReaderContext& ctx) {
 
 	auto headerEnded = ctx.buffer.end();
 	while (ctx.conn.active() && headerEnded == ctx.buffer.end()) {
@@ -151,7 +152,7 @@ std::optional<RequestQueueItem> HTTPServer::requestReader(ReaderContext& ctx) {
 	return next;
 }
 
-void HTTPServer::asyncRequestReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue) {
+void Handlers::asyncRequestReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue) {
 
 	ReaderContext context {
 		conn,
@@ -169,7 +170,7 @@ void HTTPServer::asyncRequestReader(Network::TCP::Connection& conn, const HTTPTr
 	} while (conn.active() && context.keepAlive);
 }
 
-void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
+void Handlers::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 

@@ -20,12 +20,14 @@
 
 using namespace Lambda;
 using namespace Lambda::HTTPServer;
+using namespace Lambda::Server;
+using namespace Lambda::Server::Handlers;
 using namespace Lambda::Network;
 
-HTTP::Response renderServerErrorPage(std::string message);
-HTTP::Response composeServerErrorResponse(std::string message);
+Lambda::HTTP::Response renderServerErrorPage(std::string message);
+Lambda::HTTP::Response composeServerErrorResponse(std::string message);
 
-void HTTPServer::httpServerlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept {
+void Handlers::httpServerlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept {
 
 	const auto& conninfo = conn.info();
 
@@ -46,7 +48,7 @@ void HTTPServer::httpServerlessHandler(Network::TCP::Connection&& conn, const Se
 
 	try {
 
-		auto requestQueue = HTTPServer::HttpRequestQueue(conn, config.transport);
+		auto requestQueue = HttpRequestQueue(conn, config.transport);
 
 		while (requestQueue.await()) {
 
@@ -106,7 +108,7 @@ void HTTPServer::httpServerlessHandler(Network::TCP::Connection&& conn, const Se
 				response.headers.set("content-type", "text/html; charset=utf-8");
 			}
 
-			HTTPServer::writeResponse(response, conn, nextRequest.acceptsEncoding);
+			Handlers::writeResponse(response, conn, nextRequest.acceptsEncoding);
 
 			if (config.loglevel.requests) fprintf(stdout,
 				"%s[%s] (%s) %s %s --> %i\n",
@@ -146,7 +148,7 @@ void HTTPServer::httpServerlessHandler(Network::TCP::Connection&& conn, const Se
 	);
 }
 
-HTTP::Response renderServerErrorPage(std::string message) {
+Lambda::HTTP::Response renderServerErrorPage(std::string message) {
 
 	auto templateSource = HTML::Templates::servicePage();
 
@@ -161,7 +163,7 @@ HTTP::Response renderServerErrorPage(std::string message) {
 	}, pagehtml);
 }
 
-HTTP::Response composeServerErrorResponse(std::string message) {
+Lambda::HTTP::Response composeServerErrorResponse(std::string message) {
 
 	JSON::Map responseObject = {
 		{ "ok", false },
@@ -170,7 +172,7 @@ HTTP::Response composeServerErrorResponse(std::string message) {
 		{ "what", message }
 	};
 
-	return HTTP::Response(500, {
+	return Lambda::HTTP::Response(500, {
 		{"content-type", "application/json"}
 	}, JSON::stringify(responseObject));
 }

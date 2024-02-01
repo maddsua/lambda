@@ -38,7 +38,7 @@ void ServerInstance::setup() {
 				auto nextConn = this->listener->acceptConnection();
 				if (!nextConn.has_value()) break;
 
-				auto connectionWorker = std::thread(httpServerlessHandler,
+				auto connectionWorker = std::thread(this->httpHandler,
 					std::move(nextConn.value()),
 					std::ref(this->config),
 					std::ref(this->httpHandler));
