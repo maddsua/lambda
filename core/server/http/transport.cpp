@@ -3,6 +3,7 @@
 #include "../http.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
+#include "../../encoding/encoding.hpp"
 #include "../../polyfill/polyfill.hpp"
 #include "../../../build_options.hpp"
 
@@ -123,8 +124,12 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 			std::to_string(ctx.conninfo.hostPort);
 
 		const auto authHeader = next.request.headers.get("authorization");
-		if (Strings::includes(Strings::toLowerCase(authHeader), "basic")) {
-
+		if (authHeader.size()) {
+			auto basicAuthOpt = parseBasicAuth(authHeader);
+			if (basicAuthOpt.has_value()) {
+				next.request.url.username = basicAuthOpt.value().first;
+				next.request.url.password = basicAuthOpt.value().second;
+			}
 		}
 	}
 
@@ -242,4 +247,29 @@ void HTTPServer::writeResponse(const HTTP::Response& response, const WriterConte
 	ctx.conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 	if (bodySize) ctx.conn.write(responseBody);
 
+}
+
+std::optional<std::pair<std::string, std::string>> HTTPServer::parseBasicAuth(const std::string& header) {
+
+	if (!Strings::includes(Strings::toLowerCase(header), "basic")) {
+		return std::nullopt;
+	}
+
+	const auto authStringStart = header.find_last_of(' ');
+	if (authStringStart == std::string::npos) {
+		return std::nullopt;
+	}
+
+	const auto authString = header.substr(authStringStart + 1);
+	if (!authString.size()) {
+		return std::nullopt;
+	}
+
+	const auto authStringDecoded = Encoding::fromBase64(authString);
+	const auto authComponents = Strings::split(std::string(authStringDecoded.begin(), authStringDecoded.end()), ":");
+	if (authComponents.size() < 2) {
+		return std::nullopt;
+	}
+
+	return std::make_pair(authComponents[0], authComponents[1]);
 }
