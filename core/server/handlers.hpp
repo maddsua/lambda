@@ -18,15 +18,15 @@ namespace Lambda::Server::Handlers {
 		bool keepAlive = false;
 	};
 
+	enum struct ContentEncodings {
+		None, Brotli, Gzip, Deflate,
+	};
+
 	struct RequestQueueItem {
 		HTTP::Request request;
 		std::string pathname;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
-	};
-
-	enum struct ContentEncodings {
-		None, Brotli, Gzip, Deflate,
 	};
 
 	std::optional<RequestQueueItem> requestReader(ReaderContext& ctx);
