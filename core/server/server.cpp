@@ -106,6 +106,6 @@ std::optional<HTTP::Request> ServerConnection::nextRequest() {
 	return next.request;
 }
 
-void ServerConnection::respond(HTTP::Response response) {
+void ServerConnection::respond(const HTTP::Response& response) {
 	writeResponse(response, this->ctx->conn, this->ctx->acceptsEncoding);
 }
