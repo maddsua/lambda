@@ -40,7 +40,7 @@ void ServerInstance::setup() {
 				auto nextConn = this->listener->acceptConnection();
 				if (!nextConn.has_value()) break;
 
-				auto connectionWorker = std::thread(httpServerlessHandler,
+				auto connectionWorker = std::thread(serverlessHandler,
 					std::move(nextConn.value()),
 					std::ref(this->config),
 					std::ref(this->httpHandler));
@@ -84,28 +84,4 @@ ServerInstance::~ServerInstance() {
 
 const ServerConfig& ServerInstance::getConfig() const noexcept {
 	return this->config;
-}
-
-IncomingConnection::IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts) {
-	this->ctx = new HTTPContext { *conn, opts, conn->info() };
-}
-
-IncomingConnection::~IncomingConnection() {
-	delete this->ctx;
-}
-
-std::optional<HTTP::Request> IncomingConnection::nextRequest() {
-
-	auto nextOpt = requestReader(*this->ctx);
-	if (!nextOpt.has_value()) return std::nullopt;
-	auto& next = nextOpt.value();
-
-	this->ctx->keepAlive = next.keepAlive;
-	this->ctx->acceptsEncoding = next.acceptsEncoding;
-
-	return next.request;
-}
-
-void IncomingConnection::respond(const HTTP::Response& response) {
-	writeResponse(response, this->ctx->conn, this->ctx->acceptsEncoding);
 }
