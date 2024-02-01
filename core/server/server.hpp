@@ -51,7 +51,7 @@ namespace Lambda {
 			~ServerConnection();
 
 			std::optional<HTTP::Request> nextRequest();
-			void respond(HTTP::Response response);
+			void respond(const HTTP::Response& response);
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> HTTPRequestCallback;
