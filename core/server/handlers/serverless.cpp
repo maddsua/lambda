@@ -49,57 +49,59 @@ void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOpt
 
 	try {
 
-		auto requestQueue = HttpRequestQueue(conn, config.transport);
+		ConnectionContext rctx {
+			conn,
+			config.transport,
+			conn.info()
+		};
 
-		while (requestQueue.await()) {
+		while (auto nextOpt = requestReader(rctx)){
+			
+			if (!nextOpt.has_value()) break;
 
-			auto nextRequest = requestQueue.next();
+			auto& next = nextOpt.value();
 			auto requestID = Crypto::ShortID().toString();
+
+			rctx.keepAlive = next.keepAlive;
+			rctx.acceptsEncoding = next.acceptsEncoding;
+
 			HTTP::Response response;
 			std::optional<std::string> handlerError;
 
 			try {
 
-				response = handlerCallback(nextRequest.request, {
+				response = handlerCallback(next.request, {
 					requestID,
 					conninfo,
 					Console(requestID, config.loglevel.timestamps)
 				});
 
 			} catch(const std::exception& e) {
+				handlerError = e.what();
+			} catch(...) {
+				handlerError = "unhandled exception";
+			}
+
+			if (handlerError.has_value()) {
+
+				response = config.errorResponseType == ErrorResponseType::JSON ? 
+					composeServerErrorResponse(handlerError.value()) :
+					renderServerErrorPage(handlerError.value());
 
 				if (config.loglevel.requests) fprintf(stderr,
 					"%s%s crashed: %s\n",
 					createLogTimeStamp().c_str(),
 					requestID.c_str(),
-					e.what()
+					handlerError.value().c_str()
 				);
-
-				handlerError = e.what();
-
-			} catch(...) {
-
-				if (config.loglevel.requests) fprintf(stderr,
-					"%s%s crashed: unhandled exception\n",
-					createLogTimeStamp().c_str(),
-					requestID.c_str()
-				);
-
-				handlerError = "unhandled exception";
-			}
-
-			if (handlerError.has_value()) {
-				response = config.errorResponseType == ErrorResponseType::JSON ? 
-					composeServerErrorResponse(handlerError.value()) :
-					renderServerErrorPage(handlerError.value());
 			}
 
 			response.headers.set("x-request-id", requestID);
 
 			writeResponse(response, {
-				nextRequest.acceptsEncoding,
-				nextRequest.keepAlive,
-				conn
+				next.acceptsEncoding,
+				next.keepAlive,
+				rctx.conn
 			});
 
 			if (config.loglevel.requests) fprintf(stdout,
@@ -107,8 +109,8 @@ void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOpt
 				createLogTimeStamp().c_str(),
 				requestID.c_str(),
 				conninfo.remoteAddr.hostname.c_str(),
-				static_cast<std::string>(nextRequest.request.method).c_str(),
-				nextRequest.request.url.pathname.c_str(),
+				static_cast<std::string>(next.request.method).c_str(),
+				next.request.url.pathname.c_str(),
 				response.status.code()
 			);
 		}
