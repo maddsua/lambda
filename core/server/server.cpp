@@ -1,5 +1,6 @@
 
 #include "./server.hpp"
+#include "./http.hpp"
 #include "./handlers.hpp"
 #include "../crypto/crypto.hpp"
 #include "../network/tcp/listener.hpp"
@@ -8,6 +9,7 @@
 #include <thread>
 
 using namespace Lambda;
+using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 
 ServerInstance::ServerInstance(HTTPRequestCallback handlerCallback, ServerConfig init) {
@@ -82,4 +84,28 @@ ServerInstance::~ServerInstance() {
 
 const ServerConfig& ServerInstance::getConfig() const noexcept {
 	return this->config;
+}
+
+ServerConnection::ServerConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts) {
+	this->ctx = new HTTPContext { *conn, opts, conn->info() };
+}
+
+ServerConnection::~ServerConnection() {
+	delete this->ctx;
+}
+
+std::optional<HTTP::Request> ServerConnection::nextRequest() {
+
+	auto nextOpt = requestReader(*this->ctx);
+	if (!nextOpt.has_value()) return std::nullopt;
+	auto& next = nextOpt.value();
+
+	this->ctx->keepAlive = next.keepAlive;
+	this->ctx->acceptsEncoding = next.acceptsEncoding;
+
+	return next.request;
+}
+
+void ServerConnection::respond(const HTTP::Response& response) {
+
 }
