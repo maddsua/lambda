@@ -1,5 +1,6 @@
 
 #include "../handlers.hpp"
+#include "../http.hpp"
 #include "../../http/http.hpp"
 #include "../../../build_options.hpp"
 #include "../../compression/compression.hpp"
@@ -20,6 +21,7 @@
 
 using namespace Lambda;
 using namespace Lambda::Server;
+using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 using namespace Lambda::Network;
 
@@ -107,7 +109,7 @@ void Handlers::httpServerlessHandler(Network::TCP::Connection&& conn, const Serv
 				response.headers.set("content-type", "text/html; charset=utf-8");
 			}
 
-			Handlers::writeResponse(response, conn, nextRequest.acceptsEncoding);
+			writeResponse(response, conn, nextRequest.acceptsEncoding);
 
 			if (config.loglevel.requests) fprintf(stdout,
 				"%s[%s] (%s) %s %s --> %i\n",

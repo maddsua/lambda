@@ -1,5 +1,6 @@
 
 #include "../handlers.hpp"
+#include "../http.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../polyfill/polyfill.hpp"
@@ -16,6 +17,7 @@
 using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::Server;
+using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 
 static const std::string patternEndHeader = "\r\n\r\n";
@@ -30,7 +32,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-std::optional<RequestQueueItem> Handlers::requestReader(ReaderContext& ctx) {
+std::optional<RequestQueueItem> HTTPServer::requestReader(ReaderContext& ctx) {
 
 	auto headerEnded = ctx.buffer.end();
 	while (ctx.conn.active() && headerEnded == ctx.buffer.end()) {
@@ -152,7 +154,7 @@ std::optional<RequestQueueItem> Handlers::requestReader(ReaderContext& ctx) {
 	return next;
 }
 
-void Handlers::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
+void HTTPServer::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
