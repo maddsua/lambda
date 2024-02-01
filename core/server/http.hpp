@@ -50,6 +50,11 @@ namespace Lambda::HTTPServer {
 			IncomingRequest next();
 			void push(IncomingRequest&& item);
 	};
+
+	struct HTTPContext : ReaderContext {
+		ContentEncodings acceptsEncoding = ContentEncodings::None;
+	};
+
 };
 
 #endif
