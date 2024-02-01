@@ -9,11 +9,11 @@ int main(int argc, char const *argv[]) {
 
 	auto handler = [&](Lambda::IncomingConnection& conn) {
 
-		auto next = conn.nextRequest();
-		if (!next.has_value()) return;
-
-		auto response = HTTP::Response("yo hi there");
-		conn.respond(response);
+		while (auto next = conn.nextRequest()) {
+			if (!next.has_value()) break;
+			auto response = HTTP::Response("yo hi there");
+			conn.respond(response);
+		}
 	};
 
 	ServerConfig initparams;
