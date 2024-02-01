@@ -29,7 +29,6 @@ namespace Lambda::HTTPServer {
 
 	struct IncomingRequest : HTTPTransportContext {
 		HTTP::Request request;
-		std::string pathname;
 	};
 
 	struct WriterContext : HTTPTransportContext {
