@@ -95,21 +95,13 @@ void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOpt
 					renderServerErrorPage(handlerError.value());
 			}
 
-			response.headers.set("date", Date().toUTCString());
-			response.headers.set("server", "maddsua/lambda");
 			response.headers.set("x-request-id", requestID);
 
-			//	set connection header to acknowledge keep-alive mode
-			if (nextRequest.keepAlive) {
-				response.headers.set("connection", "keep-alive");
-			}
-
-			//	set content type in case it's not provided in response
-			if (!response.headers.has("content-type")) {
-				response.headers.set("content-type", "text/html; charset=utf-8");
-			}
-
-			writeResponse(response, conn, nextRequest.acceptsEncoding);
+			writeResponse(response, {
+				nextRequest.acceptsEncoding,
+				nextRequest.keepAlive,
+				conn
+			});
 
 			if (config.loglevel.requests) fprintf(stdout,
 				"%s[%s] (%s) %s %s --> %i\n",

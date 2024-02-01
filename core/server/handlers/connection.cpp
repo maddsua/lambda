@@ -17,6 +17,16 @@ void Handlers::connectionHandler(Network::TCP::Connection&& conn, const ServeOpt
 		return std::string();
 	};
 
+	const auto& conninfo = conn.info();
+
+	if (config.loglevel.connections) fprintf(stdout,
+		"%s%s:%i connected on %i\n",
+		createLogTimeStamp().c_str(),
+		conninfo.remoteAddr.hostname.c_str(),
+		conninfo.remoteAddr.port,
+		conninfo.hostPort
+	);
+
 	try {
 
 		auto connctx = IncomingConnection(&conn, config.transport);
@@ -27,7 +37,7 @@ void Handlers::connectionHandler(Network::TCP::Connection&& conn, const ServeOpt
 		if (config.loglevel.requests) fprintf(stderr,
 			"%s[Service] Connection to %s terminated: %s\n",
 			createLogTimeStamp().c_str(),
-			conn.info().remoteAddr.hostname.c_str(),
+			conninfo.remoteAddr.hostname.c_str(),
 			e.what()
 		);
 
@@ -36,9 +46,17 @@ void Handlers::connectionHandler(Network::TCP::Connection&& conn, const ServeOpt
 		if (config.loglevel.requests) fprintf(stderr,
 			"%s[Service] Connection to %s terminated (unknown error)\n",
 			createLogTimeStamp().c_str(),
-			conn.info().remoteAddr.hostname.c_str()
+			conninfo.remoteAddr.hostname.c_str()
 		);
 	}
+
+	if (config.loglevel.connections) fprintf(stdout,
+		"%s%s:%i disconnected from %i\n",
+		createLogTimeStamp().c_str(),
+		conninfo.remoteAddr.hostname.c_str(),
+		conninfo.remoteAddr.port,
+		conninfo.hostPort
+	);
 }
 
 IncomingConnection::IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts) {
@@ -62,5 +80,9 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 }
 
 void IncomingConnection::respond(const HTTP::Response& response) {
-	writeResponse(response, this->ctx->conn, this->ctx->acceptsEncoding);
+	writeResponse(response, {
+		this->ctx->acceptsEncoding,
+		this->ctx->keepAlive,
+		this->ctx->conn,
+	});
 }

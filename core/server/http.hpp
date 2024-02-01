@@ -22,15 +22,22 @@ namespace Lambda::HTTPServer {
 		None, Brotli, Gzip, Deflate,
 	};
 
-	struct IncomingRequest {
-		HTTP::Request request;
-		std::string pathname;
+	struct HTTPTransportContext {
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};
 
+	struct IncomingRequest : HTTPTransportContext {
+		HTTP::Request request;
+		std::string pathname;
+	};
+
+	struct WriterContext : HTTPTransportContext {
+		Network::TCP::Connection& conn;
+	};
+
 	std::optional<IncomingRequest> requestReader(ReaderContext& ctx);
-	void writeResponse(const HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
+	void writeResponse(const HTTP::Response& response, const WriterContext& ctx);
 
 	class HttpRequestQueue {
 		private:

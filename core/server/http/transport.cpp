@@ -154,7 +154,7 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 	return next;
 }
 
-void HTTPServer::writeResponse(const HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
+void HTTPServer::writeResponse(const HTTP::Response& response, const WriterContext& ctx) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
@@ -162,11 +162,11 @@ void HTTPServer::writeResponse(const HTTP::Response& response, Network::TCP::Con
 		auto responseHeaders = response.headers;
 
 		auto applyEncoding = ContentEncodings::None;
-		auto responseContentType = Strings::toLowerCase(response.headers.get("content-type"));
+		auto responseContentType = Strings::toLowerCase(responseHeaders.get("content-type"));
 
 		for (const auto& item : compressibleTypes) {
 			if (Strings::includes(responseContentType, item)) {
-				applyEncoding = preferEncoding;
+				applyEncoding = ctx.acceptsEncoding;
 				break;
 			}
 		}
@@ -200,6 +200,18 @@ void HTTPServer::writeResponse(const HTTP::Response& response, Network::TCP::Con
 
 	auto bodySize = responseBody.size();
 	responseHeaders.set("content-length", std::to_string(bodySize));
+	responseHeaders.set("date", Date().toUTCString());
+	responseHeaders.set("server", "maddsua/lambda");
+
+	//	set connection header to acknowledge keep-alive mode
+	if (ctx.keepAlive) {
+		responseHeaders.set("connection", "keep-alive");
+	}
+
+	//	set content type in case it's not provided in response
+	if (!response.headers.has("content-type")) {
+		responseHeaders.set("content-type", "text/html; charset=utf-8");
+	}
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
 	for (const auto& header : responseHeaders.entries()) {
@@ -207,7 +219,7 @@ void HTTPServer::writeResponse(const HTTP::Response& response, Network::TCP::Con
 	}
 	headerBuff += "\r\n";
 
-	conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
-	if (bodySize) conn.write(responseBody);
+	ctx.conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
+	if (bodySize) ctx.conn.write(responseBody);
 
 }
