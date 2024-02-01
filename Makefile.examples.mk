@@ -37,3 +37,13 @@ kvserver.example$(EXEEXT): examples/kvserver.o $(LAMBDA_LIBSHARED)
 
 examples/kvserver.example.o: examples/kvserver.example.cpp
 	g++ -c $(CFLAGS) examples/kvserver.example.cpp -o examples/kvserver.example.o
+
+
+# extended request handler example
+example.conn_handler: conn_handler.example$(EXEEXT)
+
+conn_handler.example$(EXEEXT): examples/conn_handler.o $(LAMBDA_LIBSHARED)
+	g++ $(CFLAGS) examples/conn_handler.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o conn_handler.example$(EXEEXT)
+
+examples/conn_handler.example.o: examples/conn_handler.example.cpp
+	g++ -c $(CFLAGS) examples/conn_handler.example.cpp -o examples/conn_handler.example.o
