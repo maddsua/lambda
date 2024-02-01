@@ -7,7 +7,7 @@ using namespace Lambda;
 using namespace Lambda::HTTPServer;
 
 HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
-	this->m_reader = std::async(asyncReader, std::ref(conn), std::ref(options), std::ref(*this));
+	this->m_reader = std::async(asyncRequestReader, std::ref(conn), std::ref(options), std::ref(*this));
 }
 
 HttpRequestQueue::~HttpRequestQueue() {
