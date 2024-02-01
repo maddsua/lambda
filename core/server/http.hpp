@@ -22,21 +22,20 @@ namespace Lambda::HTTPServer {
 		None, Brotli, Gzip, Deflate,
 	};
 
-	struct RequestQueueItem {
+	struct IncomingRequest {
 		HTTP::Request request;
-		std::string pathname;
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 		bool keepAlive = false;
 	};
 
-	std::optional<RequestQueueItem> requestReader(ReaderContext& ctx);
+	std::optional<IncomingRequest> requestReader(ReaderContext& ctx);
 	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
 
 	class HttpRequestQueue {
 		private:
 			std::future<void> m_reader;
 			ReaderContext ctx;
-			std::queue<RequestQueueItem> m_queue;
+			std::queue<IncomingRequest> m_queue;
 			std::mutex m_lock;
 
 		public:
@@ -47,8 +46,8 @@ namespace Lambda::HTTPServer {
 			HttpRequestQueue& operator=(HttpRequestQueue&& other) noexcept;
 
 			bool await();
-			RequestQueueItem next();
-			void push(RequestQueueItem&& item);
+			IncomingRequest next();
+			void push(IncomingRequest&& item);
 	};
 };
 

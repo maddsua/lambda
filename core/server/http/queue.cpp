@@ -39,12 +39,12 @@ HttpRequestQueue& HttpRequestQueue::operator=(HttpRequestQueue&& other) noexcept
 	return *this;
 }
 
-void HttpRequestQueue::push(RequestQueueItem&& item) {
+void HttpRequestQueue::push(IncomingRequest&& item) {
 	std::lock_guard<std::mutex>lock(this->m_lock);
 	this->m_queue.push(item);
 }
 
-RequestQueueItem HttpRequestQueue::next() {
+IncomingRequest HttpRequestQueue::next() {
 
 	if (!this->m_queue.size()) {
 		throw std::runtime_error("cannot get next item from an empty HttpRequestQueue");
@@ -52,7 +52,7 @@ RequestQueueItem HttpRequestQueue::next() {
 
 	std::lock_guard<std::mutex>lock(this->m_lock);
 
-	RequestQueueItem temp = this->m_queue.front();
+	IncomingRequest temp = this->m_queue.front();
 	this->m_queue.pop();
 
 	return temp;

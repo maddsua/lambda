@@ -32,7 +32,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-std::optional<RequestQueueItem> HTTPServer::requestReader(ReaderContext& ctx) {
+std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 
 	auto headerEnded = ctx.buffer.end();
 	while (ctx.conn.active() && headerEnded == ctx.buffer.end()) {
@@ -59,7 +59,7 @@ std::optional<RequestQueueItem> HTTPServer::requestReader(ReaderContext& ctx) {
 	auto& requestMethodString = headerStartLine.at(0);
 	auto& requestUrlString = headerStartLine.at(1);
 
-	RequestQueueItem next;
+	IncomingRequest next;
 	next.request.method = Lambda::HTTP::Method(requestMethodString);
 
 	for (size_t i = 1; i < headerFields.size(); i++) {
@@ -95,18 +95,6 @@ std::optional<RequestQueueItem> HTTPServer::requestReader(ReaderContext& ctx) {
 	} else {
 		next.request.url = "http://lambdahost:" + ctx.conninfo.hostPort + requestUrlString;
 	}
-
-	//	extract request url pathname
-	size_t pathnameEndPos = std::string::npos;
-	for (auto token : std::initializer_list<char>({ '?', '#' })) {
-		auto tokenPos = next.pathname.find(token);
-		if (tokenPos < pathnameEndPos)
-			pathnameEndPos = tokenPos;
-	}
-
-	next.pathname = pathnameEndPos == std::string::npos ?
-		requestUrlString :
-		(pathnameEndPos ? requestUrlString.substr(0, pathnameEndPos) : "/");
 
 	if (ctx.options.reuseConnections) {
 		auto connectionHeader = next.request.headers.get("connection");
