@@ -24,6 +24,7 @@ namespace Lambda::HTTPServer {
 	class HttpRequestQueue {
 		private:
 			std::future<void> m_reader;
+			Server::Handlers::ReaderContext ctx;
 			std::queue<RequestQueueItem> m_queue;
 			std::mutex m_lock;
 

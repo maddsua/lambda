@@ -7,8 +7,24 @@ using namespace Lambda;
 using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 
-HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
-	this->m_reader = std::async(asyncRequestReader, std::ref(conn), std::ref(options), std::ref(*this));
+HttpRequestQueue::HttpRequestQueue(
+	Network::TCP::Connection& conn,
+	const HTTPTransportOptions& options
+) : ctx({ conn, options, conn.info() }) {
+
+	this->m_reader = std::async([&](Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
+
+		do {
+
+			auto next = requestReader(this->ctx);
+			if (!next.has_value()) break;
+
+			std::lock_guard<std::mutex>lock(this->m_lock);
+			this->m_queue.push(std::move(next.value()));
+
+		} while (conn.active() && this->ctx.keepAlive);
+
+	}, std::ref(conn), std::ref(options));
 }
 
 HttpRequestQueue::~HttpRequestQueue() {

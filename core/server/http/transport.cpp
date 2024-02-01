@@ -152,24 +152,6 @@ std::optional<RequestQueueItem> Handlers::requestReader(ReaderContext& ctx) {
 	return next;
 }
 
-void Handlers::asyncRequestReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue) {
-
-	ReaderContext context {
-		conn,
-		options,
-		conn.info()
-	};
-
-	do {
-
-		auto next = requestReader(context);
-		if (!next.has_value()) break;
-
-		queue.push(std::move(next.value()));
-
-	} while (conn.active() && context.keepAlive);
-}
-
 void Handlers::writeResponse(Lambda::HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED

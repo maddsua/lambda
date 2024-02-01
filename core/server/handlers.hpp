@@ -22,8 +22,6 @@ namespace Lambda::Server::Handlers {
 	std::optional<HTTPServer::RequestQueueItem> requestReader(ReaderContext& ctx);
 	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, HTTPServer::ContentEncodings preferEncoding);
 
-	void asyncRequestReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HTTPServer::HttpRequestQueue& queue);
-
 	void httpServerlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const HTTPRequestCallback& handlerCallback) noexcept;
 	void httpExtendedHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const ConnectionCallback& handlerCallback) noexcept;
 
