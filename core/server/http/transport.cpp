@@ -89,10 +89,7 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 	{
 
 		const auto urlSearchPos = requestUrlString.find('?');
-
-		/**
-		 * This is probably not needed here
-		*/
+		//	I'll leave it here for redundancy
 		const auto urlHashPos = requestUrlString.find('#', urlSearchPos != std::string::npos ? urlSearchPos : 0);
 		const auto pathnameEndPos = std::min({ urlSearchPos, urlHashPos });
 
