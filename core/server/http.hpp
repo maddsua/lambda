@@ -30,7 +30,7 @@ namespace Lambda::HTTPServer {
 	};
 
 	std::optional<IncomingRequest> requestReader(ReaderContext& ctx);
-	void writeResponse(HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
+	void writeResponse(const HTTP::Response& response, Network::TCP::Connection& conn, ContentEncodings preferEncoding);
 
 	class HttpRequestQueue {
 		private:
