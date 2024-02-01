@@ -29,7 +29,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-std::optional<RequestQueueItem> HTTPServer::httpRequestReader(ReaderContext& ctx) {
+std::optional<RequestQueueItem> HTTPServer::requestReader(ReaderContext& ctx) {
 
 	auto headerEnded = ctx.buffer.end();
 	while (ctx.conn.active() && headerEnded == ctx.buffer.end()) {
@@ -151,7 +151,7 @@ std::optional<RequestQueueItem> HTTPServer::httpRequestReader(ReaderContext& ctx
 	return next;
 }
 
-void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue) {
+void HTTPServer::asyncRequestReader(Network::TCP::Connection& conn, const HTTPTransportOptions& options, HttpRequestQueue& queue) {
 
 	ReaderContext context {
 		conn,
@@ -161,7 +161,7 @@ void HTTPServer::asyncReader(Network::TCP::Connection& conn, const HTTPTransport
 
 	do {
 
-		auto next = httpRequestReader(context);
+		auto next = requestReader(context);
 		if (!next.has_value()) break;
 
 		queue.push(std::move(next.value()));
