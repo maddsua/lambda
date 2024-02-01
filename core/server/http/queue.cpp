@@ -7,10 +7,8 @@ using namespace Lambda;
 using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 
-HttpRequestQueue::HttpRequestQueue(
-	Network::TCP::Connection& conn,
-	const HTTPTransportOptions& options
-) : ctx({ conn, options, conn.info() }) {
+HttpRequestQueue::HttpRequestQueue(Network::TCP::Connection& conn, const HTTPTransportOptions& options)
+: ctx({ conn, options, conn.info() }) {
 
 	this->m_reader = std::async([&](Network::TCP::Connection& conn, const HTTPTransportOptions& options) {
 
