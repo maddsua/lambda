@@ -88,11 +88,6 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 	//	parse request url
 	{
 
-		/**
-		 * Add http auth handling too
-		 * (if it's possible lol)
-		*/
-
 		const auto urlSearchPos = requestUrlString.find('?');
 
 		/**
