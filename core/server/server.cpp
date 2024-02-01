@@ -86,15 +86,15 @@ const ServerConfig& ServerInstance::getConfig() const noexcept {
 	return this->config;
 }
 
-ServerConnection::ServerConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts) {
+IncomingConnection::IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts) {
 	this->ctx = new HTTPContext { *conn, opts, conn->info() };
 }
 
-ServerConnection::~ServerConnection() {
+IncomingConnection::~IncomingConnection() {
 	delete this->ctx;
 }
 
-std::optional<HTTP::Request> ServerConnection::nextRequest() {
+std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 	auto nextOpt = requestReader(*this->ctx);
 	if (!nextOpt.has_value()) return std::nullopt;
@@ -106,6 +106,6 @@ std::optional<HTTP::Request> ServerConnection::nextRequest() {
 	return next.request;
 }
 
-void ServerConnection::respond(const HTTP::Response& response) {
+void IncomingConnection::respond(const HTTP::Response& response) {
 	writeResponse(response, this->ctx->conn, this->ctx->acceptsEncoding);
 }
