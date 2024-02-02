@@ -6,12 +6,12 @@
 #include <future>
 
 #include "./options.hpp"
-#include "../network/network.hpp"
-#include "../network/tcp/listener.hpp"
-#include "../http/http.hpp"
 #include "./http/http.hpp"
 #include "./websocket/websocket.hpp"
 #include "./console.hpp"
+#include "../network/network.hpp"
+#include "../network/tcp/listener.hpp"
+#include "../http/http.hpp"
 
 namespace Lambda {
 
