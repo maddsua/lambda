@@ -21,6 +21,12 @@ namespace Lambda::Websocket {
 		std::string text() const noexcept;
 		size_t size() const noexcept;
 	};
+
+	struct WebsocketContext {
+		bool awaitMessage() const noexcept;
+		Message nextMessage();
+		void sendMessage(const Message& msg);
+	};
 };
 
 #endif
