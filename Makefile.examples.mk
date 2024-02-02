@@ -47,3 +47,13 @@ conn_handler.example$(EXEEXT): examples/conn_handler.o $(LAMBDA_LIBSHARED)
 
 examples/conn_handler.o: examples/conn_handler.cpp
 	g++ -c $(CFLAGS) examples/conn_handler.cpp -o examples/conn_handler.o
+
+
+# websocket server example
+example.websocket: websocket.example$(EXEEXT)
+
+websocket.example$(EXEEXT): examples/websocket.o $(LAMBDA_LIBSHARED)
+	g++ $(CFLAGS) examples/websocket.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o websocket.example$(EXEEXT)
+
+examples/websocket.o: examples/websocket.cpp
+	g++ -c $(CFLAGS) examples/websocket.cpp -o examples/websocket.o
