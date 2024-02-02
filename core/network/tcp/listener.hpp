@@ -1,8 +1,8 @@
-#ifndef __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
-#define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
+#ifndef __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTENER__
+#define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTENER__
 
+#include "../network.hpp"
 #include "./connection.hpp"
-#include "../sysnetw.hpp"
 
 #include <optional>
 

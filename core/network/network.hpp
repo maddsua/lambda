@@ -1,12 +1,24 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK__
 #define __LIB_MADDSUA_LAMBDA_NETWORK__
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
+
+#ifndef SOCKET
+	typedef uint32_t SOCKET;
+#endif
+
+#ifndef INVALID_SOCKET
+	#define INVALID_SOCKET (-1)
+#endif
+
+#ifndef SOCKET_ERROR
+	#define SOCKET_ERROR (-1)
+#endif
 
 namespace Lambda::Network {
 
-	enum struct ConnectionTransport : int16_t {
+	enum struct ConnectionTransport {
 		TCP, UDP
 	};
 
@@ -21,12 +33,6 @@ namespace Lambda::Network {
 		uint32_t timeout;
 		uint16_t hostPort;
 	};
-
-	namespace TCP {
-		class Connection;
-		class ListenSocket;
-	};
-
 };
 
 #endif

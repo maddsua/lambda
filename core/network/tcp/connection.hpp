@@ -2,7 +2,6 @@
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_CONNECTION__
 
 #include "../network.hpp"
-#include "../sysnetw.hpp"
 
 #include <vector>
 #include <string>
