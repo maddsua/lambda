@@ -2,22 +2,14 @@
 #define __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKET_TRANSPORT__
 
 #include <vector>
+#include <optional>
+#include <array>
 
 #include "../../websocket/websocket.hpp"
 
 namespace Lambda::WSServer::Transport {
 
-	struct WebsocketFrameHeader {
-		size_t payloadSize;
-		uint8_t maskKey[4];
-		uint8_t opcode;
-		bool finbit;
-		bool mask;
-	};
-
-	enum struct WebsockBits : uint8_t {
-		BitFinal = 0x80,
-		BitContinue = 0x00,
+	enum struct OpCode : uint8_t {
 		Text = 0x01,
 		Binary = 0x02,
 		Close = 0x08,
@@ -25,8 +17,22 @@ namespace Lambda::WSServer::Transport {
 		Pong = 0x0A
 	};
 
+	enum struct WebsockBits : uint8_t {
+		BitFinal = 0x80,
+		BitContinue = 0x00
+	};
+
+	struct WebsocketFrameHeader {
+		WebsockBits finbit;
+		OpCode opcode;
+		size_t payloadSize;
+		static const size_t mask_size = 4;
+		std::optional<std::array<uint8_t, mask_size>> mask;
+	};
+
 	WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
 	std::vector <uint8_t> serializeMessage(const Websocket::Message& message);
+	std::vector <uint8_t> serializeFrameHeader(const WebsocketFrameHeader& header);
 
 };
 
