@@ -11,10 +11,10 @@ void WebsocketContext::sendMessage(const Websocket::Message& msg) {
 	this->conn.write(writeBuff);
 }
 
-WebsocketFrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
+FrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
 
-	WebsocketFrameHeader header {
-		static_cast<WebsockBits>(buffer.at(0) & 0xF0),
+	FrameHeader header {
+		static_cast<FrameControlBits>(buffer.at(0) & 0xF0),
 		static_cast<OpCode>(buffer.at(0) & 0x0F),
 		2,
 		buffer.at(1) & 0x7F
@@ -34,11 +34,11 @@ WebsocketFrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& b
 	bool maskUsed = (buffer.at(1) & 0x80) >> 7;
 	if (maskUsed) {
 
-		if (buffer.size() < header.size + WebsocketFrameHeader::mask_size) {
+		if (buffer.size() < header.size + FrameHeader::mask_size) {
 			throw std::runtime_error("invalid websocket frame: not enough data to read mask");
 		}
 
-		std::array<uint8_t, WebsocketFrameHeader::mask_size> mask;
+		std::array<uint8_t, FrameHeader::mask_size> mask;
 
 		for (size_t i = 0; i < mask.size(); i++) {
 			mask[i] = buffer.at(header.size + i);
@@ -50,11 +50,11 @@ WebsocketFrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& b
 	return header;
 }
 
-std::vector <uint8_t> WSTransport::serializeFrameHeader(const WebsocketFrameHeader& header) {
+std::vector <uint8_t> WSTransport::serializeFrameHeader(const FrameHeader& header) {
 
 	std::vector<uint8_t> resultBuffer;
 
-	uint8_t finBit = static_cast<std::underlying_type_t<WebsockBits>>(header.finbit);
+	uint8_t finBit = static_cast<std::underlying_type_t<FrameControlBits>>(header.finbit);
 	uint8_t opCode = static_cast<std::underlying_type_t<OpCode>>(header.opcode);
 
 	resultBuffer.push_back(finBit | opCode);
@@ -78,8 +78,8 @@ std::vector <uint8_t> WSTransport::serializeFrameHeader(const WebsocketFrameHead
 std::vector<uint8_t> WSTransport::serializeMessage(const Message& message) {
 
 	//	create frame buffer
-	WebsocketFrameHeader header {
-		message.partial ? WebsockBits::BitContinue : WebsockBits::BitFinal,
+	FrameHeader header {
+		message.partial ? FrameControlBits::BitContinue : FrameControlBits::BitFinal,
 		message.binary ? OpCode::Binary : OpCode::Text,
 		message.size()	
 	};

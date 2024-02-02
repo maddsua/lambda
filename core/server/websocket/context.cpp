@@ -34,7 +34,7 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 			if (!nextChunk.size()) continue;
 
 			downloadBuff.insert(downloadBuff.end(), nextChunk.begin(), nextChunk.end());
-			if (downloadBuff.size() < WebsocketFrameHeader::min_size) continue;
+			if (downloadBuff.size() < FrameHeader::min_size) continue;
 
 			auto frameHeader = parseFrameHeader(downloadBuff);
 
@@ -69,7 +69,7 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 				throw std::runtime_error("received unmasked data from the client");
 			}
 
-			if (frameHeader.finbit != WebsockBits::BitFinal) {
+			if (frameHeader.finbit != FrameControlBits::BitFinal) {
 
 				if (!multipartCtx.has_value()) {
 
@@ -98,7 +98,7 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 				case OpCode::Ping: {
 
 					auto pongHeader = serializeFrameHeader({
-						WebsockBits::BitFinal,
+						FrameControlBits::BitFinal,
 						OpCode::Pong,
 						frameHeader.payloadSize
 					});
@@ -139,7 +139,7 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 	auto closeReasonCode = static_cast<std::underlying_type_t<CloseReason>>(reason);
 
 	auto closeMessageBuff = serializeFrameHeader({
-		WebsockBits::BitFinal,
+		FrameControlBits::BitFinal,
 		OpCode::Close,
 		sizeof(closeReasonCode)
 	});

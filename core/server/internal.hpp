@@ -33,13 +33,13 @@ namespace Lambda::Server {
 			Continue = 0x00,
 		};
 
-		enum struct WebsockBits : uint8_t {
+		enum struct FrameControlBits : uint8_t {
 			BitFinal = 0x80,
 			BitContinue = 0x00
 		};
 
-		struct WebsocketFrameHeader {
-			WebsockBits finbit;
+		struct FrameHeader {
+			FrameControlBits finbit;
 			OpCode opcode;
 			size_t size;
 			size_t payloadSize;
@@ -49,13 +49,13 @@ namespace Lambda::Server {
 		};
 
 		struct MultipartMessageContext {
-			std::array<uint8_t, WebsocketFrameHeader::mask_size> mask;
+			std::array<uint8_t, FrameHeader::mask_size> mask;
 			bool binary = false;
 		};
 
-		WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
+		FrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
 		std::vector <uint8_t> serializeMessage(const Websocket::Message& message);
-		std::vector <uint8_t> serializeFrameHeader(const WebsocketFrameHeader& header);
+		std::vector <uint8_t> serializeFrameHeader(const FrameHeader& header);
 
 	};
 };
