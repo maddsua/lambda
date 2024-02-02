@@ -13,12 +13,11 @@ void WebsocketContext::sendMessage(const Websocket::Message& msg) {
 
 WebsocketFrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
 
+	size_t headerOffset = 2;
 	WebsocketFrameHeader header;
 
 	header.finbit = static_cast<WebsockBits>(buffer.at(0) & 0xF0);
 	header.opcode = static_cast<OpCode>(buffer.at(0) & 0x0F);
-
-	size_t headerOffset = 2;
 	header.payloadSize = buffer.at(1) & 0x7F;
 
 	if (header.payloadSize == 126) {
