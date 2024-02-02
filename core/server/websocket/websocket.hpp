@@ -17,16 +17,17 @@ namespace Lambda::HTTPServer {
 namespace Lambda::WSServer {
 
 	struct WebsocketContextInit {
-		TCP::Connection& conn;
+		Network::TCP::Connection& conn;
 		std::vector<uint8_t>& connbuff;
 	};
 
 	class WebsocketContext {
 		private:
-			TCP::Connection& conn;
+			Network::TCP::Connection& conn;
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
 			std::mutex m_read_lock;
+			bool m_stopped = false;
 
 		public:
 			WebsocketContext(WebsocketContextInit init);

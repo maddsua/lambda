@@ -7,5 +7,5 @@ using namespace Lambda::WSServer;
 
 void WebsocketContext::sendMessage(const Websocket::Message& msg) {
 	auto writeBuff = serializeMessage(msg);
-	this->connctx->conn.write(writeBuff);
+	this->conn.write(writeBuff);
 }
