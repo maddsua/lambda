@@ -112,13 +112,23 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 					
 					break;
 
-				case OpCode::Continue: {
-					
-				} break;
-				
 				default: {
 
+					auto isBinary = frameHeader.opcode == OpCode::Continue ?
+						multipartCtx.value().binary : 
+						frameHeader.opcode == OpCode::Binary;
+
+					std::lock_guard<std::mutex>lock(this->m_read_lock);
+					this->m_queue.push({
+						payloadBuff,
+						isBinary,
+						frameHeader.finbit == FrameControlBits::BitFinal
+					});
 				}
+			}
+
+			if (frameHeader.finbit == FrameControlBits::BitFinal && multipartCtx.has_value()) {
+				multipartCtx = std::nullopt;
 			}
 		}
 	});
