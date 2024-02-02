@@ -130,6 +130,8 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 			if (frameHeader.finbit == FrameControlBits::BitFinal && multipartCtx.has_value()) {
 				multipartCtx = std::nullopt;
 			}
+
+			downloadBuff.erase(downloadBuff.begin(), downloadBuff.begin() + frameHeader.size + frameHeader.payloadSize);
 		}
 	});
 }
