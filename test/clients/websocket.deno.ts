@@ -2,6 +2,7 @@
 const exampleSocket = new WebSocket("ws://localhost:8180/");
 
 exampleSocket.onopen = () => {
+	console.log("connected");
 	exampleSocket.send("Yo hi there!");
 };
 
