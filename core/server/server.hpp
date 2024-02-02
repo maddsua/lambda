@@ -15,8 +15,8 @@
 namespace Lambda {
 
 	struct LogOptions {
-		bool connections = false;
-		bool requests = false;
+		bool connections = true;
+		bool requests = true;
 		bool timestamps = false;
 	};
 
