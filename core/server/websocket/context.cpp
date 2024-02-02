@@ -53,7 +53,7 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 
 				auto pingHeader = serializeFrameHeader({
 					FrameControlBits::BitFinal,
-					OpCode::Pong,
+					OpCode::Ping,
 					static_cast<size_t>(0),
 					wsPingString.size()
 				});
