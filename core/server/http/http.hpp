@@ -4,6 +4,7 @@
 #include "../options.hpp"
 #include "../websocket/websocket.hpp"
 #include "../../network/tcp/connection.hpp"
+#include "../../http/http.hpp"
 
 #include <optional>
 
