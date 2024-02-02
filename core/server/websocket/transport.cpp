@@ -1,17 +1,17 @@
 #include "../server.hpp"
-#include "./transport.hpp"
+#include "../internal.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
-using namespace Lambda::WSServer;
-using namespace Lambda::WSServer::Transport;
+using namespace Lambda::Server;
+using namespace Lambda::Server::WSTransport;
 
 void WebsocketContext::sendMessage(const Websocket::Message& msg) {
 	auto writeBuff = serializeMessage(msg);
 	this->conn.write(writeBuff);
 }
 
-WebsocketFrameHeader Transport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
+WebsocketFrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
 
 	WebsocketFrameHeader header;
 
@@ -47,7 +47,7 @@ WebsocketFrameHeader Transport::parseFrameHeader(const std::vector<uint8_t>& buf
 	return header;
 }
 
-std::vector <uint8_t> Transport::serializeFrameHeader(const WebsocketFrameHeader& header) {
+std::vector <uint8_t> WSTransport::serializeFrameHeader(const WebsocketFrameHeader& header) {
 
 	std::vector<uint8_t> resultBuffer;
 
@@ -72,7 +72,7 @@ std::vector <uint8_t> Transport::serializeFrameHeader(const WebsocketFrameHeader
 	return resultBuffer;
 }
 
-std::vector<uint8_t> Transport::serializeMessage(const Message& message) {
+std::vector<uint8_t> WSTransport::serializeMessage(const Message& message) {
 
 	//	create frame buffer
 	WebsocketFrameHeader header {

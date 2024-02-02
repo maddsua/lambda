@@ -1,13 +1,14 @@
 #include "../server.hpp"
-#include "./transport.hpp"
-#include "../handlers/handlers.hpp"
+#include "../internal.hpp"
 #include "../../http/http.hpp"
 #include "../../polyfill/polyfill.hpp"
+#include "../../crypto/crypto.hpp"
+#include "../../encoding/encoding.hpp"
+#include "../constants.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Server;
-using namespace Lambda::HTTPServer;
-using namespace Lambda::HTTPServer::Transport;
+using namespace Lambda::Server::HTTPTransport;
 
 IncomingConnection::IncomingConnection(
 	Network::TCP::Connection& conn,
@@ -44,11 +45,38 @@ void IncomingConnection::respond(const HTTP::Response& response) {
 	});
 }
 
+WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& initialRequest) {
 
-WebsocketContext IncomingConnection::upgrateToWebsocket() {
+	auto headerUpgrade = Strings::toLowerCase(initialRequest.headers.get("Upgrade"));
+	auto headerWsKey = initialRequest.headers.get("Sec-WebSocket-Key");
+
+	if (headerUpgrade != "websocket" || !headerWsKey.size())
+		throw std::runtime_error("Websocket initialization aborted: no valid handshake headers present");
+
+	auto combinedKey = headerWsKey + wsMagicString;
+
+	auto sha1hash = Crypto::SHA1();
+	sha1hash.update(std::vector<uint8_t>(combinedKey.begin(), combinedKey.end()));
+	auto keyHash = sha1hash.digest();
+	auto keyHashString = std::vector<uint8_t>(keyHash.begin(), keyHash.end());
+
+	auto handshakeReponse = HTTP::Response(101, {
+		{ "Upgrade", "websocket" },
+		{ "Connection", "Upgrade" },
+		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHashString) }
+	});
+
+	this->respond(handshakeReponse);
+
 	this->activeProto = ActiveProtocol::WS;
 	return WebsocketContext({
 		this->ctx.conn,
 		this->ctx.buffer
 	});
+}
+
+WebsocketContext IncomingConnection::upgrateToWebsocket() {
+	auto request = this->nextRequest();
+	if (!request.has_value()) throw std::runtime_error("Cannot establish websocket connection without handshake");
+	return this->upgrateToWebsocket(request.value());
 }

@@ -1,5 +1,5 @@
 #include "./server.hpp"
-#include "./handlers/handlers.hpp"
+#include "./internal.hpp"
 #include "../crypto/crypto.hpp"
 #include "../network/tcp/listener.hpp"
 

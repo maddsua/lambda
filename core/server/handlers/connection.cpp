@@ -1,4 +1,4 @@
-#include "./handlers.hpp"
+#include "../internal.hpp"
 #include "../../polyfill/polyfill.hpp"
 
 using namespace Lambda;

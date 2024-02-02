@@ -1,6 +1,4 @@
-
-#include "./transport.hpp"
-#include "../handlers/handlers.hpp"
+#include "../internal.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../encoding/encoding.hpp"
@@ -18,8 +16,7 @@
 using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::Server;
-using namespace Lambda::HTTPServer;
-using namespace Lambda::HTTPServer::Transport;
+using namespace Lambda::Server::HTTPTransport;
 using namespace Lambda::Server::Handlers;
 
 static const std::string patternEndHeader = "\r\n\r\n";
@@ -34,7 +31,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-std::optional<IncomingRequest> Transport::requestReader(HTTPReaderContext& ctx) {
+std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& ctx) {
 
 	auto headerEnded = ctx.buffer.end();
 	while (ctx.conn.active() && headerEnded == ctx.buffer.end()) {
@@ -176,7 +173,7 @@ std::optional<IncomingRequest> Transport::requestReader(HTTPReaderContext& ctx) 
 	return next;
 }
 
-void Transport::writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx) {
+void HTTPTransport::writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 
@@ -246,7 +243,7 @@ void Transport::writeResponse(const HTTP::Response& response, const HTTPWriterCo
 
 }
 
-std::optional<std::pair<std::string, std::string>> Transport::parseBasicAuth(const std::string& header) {
+std::optional<std::pair<std::string, std::string>> HTTPTransport::parseBasicAuth(const std::string& header) {
 
 	if (!Strings::includes(Strings::toLowerCase(header), "basic")) {
 		return std::nullopt;

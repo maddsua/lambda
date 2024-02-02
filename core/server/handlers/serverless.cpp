@@ -1,5 +1,5 @@
 
-#include "./handlers.hpp"
+#include "../internal.hpp"
 #include "../../http/http.hpp"
 #include "../../../build_options.hpp"
 #include "../../polyfill/polyfill.hpp"

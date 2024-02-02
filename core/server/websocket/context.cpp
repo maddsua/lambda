@@ -1,20 +1,24 @@
 #include "../server.hpp"
-#include "./transport.hpp"
+#include "../internal.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
-using namespace Lambda::WSServer::Transport;
+using namespace Lambda::Server::WSTransport;
 
 WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 	this->m_reader = std::async([&]() {
 
+		//	I should probably call move here
 		std::vector<uint8_t> buffer = init.connbuff;
+		init.connbuff.clear();
 
 		while (this->conn.active() && !this->m_stopped) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		}
 
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+		}
 	});
 }
 

@@ -125,6 +125,7 @@ namespace Lambda {
 			void respond(const HTTP::Response& response);
 
 			WebsocketContext upgrateToWebsocket();
+			WebsocketContext upgrateToWebsocket(const HTTP::Request& initialRequest);
 	};	
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
