@@ -29,10 +29,7 @@ WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& ini
 	this->respond(handshakeReponse);
 
 	this->activeProto = ActiveProtocol::WS;
-	return WebsocketContext({
-		this->ctx.conn,
-		this->ctx.buffer
-	});
+	return WebsocketContext(this->ctx.conn);
 }
 
 WebsocketContext IncomingConnection::upgrateToWebsocket() {
