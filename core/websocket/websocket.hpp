@@ -5,8 +5,6 @@
 #include <vector>
 #include <queue>
 #include <cstdint>
-#include <mutex>
-#include <future>
 
 namespace Lambda::Websocket {
 
