@@ -31,7 +31,7 @@ void Handlers::connectionHandler(
 
 	try {
 
-		auto connctx = IncomingConnection(&conn, config.transport);
+		auto connctx = IncomingConnection(conn, config.transport);
 		handlerCallback(connctx);
 
 	} catch(const std::exception& e) {
