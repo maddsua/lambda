@@ -46,5 +46,6 @@ void IncomingConnection::respond(const HTTP::Response& response) {
 
 
 WebsocketContext IncomingConnection::upgrateToWebsocket() {
-	this->activeProto == ActiveProtocol::WS;
+	this->activeProto = ActiveProtocol::WS;
+	return {};
 }
