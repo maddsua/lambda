@@ -41,8 +41,10 @@ namespace Lambda::Server {
 		struct WebsocketFrameHeader {
 			WebsockBits finbit;
 			OpCode opcode;
+			size_t size;
 			size_t payloadSize;
 			static const size_t mask_size = 4;
+			static const size_t min_size = 2;
 			std::optional<std::array<uint8_t, mask_size>> mask;
 		};
 
