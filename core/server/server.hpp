@@ -41,10 +41,6 @@ namespace Lambda {
 		Console console;
 	};
 
-	namespace HTTPServer {
-		struct ConnectionContext;
-	};
-
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
 	typedef std::function<void(HTTPServer::IncomingConnection&)> ConnectionCallback;
 
