@@ -28,17 +28,15 @@ static const std::initializer_list<OpCode> supportedWsOpcodes = {
 	OpCode::Pong,
 };
 
-WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
+WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(connRef) {
 
 	this->conn.flags.closeOnTimeout = false;
 	this->conn.setTimeouts(wsRcvTimeout, Network::SetTimeoutsDirection::Receive);
 
 	this->m_reader = std::async([&]() {
 
-		//	I should probably call move here
-		std::vector<uint8_t> downloadBuff = init.connbuff;
+		std::vector<uint8_t> downloadBuff;
 		std::optional<MultipartMessageContext> multipartCtx;
-		init.connbuff.clear();
 
 		auto lastPing = std::chrono::steady_clock::now();
 		auto lastPingResponse = std::chrono::steady_clock::now();
@@ -131,7 +129,7 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 				} break;
 
 				case OpCode::Ping: {
-
+					puts("ping");
 					auto pongHeader = serializeFrameHeader({
 						FrameControlBits::BitFinal,
 						OpCode::Pong,
@@ -144,7 +142,7 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 				} break;
 
 				case OpCode::Pong: {
-
+					puts("pong");
 					//	check that pong payload matches the ping's one
 					if (std::equal(payloadBuff.begin(), payloadBuff.end(), wsPingString.begin(), wsPingString.end())) {
 						lastPingResponse = std::chrono::steady_clock::now();
