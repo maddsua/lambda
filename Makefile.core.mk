@@ -21,7 +21,7 @@ LIB_CORE_COMPRESS		=	core/compression.a
 LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/http/connection.o core/server/http/transport.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o core/server/websocket/context.o core/server/websocket/queue.o core/server/websocket/transport.o
+LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/http/connection.o core/server/http/transport.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o core/server/websocket/context.o core/server/websocket/transport.o
 
 LIB_CORE_HTML			=	core/html.a
 LIB_CORE_HTML_TEMPLATES	=	core/html/resources/servicepage.res
@@ -153,9 +153,6 @@ core/server/console.o: core/server/console.cpp
 
 core/server/websocket/context.o: core/server/websocket/context.cpp
 	g++ -c $(CFLAGS) core/server/websocket/context.cpp -o core/server/websocket/context.o
-
-core/server/websocket/queue.o: core/server/websocket/queue.cpp
-	g++ -c $(CFLAGS) core/server/websocket/queue.cpp -o core/server/websocket/queue.o
 
 core/server/websocket/transport.o: core/server/websocket/transport.cpp
 	g++ -c $(CFLAGS) core/server/websocket/transport.cpp -o core/server/websocket/transport.o
