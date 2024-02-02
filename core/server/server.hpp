@@ -90,12 +90,7 @@ namespace Lambda {
 
 		public:
 
-			struct ContextInit {
-				Network::TCP::Connection& conn;
-				std::vector<uint8_t>& connbuff;
-			};
-
-			WebsocketContext(ContextInit init);
+			WebsocketContext(Network::TCP::Connection& connRef);
 			~WebsocketContext();
 
 			bool awaitMessage();
