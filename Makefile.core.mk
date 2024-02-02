@@ -18,7 +18,7 @@ LIB_CORE_COMPRESS		=	core/compression.a
 LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_DEPS	=	core/server/server.o core/server/http/transport.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o
+LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/pipeline.o core/server/http/transport.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o
 
 LIB_CORE_HTML			=	core/html.a
 LIB_CORE_HTML_TEMPLATES	=	core/html/resources/servicepage.res
@@ -130,8 +130,11 @@ core/compression/zlib.o: core/compression/zlib.cpp
 $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 	ar rvs $(LIB_CORE_SERVER) $(LIB_CORE_SERVER_DEPS)
 
-core/server/server.o: core/server/server.cpp
-	g++ -c $(CFLAGS) core/server/server.cpp -o core/server/server.o
+core/server/instance.o: core/server/instance.cpp
+	g++ -c $(CFLAGS) core/server/instance.cpp -o core/server/instance.o
+
+core/server/pipeline.o: core/server/pipeline.cpp
+	g++ -c $(CFLAGS) core/server/pipeline.cpp -o core/server/pipeline.o
 
 core/server/http/transport.o: core/server/http/transport.cpp
 	g++ -c $(CFLAGS) core/server/http/transport.cpp -o core/server/http/transport.o

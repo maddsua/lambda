@@ -42,6 +42,10 @@ namespace Lambda {
 		struct ConnectionContext;
 	};
 
+	struct WebsocketContext {
+
+	};
+
 	struct IncomingConnection {
 		private:
 
@@ -56,8 +60,13 @@ namespace Lambda {
 			IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts);
 			~IncomingConnection();
 
+			IncomingConnection(const IncomingConnection& other) = delete;
+			IncomingConnection& operator=(const IncomingConnection& other) = delete;
+
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
+
+			WebsocketContext upgrateToWebsocket();
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
