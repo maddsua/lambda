@@ -38,7 +38,7 @@ namespace Lambda {
 	struct ServiceOptions {
 		uint16_t port = 8180;
 		bool fastPortReuse = false;
-		uint32_t connectionTimeout = 15000;
+		Network::ConnectionTimeouts connectionTimeouts;
 	};
 
 	struct ServerConfig : ServeOptions {

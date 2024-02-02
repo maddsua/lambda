@@ -4,7 +4,7 @@
 using namespace Lambda::Network;
 using namespace Lambda::Network::TCP;
 
-Connection::Connection(ConnCreateInit init) {
+Connection::Connection(const ConnInit& init) {
 	this->m_info = init.info;
 	this->hSocket = init.hSocket;
 }
@@ -90,7 +90,11 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 		switch (apiError) {
 
 			case LNE_TIMEDOUT: {
-				this->end();
+
+				if (this->flags.closeOnTimeout) {
+					this->end();
+				}
+
 				return {};
 			}
 
@@ -103,4 +107,23 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 	chunk.shrink_to_fit();
 
 	return chunk;
+}
+
+void Connection::setTimeouts(uint32_t value, SetTimeoutsDirection direction) {
+
+	if (direction != SetTimeoutsDirection::Receive) {
+		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&value, sizeof(value)))
+			throw Lambda::APIError("failed to set socket TX timeout");
+		this->m_info.timeouts.send = value;
+	}
+
+	if (direction != SetTimeoutsDirection::Send) {
+		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&value, sizeof(value)))
+			throw Lambda::APIError("failed to set socket RX timeout");
+		this->m_info.timeouts.receive = value;
+	}
+}
+
+void Connection::setTimeouts(uint32_t value) {
+	this->setTimeouts(value, SetTimeoutsDirection::Both);	
 }

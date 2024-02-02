@@ -11,7 +11,7 @@ namespace Lambda::Network::TCP {
 	struct ListenConfig {
 		bool allowPortReuse = false;
 		uint16_t port = 8180;
-		uint32_t connectionTimeout = 15000;
+		ConnectionTimeouts connectionTimeouts;
 	};
 
 	class ListenSocket {

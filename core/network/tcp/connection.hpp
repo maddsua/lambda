@@ -9,11 +9,6 @@
 
 namespace Lambda::Network::TCP {
 
-	struct ConnCreateInit {
-		uint64_t hSocket;
-		ConnectionInfo info;
-	};
-
 	class Connection {
 		protected:
 			uint64_t hSocket = -1;
@@ -22,7 +17,13 @@ namespace Lambda::Network::TCP {
 			std::mutex m_writeMutex;
 
 		public:
-			Connection(ConnCreateInit init);
+
+			struct ConnInit {
+				uint64_t hSocket;
+				ConnectionInfo info;
+			};
+
+			Connection(const ConnInit& init);
 			Connection(Connection&& other) noexcept;
 			Connection(const Connection& other) = delete;
 			~Connection();
@@ -37,10 +38,15 @@ namespace Lambda::Network::TCP {
 			void end() noexcept;
 			bool active() const noexcept;
 
+			void setTimeouts(uint32_t value, SetTimeoutsDirection direction);
+			void setTimeouts(uint32_t value);
+
 			static const uint32_t TimeoutMs = 15000;
-			static const uint32_t TimeoutMs_Max = 60000;
-			static const uint32_t TimeoutMs_Min = 100;
 			static const uint32_t ReadChunkSize = 2048;
+
+			struct {
+				bool closeOnTimeout = true;
+			} flags;
 	};
 };
 

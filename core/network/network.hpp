@@ -16,15 +16,24 @@ namespace Lambda::Network {
 		ConnectionTransport transport;
 	};
 
+	struct ConnectionTimeouts {
+		uint32_t receive = 15000;
+		uint32_t send = 15000;
+	};
+
 	struct ConnectionInfo {
 		Address remoteAddr;
-		uint32_t timeout;
+		ConnectionTimeouts timeouts;
 		uint16_t hostPort;
 	};
 
 	namespace TCP {
 		class Connection;
 		class ListenSocket;
+	};
+
+	enum struct SetTimeoutsDirection {
+		Both, Send, Receive
 	};
 };
 

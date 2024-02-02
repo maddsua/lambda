@@ -19,11 +19,14 @@ static const std::string wsPingString = "ping/lambda/ws";
 
 WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
+	this->conn.flags.closeOnTimeout = false;
+
 	this->m_reader = std::async([&]() {
 
 		//	I should probably call move here
 		std::vector<uint8_t> buffer = init.connbuff;
 		init.connbuff.clear();
+		this->conn.setTimeouts(100, Network::SetTimeoutsDirection::Receive);
 
 		while (this->conn.active() && !this->m_stopped) {
 

@@ -15,7 +15,7 @@ ServerInstance::ServerInstance(
 ) : listener({
 	init.service.fastPortReuse,
 	init.service.port,
-	init.service.connectionTimeout
+	init.service.connectionTimeouts
 }) {
 	this->config = init;
 	this->httpHandler = handlerCallback;
@@ -29,7 +29,7 @@ ServerInstance::ServerInstance(
 ) : listener({
 	init.service.fastPortReuse,
 	init.service.port,
-	init.service.connectionTimeout
+	init.service.connectionTimeouts
 }) {
 	this->config = init;
 	this->tcpHandler = handlerCallback;
