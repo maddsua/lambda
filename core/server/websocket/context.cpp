@@ -24,14 +24,17 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 	this->m_reader = std::async([&]() {
 
 		//	I should probably call move here
-		std::vector<uint8_t> buffer = init.connbuff;
+		std::vector<uint8_t> downloadBuff = init.connbuff;
 		init.connbuff.clear();
 		this->conn.setTimeouts(100, Network::SetTimeoutsDirection::Receive);
 
 		while (this->conn.active() && !this->m_stopped) {
 
+			auto next = this->conn.read();
+			if (!next.size()) continue;
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			downloadBuff.insert(downloadBuff.end(), next.begin(), next.end());
+			if (downloadBuff.size() < 2) continue;
 
 		}
 	});
