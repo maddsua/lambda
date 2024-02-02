@@ -2,6 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTENER__
 
 #include "../network.hpp"
+#include "../network_polyfill.hpp"
 #include "./connection.hpp"
 
 #include <optional>

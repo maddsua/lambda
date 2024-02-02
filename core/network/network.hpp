@@ -4,18 +4,6 @@
 #include <cstdint>
 #include <string>
 
-#ifndef SOCKET
-	typedef uint32_t SOCKET;
-#endif
-
-#ifndef INVALID_SOCKET
-	#define INVALID_SOCKET (-1)
-#endif
-
-#ifndef SOCKET_ERROR
-	#define SOCKET_ERROR (-1)
-#endif
-
 namespace Lambda::Network {
 
 	enum struct ConnectionTransport {
@@ -32,6 +20,11 @@ namespace Lambda::Network {
 		Address remoteAddr;
 		uint32_t timeout;
 		uint16_t hostPort;
+	};
+
+	namespace TCP {
+		class Connection;
+		class ListenSocket;
 	};
 };
 

@@ -2,6 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_CONNECTION__
 
 #include "../network.hpp"
+#include "../network_polyfill.hpp"
 
 #include <vector>
 #include <string>
