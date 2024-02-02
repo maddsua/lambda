@@ -16,8 +16,8 @@ FrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
 	FrameHeader header {
 		static_cast<FrameControlBits>(buffer.at(0) & 0xF0),
 		static_cast<OpCode>(buffer.at(0) & 0x0F),
-		2,
-		buffer.at(1) & 0x7F
+		static_cast<size_t>(2),
+		static_cast<size_t>(buffer.at(1) & 0x7F)
 	};
 
 	if (header.payloadSize == 126) {
