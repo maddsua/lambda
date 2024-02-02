@@ -15,8 +15,8 @@ WebsocketFrameHeader Transport::parseFrameHeader(const std::vector<uint8_t>& buf
 
 	WebsocketFrameHeader header;
 
-	header.finbit = (buffer.at(0) & 0x80) >> 7;
-	header.opcode = buffer.at(0) & 0x0F;
+	header.finbit = static_cast<WebsockBits>(buffer.at(0) & 0xF0);
+	header.opcode = static_cast<OpCode>(buffer.at(0) & 0x0F);
 
 	size_t headerOffset = 2;
 	header.payloadSize = buffer.at(1) & 0x7F;
@@ -32,40 +32,56 @@ WebsocketFrameHeader Transport::parseFrameHeader(const std::vector<uint8_t>& buf
 		}
 	}
 
-	header.mask = (buffer.at(1) & 0x80) >> 7;
+	bool maskUsed = (buffer.at(1) & 0x80) >> 7;
+	if (maskUsed) {
 
-	if (header.mask && buffer.size() >= headerOffset + sizeof(header.maskKey)) {
-		memcpy(header.maskKey, buffer.data() + headerOffset, sizeof(header.maskKey));
+		if (buffer.size() < headerOffset + WebsocketFrameHeader::mask_size) {
+			throw std::runtime_error("invalid websocket frame: not enough data to read mask");
+		}
+
+		std::array<uint8_t, WebsocketFrameHeader::mask_size> mask;
+		memcpy(mask.data(), buffer.data() + headerOffset, mask.size());
+		header.mask = mask;
 	}
 
 	return header;
 }
 
-std::vector<uint8_t> Transport::serializeMessage(const Message& message) {
+std::vector <uint8_t> Transport::serializeFrameHeader(const WebsocketFrameHeader& header) {
 
-	//	create frame buffer
 	std::vector<uint8_t> resultBuffer;
 
-	// set FIN bit and opcode
-	uint8_t finBit = static_cast<std::underlying_type_t<WebsockBits>>(message.partial ? WebsockBits::BitContinue : WebsockBits::BitFinal);
-	uint8_t contentOpCode = static_cast<std::underlying_type_t<WebsockBits>>(message.binary ? WebsockBits::Binary : WebsockBits::Text);
-	resultBuffer.push_back(finBit | contentOpCode);
+	uint8_t finBit = static_cast<std::underlying_type_t<WebsockBits>>(header.finbit);
+	uint8_t opCode = static_cast<std::underlying_type_t<OpCode>>(header.opcode);
 
-	// set payload length
-	const auto dataSize = message.size();
-	if (dataSize < 126) {
-		resultBuffer.push_back(dataSize & 0x7F);
-	} else if (dataSize >= 126 && dataSize <= 65535) {
+	resultBuffer.push_back(finBit | opCode);
+
+	if (header.payloadSize < 126) {
+		resultBuffer.push_back(header.payloadSize & 0x7F);
+	} else if (header.payloadSize >= 126 && header.payloadSize <= 65535) {
 		resultBuffer.push_back(126);
-		resultBuffer.push_back((dataSize >> 8) & 255);
-		resultBuffer.push_back(dataSize & 255);
+		resultBuffer.push_back((header.payloadSize >> 8) & 255);
+		resultBuffer.push_back(header.payloadSize & 255);
 	} else {
 		resultBuffer.push_back(127);
 		for (int i = 0; i < 8; i++) {
-			resultBuffer.push_back((dataSize >> ((7 - i) * 8)) & 0xFF);
+			resultBuffer.push_back((header.payloadSize >> ((7 - i) * 8)) & 0xFF);
 		}
 	}
 
+	return resultBuffer;
+}
+
+std::vector<uint8_t> Transport::serializeMessage(const Message& message) {
+
+	//	create frame buffer
+	WebsocketFrameHeader header {
+		message.partial ? WebsockBits::BitContinue : WebsockBits::BitFinal,
+		message.binary ? OpCode::Binary : OpCode::Text,
+		message.size()	
+	};
+	
+	auto resultBuffer = serializeFrameHeader(header);
 	resultBuffer.insert(resultBuffer.end(), message.data.begin(), message.data.end());
 
 	return resultBuffer;
