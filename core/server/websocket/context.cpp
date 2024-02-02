@@ -30,8 +30,25 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	this->m_stopped = true;
 
-}
+	auto closeReasonCode = static_cast<std::underlying_type_t<CloseReason>>(reason);
 
+	auto closeMessageBuff = serializeFrameHeader({
+		WebsockBits::BitFinal,
+		OpCode::Close,
+		sizeof(closeReasonCode)
+	});
+
+	std::array<uint8_t, sizeof(closeReasonCode)> closeReasonBuff;
+	memcpy(closeReasonBuff.data(), &closeReasonCode, sizeof(closeReasonCode));
+
+	closeMessageBuff.insert(closeMessageBuff.end(), closeReasonBuff.begin(), closeReasonBuff.end());
+	this->conn.write(closeMessageBuff);
+
+	if (this->m_reader.valid()) {
+		try { this->m_reader.get(); }
+			catch (...) {}
+	}
+}
 
 bool WebsocketContext::hasMessage() const noexcept {
 	return this->m_queue.size() > 0;
