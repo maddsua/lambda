@@ -1,10 +1,11 @@
-#include "./websocket.hpp"
+#include "../server.hpp"
+#include "./transport.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
-using namespace Lambda::WSServer;
+using namespace Lambda::WSServer::Transport;
 
-WebsocketContext::WebsocketContext(WebsocketContextInit init) : conn(init.conn) {
+WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 	this->m_reader = std::async([&]() {
 

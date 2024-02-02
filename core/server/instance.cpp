@@ -1,5 +1,4 @@
 #include "./server.hpp"
-#include "./http/http.hpp"
 #include "./handlers/handlers.hpp"
 #include "../crypto/crypto.hpp"
 #include "../network/tcp/listener.hpp"
@@ -8,7 +7,6 @@
 #include <thread>
 
 using namespace Lambda;
-using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 
 ServerInstance::ServerInstance(

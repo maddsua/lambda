@@ -1,8 +1,7 @@
-#include "./websocket.hpp"
+#include "../server.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
-using namespace Lambda::WSServer;
 
 bool WebsocketContext::hasMessage() const noexcept {
 	return this->m_queue.size() > 0;

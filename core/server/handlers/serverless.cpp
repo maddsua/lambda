@@ -19,9 +19,7 @@
 
 using namespace Lambda;
 using namespace Lambda::Server;
-using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
-using namespace Lambda::Network;
 
 Lambda::HTTP::Response renderServerErrorPage(std::string message);
 Lambda::HTTP::Response composeServerErrorResponse(std::string message);

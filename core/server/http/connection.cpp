@@ -1,15 +1,13 @@
 #include "../server.hpp"
-#include "./http.hpp"
 #include "./transport.hpp"
-#include "../http/http.hpp"
 #include "../handlers/handlers.hpp"
+#include "../../http/http.hpp"
 #include "../../polyfill/polyfill.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Server;
 using namespace Lambda::HTTPServer;
 using namespace Lambda::HTTPServer::Transport;
-using namespace Lambda::WSServer;
 
 IncomingConnection::IncomingConnection(
 	Network::TCP::Connection& conn,

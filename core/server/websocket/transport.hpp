@@ -5,7 +5,8 @@
 #include <optional>
 #include <array>
 
-#include "../../websocket/websocket.hpp"
+#include "../server.hpp"
+#include "../../network/tcp/connection.hpp"
 
 namespace Lambda::WSServer::Transport {
 
