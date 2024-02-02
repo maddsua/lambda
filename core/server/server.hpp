@@ -6,7 +6,6 @@
 #include <future>
 
 #include "../network/network.hpp"
-#include "../network/tcp/listener.hpp"
 #include "../http/http.hpp"
 #include "./http/http.hpp"
 #include "./websocket/websocket.hpp"
@@ -65,7 +64,7 @@ namespace Lambda {
 				Undefined, Connection, Serverless
 			};
 
-			Network::TCP::ListenSocket listener;
+			Network::TCP::ListenSocket* listener = nullptr;
 
 			ServerlessCallback httpHandler;
 			ConnectionCallback tcpHandler;
