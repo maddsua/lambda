@@ -20,16 +20,16 @@ Message::Message(const std::string& dataInit, bool partialInit) :
 {}
 
 Message::Message(const std::vector<uint8_t>& dataInit) :
+	data(dataInit),
 	binary(true),
 	partial(false),
-	data(dataInit),
 	timestamp(std::time(nullptr))
 {}
 
 Message::Message(const std::vector<uint8_t>& dataInit, bool partialInit) :
+	data(dataInit),
 	binary(true),
 	partial(partialInit),
-	data(dataInit),
 	timestamp(std::time(nullptr))
 {}
 
