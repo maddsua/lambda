@@ -131,8 +131,6 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 
 				case OpCode::Ping: {
 
-					puts("ping");
-
 					auto pongHeader = serializeFrameHeader({
 						FrameControlBits::BitFinal,
 						OpCode::Pong,
@@ -146,8 +144,6 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 				} break;
 
 				case OpCode::Pong: {
-
-					puts("pong");
 
 					//	check that pong payload matches the ping's one
 					if (std::equal(payloadBuff.begin(), payloadBuff.end(), wsPingString.begin(), wsPingString.end())) {
