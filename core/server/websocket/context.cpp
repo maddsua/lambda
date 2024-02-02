@@ -5,6 +5,18 @@ using namespace Lambda;
 using namespace Lambda::Websocket;
 using namespace Lambda::Server::WSTransport;
 
+static const std::string wsPingString = "ping/lambda/ws";
+
+/*static const std::array<uint8_t, 6> wsOpCodes = {
+	static_cast<std::underlying_type_t<CloseReason>>(reason)
+	OpCode::Binary,
+	OpCode::Text,
+	OpCode::Cont,
+	OpCode::Close,
+	OpCode::Ping,
+	OpCode::Pong,
+};*/
+
 WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 	this->m_reader = std::async([&]() {
