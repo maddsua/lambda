@@ -8,6 +8,7 @@
 #include "../http/http.hpp"
 #include "../network/network.hpp"
 #include "./console.hpp"
+#include "./websocket.hpp"
 
 namespace Lambda {
 
@@ -42,10 +43,6 @@ namespace Lambda {
 		struct ConnectionContext;
 	};
 
-	struct WebsocketContext {
-
-	};
-
 	struct IncomingConnection {
 		private:
 
@@ -66,7 +63,7 @@ namespace Lambda {
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
 
-			WebsocketContext upgrateToWebsocket();
+			WSServer::WebsocketContext upgrateToWebsocket();
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
