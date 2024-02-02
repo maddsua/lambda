@@ -2,7 +2,6 @@
 #define __LIB_MADDSUA_LAMBDA_CORE_SERVER_HANDLERS__
 
 #include "../server.hpp"
-#include "../http.hpp"
 #include "../../network/tcp/connection.hpp"
 
 namespace Lambda::Server::Handlers {

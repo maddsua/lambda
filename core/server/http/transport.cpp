@@ -1,6 +1,6 @@
 
-#include "../handlers.hpp"
-#include "../http.hpp"
+#include "./http.hpp"
+#include "../handlers/handlers.hpp"
 #include "../../network/sysnetw.hpp"
 #include "../../compression/compression.hpp"
 #include "../../encoding/encoding.hpp"
@@ -33,7 +33,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
+std::optional<IncomingRequest> HTTPServer::requestReader(HTTPReaderContext& ctx) {
 
 	auto headerEnded = ctx.buffer.end();
 	while (ctx.conn.active() && headerEnded == ctx.buffer.end()) {
@@ -175,7 +175,7 @@ std::optional<IncomingRequest> HTTPServer::requestReader(ReaderContext& ctx) {
 	return next;
 }
 
-void HTTPServer::writeResponse(const HTTP::Response& response, const WriterContext& ctx) {
+void HTTPServer::writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx) {
 
 	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
 

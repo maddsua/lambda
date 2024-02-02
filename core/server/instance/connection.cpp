@@ -1,5 +1,6 @@
 #include "../server.hpp"
-#include "../http.hpp"
+#include "../internal.hpp"
+#include "../http/http.hpp"
 #include "../handlers/handlers.hpp"
 #include "../../polyfill/polyfill.hpp"
 
