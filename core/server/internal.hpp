@@ -29,7 +29,8 @@ namespace Lambda::Server {
 			Binary = 0x02,
 			Close = 0x08,
 			Ping = 0x09,
-			Pong = 0x0A
+			Pong = 0x0A,
+			Cont = 0x00,
 		};
 
 		enum struct WebsockBits : uint8_t {
