@@ -40,6 +40,18 @@
 		#include <arpa/inet.h>
 		#include <cerrno>
 
+		#ifndef SOCKET
+			typedef int SOCKET;
+		#endif
+
+		#ifndef INVALID_SOCKET
+			#define INVALID_SOCKET (-1)
+		#endif
+
+		#ifndef SOCKET_ERROR
+			#define SOCKET_ERROR (-1)
+		#endif
+
 		#define closesocket(socketHandle) (close(socketHandle))
 		#define SD_BOTH (SHUT_RDWR)
 
