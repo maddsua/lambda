@@ -54,6 +54,7 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 				auto pingHeader = serializeFrameHeader({
 					FrameControlBits::BitFinal,
 					OpCode::Pong,
+					static_cast<size_t>(0),
 					wsPingString.size()
 				});
 
@@ -129,10 +130,13 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 				} break;
 
 				case OpCode::Ping: {
+
 					puts("ping");
+
 					auto pongHeader = serializeFrameHeader({
 						FrameControlBits::BitFinal,
 						OpCode::Pong,
+						static_cast<size_t>(0),
 						frameHeader.payloadSize
 					});
 
@@ -142,7 +146,9 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 				} break;
 
 				case OpCode::Pong: {
+
 					puts("pong");
+
 					//	check that pong payload matches the ping's one
 					if (std::equal(payloadBuff.begin(), payloadBuff.end(), wsPingString.begin(), wsPingString.end())) {
 						lastPingResponse = std::chrono::steady_clock::now();
@@ -193,6 +199,7 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 	auto closeMessageBuff = serializeFrameHeader({
 		FrameControlBits::BitFinal,
 		OpCode::Close,
+		static_cast<size_t>(0),
 		sizeof(closeReasonCode)
 	});
 
