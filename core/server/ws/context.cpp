@@ -15,3 +15,8 @@ WebsocketContext::~WebsocketContext() {
 			catch (...) {}
 	}
 }
+/*
+void WebsocketContext::close(Websocket::CloseReason reason) {
+
+}
+*/

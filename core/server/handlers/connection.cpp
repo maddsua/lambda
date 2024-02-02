@@ -1,7 +1,5 @@
-#include "../server.hpp"
-#include "../handlers.hpp"
+#include "./handlers.hpp"
 #include "../../polyfill/polyfill.hpp"
-#include "../http.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Server;

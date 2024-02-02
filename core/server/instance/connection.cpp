@@ -1,11 +1,12 @@
-#include "./server.hpp"
-#include "./handlers.hpp"
-#include "../polyfill/polyfill.hpp"
-#include "./http.hpp"
+#include "../server.hpp"
+#include "../http.hpp"
+#include "../handlers/handlers.hpp"
+#include "../../polyfill/polyfill.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Server;
 using namespace Lambda::HTTPServer;
+using namespace Lambda::WSServer;
 
 IncomingConnection::IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts) {
 	this->ctx = new ConnectionContext { *conn, opts, conn->info() };
@@ -47,5 +48,5 @@ void IncomingConnection::respond(const HTTP::Response& response) {
 
 WebsocketContext IncomingConnection::upgrateToWebsocket() {
 	this->activeProto = ActiveProtocol::WS;
-	return {};
+	return WebsocketContext(this->ctx);
 }
