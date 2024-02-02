@@ -17,6 +17,7 @@ namespace Lambda::Websocket {
 		Message(const std::string& dataInit, bool partial);
 		Message(const std::vector<uint8_t>& dataInit);
 		Message(const std::vector<uint8_t>& dataInit, bool partial);
+
 		std::string text() const noexcept;
 		size_t size() const noexcept;
 	};
