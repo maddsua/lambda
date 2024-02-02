@@ -25,17 +25,57 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 		//	I should probably call move here
 		std::vector<uint8_t> downloadBuff = init.connbuff;
+		std::optional<std::array<uint8_t, WebsocketFrameHeader::mask_size>> multipartDataMask;
 		init.connbuff.clear();
 		this->conn.setTimeouts(100, Network::SetTimeoutsDirection::Receive);
 
 		while (this->conn.active() && !this->m_stopped) {
 
-			auto next = this->conn.read();
-			if (!next.size()) continue;
+			auto nextChunk = this->conn.read();
+			if (!nextChunk.size()) continue;
 
-			downloadBuff.insert(downloadBuff.end(), next.begin(), next.end());
-			if (downloadBuff.size() < 2) continue;
+			downloadBuff.insert(downloadBuff.end(), nextChunk.begin(), nextChunk.end());
+			if (downloadBuff.size() < WebsocketFrameHeader::min_size) continue;
 
+			auto frameHeader = parseFrameHeader(downloadBuff);
+
+			//	check opcode
+			/*bool opcodeSupported = std::any_of(wsOpCodes.begin(), wsOpCodes.end(), [&frameHeader](auto element) {
+				return element == frameHeader.opcode;
+			});*/
+
+			auto frameSize = frameHeader.size + frameHeader.payloadSize;
+			auto payloadBuff = std::vector<uint8_t>(downloadBuff.begin() + frameHeader.size, downloadBuff.begin() + frameSize);
+
+			if (frameHeader.payloadSize + frameHeader.payloadSize < downloadBuff.size()) {
+
+				auto expectedSize = frameHeader.payloadSize - payloadBuff.size();
+				auto payloadChunk = this->conn.read(expectedSize);
+
+				if (payloadChunk.size() < expectedSize) {
+					throw std::runtime_error("failed to read websocket frame: not enough data");
+				}
+
+				payloadBuff.insert(payloadBuff.end(), payloadChunk.begin(), payloadChunk.end());
+			}
+
+			//	unmask the payload
+			if (frameHeader.finbit != WebsockBits::BitFinal) {
+				if (frameHeader.mask.has_value()) {
+					multipartDataMask = frameHeader.mask;
+				} else {
+					frameHeader.mask = multipartDataMask;
+				}
+			}
+
+			if (!frameHeader.mask.has_value()) {
+				throw std::runtime_error("received unmasked data from the client");
+			}
+
+			auto& frameMask = frameHeader.mask.value();
+			for (size_t i = 0; i < payloadBuff.size(); i++) {
+				payloadBuff[i] ^= frameMask[i % 4];
+			}
 		}
 	});
 }
