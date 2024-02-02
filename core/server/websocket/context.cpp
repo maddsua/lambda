@@ -7,15 +7,14 @@ using namespace Lambda::Server::WSTransport;
 
 static const std::string wsPingString = "ping/lambda/ws";
 
-/*static const std::array<uint8_t, 6> wsOpCodes = {
-	static_cast<std::underlying_type_t<CloseReason>>(reason)
+static const std::initializer_list<OpCode> supportedWsOpcodes = {
 	OpCode::Binary,
 	OpCode::Text,
-	OpCode::Cont,
+	OpCode::Continue,
 	OpCode::Close,
 	OpCode::Ping,
 	OpCode::Pong,
-};*/
+};
 
 WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
@@ -25,7 +24,7 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 		//	I should probably call move here
 		std::vector<uint8_t> downloadBuff = init.connbuff;
-		std::optional<std::array<uint8_t, WebsocketFrameHeader::mask_size>> multipartDataMask;
+		std::optional<MultipartMessageContext> multipartCtx;
 		init.connbuff.clear();
 		this->conn.setTimeouts(100, Network::SetTimeoutsDirection::Receive);
 
@@ -39,10 +38,17 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 			auto frameHeader = parseFrameHeader(downloadBuff);
 
-			//	check opcode
-			/*bool opcodeSupported = std::any_of(wsOpCodes.begin(), wsOpCodes.end(), [&frameHeader](auto element) {
-				return element == frameHeader.opcode;
-			});*/
+			bool opcodeValid = false;
+			for (const auto& item : supportedWsOpcodes) {
+				if (frameHeader.opcode != item) continue;
+				opcodeValid = true;
+				break;
+			}
+
+			if (!opcodeValid) {
+				auto opcodeInt = static_cast<std::underlying_type_t<OpCode>>(frameHeader.opcode);
+				throw std::runtime_error("received an invalid opcode (" + std::to_string(opcodeInt) + ")");
+			}
 
 			auto frameSize = frameHeader.size + frameHeader.payloadSize;
 			auto payloadBuff = std::vector<uint8_t>(downloadBuff.begin() + frameHeader.size, downloadBuff.begin() + frameSize);
@@ -59,22 +65,60 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 				payloadBuff.insert(payloadBuff.end(), payloadChunk.begin(), payloadChunk.end());
 			}
 
-			//	unmask the payload
-			if (frameHeader.finbit != WebsockBits::BitFinal) {
-				if (frameHeader.mask.has_value()) {
-					multipartDataMask = frameHeader.mask;
-				} else {
-					frameHeader.mask = multipartDataMask;
-				}
-			}
-
-			if (!frameHeader.mask.has_value()) {
+			if (!(frameHeader.mask.has_value() || multipartCtx.has_value())) {
 				throw std::runtime_error("received unmasked data from the client");
 			}
 
+			if (frameHeader.finbit != WebsockBits::BitFinal) {
+
+				if (!multipartCtx.has_value()) {
+
+					multipartCtx = MultipartMessageContext({
+						frameHeader.mask.value(),
+						frameHeader.opcode == OpCode::Binary
+					});
+
+				} else {
+					frameHeader.mask = multipartCtx.value().mask;
+				}
+			}
+
+			//	unmask the payload
 			auto& frameMask = frameHeader.mask.value();
 			for (size_t i = 0; i < payloadBuff.size(); i++) {
 				payloadBuff[i] ^= frameMask[i % 4];
+			}
+
+			switch (frameHeader.opcode) {
+
+				case OpCode::Close: {
+					this->m_stopped = true;
+				} break;
+
+				case OpCode::Ping: {
+
+					auto pongHeader = serializeFrameHeader({
+						WebsockBits::BitFinal,
+						OpCode::Pong,
+						frameHeader.payloadSize
+					});
+
+					this->conn.write(pongHeader);
+					this->conn.write(payloadBuff);
+
+				} break;
+
+				case OpCode::Pong:
+					
+					break;
+
+				case OpCode::Continue: {
+					
+				} break;
+				
+				default: {
+
+				}
 			}
 		}
 	});
