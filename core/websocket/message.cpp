@@ -6,16 +6,16 @@ using namespace Lambda;
 using namespace Lambda::Websocket;
 
 Message::Message(const std::string& dataInit) :
+	data(std::vector<uint8_t>(dataInit.begin(), dataInit.end())),
 	binary(false),
 	partial(false),
-	data(std::vector<uint8_t>(dataInit.begin(), dataInit.end())),
 	timestamp(std::time(nullptr))
 {}
 
 Message::Message(const std::string& dataInit, bool partialInit) :
+	data(std::vector<uint8_t>(dataInit.begin(), dataInit.end())),
 	binary(false),
 	partial(partialInit),
-	data(std::vector<uint8_t>(dataInit.begin(), dataInit.end())),
 	timestamp(std::time(nullptr))
 {}
 
