@@ -44,7 +44,13 @@ namespace Lambda {
 
 	struct IncomingConnection {
 		private:
+
+			enum struct ActiveProtocol {
+				HTTP, WS
+			};
+
 			HTTPServer::ConnectionContext* ctx = nullptr;
+			ActiveProtocol activeProto = ActiveProtocol::HTTP;
 
 		public:
 			IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts);
