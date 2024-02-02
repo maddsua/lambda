@@ -55,15 +55,12 @@ WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& ini
 
 	auto combinedKey = headerWsKey + wsMagicString;
 
-	auto sha1hash = Crypto::SHA1();
-	sha1hash.update(std::vector<uint8_t>(combinedKey.begin(), combinedKey.end()));
-	auto keyHash = sha1hash.digest();
-	auto keyHashString = std::vector<uint8_t>(keyHash.begin(), keyHash.end());
+	auto keyHash = Crypto::SHA1().update(combinedKey).digest();
 
 	auto handshakeReponse = HTTP::Response(101, {
 		{ "Upgrade", "websocket" },
 		{ "Connection", "Upgrade" },
-		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHashString) }
+		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHash) }
 	});
 
 	this->respond(handshakeReponse);

@@ -75,7 +75,7 @@ SHA1::~SHA1() {
 	delete (SHA1_CTX*)this->hashctx;
 }
 
-void SHA1::reset() {
+SHA1& SHA1::reset() {
 
 	auto ctx = (SHA1_CTX*)this->hashctx;
 	memset(this->hashctx, 0, sizeof(SHA1_CTX));
@@ -91,11 +91,13 @@ void SHA1::reset() {
 	ctx->k[1] = 0x6ed9eba1;
 	ctx->k[2] = 0x8f1bbcdc;
 	ctx->k[3] = 0xca62c1d6;
+
+	return *this;
 }
 
-void SHA1::update(const std::vector<uint8_t>& data) {
+void SHA1::update(const uint8_t* data, size_t dataSize) {
 	auto ctx = (SHA1_CTX*)this->hashctx;
-	for (size_t i = 0; i < data.size(); ++i) {
+	for (size_t i = 0; i < dataSize; ++i) {
 		ctx->data[ctx->datalen] = data[i];
 		ctx->datalen++;
 		if (ctx->datalen == 64) {
@@ -106,10 +108,23 @@ void SHA1::update(const std::vector<uint8_t>& data) {
 	}
 }
 
-std::array <uint8_t, SHA1::BlockSize> SHA1::digest() {
+SHA1& SHA1::update(const std::vector<uint8_t>& buffer) {
+	this->update(buffer.data(), buffer.size());
+	return *this;
+}
+
+SHA1& SHA1::update(const std::string& text) {
+	this->update((const uint8_t*)text.data(), text.size());
+	return *this;
+}
+
+std::vector<uint8_t> SHA1::digest() {
 
 	auto ctx = (SHA1_CTX*)this->hashctx;
-	std::array <uint8_t, SHA1::BlockSize> hash;
+
+	std::vector<uint8_t> hash;
+	hash.resize(SHA1::BlockSize);
+
 	uint32_t i = ctx->datalen;
 
 	// Pad whatever data is left in the buffer.
