@@ -1,8 +1,8 @@
-#include "../server.hpp"
-#include "../http/http.hpp"
-#include "../handlers/handlers.hpp"
-#include "../../crypto/crypto.hpp"
-#include "../../network/tcp/listener.hpp"
+#include "./server.hpp"
+#include "./http/http.hpp"
+#include "./handlers/handlers.hpp"
+#include "../crypto/crypto.hpp"
+#include "../network/tcp/listener.hpp"
 
 #include <cstdio>
 #include <thread>
@@ -11,32 +11,40 @@ using namespace Lambda;
 using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
 
-ServerInstance::ServerInstance(ServerlessCallback handlerCallback, ServerConfig init) {
+ServerInstance::ServerInstance(
+	ServerlessCallback handlerCallback,
+	ServerConfig init
+) : listener({
+	init.service.fastPortReuse,
+	init.service.port,
+	init.service.connectionTimeout
+}) {
 	this->config = init;
 	this->httpHandler = handlerCallback;
 	this->handlerType = HandlerType::Serverless;
-	this->setup();
+	this->start();
 }
 
-ServerInstance::ServerInstance(ConnectionCallback handlerCallback, ServerConfig init) {
+ServerInstance::ServerInstance(
+	ConnectionCallback handlerCallback,
+	ServerConfig init
+) : listener({
+	init.service.fastPortReuse,
+	init.service.port,
+	init.service.connectionTimeout
+}) {
 	this->config = init;
 	this->tcpHandler = handlerCallback;
 	this->handlerType = HandlerType::Connection;
-	this->setup();
+	this->start();
 }
 
-void ServerInstance::setup() {
-
-	Network::TCP::ListenConfig listenInitOpts;
-	listenInitOpts.allowPortReuse = this->config.service.fastPortReuse;
-	listenInitOpts.port = this->config.service.port;
-	this->listener = new Network::TCP::ListenSocket(listenInitOpts);
-
+void ServerInstance::start() {
 	this->watchdogWorker = std::async([&]() {
 
-		while (!this->terminated && this->listener->active()) {
+		while (!this->terminated && this->listener.active()) {
 
-			auto nextConn = this->listener->acceptConnection();
+			auto nextConn = this->listener.acceptConnection();
 			if (!nextConn.has_value()) break;
 
 			switch (this->handlerType) {
@@ -73,7 +81,7 @@ void ServerInstance::shutdownn() {
 
 void ServerInstance::terminate() {
 	this->terminated = true;
-	this->listener->stop();
+	this->listener.stop();
 	this->awaitFinished();
 }
 
@@ -84,7 +92,6 @@ void ServerInstance::awaitFinished() {
 
 ServerInstance::~ServerInstance() {
 	this->terminate();
-	delete this->listener;
 }
 
 const ServerConfig& ServerInstance::getConfig() const noexcept {

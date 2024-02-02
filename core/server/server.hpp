@@ -50,6 +50,7 @@ namespace Lambda {
 	struct ServiceOptions {
 		uint16_t port = 8180;
 		bool fastPortReuse = false;
+		uint32_t connectionTimeout = 15000;
 	};
 
 	struct ServerConfig : ServeOptions {
@@ -63,7 +64,7 @@ namespace Lambda {
 				Undefined, Connection, Serverless
 			};
 
-			Network::TCP::ListenSocket* listener = nullptr;
+			Network::TCP::ListenSocket listener;
 
 			ServerlessCallback httpHandler;
 			ConnectionCallback tcpHandler;
@@ -74,8 +75,8 @@ namespace Lambda {
 			std::future<void> watchdogWorker;
 			bool terminated = false;
 
+			void start();
 			void terminate();
-			void setup();
 
 		public:
 			ServerInstance(ServerlessCallback handlerCallback, ServerConfig init);
