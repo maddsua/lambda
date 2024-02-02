@@ -57,7 +57,7 @@ void ServerInstance::setup() {
 						std::ref(this->tcpHandler));
 					connectionWorker.detach();
 				} break;
-				
+
 				default:
 					throw std::runtime_error("ServerInstance cannot invode an undefined handlerCallback");
 			}
