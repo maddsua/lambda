@@ -4,7 +4,7 @@
 	#include <cstdint>
 
 	#ifndef SOCKET
-		typedef uint32_t SOCKET;
+		typedef uint64_t SOCKET;
 	#endif
 
 	#ifndef INVALID_SOCKET
