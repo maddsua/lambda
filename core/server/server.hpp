@@ -5,10 +5,11 @@
 #include <optional>
 #include <future>
 
-#include "../http/http.hpp"
 #include "../network/network.hpp"
+#include "../http/http.hpp"
+#include "./websocket/websocket.hpp"
+#include "./http/http.hpp"
 #include "./console.hpp"
-#include "./websocket.hpp"
 
 namespace Lambda {
 
@@ -43,31 +44,8 @@ namespace Lambda {
 		struct ConnectionContext;
 	};
 
-	struct IncomingConnection {
-		private:
-
-			enum struct ActiveProtocol {
-				HTTP, WS
-			};
-
-			HTTPServer::ConnectionContext* ctx = nullptr;
-			ActiveProtocol activeProto = ActiveProtocol::HTTP;
-
-		public:
-			IncomingConnection(Network::TCP::Connection* conn, const HTTPTransportOptions& opts);
-			~IncomingConnection();
-
-			IncomingConnection(const IncomingConnection& other) = delete;
-			IncomingConnection& operator=(const IncomingConnection& other) = delete;
-
-			std::optional<HTTP::Request> nextRequest();
-			void respond(const HTTP::Response& response);
-
-			WSServer::WebsocketContext upgrateToWebsocket();
-	};
-
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
-	typedef std::function<void(IncomingConnection&)> ConnectionCallback;
+	typedef std::function<void(HTTPServer::IncomingConnection&)> ConnectionCallback;
 
 	struct ServiceOptions {
 		uint16_t port = 8180;

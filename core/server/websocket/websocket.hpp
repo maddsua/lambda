@@ -5,9 +5,10 @@
 #include <future>
 #include <queue>
 #include <mutex>
+#include <vector>
 
-#include "../network/network.hpp"
-#include "../websocket/websocket.hpp"
+#include "../../network/tcp/connection.hpp"
+#include "../../websocket/websocket.hpp"
 
 namespace Lambda::HTTPServer {
 	class ConnectionContext;
@@ -15,15 +16,20 @@ namespace Lambda::HTTPServer {
 
 namespace Lambda::WSServer {
 
+	struct WebsocketContextInit {
+		TCP::Connection& conn;
+		std::vector<uint8_t>& connbuff;
+	};
+
 	class WebsocketContext {
 		private:
-			HTTPServer::ConnectionContext* connctx = nullptr;
+			TCP::Connection& conn;
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
 			std::mutex m_read_lock;
 
 		public:
-			WebsocketContext(HTTPServer::ConnectionContext* connctxInit);
+			WebsocketContext(WebsocketContextInit init);
 			~WebsocketContext();
 
 			bool awaitMessage();

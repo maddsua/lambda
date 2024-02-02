@@ -2,16 +2,17 @@
 #define __LIB_MADDSUA_LAMBDA_CORE_HTTPSERVER__
 
 #include "../server.hpp"
-#include "../internal.hpp"
 #include "../../network/tcp/connection.hpp"
 
-#include <future>
-#include <queue>
 #include <optional>
 
 namespace Lambda::HTTPServer {
 
-	struct HTTPReaderContext : Server::ReaderContext {
+	struct HTTPReaderContext {
+		Network::TCP::Connection& conn;
+		const HTTPTransportOptions& options;
+		const Network::ConnectionInfo& conninfo;
+		std::vector<uint8_t> buffer;
 		bool keepAlive = false;
 	};
 
@@ -32,15 +33,31 @@ namespace Lambda::HTTPServer {
 		Network::TCP::Connection& conn;
 	};
 
-	std::optional<IncomingRequest> requestReader(HTTPReaderContext& ctx);
-	void writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx);
-
 	struct ConnectionContext : HTTPReaderContext {
 		ContentEncodings acceptsEncoding = ContentEncodings::None;
 	};
 
-	std::optional<std::pair<std::string, std::string>> parseBasicAuth(const std::string& header);
+	struct IncomingConnection {
+		private:
 
+			enum struct ActiveProtocol {
+				HTTP, WS
+			};
+
+			HTTPServer::ConnectionContext ctx;
+			ActiveProtocol activeProto = ActiveProtocol::HTTP;
+
+		public:
+			IncomingConnection(Network::TCP::Connection& conn, const HTTPTransportOptions& opts);
+
+			IncomingConnection(const IncomingConnection& other) = delete;
+			IncomingConnection& operator=(const IncomingConnection& other) = delete;
+
+			std::optional<HTTP::Request> nextRequest();
+			void respond(const HTTP::Response& response);
+
+			WSServer::WebsocketContext upgrateToWebsocket();
+	};
 };
 
 #endif

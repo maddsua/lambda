@@ -1,5 +1,4 @@
 #include "../server.hpp"
-#include "../internal.hpp"
 #include "../http/http.hpp"
 #include "../handlers/handlers.hpp"
 #include "../../crypto/crypto.hpp"
