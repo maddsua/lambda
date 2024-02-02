@@ -82,7 +82,8 @@ std::vector<uint8_t> WSTransport::serializeMessage(const Message& message) {
 	FrameHeader header {
 		message.partial ? FrameControlBits::BitContinue : FrameControlBits::BitFinal,
 		message.binary ? OpCode::Binary : OpCode::Text,
-		message.size()	
+		-1,
+		message.size(),
 	};
 	
 	auto resultBuffer = serializeFrameHeader(header);
