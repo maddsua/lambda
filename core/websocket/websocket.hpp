@@ -1,10 +1,9 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKETS__
 #define __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKETS__
 
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <queue>
-#include <cstdint>
 
 namespace Lambda::Websocket {
 
@@ -36,7 +35,6 @@ namespace Lambda::Websocket {
 		InternalServerError = 1011,
 		TLSHandshakeFailed = 1015
 	};
-
 };
 
 #endif
