@@ -1,7 +1,7 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_HTTPSERVER__
 #define __LIB_MADDSUA_LAMBDA_CORE_HTTPSERVER__
 
-#include "../server.hpp"
+#include "../options.hpp"
 #include "../websocket/websocket.hpp"
 #include "../../network/tcp/connection.hpp"
 

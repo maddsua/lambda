@@ -5,6 +5,7 @@
 #include <optional>
 #include <future>
 
+#include "./options.hpp"
 #include "../network/network.hpp"
 #include "../network/tcp/listener.hpp"
 #include "../http/http.hpp"
@@ -14,27 +15,6 @@
 
 namespace Lambda {
 
-	struct LogOptions {
-		bool connections = false;
-		bool requests = false;
-		bool timestamps = false;
-	};
-
-	struct HTTPTransportOptions {
-		bool useCompression = true;
-		bool reuseConnections = true;
-	};
-
-	enum struct ErrorResponseType {
-		HTML, JSON
-	};
-
-	struct ServeOptions {
-		LogOptions loglevel;
-		HTTPTransportOptions transport;
-		ErrorResponseType errorResponseType = ErrorResponseType::HTML;
-	};
-
 	struct RequestContext {
 		std::string requestID;
 		Network::ConnectionInfo conninfo;
@@ -43,16 +23,6 @@ namespace Lambda {
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
 	typedef std::function<void(HTTPServer::IncomingConnection&)> ConnectionCallback;
-
-	struct ServiceOptions {
-		uint16_t port = 8180;
-		bool fastPortReuse = false;
-		uint32_t connectionTimeout = 15000;
-	};
-
-	struct ServerConfig : ServeOptions {
-		ServiceOptions service;
-	};
 
 	class ServerInstance {
 		private:
