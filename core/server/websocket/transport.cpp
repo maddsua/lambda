@@ -45,6 +45,7 @@ FrameHeader WSTransport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
 		}
 
 		header.mask = mask;
+		header.size += 4;
 	}
 
 	return header;
