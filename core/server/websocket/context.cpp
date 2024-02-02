@@ -7,6 +7,18 @@ using namespace Lambda::Server::WSTransport;
 
 static const std::string wsPingString = "ping/lambda/ws";
 
+//	The recv function blocks execution infinitely until it receives somethig,
+//	which is not optimal for this usecase.
+//	There's an overlapped io in winapi, but it's kinda ass and definitely is not portable
+//	So I'm reinventing a wheel by causing receive function to fail quite often
+//	so that at enabled the receive loop to be terminated at any time
+//	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
+static const time_t wsRcvTimeout = 100;
+
+//	these values are used for both pings and actual receive timeouts
+static const time_t wsActTimeout = 5000;
+static const unsigned short wsMaxSkippedAttempts = 3;
+
 static const std::initializer_list<OpCode> supportedWsOpcodes = {
 	OpCode::Binary,
 	OpCode::Text,
@@ -19,6 +31,7 @@ static const std::initializer_list<OpCode> supportedWsOpcodes = {
 WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 	this->conn.flags.closeOnTimeout = false;
+	this->conn.setTimeouts(wsRcvTimeout, Network::SetTimeoutsDirection::Receive);
 
 	this->m_reader = std::async([&]() {
 
@@ -26,9 +39,31 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 		std::vector<uint8_t> downloadBuff = init.connbuff;
 		std::optional<MultipartMessageContext> multipartCtx;
 		init.connbuff.clear();
-		this->conn.setTimeouts(100, Network::SetTimeoutsDirection::Receive);
+
+		auto lastPing = std::chrono::steady_clock::now();
+		auto lastPingResponse = std::chrono::steady_clock::now();
+		auto pingWindow = std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout);
 
 		while (this->conn.active() && !this->m_stopped) {
+
+			//	send ping or terminate websocket if there is no response
+			if ((lastPing - lastPingResponse) > pingWindow) {
+
+				throw std::runtime_error("Didn't receive any response for pings");
+
+			} else if ((std::chrono::steady_clock::now() - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
+
+				auto pingHeader = serializeFrameHeader({
+					FrameControlBits::BitFinal,
+					OpCode::Pong,
+					wsPingString.size()
+				});
+
+				this->conn.write(pingHeader);
+				this->conn.write(std::vector<uint8_t>(wsPingString.begin(), wsPingString.end()));
+
+				lastPing = std::chrono::steady_clock::now();
+			}
 
 			auto nextChunk = this->conn.read();
 			if (!nextChunk.size()) continue;
@@ -108,9 +143,16 @@ WebsocketContext::WebsocketContext(ContextInit init) : conn(init.conn) {
 
 				} break;
 
-				case OpCode::Pong:
-					
-					break;
+				case OpCode::Pong: {
+
+					//	check that pong payload matches the ping's one
+					if (std::equal(payloadBuff.begin(), payloadBuff.end(), wsPingString.begin(), wsPingString.end())) {
+						lastPingResponse = std::chrono::steady_clock::now();
+					} else {
+						throw std::runtime_error("wrong pong reponse");
+					}
+
+				} break;
 
 				default: {
 
