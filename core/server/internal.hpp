@@ -30,7 +30,7 @@ namespace Lambda::Server {
 			Close = 0x08,
 			Ping = 0x09,
 			Pong = 0x0A,
-			Cont = 0x00,
+			Continue = 0x00,
 		};
 
 		enum struct WebsockBits : uint8_t {
@@ -46,6 +46,11 @@ namespace Lambda::Server {
 			static const size_t mask_size = 4;
 			static const size_t min_size = 2;
 			std::optional<std::array<uint8_t, mask_size>> mask;
+		};
+
+		struct MultipartMessageContext {
+			std::array<uint8_t, WebsocketFrameHeader::mask_size> mask;
+			bool binary = false;
 		};
 
 		WebsocketFrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
