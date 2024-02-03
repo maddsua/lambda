@@ -61,6 +61,6 @@ jobs:
       - name: Service page response example
         run: make example.servicepage
       - name: Service crash handling example
-        run: make example.crash
+        run: make example.handler_crash
       - name: Extended request handler example
         run: make example.conn_handler
