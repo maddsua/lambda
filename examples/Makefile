@@ -1,7 +1,7 @@
 
-include examples/api_server/makefile
-include examples/conn_handler/makefile
-include examples/handler_crash/makefile
-include examples/kvserver/makefile
-include examples/servicepage/makefile
-include examples/websocket/makefile
+include examples/api_server/Makefile
+include examples/conn_handler/Makefile
+include examples/handler_crash/Makefile
+include examples/kvserver/Makefile
+include examples/servicepage/Makefile
+include examples/websocket/Makefile
