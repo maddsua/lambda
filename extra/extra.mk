@@ -1,5 +1,5 @@
 
-include extra/webstorage/Makefile
+include extra/webstorage/webstorage.mk
 
 LIB_EXTRA				=	extra/extra.a
 LIB_EXTRA_DEPS			=	$(LIB_EXTRA_STORAGE_DEPS)
