@@ -23,7 +23,7 @@ namespace Lambda::Websocket {
 		size_t size() const noexcept;
 	};
 
-	enum struct CloseReason : int32_t {
+	enum struct CloseReason : int16_t {
 		Normal = 1000,
 		GoingAway = 1001,
 		ProtocolError = 1002,
