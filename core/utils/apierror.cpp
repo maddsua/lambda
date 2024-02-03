@@ -1,13 +1,10 @@
 #include <string.h>
-#include "./error.hpp"
+#include "./utils.hpp"
 
 #ifdef _WIN32
 	#include <windows.h>
-	#define getAPIError() (GetLastError())
-	#define strerror_r(errnum, buf, buflen) (strerror_s(buf, buflen, errnum))
 #else
 	#include <cerrno>
-	#define getAPIError() errno
 #endif
 
 using namespace Lambda;
@@ -47,7 +44,7 @@ std::string Errors::formatMessage(int32_t errorCode) noexcept {
 		#else
 
 			char tempBuff[128];
-			char* messagePtr = strerror_r(errorCode, tempBuff, sizeof(tempBuff));
+			char* messagePtr = strerror_s(tempBuff, sizeof(tempBuff), errorCode);
 			if (messagePtr != nullptr) return messagePtr;
 			return "OS error " + std::to_string(errorCode);
 

@@ -20,8 +20,8 @@
 	#include "./core/encoding/encoding.hpp"
 	#include "./core/crypto/crypto.hpp"
 	#include "./core/compression/compression.hpp"
-	#include "./core/error/error.hpp"
 	#include "./core/html/templates.hpp"
+	#include "./core/utils/utils.hpp"
 
 	//	include extra "modules"
 	#include "./extra/webstorage/webstorage.hpp"

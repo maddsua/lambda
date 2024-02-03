@@ -7,7 +7,7 @@
 #define __LIB_MADDSUA_LAMBDA_NETWORK_INTERNAL__
 
 	#include <stdint.h>
-	#include "../error/error.hpp"
+	#include "../utils/utils.hpp"
 
 	#ifdef _WIN32
 
