@@ -27,7 +27,7 @@ std::string Errors::formatMessage(int32_t errorCode) noexcept {
 		auto formatResult = FormatMessageA(
 			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 			NULL, errorCode, 0, (LPSTR)&tempMessage, 0, NULL);
-		if (!formatResult) return "Windows API error " + std::to_string(errorCode);
+		if (!formatResult) return "os error " + std::to_string(errorCode);
 
 		auto message = std::string(tempMessage);
 		LocalFree(tempMessage);
