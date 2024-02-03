@@ -32,13 +32,13 @@ Message::Message(const std::vector<uint8_t>& dataInit, bool partialInit) :
 	partial(partialInit),
 	timestamp(std::time(nullptr))
 {}
+
 Message::Message(const std::vector<uint8_t>& dataInit, bool binaryInit, bool partialInit) :
 	data(dataInit),
 	binary(binaryInit),
 	partial(partialInit),
 	timestamp(std::time(nullptr))
 {}
-
 
 std::string Message::text() const noexcept {
 	return std::string(this->data.begin(), this->data.end());
