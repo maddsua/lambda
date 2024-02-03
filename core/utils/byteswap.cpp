@@ -1,7 +1,6 @@
 #include "./utils.hpp"
 
 using namespace Lambda;
-using namespace Lambda::Utils;
 
 
 #define swap_uint16(data)	(((data) << 8) | ((data) >> 8))
