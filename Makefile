@@ -35,11 +35,11 @@ all: all-before libshared all-after
 clean: action-custom
 	$(CLEAN_COMMAND)
 
-include Makefile.core.mk
-include Makefile.extra.mk
-include Makefile.test.mk
-include Makefile.tools.mk
-include Makefile.examples.mk
+include core/core.mk
+include extra/extra.mk
+include examples/examples.mk
+include tools/tools.mk
+include tests/tests.mk
 
 # shared lib build
 libshared: $(LAMBDA_LIBSHARED)
@@ -51,7 +51,7 @@ dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
 
 dllinfo.rc: $(TOOL_UPDATEDLLINFO_TARGET)
-	$(TOOL_UPDATEDLLINFO_TARGET) --template=dllinfo.template.rc --info=version.hpp --output=dllinfo.rc
+	$(TOOL_UPDATEDLLINFO_TARGET) --info=version.hpp --output=dllinfo.rc --template=tools/updatedllinfo/dllinfo.template
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
@@ -60,5 +60,5 @@ $(LAMBDA_LIBSTATIC): $(LIB_DEPS)
 	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_DEPS)
 
 # generate single file include
-gensfi: tool.generateinclude
-	$(TOOL_GENERATEINCLUDE_TARGET) --entrypoint=lambda.hpp --output=lambda_sfi.hpp
+gensfi: tool.gensfi
+	$(TOOL_gensfi_TARGET) --entrypoint=lambda.hpp --output=lambda_sfi.hpp --template=tools/gensfi/headerfile.template

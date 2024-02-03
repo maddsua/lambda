@@ -1,0 +1,77 @@
+name: Build and test
+
+on:
+  push:
+    branches: ['main']
+#    paths: ['lambda.hpp', 'version.hpp', 'build_options.hpp']
+  pull_request:
+    branches: ['main']
+
+jobs:
+
+  build_lib:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build static lib
+        run: make libstatic target=prod
+      - name: build shared lib
+        run: make libshared target=prod
+
+  build_tools:
+    needs: build_lib
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build dll info updater
+        run: make tool.updatedllinfo
+      - name: build SFI generator
+        run: make tool.gensfi
+
+  build_and_run_tests:
+    needs: build_lib
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare
+        run: |
+          sudo apt-get install -y brotli
+          sudo apt-get install -y zlib1g-dev
+          mkdir .bin
+      - name: URL test
+        run: make test.url
+      - name: Encoding test
+        run: make test.encoding
+      - name: Strings test
+        run: make test.strings
+      - name: JSON test
+        run: make test.json
+      - name: Storage test
+        run: make test.storage
+      - name: zlib test
+        run: make test.zlib
+      - name: brotli test
+        run: make test.brotli
+      - name: Error messages test
+        run: make test.errors
+
+  build_examples:
+    needs: build_lib
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare
+        run: |
+          sudo apt-get install -y brotli
+          sudo apt-get install -y zlib1g-dev
+          mkdir .bin
+      - name: API server example
+        run: make example.api_server
+      - name: KV server example
+        run: make example.kvserver
+      - name: Service page response example
+        run: make example.servicepage
+      - name: Service crash handling example
+        run: make example.handler_crash
+      - name: Extended request handler example
+        run: make example.conn_handler
