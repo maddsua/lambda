@@ -2,6 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTENER__
 
 #include "../network.hpp"
+#include "../compat.hpp"
 #include "./connection.hpp"
 
 #include <optional>
@@ -16,7 +17,7 @@ namespace Lambda::Network::TCP {
 
 	class ListenSocket {
 		protected:
-			uint64_t hSocket = -1;
+			SockHandle hSocket = -1;
 			ListenConfig config;
 
 		public:

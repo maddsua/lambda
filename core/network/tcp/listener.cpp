@@ -16,10 +16,10 @@ ListenSocket::ListenSocket(const ListenConfig& init) {
 	this->config = init;
 
 	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (this->hSocket == INVALID_SOCKET) {
+	if (this->hSocket == Network::invalid_socket) {
 		throw Lambda::APIError("failed to create listen socket");
 	}
-	
+
 	//	allow fast port reuse
 	if (init.allowPortReuse) {
 		uint32_t sockoptReuseaddr = 1;
@@ -52,7 +52,7 @@ ListenSocket::ListenSocket(const ListenConfig& init) {
 }
 
 ListenSocket::~ListenSocket() {
-	if (this->hSocket == INVALID_SOCKET) return;
+	if (this->hSocket == Network::invalid_socket) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
@@ -60,20 +60,20 @@ ListenSocket::~ListenSocket() {
 ListenSocket::ListenSocket(ListenSocket&& other) noexcept {
 	this->hSocket = other.hSocket;
 	this->config = other.config;
-	other.hSocket = INVALID_SOCKET;
+	other.hSocket = Network::invalid_socket;
 }
 
 ListenSocket& ListenSocket::operator= (ListenSocket&& other) noexcept {
 	this->hSocket = other.hSocket;
 	this->config = other.config;
-	other.hSocket = INVALID_SOCKET;
+	other.hSocket = Network::invalid_socket;
 	return *this;
 }
 
 std::optional<Connection> ListenSocket::acceptConnection() {
 
 	//	check that we have a valid socket
-	if (this->hSocket == INVALID_SOCKET) {
+	if (this->hSocket == Network::invalid_socket) {
 		throw std::runtime_error("cannot accept anything from a closed socket");
 	}
 
@@ -83,8 +83,8 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 	auto nextSocket = accept(this->hSocket, (sockaddr*)&peerAddr, &clientAddrLen);
 
 	//	verify that we have a valid socket
-	if (nextSocket == INVALID_SOCKET) {
-		if (this->hSocket == INVALID_SOCKET) return std::nullopt;
+	if (nextSocket == Network::invalid_socket) {
+		if (this->hSocket == Network::invalid_socket) return std::nullopt;
 		throw Lambda::APIError("socket accept failed");
 	}
 
@@ -116,7 +116,7 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 }
 
 bool ListenSocket::active() const noexcept {
-	return this->hSocket != INVALID_SOCKET;
+	return this->hSocket != Network::invalid_socket;
 }
 
 const ListenConfig& ListenSocket::getConfig() const noexcept {
@@ -125,10 +125,10 @@ const ListenConfig& ListenSocket::getConfig() const noexcept {
 
 void ListenSocket::stop() noexcept {
 
-	if (this->hSocket == INVALID_SOCKET) return;
+	if (this->hSocket == Network::invalid_socket) return;
 
 	auto tempHandle = this->hSocket;
-	this->hSocket = INVALID_SOCKET;
+	this->hSocket = Network::invalid_socket;
 
 	shutdown(tempHandle, SD_BOTH);
 	closesocket(tempHandle);
