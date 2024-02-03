@@ -1,6 +1,6 @@
 #include "../server.hpp"
 #include "../internal.hpp"
-#include "../../network/sysnetw.hpp"
+#include "../../utils/utils.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
@@ -198,7 +198,7 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	this->m_stopped = true;
 
-	auto closeReasonCode = htons(static_cast<std::underlying_type_t<CloseReason>>(reason));
+	auto closeReasonCode = Utils::Bits::netwnormx(static_cast<std::underlying_type_t<CloseReason>>(reason));
 
 	auto closeMessageBuff = serializeFrameHeader({
 		FrameControlBits::BitFinal,
