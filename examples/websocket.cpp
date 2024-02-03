@@ -15,6 +15,7 @@ int main(int argc, char const *argv[]) {
 			auto nextmsg = wsctx.nextMessage();
 			printf("Message: %s\n", nextmsg.text().c_str());
 			wsctx.sendMessage({ "Copied that" });
+			wsctx.close(Websocket::CloseReason::GoingAway);
 		}
 	};
 
