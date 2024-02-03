@@ -10,19 +10,8 @@
 
 using namespace std::regex_constants;
 
-static const std::string mainHeaderTemplate = R"(
-/*
-	lambda - an HTTP and Websocket server library
-	{{release_time}} maddsua
-	https://github.com/maddsua/lambda
-*/
-
-#ifndef __LIB_MADDSUA_LAMBDA__
-#define __LIB_MADDSUA_LAMBDA__
-{{global_includes}}
-{{merged_includes}}
-#endif
-)";
+extern char _binary_tools_generateinclude_headerfile_txt_start;
+extern char _binary_tools_generateinclude_headerfile_txt_end;
 
 struct Options {
 	std::string inputHeader;
@@ -90,7 +79,11 @@ int main(int argc, char const *argv[]) {
 		{ "merged_includes", mergedIncludes },
 	});
 
-	std::string result = mainHeaderTemplate;
+	std::string result = std::string(
+		&_binary_tools_generateinclude_headerfile_txt_start,
+		&_binary_tools_generateinclude_headerfile_txt_end - &_binary_tools_generateinclude_headerfile_txt_start
+	);
+
 	for (const auto& item : templateReplacements) {
 		auto varexpr = std::regex("\\{\\s*\\{\\s*" + item.first + "\\s*\\}\\s*\\}", ECMAScript | icase);
 		result = std::regex_replace(result, varexpr, item.second);
