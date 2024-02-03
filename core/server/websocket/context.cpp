@@ -1,5 +1,6 @@
 #include "../server.hpp"
 #include "../internal.hpp"
+#include "../../network/sysnetw.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
@@ -196,7 +197,7 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	this->m_stopped = true;
 
-	auto closeReasonCode = static_cast<std::underlying_type_t<CloseReason>>(reason);
+	auto closeReasonCode = htons(static_cast<std::underlying_type_t<CloseReason>>(reason));
 
 	auto closeMessageBuff = serializeFrameHeader({
 		FrameControlBits::BitFinal,
@@ -208,7 +209,8 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 	std::array<uint8_t, sizeof(closeReasonCode)> closeReasonBuff;
 	memcpy(closeReasonBuff.data(), &closeReasonCode, sizeof(closeReasonCode));
 
-	closeMessageBuff.insert(closeMessageBuff.end(), closeReasonBuff.begin(), closeReasonBuff.end());
+	closeMessageBuff.insert(closeMessageBuff.end(), closeReasonBuff.begin(), closeReasonBuff.end());	
+
 	this->conn.write(closeMessageBuff);
 
 	if (this->m_reader.valid()) {
