@@ -21,6 +21,7 @@ jobs:
 #        run: make gensfi
 
   build_tools:
+    needs: build_lib
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
