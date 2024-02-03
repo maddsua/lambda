@@ -1,3 +1,3 @@
 
-include tools/updatedllinfo/Makefile
-include tools/generateinclude/Makefile
+include tools/updatedllinfo/updatedllinfo.mk
+include tools/gensfi/gensfi.mk
