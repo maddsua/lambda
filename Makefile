@@ -52,7 +52,7 @@ dllinfo.res: dllinfo.rc
 	windres -i dllinfo.rc --input-format=rc -o dllinfo.res -O coff
 
 dllinfo.rc: $(TOOL_UPDATEDLLINFO_TARGET)
-	$(TOOL_UPDATEDLLINFO_TARGET) --template=dllinfo.template.rc --info=version.hpp --output=dllinfo.rc
+	$(TOOL_UPDATEDLLINFO_TARGET) --info=version.hpp --output=dllinfo.rc --template=tools/updatedllinfo/dllinfo.template
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
