@@ -61,4 +61,4 @@ $(LAMBDA_LIBSTATIC): $(LIB_DEPS)
 
 # generate single file include
 gensfi: tool.gensfi
-	$(TOOL_gensfi_TARGET) --entrypoint=lambda.hpp --output=lambda_sfi.hpp --template=tools/gensfi/headerfile.template
+	$(TOOL_GENSFI_TARGET) --entrypoint=lambda.hpp --output=lambda_sfi.hpp --template=tools/gensfi/headerfile.template
