@@ -66,15 +66,15 @@ namespace Lambda {
 
 	namespace Literals {
 
-		constexpr size_t operator""_GB(size_t size) {
+		constexpr size_t operator""_GB(unsigned long long size) {
 			return 1024 * 1024 * 1024 * size;
 		}
 
-		constexpr size_t operator""_MB(size_t size) {
+		constexpr size_t operator""_MB(unsigned long long size) {
 			return 1024 * 1024 * size;
 		}
 
-		constexpr size_t operator""_KB(size_t size) {
+		constexpr size_t operator""_KB(unsigned long long size) {
 			return 1024 * size;
 		}
 	};
