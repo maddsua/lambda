@@ -2,6 +2,28 @@
 #include "./streams.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Compress;
+using namespace Lambda::Compress::Streams;
+
+ZlibStream::ZlibStream() {
+	memset(&this->stream, 0, sizeof(z_stream));
+}
+
+ZlibCompressStream::ZlibCompressStream(int compression, int winbits) {
+	auto initResult = deflateInit2(&this->stream, compression, Z_DEFLATED, winbits, 8, Z_DEFAULT_STRATEGY);
+	if (initResult != Z_OK) throw std::runtime_error("Could not initialize deflate (zlib error code " + std::to_string(initResult) + ')');
+}
+ZlibCompressStream::~ZlibCompressStream() {
+	(void)deflateEnd(&this->stream);
+}
+
+ZlibDecompressStream::ZlibDecompressStream(int winbits) {
+	auto initResult = inflateInit2(&this->stream, winbits);
+	if (initResult != Z_OK) throw std::runtime_error("Could not initialize inflate (zlib error code " + std::to_string(initResult) + ')');
+}
+ZlibDecompressStream::~ZlibDecompressStream() {
+	(void)inflateEnd(&this->stream);
+}
 
 std::vector<uint8_t> Compress::zlibCompressBuffer(const std::vector<uint8_t>& input, Quality quality, ZlibSetHeader header) {
 
