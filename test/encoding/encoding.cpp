@@ -4,7 +4,7 @@
 #include <exception>
 #include <stdexcept>
 
-#include "../lambda.hpp"
+#include "../../lambda.hpp"
 
 using namespace Lambda;
 

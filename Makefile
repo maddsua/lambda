@@ -39,8 +39,7 @@ include core/Makefile
 include extra/Makefile
 include examples/Makefile
 include tools/Makefile
-
-include Makefile.test.mk
+include test/Makefile
 
 # shared lib build
 libshared: $(LAMBDA_LIBSHARED)

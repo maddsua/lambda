@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "../lambda.hpp"
-#include "../core/network/tcp/listener.hpp"
+#include "../../lambda.hpp"
+#include "../../core/network/tcp/listener.hpp"
 
 using namespace Lambda;
 

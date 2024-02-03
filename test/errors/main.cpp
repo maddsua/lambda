@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <stdexcept>
-#include "../core/error/error.hpp"
+
+#include "../../lambda.hpp"
 
 int main(int argc, char const *argv[]) {
 
@@ -15,6 +16,8 @@ int main(int argc, char const *argv[]) {
 			}
 		}
 	}
+
+	puts("Error codes ok");
 	
 	return 0;
 }

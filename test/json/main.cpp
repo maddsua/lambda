@@ -1,7 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "../lambda.hpp"
+#include "../../lambda.hpp"
 
 using namespace Lambda;
 using namespace Lambda::JSON;

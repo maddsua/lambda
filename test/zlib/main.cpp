@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../lambda.hpp"
+#include "../../lambda.hpp"
 
 using namespace Lambda;
 
@@ -16,12 +16,12 @@ const std::vector<uint64_t> sizesets = {
 	25000,
 	112534,
 	500000,
-	1000000
+	1000000,
 };
 
 int main(int argc, char const *argv[]) {
 
-	std::cout << "\r\n--- Brotli compression/decompression test begin --- \r\n";
+	std::cout << "\r\n--- zlib gzip compression/decompression test begin --- \r\n";
 
 	for (auto size : sizesets) {
 
@@ -34,12 +34,12 @@ int main(int argc, char const *argv[]) {
 		}
 
 		std::vector<uint8_t> binData(textdata.begin(), textdata.end());
-		std::vector<uint8_t> compressed = Compress::brotliCompressBuffer(binData, Compress::Quality::Max);
+		std::vector<uint8_t> compressed = Compress::zlibCompressBuffer(binData, Compress::Quality::Max, Compress::ZlibSetHeader::Gzip);
 
 		std::cout << "Original size: " << binData.size() << ", compressed: " << compressed.size() << ", delta: " << ((double)compressed.size() / (double)binData.size()) << std::endl;
 
-		std::vector<uint8_t> restored = Compress::brotliDecompressBuffer(compressed);
-		
+		std::vector<uint8_t> restored = Compress::zlibDecompressBuffer(compressed);
+
 		if (restored != binData) throw std::runtime_error("Compression failed: data does not match. Compressed size: " + std::to_string(compressed.size()));
 
 		std::cout << "Data matched" << std::endl;
