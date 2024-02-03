@@ -1,3 +1,3 @@
 
-include tools/dllinfo/Makefile
+include tools/updatedllinfo/Makefile
 include tools/generateinclude/Makefile
