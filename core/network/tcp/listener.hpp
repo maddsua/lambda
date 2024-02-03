@@ -1,8 +1,9 @@
-#ifndef __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
-#define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTEN__
+#ifndef __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTENER__
+#define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_LISTENER__
 
+#include "../network.hpp"
+#include "../compat.hpp"
 #include "./connection.hpp"
-#include "../sysnetw.hpp"
 
 #include <optional>
 
@@ -11,12 +12,12 @@ namespace Lambda::Network::TCP {
 	struct ListenConfig {
 		bool allowPortReuse = false;
 		uint16_t port = 8180;
-		uint32_t connectionTimeout = 15000;
+		ConnectionTimeouts connectionTimeouts;
 	};
 
 	class ListenSocket {
 		protected:
-			SOCKET hSocket = INVALID_SOCKET;
+			SockHandle hSocket = -1;
 			ListenConfig config;
 
 		public:

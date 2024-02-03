@@ -3,8 +3,8 @@
 	Should work in theory. If it does not, well, something is wrong 🗿🚬
 */
 
-#ifndef __LIB_MADDSUA_LAMBDA_INTERNAL_NETWORK_TCPIP__
-#define __LIB_MADDSUA_LAMBDA_INTERNAL_NETWORK_TCPIP__
+#ifndef __LIB_MADDSUA_LAMBDA_NETWORK_INTERNAL__
+#define __LIB_MADDSUA_LAMBDA_NETWORK_INTERNAL__
 
 	#include <stdint.h>
 	#include "../error/error.hpp"
@@ -39,18 +39,6 @@
 		#include <unistd.h>
 		#include <arpa/inet.h>
 		#include <cerrno>
-
-		#ifndef SOCKET
-			typedef int SOCKET;
-		#endif
-
-		#ifndef INVALID_SOCKET
-			#define INVALID_SOCKET (-1)
-		#endif
-
-		#ifndef SOCKET_ERROR
-			#define SOCKET_ERROR (-1)
-		#endif
 
 		#define closesocket(socketHandle) (close(socketHandle))
 		#define SD_BOTH (SHUT_RDWR)

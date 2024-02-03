@@ -1,12 +1,15 @@
 
 LIB_CORE				=	core/core.a
-LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS) $(LIB_CORE_ERROR_DEPS)
+LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS) $(LIB_CORE_ERROR_DEPS) $(LIB_CORE_WEBSOCKET_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
 LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
 
 LIB_CORE_HTTP			=	core/http.a
 LIB_CORE_HTTP_DEPS		=	core/http/request.o core/http/response.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o
+
+LIB_CORE_WEBSOCKET		=	core/websocket.a
+LIB_CORE_WEBSOCKET_DEPS	=	core/websocket/message.o
 
 LIB_CORE_ENCODING		=	core/encoding.a
 LIB_CORE_ENCODING_DEPS	=	core/encoding/base64.o core/encoding/hex.o core/encoding/url.o
@@ -18,7 +21,7 @@ LIB_CORE_COMPRESS		=	core/compression.a
 LIB_CORE_COMPRESS_DEPS	=	core/compression/streams.o core/compression/brotli.o core/compression/zlib.o
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_DEPS	=	core/server/server.o core/server/http/transport.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o
+LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/http/connection.o core/server/http/transport.o core/server/http/upgrade.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o core/server/websocket/context.o core/server/websocket/transport.o
 
 LIB_CORE_HTML			=	core/html.a
 LIB_CORE_HTML_TEMPLATES	=	core/html/resources/servicepage.res
@@ -130,11 +133,17 @@ core/compression/zlib.o: core/compression/zlib.cpp
 $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 	ar rvs $(LIB_CORE_SERVER) $(LIB_CORE_SERVER_DEPS)
 
-core/server/server.o: core/server/server.cpp
-	g++ -c $(CFLAGS) core/server/server.cpp -o core/server/server.o
+core/server/instance.o: core/server/instance.cpp
+	g++ -c $(CFLAGS) core/server/instance.cpp -o core/server/instance.o
+
+core/server/http/connection.o: core/server/http/connection.cpp
+	g++ -c $(CFLAGS) core/server/http/connection.cpp -o core/server/http/connection.o
 
 core/server/http/transport.o: core/server/http/transport.cpp
 	g++ -c $(CFLAGS) core/server/http/transport.cpp -o core/server/http/transport.o
+
+core/server/http/upgrade.o: core/server/http/upgrade.cpp
+	g++ -c $(CFLAGS) core/server/http/upgrade.cpp -o core/server/http/upgrade.o
 
 core/server/handlers/serverless.o: core/server/handlers/serverless.cpp
 	g++ -c $(CFLAGS) core/server/handlers/serverless.cpp -o core/server/handlers/serverless.o
@@ -144,6 +153,12 @@ core/server/handlers/connection.o: core/server/handlers/connection.cpp
 
 core/server/console.o: core/server/console.cpp
 	g++ -c $(CFLAGS) core/server/console.cpp -o core/server/console.o
+
+core/server/websocket/context.o: core/server/websocket/context.cpp
+	g++ -c $(CFLAGS) core/server/websocket/context.cpp -o core/server/websocket/context.o
+
+core/server/websocket/transport.o: core/server/websocket/transport.cpp
+	g++ -c $(CFLAGS) core/server/websocket/transport.cpp -o core/server/websocket/transport.o
 
 
 # html templates and stuff
@@ -191,3 +206,11 @@ $(LIB_CORE_ERROR): $(LIB_CORE_ERROR_DEPS)
 
 core/error/apierror.o: core/error/apierror.cpp
 	g++ -c $(CFLAGS) core/error/apierror.cpp -o core/error/apierror.o
+
+
+# websocket protocol
+$(LIB_CORE_WEBSOCKET): $(LIB_CORE_WEBSOCKET_DEPS)
+	ar rvs $(LIB_CORE_WEBSOCKET) $(LIB_CORE_WEBSOCKET_DEPS)
+
+core/websocket/message.o: core/websocket/message.cpp
+	g++ -c $(CFLAGS) core/websocket/message.cpp -o core/websocket/message.o

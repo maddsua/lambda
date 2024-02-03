@@ -2,7 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_CONNECTION__
 
 #include "../network.hpp"
-#include "../sysnetw.hpp"
+#include "../compat.hpp"
 
 #include <vector>
 #include <string>
@@ -10,20 +10,21 @@
 
 namespace Lambda::Network::TCP {
 
-	struct ConnCreateInit {
-		SOCKET hSocket;
-		ConnectionInfo info;
-	};
-
 	class Connection {
 		protected:
-			SOCKET hSocket = INVALID_SOCKET;
+			SockHandle hSocket = -1;
 			ConnectionInfo m_info;
 			std::mutex m_readMutex;
 			std::mutex m_writeMutex;
 
 		public:
-			Connection(ConnCreateInit init);
+
+			struct ConnInit {
+				SockHandle hSocket;
+				ConnectionInfo info;
+			};
+
+			Connection(const ConnInit& init);
 			Connection(Connection&& other) noexcept;
 			Connection(const Connection& other) = delete;
 			~Connection();
@@ -38,10 +39,15 @@ namespace Lambda::Network::TCP {
 			void end() noexcept;
 			bool active() const noexcept;
 
+			void setTimeouts(uint32_t value, SetTimeoutsDirection direction);
+			void setTimeouts(uint32_t value);
+
 			static const uint32_t TimeoutMs = 15000;
-			static const uint32_t TimeoutMs_Max = 60000;
-			static const uint32_t TimeoutMs_Min = 100;
 			static const uint32_t ReadChunkSize = 2048;
+
+			struct {
+				bool closeOnTimeout = true;
+			} flags;
 	};
 };
 

@@ -1,6 +1,5 @@
 
-#include "../handlers.hpp"
-#include "../http.hpp"
+#include "../internal.hpp"
 #include "../../http/http.hpp"
 #include "../../../build_options.hpp"
 #include "../../polyfill/polyfill.hpp"
@@ -20,14 +19,16 @@
 
 using namespace Lambda;
 using namespace Lambda::Server;
-using namespace Lambda::HTTPServer;
 using namespace Lambda::Server::Handlers;
-using namespace Lambda::Network;
 
 Lambda::HTTP::Response renderServerErrorPage(std::string message);
 Lambda::HTTP::Response composeServerErrorResponse(std::string message);
 
-void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback) noexcept {
+void Handlers::serverlessHandler(
+	Network::TCP::Connection&& conn,
+	const ServeOptions& config,
+	const ServerlessCallback& handlerCallback
+) noexcept {
 
 	const auto& conninfo = conn.info();
 
@@ -48,28 +49,20 @@ void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOpt
 
 	try {
 
-		ConnectionContext rctx {
-			conn,
-			config.transport,
-			conn.info()
-		};
+		auto connctx = IncomingConnection(conn, config.transport);
+		while (auto nextOpt = connctx.nextRequest()){
 
-		while (auto nextOpt = requestReader(rctx)){
-			
 			if (!nextOpt.has_value()) break;
 
 			auto& next = nextOpt.value();
 			auto requestID = Crypto::ShortID().toString();
-
-			rctx.keepAlive = next.keepAlive;
-			rctx.acceptsEncoding = next.acceptsEncoding;
 
 			HTTP::Response response;
 			std::optional<std::string> handlerError;
 
 			try {
 
-				response = handlerCallback(next.request, {
+				response = handlerCallback(next, {
 					requestID,
 					conninfo,
 					Console(requestID, config.loglevel.timestamps)
@@ -97,19 +90,15 @@ void Handlers::serverlessHandler(Network::TCP::Connection&& conn, const ServeOpt
 
 			response.headers.set("x-request-id", requestID);
 
-			writeResponse(response, {
-				next.acceptsEncoding,
-				next.keepAlive,
-				rctx.conn
-			});
+			connctx.respond(response);
 
 			if (config.loglevel.requests) fprintf(stdout,
 				"%s[%s] (%s) %s %s --> %i\n",
 				createLogTimeStamp().c_str(),
 				requestID.c_str(),
 				conninfo.remoteAddr.hostname.c_str(),
-				static_cast<std::string>(next.request.method).c_str(),
-				next.request.url.pathname.c_str(),
+				static_cast<std::string>(next.method).c_str(),
+				next.url.pathname.c_str(),
 				response.status.code()
 			);
 		}

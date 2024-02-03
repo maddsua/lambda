@@ -1,12 +1,12 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK__
 #define __LIB_MADDSUA_LAMBDA_NETWORK__
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace Lambda::Network {
 
-	enum struct ConnectionTransport : int16_t {
+	enum struct ConnectionTransport {
 		TCP, UDP
 	};
 
@@ -16,9 +16,14 @@ namespace Lambda::Network {
 		ConnectionTransport transport;
 	};
 
+	struct ConnectionTimeouts {
+		uint32_t receive = 15000;
+		uint32_t send = 15000;
+	};
+
 	struct ConnectionInfo {
 		Address remoteAddr;
-		uint32_t timeout;
+		ConnectionTimeouts timeouts;
 		uint16_t hostPort;
 	};
 
@@ -27,6 +32,9 @@ namespace Lambda::Network {
 		class ListenSocket;
 	};
 
+	enum struct SetTimeoutsDirection {
+		Both, Send, Receive
+	};
 };
 
 #endif
