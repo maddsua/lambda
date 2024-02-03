@@ -7,6 +7,8 @@ using namespace Lambda::Storage;
 
 int main(int argc, char const *argv[]) {
 
+	const std::string dbfileloc = "tests/storage/data/db.db";
+
 	auto testData = std::initializer_list<std::pair<std::string, std::string>>({
 		{ "sample record", "sample value" },
 		{ "test_prop_1", "quick brown horse... whatever" },
@@ -22,7 +24,7 @@ int main(int argc, char const *argv[]) {
 
 	//	put some stuff into storage
 	{
-		LocalStorage localStorage("test/data/storage.db");
+		LocalStorage localStorage(dbfileloc);
 
 		for (const auto& item : testData) {
 			localStorage.setItem(item.first, item.second);
@@ -33,7 +35,7 @@ int main(int argc, char const *argv[]) {
 
 	//	now get it out of there
 	{
-		LocalStorage localStorage("test/data/storage.db");
+		LocalStorage localStorage(dbfileloc);
 
 		for (const auto& item : testData) {
 			auto value = localStorage.getItem(item.first);
@@ -53,7 +55,7 @@ int main(int argc, char const *argv[]) {
 
 	//	test record removal
 	{
-		LocalStorage localStorage("test/data/storage.db");
+		LocalStorage localStorage(dbfileloc);
 
 		for (const auto& item : removeList) {
 			if (localStorage.hasItem(item)) {
