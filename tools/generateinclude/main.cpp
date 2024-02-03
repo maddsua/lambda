@@ -10,12 +10,10 @@
 
 using namespace std::regex_constants;
 
-extern char _binary_tools_generateinclude_headerfile_txt_start;
-extern char _binary_tools_generateinclude_headerfile_txt_end;
-
 struct Options {
 	std::string inputHeader;
 	std::string outputHeader;
+	std::string templateFile;
 };
 
 struct IncludeCtx {
@@ -31,6 +29,7 @@ struct RecolvePathResult {
 RecolvePathResult parseIncludePath(const std::string input);
 std::string resolvePath(const std::string& a, const std::string& b);
 std::string includeHeader(const std::string& inputHeader, IncludeCtx& ctx);
+std::string readTextFile(const std::string& location);
 
 int main(int argc, char const *argv[]) {
 
@@ -49,6 +48,7 @@ int main(int argc, char const *argv[]) {
 
 		if (key == "entrypoint") opts.inputHeader = value;
 		else if (key == "output") opts.outputHeader = value;
+		else if (key == "template") opts.templateFile = value;
 	}
 
 	try {
@@ -58,6 +58,9 @@ int main(int argc, char const *argv[]) {
 
 		if (!opts.outputHeader.size())
 			throw std::runtime_error("ABORTED: Provide output file with --output=[filelocation]");
+
+		if (!opts.templateFile.size())
+			throw std::runtime_error("ABORTED: Provide template file with --template=[filelocation]");
 
 	} catch(const std::exception& e) {
 		std::cerr << e.what() << '\n';
@@ -79,10 +82,7 @@ int main(int argc, char const *argv[]) {
 		{ "merged_includes", mergedIncludes },
 	});
 
-	std::string result = std::string(
-		&_binary_tools_generateinclude_headerfile_txt_start,
-		&_binary_tools_generateinclude_headerfile_txt_end - &_binary_tools_generateinclude_headerfile_txt_start
-	);
+	std::string result = readTextFile(opts.templateFile);
 
 	for (const auto& item : templateReplacements) {
 		auto varexpr = std::regex("\\{\\s*\\{\\s*" + item.first + "\\s*\\}\\s*\\}", ECMAScript | icase);
@@ -96,6 +96,21 @@ int main(int argc, char const *argv[]) {
 	sfiHeader.write(result.data(), result.size());
 
 	return 0;
+}
+
+std::string readTextFile(const std::string& location) {
+
+	std::ifstream file(location, std::ios::binary);
+
+	if (!file.is_open()) {
+		throw std::runtime_error("couldn't read the file \"" + location + "\"\n");
+	}
+
+	std::vector<char> buffer(std::istreambuf_iterator<char>(file), {});
+
+	file.close();
+
+	return std::string(buffer.begin(), buffer.end());
 }
 
 RecolvePathResult parseIncludePath(const std::string input) {
@@ -127,7 +142,7 @@ std::string includeHeader(const std::string& inputHeaderPath, IncludeCtx& ctx) {
 	std::ifstream file(inputHeaderPath);
 
 	if (!file.is_open()) {
-		throw std::runtime_error("ahhh shit could'nt read the file \"" + inputHeaderPath + "\"\n");
+		throw std::runtime_error("couldn't read the file \"" + inputHeaderPath + "\"\n");
 	}
 
 	std::vector<std::string> lines;
