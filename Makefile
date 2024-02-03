@@ -35,11 +35,12 @@ all: all-before libshared all-after
 clean: action-custom
 	$(CLEAN_COMMAND)
 
-include Makefile.core.mk
-include Makefile.extra.mk
+include core/makefile
+include extra/makefile
+include examples/makefile
+
 include Makefile.test.mk
 include Makefile.tools.mk
-include Makefile.examples.mk
 
 # shared lib build
 libshared: $(LAMBDA_LIBSHARED)
