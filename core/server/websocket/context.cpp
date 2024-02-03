@@ -131,6 +131,7 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 
 				case OpCode::Close: {
 					this->m_stopped = true;
+					this->close(CloseReason::Normal);
 				} break;
 
 				case OpCode::Ping: {
