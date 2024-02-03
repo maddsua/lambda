@@ -27,6 +27,7 @@ WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& ini
 	});
 
 	this->respond(handshakeReponse);
+	this->ctx.buffer.clear();
 
 	this->activeProto = ActiveProtocol::WS;
 	return WebsocketContext(this->ctx.conn);
