@@ -1,7 +1,7 @@
 
 #include "./interface.hpp"
 #include "./driver.hpp"
-#include "../../core/util/byteswap.hpp"
+#include "../../core/utils/utils.hpp"
 
 #include <filesystem>
 #include <vector>
@@ -22,7 +22,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
 		DBBasicHeader dbHeader;
 		this->m_stream.read((char*)&dbHeader, sizeof(dbHeader));
-		dbHeader.version = normalizeByteOrder(dbHeader.version);
+		dbHeader.version = Utils::Bits::storenormx(dbHeader.version);
 
 		//	check if a file is even our db
 		if (memcmp(dbHeader.magic, this->magicstring, sizeof(dbHeader.magic))) {
@@ -51,9 +51,9 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 				throw std::runtime_error("Corrupt db file: incomplete record header");
 			}
 
-			auto opationType = static_cast<TransactionType>(normalizeByteOrder(recordHeader.type));
-			recordHeader.keySize = normalizeByteOrder(recordHeader.keySize);
-			recordHeader.valueSize = normalizeByteOrder(recordHeader.valueSize);
+			auto opationType = static_cast<TransactionType>(Utils::Bits::storenormx(recordHeader.type));
+			recordHeader.keySize = Utils::Bits::storenormx(recordHeader.keySize);
+			recordHeader.valueSize = Utils::Bits::storenormx(recordHeader.valueSize);
 
 			switch (opationType) {
 
@@ -131,7 +131,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 
 	DBBasicHeader dbHeader;
 	memcpy(dbHeader.magic, this->magicstring, sizeof(dbHeader.magic));
-	dbHeader.version = normalizeByteOrder(this->version);
+	dbHeader.version = Utils::Bits::storenormx(this->version);
 
 	this->m_stream.write((const char*)&dbHeader, sizeof(dbHeader));
 
@@ -169,9 +169,9 @@ std::optional<KVStorage> KVDriver::sync() {
 void KVDriver::handleTransaction(const Transaction& tractx) {
 
 	KVDriver::RecordHeader recordHeader {
-		normalizeByteOrder(static_cast<std::underlying_type_t<TransactionType>>(tractx.type)),
-		normalizeByteOrder(static_cast<uint16_t>(tractx.key ? tractx.key->size() : 0)),
-		normalizeByteOrder(static_cast<uint32_t>(tractx.value ? tractx.value->size() : 0))
+		Utils::Bits::storenormx(static_cast<std::underlying_type_t<TransactionType>>(tractx.type)),
+		Utils::Bits::storenormx(static_cast<uint16_t>(tractx.key ? tractx.key->size() : 0)),
+		Utils::Bits::storenormx(static_cast<uint32_t>(tractx.value ? tractx.value->size() : 0))
 	};
 
 	this->m_stream.write((const char*)&recordHeader, sizeof(recordHeader));
