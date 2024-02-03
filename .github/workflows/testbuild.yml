@@ -26,7 +26,7 @@ jobs:
       - name: build dll info updater
         run: make tool.updatedllinfo
       - name: build SFI generator
-        run: make tool.generateinclude
+        run: make tool.gensfi
 
   build_and_run_tests:
     needs: build_lib
