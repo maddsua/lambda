@@ -1,6 +1,6 @@
 
 LIB_CORE				=	core/core.a
-LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS) $(LIB_CORE_ERROR_DEPS) $(LIB_CORE_WEBSOCKET_DEPS)
+LIB_CORE_DEPS			=	$(LIB_CORE_POLYFILL_DEPS) $(LIB_CORE_HTTP_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_NETWORK_DEPS) $(LIB_CORE_COMPRESS_DEPS) $(LIB_CORE_SERVER_DEPS) $(LIB_CORE_CRYPTO_DEPS) $(LIB_CORE_HTML_DEPS) $(LIB_CORE_JSON_DEPS) $(LIB_CORE_ERROR_DEPS) $(LIB_CORE_WEBSOCKET_DEPS) $(LIB_CORE_UTILS_DEPS)
 
 LIB_CORE_POLYFILL		=	core/polyfill.a
 LIB_CORE_POLYFILL_DEPS	=	core/polyfill/strings.o core/polyfill/date.o core/polyfill/mimetype.o
@@ -35,6 +35,9 @@ LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o  core/crypto/uid.o
 
 LIB_CORE_ERROR			=	core/error.a
 LIB_CORE_ERROR_DEPS		=	core/error/apierror.o
+
+LIB_CORE_UTILS			=	core/utils.a
+LIB_CORE_UTILS_DEPS		=	core/utils/byteswap.o
 
 
 # target object
@@ -214,3 +217,11 @@ $(LIB_CORE_WEBSOCKET): $(LIB_CORE_WEBSOCKET_DEPS)
 
 core/websocket/message.o: core/websocket/message.cpp
 	g++ -c $(CFLAGS) core/websocket/message.cpp -o core/websocket/message.o
+
+
+# lib utils
+$(LIB_CORE_UTILS): $(LIB_CORE_UTILS_DEPS)
+	ar rvs $(LIB_CORE_UTILS) $(LIB_CORE_UTILS_DEPS)
+
+core/utils/byteswap.o: core/utils/byteswap.cpp
+	g++ -c $(CFLAGS) core/utils/byteswap.cpp -o core/utils/byteswap.o
