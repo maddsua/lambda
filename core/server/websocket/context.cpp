@@ -46,7 +46,7 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 
 			//	send ping or terminate websocket if there is no response
 			if ((lastPing - lastPingResponse) > pingWindow) {
-
+				this->close(CloseReason::ProtocolError);
 				throw std::runtime_error("Didn't receive any response for pings");
 
 			} else if ((std::chrono::steady_clock::now() - lastPing) > std::chrono::milliseconds(wsActTimeout)) {
@@ -81,6 +81,7 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 
 			if (!opcodeValid) {
 				auto opcodeInt = static_cast<std::underlying_type_t<OpCode>>(frameHeader.opcode);
+				this->close(CloseReason::ProtocolError);
 				throw std::runtime_error("received an invalid opcode (" + std::to_string(opcodeInt) + ")");
 			}
 
@@ -93,6 +94,7 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 				auto payloadChunk = this->conn.read(expectedSize);
 
 				if (payloadChunk.size() < expectedSize) {
+					this->close(CloseReason::ProtocolError);
 					throw std::runtime_error("failed to read websocket frame: not enough data");
 				}
 
@@ -100,6 +102,7 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 			}
 
 			if (!(frameHeader.mask.has_value() || multipartCtx.has_value())) {
+				this->close(CloseReason::ProtocolError);
 				throw std::runtime_error("received unmasked data from the client");
 			}
 
@@ -149,7 +152,8 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 					if (std::equal(payloadBuff.begin(), payloadBuff.end(), wsPingString.begin(), wsPingString.end())) {
 						lastPingResponse = std::chrono::steady_clock::now();
 					} else {
-						throw std::runtime_error("wrong pong reponse");
+						this->close(CloseReason::ProtocolError);
+						throw std::runtime_error("invalid pong reponse");
 					}
 
 				} break;
@@ -179,7 +183,9 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 }
 
 WebsocketContext::~WebsocketContext() {
+
 	this->m_stopped = true;
+
 	if (this->m_reader.valid()) {
 		try { this->m_reader.get(); }
 			catch (...) {}
