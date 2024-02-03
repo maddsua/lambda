@@ -3,7 +3,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include "../version.hpp"
+#include "../../version.hpp"
 
 struct Options {
 	std::string input;

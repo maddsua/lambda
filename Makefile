@@ -38,9 +38,9 @@ clean: action-custom
 include core/Makefile
 include extra/Makefile
 include examples/Makefile
+include tools/Makefile
 
 include Makefile.test.mk
-include Makefile.tools.mk
 
 # shared lib build
 libshared: $(LAMBDA_LIBSHARED)

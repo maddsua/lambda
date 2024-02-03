@@ -8,6 +8,7 @@ on:
     branches: ['main']
 
 jobs:
+
   build_lib:
     runs-on: ubuntu-latest
     steps:
@@ -16,8 +17,18 @@ jobs:
         run: make libstatic target=prod
       - name: build shared lib
         run: make libshared target=prod
-      - name: Generate single file include
-        run: make gensfi
+#      - name: Generate single file include
+#        run: make gensfi
+
+  build_tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build dll info updater
+        run: make tool.updatedllinfo
+      - name: build SFI generator
+        run: make tool.generateinclude
+
   build_and_run_tests:
     needs: build_lib
     runs-on: ubuntu-latest
@@ -44,6 +55,7 @@ jobs:
         run: make test.brotli
       - name: Error messages test
         run: make test.errors
+
   build_examples:
     needs: build_lib
     runs-on: ubuntu-latest

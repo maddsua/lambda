@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <regex>
 
-#include "../version.hpp"
+#include "../../version.hpp"
 
 using namespace std::regex_constants;
 
