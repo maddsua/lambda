@@ -49,11 +49,12 @@ test/json.test.o: test/json.test.cpp
 
 # Test Storage extra module
 TEST_STORAGE_TARGET = $(EXEPFX)storage.test$(EXEEXT)
+TEST_STORAGE_DEPS	= $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_CORE_UTILS_DEPS)
 test.storage: $(TEST_STORAGE_TARGET)
 	$(TEST_STORAGE_TARGET)
 
-$(TEST_STORAGE_TARGET): test/storage.test.o $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS)
-	g++ $(CFLAGS) test/storage.test.cpp $(LIB_EXTRA_STORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) -o $(TEST_STORAGE_TARGET)
+$(TEST_STORAGE_TARGET): test/storage.test.o $(TEST_STORAGE_DEPS)
+	g++ $(CFLAGS) test/storage.test.cpp $(TEST_STORAGE_DEPS) -o $(TEST_STORAGE_TARGET)
 
 test/storage.test.o: test/storage.test.cpp
 	g++ -c $(CFLAGS) test/storage.test.cpp -o test/storage.test.o
