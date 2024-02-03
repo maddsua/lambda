@@ -35,36 +35,48 @@ namespace Lambda {
 			int32_t code() const noexcept;
 	};
 
-	namespace Utils {
+	namespace Bits {
 
-		namespace Bits {
+		/**
+		 * Normalize host/network byte order
+		 * Network byte order is big endian.
+		 * These functions swap byte order on little-endian systems and leave it intact otherwise
+		 * Is an overloaded function for all int/uint 16-64 for both way conversions
+		*/
+		int16_t netwnormx(int16_t val);
+		uint16_t netwnormx(uint16_t val);
+		int32_t netwnormx(int32_t val);
+		uint32_t netwnormx(uint32_t val);
+		int64_t netwnormx(int64_t val);
+		uint64_t netwnormx(uint64_t val);
 
-			/**
-			 * Normalize host/network byte order
-			 * Network byte order is big endian.
-			 * These functions swap byte order on little-endian systems and leave it intact otherwise
-			 * Is an overloaded function for all int/uint 16-64 for both way conversions
-			*/
-			int16_t netwnormx(int16_t val);
-			uint16_t netwnormx(uint16_t val);
-			int32_t netwnormx(int32_t val);
-			uint32_t netwnormx(uint32_t val);
-			int64_t netwnormx(int64_t val);
-			uint64_t netwnormx(uint64_t val);
+		/**
+		 * Normalize "storage" byte order
+		 * "Storage" byte order is little endian.
+		 * Swaps endianess on big-endian systems and leaves it intact otherwise
+		 * Is an overloaded function for all int/uint 16-64 for both way conversions
+		*/
+		int16_t storenormx(int16_t val);
+		uint16_t storenormx(uint16_t val);
+		int32_t storenormx(int32_t val);
+		uint32_t storenormx(uint32_t val);
+		int64_t storenormx(int64_t val);
+		uint64_t storenormx(uint64_t val);
+	};
 
-			/**
-			 * Normalize "storage" byte order
-			 * "Storage" byte order is little endian.
-			 * Swaps endianess on big-endian systems and leaves it intact otherwise
-			 * Is an overloaded function for all int/uint 16-64 for both way conversions
-			*/
-			int16_t storenormx(int16_t val);
-			uint16_t storenormx(uint16_t val);
-			int32_t storenormx(int32_t val);
-			uint32_t storenormx(uint32_t val);
-			int64_t storenormx(int64_t val);
-			uint64_t storenormx(uint64_t val);
-		};
+	namespace Literals {
+
+		constexpr size_t operator""_GB(size_t const size) {
+			return 1024 * 1024 * 1024 * size;
+		}
+
+		constexpr size_t operator""_MB(size_t const size) {
+			return 1024 * 1024 * size;
+		}
+
+		constexpr size_t operator""_KB(size_t const size) {
+			return 1024 * size;
+		}
 	};
 };
 
