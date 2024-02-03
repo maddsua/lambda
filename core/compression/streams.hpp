@@ -1,6 +1,8 @@
 #ifndef  __LIB_MADDSUA_LAMBDA_EXTRA_COMPRESSION_STREAMS__
 #define  __LIB_MADDSUA_LAMBDA_EXTRA_COMPRESSION_STREAMS__
 
+#include "../utils/utils.hpp"
+
 #include <cstring>
 #include <brotli/encode.h>
 #include <brotli/decode.h>
@@ -8,12 +10,14 @@
 
 #include <stdexcept>
 
-namespace Lambda::Compress {
+namespace Lambda::Compress::Streams {
+
+	using namespace Lambda::Literals;
 
 	class BrotliCompressStream {
 		public:
 			BrotliEncoderState* stream = nullptr;
-			static const size_t chunk = (128 * 1024);
+			static const size_t chunk = 128_KB;
 
 			BrotliCompressStream();
 			~BrotliCompressStream();
@@ -22,7 +26,7 @@ namespace Lambda::Compress {
 	class BrotliDecompressStream {
 		public:
 			BrotliDecoderState* stream = nullptr;
-			static const size_t chunk = (128 * 1024);
+			static const size_t chunk = 128_KB;
 
 			BrotliDecompressStream();
 			~BrotliDecompressStream();
@@ -31,7 +35,7 @@ namespace Lambda::Compress {
 	class ZlibStream {
 		public:
 			z_stream stream;
-			static const size_t chunk = (128 * 1024);
+			static const size_t chunk = 128_KB;
 
 			ZlibStream();
 
