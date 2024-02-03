@@ -35,9 +35,9 @@ all: all-before libshared all-after
 clean: action-custom
 	$(CLEAN_COMMAND)
 
-include core/makefile
-include extra/makefile
-include examples/makefile
+include core/Makefile
+include extra/Makefile
+include examples/Makefile
 
 include Makefile.test.mk
 include Makefile.tools.mk
