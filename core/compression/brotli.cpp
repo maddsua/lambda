@@ -2,6 +2,22 @@
 #include "./streams.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Compress;
+using namespace Lambda::Compress::Streams;
+
+BrotliCompressStream::BrotliCompressStream() {
+	this->stream = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
+}
+BrotliCompressStream::~BrotliCompressStream() {
+	BrotliEncoderDestroyInstance(this->stream);
+}
+
+BrotliDecompressStream::BrotliDecompressStream() {
+	this->stream = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
+}
+BrotliDecompressStream::~BrotliDecompressStream() {
+	BrotliDecoderDestroyInstance(this->stream);
+}
 
 std::vector<uint8_t> Compress::brotliCompressBuffer(const std::vector<uint8_t>& input, Quality quality) {
 

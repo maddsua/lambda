@@ -1,6 +1,6 @@
 
 #	single file include generator
-TOOL_GENSFI_TARGET = $(EXEPFX)gensfi$(EXEEXT)
+TOOL_GENSFI_TARGET = $(EXEPFX)gensfitool$(EXEEXT)
 tool.gensfi: $(TOOL_GENSFI_TARGET)
 
 $(TOOL_GENSFI_TARGET): tools/gensfi/main.cpp
