@@ -82,26 +82,26 @@ namespace Lambda {
 
 	namespace Console {
 
-			struct LogEntry {
-				LogEntry(const std::string& thing);
-				LogEntry(const char* thing);
-				LogEntry(bool thing);
-				LogEntry(char thing);
-				LogEntry(unsigned char thing);
-				LogEntry(short thing);
-				LogEntry(unsigned short thing);
-				LogEntry(int thing);
-				LogEntry(unsigned int thing);
-				LogEntry(float thing);
-				LogEntry(double thing);
-				LogEntry(long thing);
-				LogEntry(unsigned long thing);
-				LogEntry(long long thing);
-				LogEntry(unsigned long long thing);
-				LogEntry(long double thing);
+		struct LogEntry {
+			LogEntry(const std::string& thing);
+			LogEntry(const char* thing);
+			LogEntry(bool thing);
+			LogEntry(char thing);
+			LogEntry(unsigned char thing);
+			LogEntry(short thing);
+			LogEntry(unsigned short thing);
+			LogEntry(int thing);
+			LogEntry(unsigned int thing);
+			LogEntry(float thing);
+			LogEntry(double thing);
+			LogEntry(long thing);
+			LogEntry(unsigned long thing);
+			LogEntry(long long thing);
+			LogEntry(unsigned long long thing);
+			LogEntry(long double thing);
 
-				std::string value;
-			};
+			std::string value;
+		};
 
 		class GlobalSyncConsole {
 			private:
