@@ -2,7 +2,6 @@
 #define __LIB_MADDSUA_LAMBDA_NETWORK_TCP_CONNECTION__
 
 #include "../network.hpp"
-#include "../compat.hpp"
 
 #include <vector>
 #include <string>
@@ -12,19 +11,14 @@ namespace Lambda::Network::TCP {
 
 	class Connection {
 		protected:
-			SockHandle hSocket = -1;
+			SockHandle hSocket;
 			ConnectionInfo m_info;
 			std::mutex m_readMutex;
 			std::mutex m_writeMutex;
 
 		public:
 
-			struct ConnInit {
-				SockHandle hSocket;
-				ConnectionInfo info;
-			};
-
-			Connection(const ConnInit& init);
+			Connection(SockHandle handleInit, const ConnectionInfo& infoInit);
 			Connection(Connection&& other) noexcept;
 			Connection(const Connection& other) = delete;
 			~Connection();

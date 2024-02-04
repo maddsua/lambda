@@ -4,38 +4,38 @@
 using namespace Lambda::Network;
 using namespace Lambda::Network::TCP;
 
-Connection::Connection(const ConnInit& init) {
-	this->m_info = init.info;
-	this->hSocket = init.hSocket;
-}
+Connection::Connection(
+	SockHandle handleInit,
+	const ConnectionInfo& infoInit
+) : hSocket(handleInit), m_info(infoInit) {}
 
 Connection& Connection::operator= (Connection&& other) noexcept {
 	this->hSocket = other.hSocket;
 	this->m_info = other.m_info;
-	other.hSocket = Network::invalid_socket;
+	other.hSocket = INVALID_SOCKET;
 	return *this;
 }
 
 Connection::Connection(Connection&& other) noexcept {
 	this->hSocket = other.hSocket;
 	this->m_info = other.m_info;
-	other.hSocket = Network::invalid_socket;
+	other.hSocket = INVALID_SOCKET;
 }
 
 Connection::~Connection() {
-	if (this->hSocket == Network::invalid_socket) return;
+	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
 
 void Connection::end() noexcept {
 
-	if (this->hSocket == Network::invalid_socket) return;
+	if (this->hSocket == INVALID_SOCKET) return;
 
 	//	swapping handle to a temp variable so that
 	//	no race condition can occur further down the chain
 	auto tempHandle = this->hSocket;
-	this->hSocket = Network::invalid_socket;
+	this->hSocket = INVALID_SOCKET;
 
 	shutdown(tempHandle, SD_BOTH);
 	closesocket(tempHandle);
@@ -46,12 +46,12 @@ const ConnectionInfo& Connection::info() const noexcept {
 }
 
 bool Connection::active() const noexcept {
-	return this->hSocket != Network::invalid_socket;
+	return this->hSocket != INVALID_SOCKET;
 }
 
 void Connection::write(const std::vector<uint8_t>& data) {
 
-	if (this->hSocket == Network::invalid_socket)
+	if (this->hSocket == INVALID_SOCKET)
 		throw std::runtime_error("cann't write to a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->m_writeMutex);
@@ -68,7 +68,7 @@ std::vector<uint8_t> Connection::read() {
 
 std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
-	if (this->hSocket == Network::invalid_socket)
+	if (this->hSocket == INVALID_SOCKET)
 		throw std::runtime_error("can't read from a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->m_readMutex);

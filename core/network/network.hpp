@@ -35,6 +35,12 @@ namespace Lambda::Network {
 	enum struct SetTimeoutsDirection {
 		Both, Send, Receive
 	};
+
+	#ifdef _WIN32
+		typedef uint64_t SockHandle;
+	#else
+		typedef int32_t SockHandle;
+	#endif
 };
 
 #endif

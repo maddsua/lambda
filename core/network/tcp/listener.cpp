@@ -5,18 +5,15 @@
 using namespace Lambda::Network;
 using namespace Lambda::Network::TCP;
 
-ListenSocket::ListenSocket(const ListenConfig& init) {
+ListenSocket::ListenSocket(const ListenConfig& init) : config(init) {
 
 	//	special threatment for windows and it's fucking WSA
 	#ifdef _WIN32
 		wsaWakeUp();
 	#endif
 
-	//	just save config for later
-	this->config = init;
-
 	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (this->hSocket == Network::invalid_socket) {
+	if (this->hSocket == INVALID_SOCKET) {
 		throw Lambda::APIError("failed to create listen socket");
 	}
 
@@ -52,7 +49,7 @@ ListenSocket::ListenSocket(const ListenConfig& init) {
 }
 
 ListenSocket::~ListenSocket() {
-	if (this->hSocket == Network::invalid_socket) return;
+	if (this->hSocket == INVALID_SOCKET) return;
 	shutdown(this->hSocket, SD_BOTH);
 	closesocket(this->hSocket);
 }
@@ -60,20 +57,20 @@ ListenSocket::~ListenSocket() {
 ListenSocket::ListenSocket(ListenSocket&& other) noexcept {
 	this->hSocket = other.hSocket;
 	this->config = other.config;
-	other.hSocket = Network::invalid_socket;
+	other.hSocket = INVALID_SOCKET;
 }
 
 ListenSocket& ListenSocket::operator= (ListenSocket&& other) noexcept {
 	this->hSocket = other.hSocket;
 	this->config = other.config;
-	other.hSocket = Network::invalid_socket;
+	other.hSocket = INVALID_SOCKET;
 	return *this;
 }
 
 std::optional<Connection> ListenSocket::acceptConnection() {
 
 	//	check that we have a valid socket
-	if (this->hSocket == Network::invalid_socket) {
+	if (this->hSocket == INVALID_SOCKET) {
 		throw std::runtime_error("cannot accept anything from a closed socket");
 	}
 
@@ -83,8 +80,8 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 	auto nextSocket = accept(this->hSocket, (sockaddr*)&peerAddr, &clientAddrLen);
 
 	//	verify that we have a valid socket
-	if (nextSocket == Network::invalid_socket) {
-		if (this->hSocket == Network::invalid_socket) return std::nullopt;
+	if (nextSocket == INVALID_SOCKET) {
+		if (this->hSocket == INVALID_SOCKET) return std::nullopt;
 		throw Lambda::APIError("socket accept failed");
 	}
 
@@ -116,7 +113,7 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 }
 
 bool ListenSocket::active() const noexcept {
-	return this->hSocket != Network::invalid_socket;
+	return this->hSocket != INVALID_SOCKET;
 }
 
 const ListenConfig& ListenSocket::getConfig() const noexcept {
@@ -125,10 +122,10 @@ const ListenConfig& ListenSocket::getConfig() const noexcept {
 
 void ListenSocket::stop() noexcept {
 
-	if (this->hSocket == Network::invalid_socket) return;
+	if (this->hSocket == INVALID_SOCKET) return;
 
 	auto tempHandle = this->hSocket;
-	this->hSocket = Network::invalid_socket;
+	this->hSocket = INVALID_SOCKET;
 
 	shutdown(tempHandle, SD_BOTH);
 	closesocket(tempHandle);
