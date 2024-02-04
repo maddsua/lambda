@@ -144,7 +144,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 	}
 
 	auto acceptEncodingHeader = next.request.headers.get("accept-encoding");
-	if (acceptEncodingHeader.size()) {
+	if (ctx.topts.useCompression && acceptEncodingHeader.size()) {
 
 		auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
 		auto acceptEncodingsSet = std::set<std::string>(encodingNames.begin(), encodingNames.end());
