@@ -76,9 +76,7 @@ void Handlers::serverlessHandler(
 
 			if (handlerError.has_value()) {
 
-				response = config.errorResponseType == ErrorResponseType::JSON ? 
-					composeServerErrorResponse(handlerError.value()) :
-					renderServerErrorPage(handlerError.value());
+				response = Servicepage::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 
 				if (config.loglevel.requests) fprintf(stderr,
 					"%s%s crashed: %s\n",
