@@ -22,7 +22,7 @@ HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& mess
 
 		pagecontent = renderTemplate(templateSource, {
 			{ "svcpage_statuscode", std::to_string(code.code()) },
-			{ "svcpage_statustext", "service error" },
+			{ "svcpage_statustext", code.text() },
 			{ "svcpage_message_text", message }
 		});
 
@@ -31,7 +31,7 @@ HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& mess
 		JSON::Map responseObject = {
 			{ "ok", false },
 			{ "status", "failed" },
-			{ "context", "service error" },
+			{ "context", code.text() },
 			{ "what", message }
 		};
 
