@@ -22,7 +22,7 @@ WebsocketContext::WebsocketContext(
 	this->conn.flags.closeOnTimeout = false;
 	this->conn.setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
 
-	this->m_reader = std::async(WebsocketContext::asyncWorker, this);
+	this->m_reader = std::async(&WebsocketContext::asyncWorker, this);
 }
 
 WebsocketContext::~WebsocketContext() {
