@@ -44,13 +44,11 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 		headerEnded = std::search(ctx.buffer.begin(), ctx.buffer.end(), patternEndHeader.begin(), patternEndHeader.end());
 
 		if (ctx.buffer.size() > ctx.cfg.maxRequestSize) {
+
 			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
-			writeResponse(errorResponse, {
-				ContentEncodings::None,
-				false,
-				ctx.conn
-			});
+			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
 			ctx.conn.end();
+
 			throw std::runtime_error("request header size too big");
 		}
 	}
@@ -165,15 +163,12 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 	if (bodySize) {
 
-		auto totalRequestSize = std::distance(ctx.buffer.begin(), headerEnded) + bodySize;
-		if (totalRequestSize > ctx.cfg.maxRequestSize) {
+		if ((std::distance(ctx.buffer.begin(), headerEnded) + bodySize) > ctx.cfg.maxRequestSize) {
+
 			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
-			writeResponse(errorResponse, {
-				ContentEncodings::None,
-				false,
-				ctx.conn
-			});
+			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
 			ctx.conn.end();
+
 			throw std::runtime_error("total request size too big");
 		}
 
