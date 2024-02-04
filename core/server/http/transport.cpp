@@ -43,7 +43,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 		ctx.buffer.insert(ctx.buffer.end(), newBytes.begin(), newBytes.end());
 		headerEnded = std::search(ctx.buffer.begin(), ctx.buffer.end(), patternEndHeader.begin(), patternEndHeader.end());
 
-		if (ctx.buffer.size() > ctx.cfg.maxRequestSize) {
+		if (ctx.buffer.size() > ctx.topts.maxRequestSize) {
 
 			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ctx.errorResponseType);
 			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
@@ -137,7 +137,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 		}
 	}
 
-	if (ctx.cfg.reuseConnections) {
+	if (ctx.topts.reuseConnections) {
 		auto connectionHeader = next.request.headers.get("connection");
 		if (ctx.keepAlive) ctx.keepAlive = !Strings::includes(connectionHeader, "close");
 			else ctx.keepAlive = Strings::includes(connectionHeader, "keep-alive");
@@ -163,7 +163,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 	if (bodySize) {
 
-		if ((std::distance(ctx.buffer.begin(), headerEnded) + bodySize) > ctx.cfg.maxRequestSize) {
+		if ((std::distance(ctx.buffer.begin(), headerEnded) + bodySize) > ctx.topts.maxRequestSize) {
 
 			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ctx.errorResponseType);
 			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
