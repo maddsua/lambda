@@ -44,9 +44,13 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 		headerEnded = std::search(ctx.buffer.begin(), ctx.buffer.end(), patternEndHeader.begin(), patternEndHeader.end());
 
 		if (ctx.buffer.size() > ctx.cfg.maxRequestSize) {
-			//	throw an error here
-			std::string deferrorresp = "HTTP/1.1 400\r\n\r\nRequest size too big";
-			ctx.conn.write(std::vector<uint8_t>(deferrorresp.begin(), deferrorresp.end()));
+			auto errorResponse = Servicepage::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
+			writeResponse(errorResponse, {
+				ContentEncodings::None,
+				false,
+				ctx.conn
+			});
+			ctx.conn.end();
 			throw std::runtime_error("request header size too big");
 		}
 	}
@@ -163,9 +167,13 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 		auto totalRequestSize = std::distance(ctx.buffer.begin(), headerEnded) + bodySize;
 		if (totalRequestSize > ctx.cfg.maxRequestSize) {
-			//	throw an error here
-			std::string deferrorresp = "HTTP/1.1 400\r\n\r\nRequest size too big";
-			ctx.conn.write(std::vector<uint8_t>(deferrorresp.begin(), deferrorresp.end()));
+			auto errorResponse = Servicepage::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
+			writeResponse(errorResponse, {
+				ContentEncodings::None,
+				false,
+				ctx.conn
+			});
+			ctx.conn.end();
 			throw std::runtime_error("total request size too big");
 		}
 
