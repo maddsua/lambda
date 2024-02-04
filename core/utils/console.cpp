@@ -3,58 +3,58 @@
 #include "./utils.hpp"
 
 using namespace Lambda;
-using namespace Lambda::Console;
+using namespace Lambda::SyncOut;
 
-LogEntry::LogEntry(const std::string& thing) {
+MgsOverload::MgsOverload(const std::string& thing) {
 	this->value = thing;
 }
-LogEntry::LogEntry(const char* thing) {
+MgsOverload::MgsOverload(const char* thing) {
 	this->value = thing;
 }
-LogEntry::LogEntry(bool thing) {
+MgsOverload::MgsOverload(bool thing) {
 	this->value = thing ? "true" : "false";
 }
-LogEntry::LogEntry(char thing) {
+MgsOverload::MgsOverload(char thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(unsigned char thing) {
+MgsOverload::MgsOverload(unsigned char thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(short thing) {
+MgsOverload::MgsOverload(short thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(unsigned short thing) {
+MgsOverload::MgsOverload(unsigned short thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(int thing) {
+MgsOverload::MgsOverload(int thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(unsigned int thing) {
+MgsOverload::MgsOverload(unsigned int thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(float thing) {
+MgsOverload::MgsOverload(float thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(double thing) {
+MgsOverload::MgsOverload(double thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(long thing) {
+MgsOverload::MgsOverload(long thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(unsigned long thing) {
+MgsOverload::MgsOverload(unsigned long thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(long long thing) {
+MgsOverload::MgsOverload(long long thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(unsigned long long thing) {
+MgsOverload::MgsOverload(unsigned long long thing) {
 	this->value = std::to_string(thing);
 }
-LogEntry::LogEntry(long double thing) {
+MgsOverload::MgsOverload(long double thing) {
 	this->value = std::to_string(thing);
 }
 
-std::string GlobalConsole::serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept {
+std::string WrapperImpl::serializeEntries(const std::initializer_list<MgsOverload>& list) const noexcept {
 
 	std::string temp;
 
@@ -68,16 +68,16 @@ std::string GlobalConsole::serializeEntries(const std::initializer_list<LogEntry
 	return temp;
 }
 
-void GlobalConsole::log(std::initializer_list<LogEntry> list) noexcept {
+void WrapperImpl::log(std::initializer_list<MgsOverload> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stdout);
 }
 
-void GlobalConsole::error(std::initializer_list<LogEntry> list) noexcept {
+void WrapperImpl::error(std::initializer_list<MgsOverload> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }
 
-Console::GlobalConsole Lambda::console = GlobalConsole();
+SyncOut::WrapperImpl Lambda::syncout = WrapperImpl();

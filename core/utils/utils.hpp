@@ -80,41 +80,41 @@ namespace Lambda {
 		}
 	};
 
-	namespace Console {
+	namespace SyncOut {
 
-		struct LogEntry {
-			LogEntry(const std::string& thing);
-			LogEntry(const char* thing);
-			LogEntry(bool thing);
-			LogEntry(char thing);
-			LogEntry(unsigned char thing);
-			LogEntry(short thing);
-			LogEntry(unsigned short thing);
-			LogEntry(int thing);
-			LogEntry(unsigned int thing);
-			LogEntry(float thing);
-			LogEntry(double thing);
-			LogEntry(long thing);
-			LogEntry(unsigned long thing);
-			LogEntry(long long thing);
-			LogEntry(unsigned long long thing);
-			LogEntry(long double thing);
+		struct MgsOverload {
+			MgsOverload(const std::string& thing);
+			MgsOverload(const char* thing);
+			MgsOverload(bool thing);
+			MgsOverload(char thing);
+			MgsOverload(unsigned char thing);
+			MgsOverload(short thing);
+			MgsOverload(unsigned short thing);
+			MgsOverload(int thing);
+			MgsOverload(unsigned int thing);
+			MgsOverload(float thing);
+			MgsOverload(double thing);
+			MgsOverload(long thing);
+			MgsOverload(unsigned long thing);
+			MgsOverload(long long thing);
+			MgsOverload(unsigned long long thing);
+			MgsOverload(long double thing);
 
 			std::string value;
 		};
 
-		class GlobalConsole {
+		class WrapperImpl {
 			private:
-				std::string serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept;
+				std::string serializeEntries(const std::initializer_list<MgsOverload>& list) const noexcept;
 				std::mutex m_write_lock;
 
 			public:
-				void log(std::initializer_list<LogEntry> list) noexcept;
-				void error(std::initializer_list<LogEntry> list) noexcept;
+				void log(std::initializer_list<MgsOverload> list) noexcept;
+				void error(std::initializer_list<MgsOverload> list) noexcept;
 		};
 	};
 
-	extern Console::GlobalConsole console;
+	extern SyncOut::WrapperImpl syncout;
 
 };
 
