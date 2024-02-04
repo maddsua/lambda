@@ -6,52 +6,54 @@ using namespace Lambda;
 using namespace Lambda::SyncOut;
 
 MgsOverload::MgsOverload(const std::string& thing) {
-	this->value = thing;
+	if (!thing.size()) return;
+	this->valueOpt = thing;
 }
 MgsOverload::MgsOverload(const char* thing) {
-	this->value = thing;
+	if (thing == nullptr || !thing[0]) return;
+	this->valueOpt = thing;
 }
 MgsOverload::MgsOverload(bool thing) {
-	this->value = thing ? "true" : "false";
+	this->valueOpt = thing ? "true" : "false";
 }
 MgsOverload::MgsOverload(char thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(unsigned char thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(short thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(unsigned short thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(int thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(unsigned int thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(float thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(double thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(long thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(unsigned long thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(long long thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(unsigned long long thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 MgsOverload::MgsOverload(long double thing) {
-	this->value = std::to_string(thing);
+	this->valueOpt = std::to_string(thing);
 }
 
 std::string WrapperImpl::serializeEntries(const std::initializer_list<MgsOverload>& list) const noexcept {
@@ -59,8 +61,9 @@ std::string WrapperImpl::serializeEntries(const std::initializer_list<MgsOverloa
 	std::string temp;
 
 	for (auto elem : list) {
+		if (!elem.valueOpt.has_value()) continue;
 		if (temp.size()) temp.push_back(' ');
-		temp += elem.value;
+		temp += elem.valueOpt.value();
 	}
 
 	temp.push_back('\n');

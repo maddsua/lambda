@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <mutex>
+#include <optional>
 
 namespace Lambda {
 
@@ -83,6 +84,7 @@ namespace Lambda {
 	namespace SyncOut {
 
 		struct MgsOverload {
+			MgsOverload() = default;
 			MgsOverload(const std::string& thing);
 			MgsOverload(const char* thing);
 			MgsOverload(bool thing);
@@ -100,7 +102,7 @@ namespace Lambda {
 			MgsOverload(unsigned long long thing);
 			MgsOverload(long double thing);
 
-			std::string value;
+			std::optional<std::string> valueOpt;
 		};
 
 		class WrapperImpl {
