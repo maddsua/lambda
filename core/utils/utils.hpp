@@ -111,13 +111,23 @@ namespace Lambda {
 				std::mutex m_write_lock;
 
 			public:
+				/**
+				 * Print log items to stdout
+				*/
 				void log(MgsOverload item) noexcept;
 				void log(std::initializer_list<MgsOverload> list) noexcept;
+				/**
+				 * Print log items to stderr
+				*/
 				void error(MgsOverload item) noexcept;
 				void error(std::initializer_list<MgsOverload> list) noexcept;
 		};
 	};
 
+	/**
+	 * Thread-safe stdout and stderr in a single pagages.
+	 * Type overloads included. Yummy!
+	*/
 	extern SyncOut::WrapperImpl syncout;
 
 };
