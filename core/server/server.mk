@@ -1,6 +1,6 @@
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/http/connection.o core/server/http/transport.o core/server/http/upgrade.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o core/server/websocket/context.o core/server/websocket/transport.o
+LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/http/connection.o core/server/http/transport.o core/server/http/upgrade.o core/server/console.o core/server/handlers/serverless.o core/server/handlers/connection.o core/server/websocket/context.o core/server/websocket/transport.o core/server/pages/errorpage.o
 
 # server stuff
 $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
@@ -32,3 +32,6 @@ core/server/websocket/context.o: core/server/websocket/context.cpp
 
 core/server/websocket/transport.o: core/server/websocket/transport.cpp
 	g++ -c $(CFLAGS) core/server/websocket/transport.cpp -o core/server/websocket/transport.o
+
+core/server/pages/errorpage.o: core/server/pages/errorpage.cpp
+	g++ -c $(CFLAGS) core/server/pages/errorpage.cpp -o core/server/pages/errorpage.o
