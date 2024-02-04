@@ -9,7 +9,7 @@ void Handlers::connectionHandler(
 	Network::TCP::Connection& conn,
 	const ServeOptions& config,
 	const ConnectionCallback& handlerCallback
-) noexcept {
+) {
 
 	const auto& conninfo = conn.info();
 	std::optional<std::string> handlerError;
