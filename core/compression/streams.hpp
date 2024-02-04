@@ -1,9 +1,8 @@
 #ifndef  __LIB_MADDSUA_LAMBDA_EXTRA_COMPRESSION_STREAMS__
 #define  __LIB_MADDSUA_LAMBDA_EXTRA_COMPRESSION_STREAMS__
 
-#include "../utils/utils.hpp"
-
 #include <cstring>
+#include <cstdint>
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 #include <zlib.h>
@@ -12,45 +11,39 @@
 
 namespace Lambda::Compress::Streams {
 
-	using namespace Lambda::Literals;
+	static const size_t defaultChunkSize = 128 * 1024;
 
-	class BrotliCompressStream {
-		public:
-			BrotliEncoderState* stream = nullptr;
-			static const size_t chunk = 128_KB;
+	struct BrotliCompressStream {
+		BrotliEncoderState* stream = nullptr;
+		static const size_t chunk = defaultChunkSize;
 
-			BrotliCompressStream();
-			~BrotliCompressStream();
+		BrotliCompressStream();
+		~BrotliCompressStream();
 	};
 
-	class BrotliDecompressStream {
-		public:
-			BrotliDecoderState* stream = nullptr;
-			static const size_t chunk = 128_KB;
+	struct BrotliDecompressStream {
+		BrotliDecoderState* stream = nullptr;
+		static const size_t chunk = defaultChunkSize;
 
-			BrotliDecompressStream();
-			~BrotliDecompressStream();
+		BrotliDecompressStream();
+		~BrotliDecompressStream();
 	};
 
-	class ZlibStream {
-		public:
-			z_stream stream;
-			static const size_t chunk = 128_KB;
+	struct ZlibStream {
+		z_stream stream;
+		static const size_t chunk = defaultChunkSize;
 
-			ZlibStream();
-
+		ZlibStream();
 	};
 
-	class ZlibCompressStream : public ZlibStream {
-		public:
-			ZlibCompressStream(int compression, int winbits);
-			~ZlibCompressStream();
+	struct ZlibCompressStream : ZlibStream {
+		ZlibCompressStream(int compression, int winbits);
+		~ZlibCompressStream();
 	};
 
-	class ZlibDecompressStream : public ZlibStream {
-		public:
-			ZlibDecompressStream(int winbits);
-			~ZlibDecompressStream();
+	struct ZlibDecompressStream : ZlibStream {
+		ZlibDecompressStream(int winbits);
+		~ZlibDecompressStream();
 	};
 
 };
