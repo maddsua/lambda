@@ -56,7 +56,11 @@ void ServerInstance::start() {
 				std::optional<std::string> handlerError;
 
 				if (this->config.loglevel.connections) {
-					syncout.log({ conninfo.remoteAddr.hostname, ":", conninfo.remoteAddr.port, "connected on", conninfo.hostPort });
+					syncout.log({
+						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
+						"connected on",
+						conninfo.hostPort
+					});
 				}
 
 				try {
@@ -84,9 +88,21 @@ void ServerInstance::start() {
 				}
 
 				if (handlerError.has_value() && (config.loglevel.connections || config.loglevel.requests)) {
-					syncout.error({ "[Service] Connection to", conninfo.remoteAddr.hostname, "terminated (", handlerError.value(), ')' });
-				} else if (config.loglevel.connections) {
-					syncout.log({ conninfo.remoteAddr.hostname, ":", conninfo.remoteAddr.port, "disconnected from", conninfo.hostPort });
+					syncout.error({
+						"[Service] Connection to",
+						conninfo.remoteAddr.hostname,
+						"terminated",
+						'(' + handlerError.value() + ')'
+					});
+					return;
+				} 
+				
+				if (config.loglevel.connections) {
+					syncout.log({
+						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
+						"disconnected from",
+						conninfo.hostPort
+					});
 				}
 
 			}, std::move(nextConn.value())).detach();
