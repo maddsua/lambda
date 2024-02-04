@@ -23,6 +23,7 @@ namespace Lambda {
 	struct HTTPTransportOptions {
 		bool useCompression = true;
 		bool reuseConnections = true;
+		size_t maxRequestSize = 25 * 1024 * 1024;
 	};
 
 	enum struct ErrorResponseType {
