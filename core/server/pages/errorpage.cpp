@@ -1,24 +1,29 @@
 
 #include "../internal.hpp"
 #include "../../http/http.hpp"
-#include "../../html/templates.hpp"
 #include "../../json/json.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Server;
+using namespace Lambda::Server::Pages;
+using namespace Lambda::Server::Pages::Templates;
 
-HTTP::Response Servicepage::renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type) {
+HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& message) {
+	return renderErrorPage(code, message, ErrorResponseType::HTML);
+}
+
+HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type) {
 
 	std::string pagecontent;
 
 	if (type == ErrorResponseType::HTML) {
 
-		auto templateSource = HTML::Templates::servicePage();
+		auto templateSource = servicePage();
 
-		pagecontent = HTML::renderTemplate(templateSource, {
+		pagecontent = renderTemplate(templateSource, {
 			{ "svcpage_statuscode", std::to_string(code.code()) },
 			{ "svcpage_statustext", "service error" },
-			{ "svcpage_message_text", "Function handler crashed: " + message }
+			{ "svcpage_message_text", message }
 		});
 
 	} else {
@@ -26,7 +31,7 @@ HTTP::Response Servicepage::renderErrorPage(HTTP::Status code, const std::string
 		JSON::Map responseObject = {
 			{ "ok", false },
 			{ "status", "failed" },
-			{ "context", "function handler crashed" },
+			{ "context", "service error" },
 			{ "what", message }
 		};
 

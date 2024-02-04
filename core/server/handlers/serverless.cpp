@@ -4,7 +4,6 @@
 #include "../../../build_options.hpp"
 #include "../../polyfill/polyfill.hpp"
 #include "../../crypto/crypto.hpp"
-#include "../../html/templates.hpp"
 #include "../../json/json.hpp"
 #include "../../crypto/crypto.hpp"
 
@@ -20,9 +19,6 @@
 using namespace Lambda;
 using namespace Lambda::Server;
 using namespace Lambda::Server::Handlers;
-
-Lambda::HTTP::Response renderServerErrorPage(std::string message);
-Lambda::HTTP::Response composeServerErrorResponse(std::string message);
 
 void Handlers::serverlessHandler(
 	Network::TCP::Connection&& conn,
@@ -76,7 +72,7 @@ void Handlers::serverlessHandler(
 
 			if (handlerError.has_value()) {
 
-				response = Servicepage::renderErrorPage(500, handlerError.value(), config.errorResponseType);
+				response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 
 				if (config.loglevel.requests) fprintf(stderr,
 					"%s%s crashed: %s\n",
@@ -126,33 +122,4 @@ void Handlers::serverlessHandler(
 		conninfo.remoteAddr.port,
 		conninfo.hostPort
 	);
-}
-
-Lambda::HTTP::Response renderServerErrorPage(std::string message) {
-
-	auto templateSource = HTML::Templates::servicePage();
-
-	auto pagehtml = HTML::renderTemplate(templateSource, {
-		{ "svcpage_statuscode", std::to_string(500) },
-		{ "svcpage_statustext", "service error" },
-		{ "svcpage_message_text", "Function handler crashed: " + message }
-	});
-
-	return Lambda::HTTP::Response(500, {
-		{ "Content-Type", "text/html" }
-	}, pagehtml);
-}
-
-Lambda::HTTP::Response composeServerErrorResponse(std::string message) {
-
-	JSON::Map responseObject = {
-		{ "ok", false },
-		{ "status", "failed" },
-		{ "context", "function handler crashed" },
-		{ "what", message }
-	};
-
-	return Lambda::HTTP::Response(500, {
-		{"content-type", "application/json"}
-	}, JSON::stringify(responseObject));
 }

@@ -44,7 +44,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 		headerEnded = std::search(ctx.buffer.begin(), ctx.buffer.end(), patternEndHeader.begin(), patternEndHeader.end());
 
 		if (ctx.buffer.size() > ctx.cfg.maxRequestSize) {
-			auto errorResponse = Servicepage::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
+			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
 			writeResponse(errorResponse, {
 				ContentEncodings::None,
 				false,
@@ -167,7 +167,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 		auto totalRequestSize = std::distance(ctx.buffer.begin(), headerEnded) + bodySize;
 		if (totalRequestSize > ctx.cfg.maxRequestSize) {
-			auto errorResponse = Servicepage::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
+			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
 			writeResponse(errorResponse, {
 				ContentEncodings::None,
 				false,

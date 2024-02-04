@@ -52,7 +52,7 @@ void Handlers::connectionHandler(
 				handlerError.value().c_str()
 			);
 
-			auto errorResponse = Servicepage::renderErrorPage(500, handlerError.value(), config.errorResponseType);
+			auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 			connctx.respond(errorResponse);
 		}
 
