@@ -10,8 +10,11 @@ int main(int argc, char const *argv[]) {
 	auto handler = [&](Lambda::IncomingConnection& conn) {
 
 		while (auto next = conn.nextRequest()) {
+
 			if (!next.has_value()) break;
-			printf("Request url: %s\n", next.value().url.href().c_str());
+
+			Lambda::syncout.log({ "Request url:",  next.value().url.href() });
+
 			auto response = HTTP::Response("yo hi there");
 			conn.respond(response);
 		}
