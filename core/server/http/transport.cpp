@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <map>
 #include <set>
+#include <iterator>
 
 using namespace Lambda;
 using namespace Lambda::Network;
@@ -41,6 +42,13 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 		ctx.buffer.insert(ctx.buffer.end(), newBytes.begin(), newBytes.end());
 		headerEnded = std::search(ctx.buffer.begin(), ctx.buffer.end(), patternEndHeader.begin(), patternEndHeader.end());
+
+		if (ctx.buffer.size() > ctx.cfg.maxRequestSize) {
+			//	throw an error here
+			std::string deferrorresp = "HTTP/1.1 400\r\n\r\nRequest size too big";
+			ctx.conn.write(std::vector<uint8_t>(deferrorresp.begin(), deferrorresp.end()));
+			throw std::runtime_error("request header size too big");
+		}
 	}
 
 	if (!ctx.buffer.size() || headerEnded == ctx.buffer.end()) {
@@ -127,7 +135,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 		}
 	}
 
-	if (ctx.options.reuseConnections) {
+	if (ctx.cfg.reuseConnections) {
 		auto connectionHeader = next.request.headers.get("connection");
 		if (ctx.keepAlive) ctx.keepAlive = !Strings::includes(connectionHeader, "close");
 			else ctx.keepAlive = Strings::includes(connectionHeader, "keep-alive");
@@ -152,6 +160,14 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 	size_t bodySize = bodySizeHeader.size() ? std::stoull(bodySizeHeader) : 0;
 
 	if (bodySize) {
+
+		auto totalRequestSize = std::distance(ctx.buffer.begin(), headerEnded) + bodySize;
+		if (totalRequestSize > ctx.cfg.maxRequestSize) {
+			//	throw an error here
+			std::string deferrorresp = "HTTP/1.1 400\r\n\r\nRequest size too big";
+			ctx.conn.write(std::vector<uint8_t>(deferrorresp.begin(), deferrorresp.end()));
+			throw std::runtime_error("total request size too big");
+		}
 
 		if (!ctx.conn.active()) {
 			throw std::runtime_error("connection was terminated before request body could be received");
