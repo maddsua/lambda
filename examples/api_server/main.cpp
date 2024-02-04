@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
 		auto cookies = req.getCookies();
 
 		//	get search query "user" param
-		//	try opening url as http://localhost:8080/?user=maddsua
+		//	try opening url as http://localhost:8180/?user=maddsua
 		auto username = req.url.searchParams.get("user");
 
 		//	check if user visited before by a cookie
