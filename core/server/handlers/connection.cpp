@@ -31,15 +31,29 @@ void Handlers::connectionHandler(
 
 	try {
 
+		auto connctx = IncomingConnection(conn, config.transport);
+
 		try {
 
-			auto connctx = IncomingConnection(conn, config.transport);
 			handlerCallback(connctx);
 
 		} catch(const std::exception& e) {
 			handlerError = e.what();
 		} catch(...) {
 			handlerError = "unhandled exception";
+		}
+
+		if (handlerError.has_value()) {
+
+			if (config.loglevel.requests) fprintf(stderr,
+				"%s%s crashed: %s\n",
+				createLogTimeStamp().c_str(),
+				"tcp handler",
+				handlerError.value().c_str()
+			);
+
+			auto errorResponse = Servicepage::renderErrorPage(500, handlerError.value(), config.errorResponseType);
+			connctx.respond(errorResponse);
 		}
 
 	} catch(const std::exception& e) {
