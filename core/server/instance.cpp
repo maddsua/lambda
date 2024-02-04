@@ -49,12 +49,14 @@ void ServerInstance::start() {
 
 				const auto& conninfo = conn.info();
 
-				if (this->config.loglevel.connections) fprintf(stdout,
-					"%s:%i connected on %i\n",
-					conninfo.remoteAddr.hostname.c_str(),
-					conninfo.remoteAddr.port,
-					conninfo.hostPort
-				);
+				if (this->config.loglevel.connections) {
+					fprintf(stdout,
+						"%s:%i connected on %i\n",
+						conninfo.remoteAddr.hostname.c_str(),
+						conninfo.remoteAddr.port,
+						conninfo.hostPort
+					);
+				}
 
 				try {
 
@@ -76,26 +78,32 @@ void ServerInstance::start() {
 
 				} catch(const std::exception& e) {
 
-					if (config.loglevel.requests) fprintf(stderr,
-						"[Service] Connection to %s terminated: %s\n",
-						conninfo.remoteAddr.hostname.c_str(),
-						e.what()
-					);
+					if (config.loglevel.connections || config.loglevel.requests) {
+						fprintf(stderr,
+							"[Service] Connection to %s terminated: %s\n",
+							conninfo.remoteAddr.hostname.c_str(),
+							e.what()
+						);
+					}
 
 				} catch(...) {
 
-					if (config.loglevel.requests) fprintf(stderr,
-						"[Service] Connection to %s terminated (unknown error)\n",
-						conninfo.remoteAddr.hostname.c_str()
-					);
+					if (config.loglevel.connections || config.loglevel.requests) {
+						fprintf(stderr,
+							"[Service] Connection to %s terminated (unknown error)\n",
+							conninfo.remoteAddr.hostname.c_str()
+						);
+					}
 				}
 
-				if (config.loglevel.connections) fprintf(stdout,
-					"%s:%i disconnected from %i\n",
-					conninfo.remoteAddr.hostname.c_str(),
-					conninfo.remoteAddr.port,
-					conninfo.hostPort
-				);
+				if (config.loglevel.connections) {
+					fprintf(stdout,
+						"%s:%i disconnected from %i\n",
+						conninfo.remoteAddr.hostname.c_str(),
+						conninfo.remoteAddr.port,
+						conninfo.hostPort
+					);
+				}
 
 			}, std::move(nextConn.value())).detach();
 		}
