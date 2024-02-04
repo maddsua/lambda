@@ -54,7 +54,7 @@ LogEntry::LogEntry(long double thing) {
 	this->value = std::to_string(thing);
 }
 
-std::string ConsoleImpl::serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept {
+std::string GlobalSyncConsole::serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept {
 
 	std::string temp;
 
@@ -68,22 +68,16 @@ std::string ConsoleImpl::serializeEntries(const std::initializer_list<LogEntry>&
 	return temp;
 }
 
-void ConsoleImpl::log(std::initializer_list<LogEntry> list) noexcept {
+void GlobalSyncConsole::log(std::initializer_list<LogEntry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stdout);
 }
 
-void ConsoleImpl::error(std::initializer_list<LogEntry> list) noexcept {
+void GlobalSyncConsole::error(std::initializer_list<LogEntry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }
 
-void ConsoleImpl::warn(std::initializer_list<LogEntry> list) noexcept {
-	std::string temp = this->serializeEntries(list);
-	std::lock_guard<std::mutex> lock(this->m_write_lock);
-	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
-}
-
-Console::ConsoleImpl Lambda::console = ConsoleImpl();
+Console::GlobalSyncConsole Lambda::console = GlobalSyncConsole();
