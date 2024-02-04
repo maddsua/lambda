@@ -19,7 +19,6 @@ namespace Lambda::Server {
 		void writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx);
 
 		std::optional<std::pair<std::string, std::string>> parseBasicAuth(const std::string& header);
-
 	};
 
 	namespace WSTransport {
@@ -56,7 +55,10 @@ namespace Lambda::Server {
 		FrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
 		std::vector <uint8_t> serializeMessage(const Websocket::Message& message);
 		std::vector <uint8_t> serializeFrameHeader(const FrameHeader& header);
+	};
 
+	namespace Servicepage {
+		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type);
 	};
 };
 
