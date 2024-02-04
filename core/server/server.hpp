@@ -54,7 +54,7 @@ namespace Lambda {
 
 	struct HTTPReaderContext {
 		Network::TCP::Connection& conn;
-		const HTTPTransportOptions& options;
+		const HTTPTransportOptions& cfg;
 		const Network::ConnectionInfo& conninfo;
 		std::vector<uint8_t> buffer;
 		bool keepAlive = false;
