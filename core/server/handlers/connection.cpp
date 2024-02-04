@@ -26,11 +26,9 @@ void Handlers::connectionHandler(
 
 	if (handlerError.has_value()) {
 
-		if (config.loglevel.requests) fprintf(stderr,
-			"%s crashed: %s\n",
-			"tcp handler",
-			handlerError.value().c_str()
-		);
+		if (config.loglevel.requests) {
+			syncout.error({ "tcp handler crashed:", handlerError.value() });
+		}
 
 		auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 		connctx.respond(errorResponse);

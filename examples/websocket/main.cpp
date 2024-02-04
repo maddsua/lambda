@@ -12,8 +12,11 @@ int main(int argc, char const *argv[]) {
 		auto wsctx = conn.upgrateToWebsocket();
 
 		while (wsctx.awaitMessage()) {
+
 			auto nextmsg = wsctx.nextMessage();
-			printf("Message: %s\n", nextmsg.text().c_str());
+
+			syncout.log({ "Message:", nextmsg.text() });
+
 			wsctx.sendMessage({ "Copied that" });
 			wsctx.close(Websocket::CloseReason::GoingAway);
 		}

@@ -55,24 +55,24 @@ void Handlers::serverlessHandler(
 
 			response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 
-			if (config.loglevel.requests) fprintf(stderr,
-				"%s crashed: %s\n",
-				requestID.c_str(),
-				handlerError.value().c_str()
-			);
+			if (config.loglevel.requests) {
+				syncout.error({ requestID, "crashed:", handlerError.value() });
+			}
 		}
 
 		response.headers.set("x-request-id", requestID);
 
 		connctx.respond(response);
 
-		if (config.loglevel.requests) fprintf(stdout,
-			"[%s] (%s) %s %s --> %i\n",
-			requestID.c_str(),
-			conninfo.remoteAddr.hostname.c_str(),
-			static_cast<std::string>(next.method).c_str(),
-			next.url.pathname.c_str(),
-			response.status.code()
-		);
+		if (config.loglevel.requests) {
+			syncout.log({
+				'[' + requestID + ']',
+				'(' + conninfo.remoteAddr.hostname + ')',
+				next.method.toString(),
+				next.url.pathname,
+				"-->",
+				response.status.code()
+			});
+		}
 	}
 }
