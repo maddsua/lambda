@@ -45,7 +45,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 		if (ctx.buffer.size() > ctx.cfg.maxRequestSize) {
 
-			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
+			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ctx.errorResponseType);
 			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
 			ctx.conn.end();
 
@@ -69,7 +69,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 	auto& requestUrlString = headerStartLine.at(1);
 
 	IncomingRequest next;
-	next.request.method = Lambda::HTTP::Method(requestMethodString);
+	next.request.method = HTTP::Method(requestMethodString);
 
 	for (size_t i = 1; i < headerFields.size(); i++) {
 
@@ -165,7 +165,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 		if ((std::distance(ctx.buffer.begin(), headerEnded) + bodySize) > ctx.cfg.maxRequestSize) {
 
-			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ErrorResponseType::JSON);
+			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ctx.errorResponseType);
 			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
 			ctx.conn.end();
 

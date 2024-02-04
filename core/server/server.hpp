@@ -56,6 +56,7 @@ namespace Lambda {
 		Network::TCP::Connection& conn;
 		const HTTPTransportOptions& cfg;
 		const Network::ConnectionInfo& conninfo;
+		const ErrorResponseType& errorResponseType;
 		std::vector<uint8_t> buffer;
 		bool keepAlive = false;
 	};
@@ -112,7 +113,7 @@ namespace Lambda {
 			ActiveProtocol activeProto = ActiveProtocol::HTTP;
 
 		public:
-			IncomingConnection(Network::TCP::Connection& conn, const HTTPTransportOptions& opts);
+			IncomingConnection(Network::TCP::Connection& conn, const ServeOptions& opts);
 
 			IncomingConnection(const IncomingConnection& other) = delete;
 			IncomingConnection& operator=(const IncomingConnection& other) = delete;

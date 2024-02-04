@@ -45,7 +45,7 @@ void Handlers::serverlessHandler(
 
 	try {
 
-		auto connctx = IncomingConnection(conn, config.transport);
+		auto connctx = IncomingConnection(conn, config);
 		while (auto nextOpt = connctx.nextRequest()){
 
 			if (!nextOpt.has_value()) break;
