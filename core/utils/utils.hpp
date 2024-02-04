@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <mutex>
+#include <optional>
 
 namespace Lambda {
 
@@ -78,6 +80,56 @@ namespace Lambda {
 			return 1024 * size;
 		}
 	};
+
+	namespace SyncOut {
+
+		struct MgsOverload {
+			MgsOverload() = default;
+			MgsOverload(const std::string& thing);
+			MgsOverload(const char* thing);
+			MgsOverload(bool thing);
+			MgsOverload(char thing);
+			MgsOverload(unsigned char thing);
+			MgsOverload(short thing);
+			MgsOverload(unsigned short thing);
+			MgsOverload(int thing);
+			MgsOverload(unsigned int thing);
+			MgsOverload(float thing);
+			MgsOverload(double thing);
+			MgsOverload(long thing);
+			MgsOverload(unsigned long thing);
+			MgsOverload(long long thing);
+			MgsOverload(unsigned long long thing);
+			MgsOverload(long double thing);
+
+			std::optional<std::string> valueOpt;
+		};
+
+		class WrapperImpl {
+			private:
+				std::optional<std::string> serializeEntries(const std::initializer_list<MgsOverload>& list) const noexcept;
+				std::mutex m_write_lock;
+
+			public:
+				/**
+				 * Print log items to stdout
+				*/
+				void log(MgsOverload item) noexcept;
+				void log(std::initializer_list<MgsOverload> list) noexcept;
+				/**
+				 * Print log items to stderr
+				*/
+				void error(MgsOverload item) noexcept;
+				void error(std::initializer_list<MgsOverload> list) noexcept;
+		};
+	};
+
+	/**
+	 * Thread-safe stdout and stderr in a single pagages.
+	 * Type overloads included. Yummy!
+	*/
+	extern SyncOut::WrapperImpl syncout;
+
 };
 
 #endif

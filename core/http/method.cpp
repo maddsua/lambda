@@ -32,11 +32,17 @@ Method::Method(const char* method) {
 	this->apply(method);
 }
 
-Method::operator std::string () const {
+std::string Method::toString() const noexcept {
 	for (const auto& entry : httpKnownMethods) {
-		if (entry.second == this->value) return entry.first;
+		if (entry.second == this->value) {
+			return entry.first;
+		}
 	}
 	return "GET";
+}
+
+Method::operator std::string () const noexcept {
+	return this->toString();
 }
 
 Method::operator Methods () const noexcept {

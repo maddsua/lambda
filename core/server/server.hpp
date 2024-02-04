@@ -6,7 +6,7 @@
 #include <queue>
 #include <future>
 
-#include "./console.hpp"
+#include "../utils/utils.hpp"
 #include "../network/network.hpp"
 #include "../network/tcp/listener.hpp"
 #include "../http/http.hpp"
@@ -49,7 +49,6 @@ namespace Lambda {
 	struct RequestContext {
 		std::string requestID;
 		Network::ConnectionInfo conninfo;
-		Console console;
 	};
 
 	struct HTTPReaderContext {

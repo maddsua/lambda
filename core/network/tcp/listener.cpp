@@ -25,7 +25,6 @@ ListenSocket::ListenSocket(const ListenConfig& init) : config(init) {
 			closesocket(this->hSocket);
 			throw apierror;
 		}
-		puts("Warning: fast port reuse enabled");
 	}
 
 	//	bind socket

@@ -9,19 +9,12 @@ int main(int argc, char const *argv[]) {
 
 	auto handler = [&](const Request& req, const Context& context) {
 
-		auto responseHeaders = HTTP::Headers();
-
-		//	just setting a custom header
-		responseHeaders.set("x-serverless", "true");
-		responseHeaders.set("content-type", "application/json");
-
-		auto cookies = req.getCookies();
-
 		//	get search query "user" param
-		//	try opening url as http://localhost:8080/?user=maddsua
+		//	try opening url as http://localhost:8180/?user=maddsua
 		auto username = req.url.searchParams.get("user");
 
 		//	check if user visited before by a cookie
+		auto cookies = req.getCookies();
 		bool isFirstFisit = !cookies.has("userid");
 
 		//	create response json
@@ -32,7 +25,10 @@ int main(int argc, char const *argv[]) {
 			{"first_visit", isFirstFisit}
 		};
 
-		auto response = HTTP::Response(200, responseHeaders, stringify(Property(testMap)));
+		auto response = HTTP::Response(200, {
+			{"x-serverless", "true"},
+			{"content-type", "application/json"}
+		}, stringify(Property(testMap)));
 
 		//	set a user id cookie to check for on next request
 		if (isFirstFisit) {
