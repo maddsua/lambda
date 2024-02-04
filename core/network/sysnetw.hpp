@@ -40,10 +40,11 @@
 		#include <arpa/inet.h>
 		#include <cerrno>
 
+		#define LNE_TIMEDOUT	ETIMEDOUT
+		#define INVALID_SOCKET	(-1)
+
 		#define closesocket(socketHandle) (close(socketHandle))
 		#define SD_BOTH (SHUT_RDWR)
-
-		#define LNE_TIMEDOUT	ETIMEDOUT
 
 	#endif
 
