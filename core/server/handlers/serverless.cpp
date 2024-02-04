@@ -1,7 +1,6 @@
 
 #include "../internal.hpp"
 #include "../../http/http.hpp"
-#include "../../../build_options.hpp"
 #include "../../polyfill/polyfill.hpp"
 #include "../../crypto/crypto.hpp"
 #include "../../json/json.hpp"

@@ -3,7 +3,6 @@
 #include "../../compression/compression.hpp"
 #include "../../encoding/encoding.hpp"
 #include "../../polyfill/polyfill.hpp"
-#include "../../../build_options.hpp"
 
 #include <queue>
 #include <mutex>
@@ -194,47 +193,41 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 void HTTPTransport::writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx) {
 
-	#ifdef LAMBDA_CONTENT_ENCODING_ENABLED
+	std::vector<uint8_t> responseBody;
+	auto responseHeaders = response.headers;
 
-		std::vector<uint8_t> responseBody;
-		auto responseHeaders = response.headers;
+	auto applyEncoding = ContentEncodings::None;
+	auto responseContentType = Strings::toLowerCase(responseHeaders.get("content-type"));
 
-		auto applyEncoding = ContentEncodings::None;
-		auto responseContentType = Strings::toLowerCase(responseHeaders.get("content-type"));
-
-		for (const auto& item : compressibleTypes) {
-			if (Strings::includes(responseContentType, item)) {
-				applyEncoding = ctx.acceptsEncoding;
-				break;
-			}
+	for (const auto& item : compressibleTypes) {
+		if (Strings::includes(responseContentType, item)) {
+			applyEncoding = ctx.acceptsEncoding;
+			break;
 		}
+	}
 
-		switch (applyEncoding) {
+	switch (applyEncoding) {
 
-			case ContentEncodings::Brotli: {
-				responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
-			} break;
+		case ContentEncodings::Brotli: {
+			responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
+		} break;
 
-			case ContentEncodings::Gzip: {
-				responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
-			} break;
+		case ContentEncodings::Gzip: {
+			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+		} break;
 
-			case ContentEncodings::Deflate: {
-				responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
-			} break;
+		case ContentEncodings::Deflate: {
+			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+		} break;
 
-			default: {
-				responseBody = response.body.buffer();
-			} break;
-		}
+		default: {
+			responseBody = response.body.buffer();
+		} break;
+	}
 
-		if (applyEncoding != ContentEncodings::None) {
-			responseHeaders.set("content-encoding", contentEncodingMap.at(applyEncoding));
-		}
-
-	#else
-		auto& responseBody = response.body.buffer();
-	#endif
+	if (applyEncoding != ContentEncodings::None) {
+		responseHeaders.set("content-encoding", contentEncodingMap.at(applyEncoding));
+	}
 
 	auto bodySize = responseBody.size();
 	responseHeaders.set("content-length", std::to_string(bodySize));
