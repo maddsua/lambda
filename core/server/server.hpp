@@ -90,6 +90,7 @@ namespace Lambda {
 			std::queue<Websocket::Message> m_queue;
 			std::mutex m_read_lock;
 			bool m_stopped = false;
+			void asyncWorker();
 
 		public:
 
