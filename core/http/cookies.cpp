@@ -1,6 +1,8 @@
 #include "./http.hpp"
 #include "../polyfill/polyfill.hpp"
 
+#include <iterator>
+
 using namespace Lambda::HTTP;
 
 Cookies::Cookies(const std::string& cookiestring) {
@@ -87,7 +89,7 @@ std::vector<std::string> Cookies::serialize() const {
 		auto cookie = entry.first + '=' + entry.second.value;
 		for (const auto& prop : entry.second.props) {
 			if (!prop.key.size()) continue;
-			cookie += "; " + (prop.value.size() ? prop.key + '=' + prop.value : prop.key);
+			cookie += "; " + (prop.value.size() ? (prop.key + '=' + prop.value) : prop.key);
 		}
 		temp.push_back(cookie);
 	}
@@ -104,16 +106,22 @@ Cookies::SetParam::SetParam(const char* init) {
 
 Cookies::SetParam::SetParam(std::initializer_list<std::string> init) {
 
-	bool gotKey = false;
-	for (const auto& item : init) {
+	for (auto itr = init.begin(); itr != init.end(); itr++) {
 
-		if (!gotKey) {
-			if (!item.size()) return;
-			this->key = item;
-			gotKey = true;
-		}
+		const auto idx = std::distance(init.begin(), itr);
+		const auto& item = *itr;
+
+		switch (idx) {
+
+			case 0: {
+				this->key = item;
+			} break;
+
+			case 1: {
+				this->value = item;
+			} break;
 		
-		this->value = item;
-		return;
+			default: return;
+		}
 	}
 }
