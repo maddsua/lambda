@@ -19,6 +19,7 @@ void Handlers::connectionHandler(
 	};
 
 	const auto& conninfo = conn.info();
+	std::optional<std::string> handlerError;
 
 	if (config.loglevel.connections) fprintf(stdout,
 		"%s%s:%i connected on %i\n",
@@ -30,8 +31,16 @@ void Handlers::connectionHandler(
 
 	try {
 
-		auto connctx = IncomingConnection(conn, config.transport);
-		handlerCallback(connctx);
+		try {
+
+			auto connctx = IncomingConnection(conn, config.transport);
+			handlerCallback(connctx);
+
+		} catch(const std::exception& e) {
+			handlerError = e.what();
+		} catch(...) {
+			handlerError = "unhandled exception";
+		}
 
 	} catch(const std::exception& e) {
 
