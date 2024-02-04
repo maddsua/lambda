@@ -26,8 +26,8 @@ void Handlers::serverlessHandler(
 ) {
 
 	const auto& conninfo = conn.info();
-
 	auto connctx = IncomingConnection(conn, config);
+
 	while (auto nextOpt = connctx.nextRequest()){
 
 		if (!nextOpt.has_value()) break;

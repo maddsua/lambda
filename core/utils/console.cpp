@@ -54,7 +54,7 @@ LogEntry::LogEntry(long double thing) {
 	this->value = std::to_string(thing);
 }
 
-std::string GlobalSyncConsole::serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept {
+std::string GlobalConsole::serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept {
 
 	std::string temp;
 
@@ -68,16 +68,16 @@ std::string GlobalSyncConsole::serializeEntries(const std::initializer_list<LogE
 	return temp;
 }
 
-void GlobalSyncConsole::log(std::initializer_list<LogEntry> list) noexcept {
+void GlobalConsole::log(std::initializer_list<LogEntry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stdout);
 }
 
-void GlobalSyncConsole::error(std::initializer_list<LogEntry> list) noexcept {
+void GlobalConsole::error(std::initializer_list<LogEntry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }
 
-Console::GlobalSyncConsole Lambda::console = GlobalSyncConsole();
+Console::GlobalConsole Lambda::console = GlobalConsole();

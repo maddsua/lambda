@@ -103,7 +103,7 @@ namespace Lambda {
 			std::string value;
 		};
 
-		class GlobalSyncConsole {
+		class GlobalConsole {
 			private:
 				std::string serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept;
 				std::mutex m_write_lock;
@@ -114,7 +114,7 @@ namespace Lambda {
 		};
 	};
 
-	extern Console::GlobalSyncConsole console;
+	extern Console::GlobalConsole console;
 
 };
 

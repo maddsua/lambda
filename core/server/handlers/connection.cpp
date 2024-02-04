@@ -11,9 +11,8 @@ void Handlers::connectionHandler(
 	const ConnectionCallback& handlerCallback
 ) {
 
-	std::optional<std::string> handlerError;
-
 	auto connctx = IncomingConnection(conn, config);
+	std::optional<std::string> handlerError;
 
 	try {
 
