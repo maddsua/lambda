@@ -3,6 +3,7 @@
 #include "../../compression/compression.hpp"
 #include "../../encoding/encoding.hpp"
 #include "../../polyfill/polyfill.hpp"
+#include "../../handlers/handlers.hpp"
 
 #include <queue>
 #include <mutex>
@@ -17,7 +18,7 @@ using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::Server;
 using namespace Lambda::Server::HTTPTransport;
-using namespace Lambda::Server::Handlers;
+using namespace Lambda::Handlers;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 

@@ -2,12 +2,13 @@
 #include "./internal.hpp"
 #include "../crypto/crypto.hpp"
 #include "../network/tcp/listener.hpp"
+#include "../handlers/handlers.hpp"
 
 #include <cstdio>
 #include <thread>
 
 using namespace Lambda;
-using namespace Lambda::Server::Handlers;
+using namespace Lambda::Handlers;
 
 ServerInstance::ServerInstance(
 	ServerlessCallback handlerCallback,

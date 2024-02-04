@@ -1,10 +1,11 @@
 
-#include "../internal.hpp"
-#include "../../http/http.hpp"
-#include "../../polyfill/polyfill.hpp"
-#include "../../crypto/crypto.hpp"
-#include "../../json/json.hpp"
-#include "../../crypto/crypto.hpp"
+#include "./handlers.hpp"
+#include "../http/http.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "../crypto/crypto.hpp"
+#include "../pages/pages.hpp"
+#include "../json/json.hpp"
+#include "../crypto/crypto.hpp"
 
 #include <queue>
 #include <mutex>
@@ -16,8 +17,7 @@
 #include <optional>
 
 using namespace Lambda;
-using namespace Lambda::Server;
-using namespace Lambda::Server::Handlers;
+using namespace Lambda::Handlers;
 
 void Handlers::serverlessHandler(
 	Network::TCP::Connection&& conn,

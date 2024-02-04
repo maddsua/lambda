@@ -1,9 +1,9 @@
-#include "../internal.hpp"
-#include "../../polyfill/polyfill.hpp"
+#include "./handlers.hpp"
+#include "../pages/pages.hpp"
+#include "../polyfill/polyfill.hpp"
 
 using namespace Lambda;
-using namespace Lambda::Server;
-using namespace Lambda::Server::Handlers;
+using namespace Lambda::Handlers;
 
 void Handlers::connectionHandler(
 	Network::TCP::Connection&& conn,
