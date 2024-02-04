@@ -2,6 +2,8 @@
 #include "../internal.hpp"
 #include "../../utils/utils.hpp"
 
+#include <cstring>
+
 using namespace Lambda;
 using namespace Lambda::Websocket;
 using namespace Lambda::Server::WSTransport;
