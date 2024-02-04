@@ -6,79 +6,35 @@ using namespace Lambda::Server;
 using namespace Lambda::Server::Handlers;
 
 void Handlers::connectionHandler(
-	Network::TCP::Connection&& conn,
+	Network::TCP::Connection& conn,
 	const ServeOptions& config,
 	const ConnectionCallback& handlerCallback
 ) noexcept {
 
-	auto createLogTimeStamp = [&]() {
-		if (config.loglevel.timestamps) {
-			return Date().toHRTString() + ' ';
-		}
-		return std::string();
-	};
-
 	const auto& conninfo = conn.info();
 	std::optional<std::string> handlerError;
 
-	if (config.loglevel.connections) fprintf(stdout,
-		"%s%s:%i connected on %i\n",
-		createLogTimeStamp().c_str(),
-		conninfo.remoteAddr.hostname.c_str(),
-		conninfo.remoteAddr.port,
-		conninfo.hostPort
-	);
+	auto connctx = IncomingConnection(conn, config);
 
 	try {
 
-		auto connctx = IncomingConnection(conn, config);
-
-		try {
-
-			handlerCallback(connctx);
-
-		} catch(const std::exception& e) {
-			handlerError = e.what();
-		} catch(...) {
-			handlerError = "unhandled exception";
-		}
-
-		if (handlerError.has_value()) {
-
-			if (config.loglevel.requests) fprintf(stderr,
-				"%s%s crashed: %s\n",
-				createLogTimeStamp().c_str(),
-				"tcp handler",
-				handlerError.value().c_str()
-			);
-
-			auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
-			connctx.respond(errorResponse);
-		}
+		handlerCallback(connctx);
 
 	} catch(const std::exception& e) {
-
-		if (config.loglevel.requests) fprintf(stderr,
-			"%s[Service] Connection to %s terminated: %s\n",
-			createLogTimeStamp().c_str(),
-			conninfo.remoteAddr.hostname.c_str(),
-			e.what()
-		);
-
+		handlerError = e.what();
 	} catch(...) {
-
-		if (config.loglevel.requests) fprintf(stderr,
-			"%s[Service] Connection to %s terminated (unknown error)\n",
-			createLogTimeStamp().c_str(),
-			conninfo.remoteAddr.hostname.c_str()
-		);
+		handlerError = "unhandled exception";
 	}
 
-	if (config.loglevel.connections) fprintf(stdout,
-		"%s%s:%i disconnected from %i\n",
-		createLogTimeStamp().c_str(),
-		conninfo.remoteAddr.hostname.c_str(),
-		conninfo.remoteAddr.port,
-		conninfo.hostPort
-	);
+	if (handlerError.has_value()) {
+
+		if (config.loglevel.requests) fprintf(stderr,
+			"%s crashed: %s\n",
+			"tcp handler",
+			handlerError.value().c_str()
+		);
+
+		auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
+		connctx.respond(errorResponse);
+	}
 }
