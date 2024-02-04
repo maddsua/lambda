@@ -48,14 +48,10 @@ void ServerInstance::start() {
 			std::thread([&](Lambda::Network::TCP::Connection&& conn) {
 
 				const auto& conninfo = conn.info();
+				std::optional<std::string> handlerError;
 
 				if (this->config.loglevel.connections) {
-					fprintf(stdout,
-						"%s:%i connected on %i\n",
-						conninfo.remoteAddr.hostname.c_str(),
-						conninfo.remoteAddr.port,
-						conninfo.hostPort
-					);
+					syncout.log({ conninfo.remoteAddr.hostname, ":", conninfo.remoteAddr.port, "connected on", conninfo.hostPort });
 				}
 
 				try {
@@ -77,43 +73,26 @@ void ServerInstance::start() {
 					}
 
 				} catch(const std::exception& e) {
-
-					if (config.loglevel.connections || config.loglevel.requests) {
-						fprintf(stderr,
-							"[Service] Connection to %s terminated: %s\n",
-							conninfo.remoteAddr.hostname.c_str(),
-							e.what()
-						);
-					}
-
+					handlerError = e.what();
 				} catch(...) {
-
-					if (config.loglevel.connections || config.loglevel.requests) {
-						fprintf(stderr,
-							"[Service] Connection to %s terminated (unknown error)\n",
-							conninfo.remoteAddr.hostname.c_str()
-						);
-					}
+					handlerError = "unknown error";
 				}
 
-				if (config.loglevel.connections) {
-					fprintf(stdout,
-						"%s:%i disconnected from %i\n",
-						conninfo.remoteAddr.hostname.c_str(),
-						conninfo.remoteAddr.port,
-						conninfo.hostPort
-					);
+				if (handlerError.has_value() && (config.loglevel.connections || config.loglevel.requests)) {
+					syncout.log({ "[Service] Connection to", conninfo.remoteAddr.hostname, "terminated (", handlerError.value(), ')' });
+				} else if (config.loglevel.connections) {
+					syncout.log({ conninfo.remoteAddr.hostname, ":", conninfo.remoteAddr.port, "disconnected from", conninfo.hostPort });
 				}
 
 			}, std::move(nextConn.value())).detach();
 		}
 	});
 
-	printf("[Service] Started server at http://localhost:%i/\n", this->config.service.port);
+	syncout.log({ "[Service] Started server at http://localhost:", this->config.service.port, '/' });
 }
 
 void ServerInstance::shutdownn() {
-	printf("[Service] Shutting down...\n");
+	syncout.log("[Service] Shutting down...");
 	this->terminate();
 }
 
