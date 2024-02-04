@@ -3,57 +3,58 @@
 #include "./utils.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Console;
 
-Console::Entry::Entry(const std::string& thing) {
+LogEntry::LogEntry(const std::string& thing) {
 	this->value = thing;
 }
-Console::Entry::Entry(const char* thing) {
+LogEntry::LogEntry(const char* thing) {
 	this->value = thing;
 }
-Console::Entry::Entry(bool thing) {
+LogEntry::LogEntry(bool thing) {
 	this->value = thing ? "true" : "false";
 }
-Console::Entry::Entry(char thing) {
+LogEntry::LogEntry(char thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(unsigned char thing) {
+LogEntry::LogEntry(unsigned char thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(short thing) {
+LogEntry::LogEntry(short thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(unsigned short thing) {
+LogEntry::LogEntry(unsigned short thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(int thing) {
+LogEntry::LogEntry(int thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(unsigned int thing) {
+LogEntry::LogEntry(unsigned int thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(float thing) {
+LogEntry::LogEntry(float thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(double thing) {
+LogEntry::LogEntry(double thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(long thing) {
+LogEntry::LogEntry(long thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(unsigned long thing) {
+LogEntry::LogEntry(unsigned long thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(long long thing) {
+LogEntry::LogEntry(long long thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(unsigned long long thing) {
+LogEntry::LogEntry(unsigned long long thing) {
 	this->value = std::to_string(thing);
 }
-Console::Entry::Entry(long double thing) {
+LogEntry::LogEntry(long double thing) {
 	this->value = std::to_string(thing);
 }
 
-std::string Console::serializeEntries(const std::initializer_list<Console::Entry>& list) const noexcept {
+std::string ConsoleImpl::serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept {
 
 	std::string temp;
 
@@ -67,20 +68,22 @@ std::string Console::serializeEntries(const std::initializer_list<Console::Entry
 	return temp;
 }
 
-void Console::log(std::initializer_list<Console::Entry> list) noexcept {
+void ConsoleImpl::log(std::initializer_list<LogEntry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stdout);
 }
 
-void Console::error(std::initializer_list<Console::Entry> list) noexcept {
+void ConsoleImpl::error(std::initializer_list<LogEntry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }
 
-void Console::warn(std::initializer_list<Console::Entry> list) noexcept {
+void ConsoleImpl::warn(std::initializer_list<LogEntry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
 	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }
+
+Console::ConsoleImpl Lambda::console = ConsoleImpl();

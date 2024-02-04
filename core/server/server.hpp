@@ -49,7 +49,6 @@ namespace Lambda {
 	struct RequestContext {
 		std::string requestID;
 		Network::ConnectionInfo conninfo;
-		Console console;
 	};
 
 	struct HTTPReaderContext {

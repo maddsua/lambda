@@ -80,38 +80,43 @@ namespace Lambda {
 		}
 	};
 
-	class Console {
-		private:
+	namespace Console {
 
-			struct Entry {
-				Entry(const std::string& thing);
-				Entry(const char* thing);
-				Entry(bool thing);
-				Entry(char thing);
-				Entry(unsigned char thing);
-				Entry(short thing);
-				Entry(unsigned short thing);
-				Entry(int thing);
-				Entry(unsigned int thing);
-				Entry(float thing);
-				Entry(double thing);
-				Entry(long thing);
-				Entry(unsigned long thing);
-				Entry(long long thing);
-				Entry(unsigned long long thing);
-				Entry(long double thing);
+			struct LogEntry {
+				LogEntry(const std::string& thing);
+				LogEntry(const char* thing);
+				LogEntry(bool thing);
+				LogEntry(char thing);
+				LogEntry(unsigned char thing);
+				LogEntry(short thing);
+				LogEntry(unsigned short thing);
+				LogEntry(int thing);
+				LogEntry(unsigned int thing);
+				LogEntry(float thing);
+				LogEntry(double thing);
+				LogEntry(long thing);
+				LogEntry(unsigned long thing);
+				LogEntry(long long thing);
+				LogEntry(unsigned long long thing);
+				LogEntry(long double thing);
 
 				std::string value;
 			};
 
-			std::string serializeEntries(const std::initializer_list<Console::Entry>& list) const noexcept;
-			std::mutex m_write_lock;
+		class ConsoleImpl {
+			private:
+				std::string serializeEntries(const std::initializer_list<LogEntry>& list) const noexcept;
+				std::mutex m_write_lock;
 
-		public:
-			void log(std::initializer_list<Console::Entry> list) noexcept;
-			void error(std::initializer_list<Console::Entry> list) noexcept;
-			void warn(std::initializer_list<Console::Entry> list) noexcept;
+			public:
+				void log(std::initializer_list<LogEntry> list) noexcept;
+				void error(std::initializer_list<LogEntry> list) noexcept;
+				void warn(std::initializer_list<LogEntry> list) noexcept;
+		};
 	};
+
+	extern Console::ConsoleImpl console;
+
 };
 
 #endif
