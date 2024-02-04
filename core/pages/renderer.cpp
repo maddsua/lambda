@@ -1,7 +1,6 @@
-#include "../internal.hpp"
+#include "./pages.hpp"
 
-using namespace Lambda::Server;
-using namespace Lambda::Server::Pages;
+using namespace Lambda;
 
 std::string Pages::renderTemplate(const std::string& templateSource, const TemplateProps& props) {
 
