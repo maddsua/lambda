@@ -5,6 +5,7 @@
 #include "../network/tcp/connection.hpp"
 
 #include <string>
+#include <map>
 
 namespace Lambda::Server {
 
@@ -19,7 +20,6 @@ namespace Lambda::Server {
 		void writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx);
 
 		std::optional<std::pair<std::string, std::string>> parseBasicAuth(const std::string& header);
-
 	};
 
 	namespace WSTransport {
@@ -56,7 +56,19 @@ namespace Lambda::Server {
 		FrameHeader parseFrameHeader(const std::vector<uint8_t>& buffer);
 		std::vector <uint8_t> serializeMessage(const Websocket::Message& message);
 		std::vector <uint8_t> serializeFrameHeader(const FrameHeader& header);
+	};
 
+	namespace Pages {
+
+		namespace Templates {
+			const std::string& servicePage() noexcept;
+		};
+
+		typedef std::map<std::string, std::string> TemplateProps;
+		std::string renderTemplate(const std::string& templateSource, const TemplateProps& props);
+
+		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type);
+		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message);
 	};
 };
 

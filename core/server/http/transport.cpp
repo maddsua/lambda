@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <map>
 #include <set>
+#include <iterator>
 
 using namespace Lambda;
 using namespace Lambda::Network;
@@ -41,6 +42,15 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 		ctx.buffer.insert(ctx.buffer.end(), newBytes.begin(), newBytes.end());
 		headerEnded = std::search(ctx.buffer.begin(), ctx.buffer.end(), patternEndHeader.begin(), patternEndHeader.end());
+
+		if (ctx.buffer.size() > ctx.topts.maxRequestSize) {
+
+			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ctx.errorResponseType);
+			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
+			ctx.conn.end();
+
+			throw std::runtime_error("request header size too big");
+		}
 	}
 
 	if (!ctx.buffer.size() || headerEnded == ctx.buffer.end()) {
@@ -59,7 +69,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 	auto& requestUrlString = headerStartLine.at(1);
 
 	IncomingRequest next;
-	next.request.method = Lambda::HTTP::Method(requestMethodString);
+	next.request.method = HTTP::Method(requestMethodString);
 
 	for (size_t i = 1; i < headerFields.size(); i++) {
 
@@ -127,7 +137,7 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 		}
 	}
 
-	if (ctx.options.reuseConnections) {
+	if (ctx.topts.reuseConnections) {
 		auto connectionHeader = next.request.headers.get("connection");
 		if (ctx.keepAlive) ctx.keepAlive = !Strings::includes(connectionHeader, "close");
 			else ctx.keepAlive = Strings::includes(connectionHeader, "keep-alive");
@@ -152,6 +162,15 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 	size_t bodySize = bodySizeHeader.size() ? std::stoull(bodySizeHeader) : 0;
 
 	if (bodySize) {
+
+		if ((std::distance(ctx.buffer.begin(), headerEnded) + bodySize) > ctx.topts.maxRequestSize) {
+
+			auto errorResponse = Pages::renderErrorPage(413, "Request size too large", ctx.errorResponseType);
+			writeResponse(errorResponse, { ContentEncodings::None, false, ctx.conn });
+			ctx.conn.end();
+
+			throw std::runtime_error("total request size too big");
+		}
 
 		if (!ctx.conn.active()) {
 			throw std::runtime_error("connection was terminated before request body could be received");

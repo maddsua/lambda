@@ -165,12 +165,19 @@ namespace Lambda::HTTP {
 			std::string m_text;
 		
 		public:
+
+			enum struct Type {
+				Unknown, Info, Success, Redirect, ClientError, ServerError
+			};
+
 			Status();
 			Status(uint32_t code);
 			Status(uint32_t code, const std::string& text);
 
 			uint32_t code() const noexcept;
 			const std::string& text() const noexcept;
+
+			Type type() const noexcept;
 	};
 
 	struct Response {

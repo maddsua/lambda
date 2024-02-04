@@ -2,7 +2,6 @@
 include core/compression/compression.mk
 include core/crypto/crypto.mk
 include core/encoding/encoding.mk
-include core/html/html.mk
 include core/http/http.mk
 include core/json/json.mk
 include core/network/network.mk

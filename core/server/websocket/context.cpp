@@ -29,7 +29,10 @@ static const std::initializer_list<OpCode> supportedWsOpcodes = {
 	OpCode::Pong,
 };
 
-WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(connRef) {
+WebsocketContext::WebsocketContext(
+	Network::TCP::Connection& connRef,
+	const HTTPTransportOptions& toptsRef
+) : conn(connRef), topts(toptsRef) {
 
 	this->conn.flags.closeOnTimeout = false;
 	this->conn.setTimeouts(wsRcvTimeout, Network::SetTimeoutsDirection::Receive);
@@ -71,6 +74,11 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 			downloadBuff.insert(downloadBuff.end(), nextChunk.begin(), nextChunk.end());
 			if (downloadBuff.size() < FrameHeader::min_size) continue;
 
+			if (downloadBuff.size() > this->topts.maxRequestSize) {
+				this->close(CloseReason::MessageTooBig);
+				throw std::runtime_error("expected frame size too large");
+			}
+
 			auto frameHeader = parseFrameHeader(downloadBuff);
 
 			bool opcodeValid = false;
@@ -88,6 +96,11 @@ WebsocketContext::WebsocketContext(Network::TCP::Connection& connRef) : conn(con
 
 			auto frameSize = frameHeader.size + frameHeader.payloadSize;
 			auto payloadBuff = std::vector<uint8_t>(downloadBuff.begin() + frameHeader.size, downloadBuff.begin() + frameSize);
+
+			if (frameSize > this->topts.maxRequestSize) {
+				this->close(CloseReason::MessageTooBig);
+				throw std::runtime_error("frame size too large");
+			}
 
 			if (frameHeader.payloadSize + frameHeader.payloadSize < downloadBuff.size()) {
 

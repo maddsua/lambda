@@ -23,6 +23,7 @@ namespace Lambda {
 	struct HTTPTransportOptions {
 		bool useCompression = true;
 		bool reuseConnections = true;
+		size_t maxRequestSize = 25 * 1024 * 1024;
 	};
 
 	enum struct ErrorResponseType {
@@ -53,8 +54,9 @@ namespace Lambda {
 
 	struct HTTPReaderContext {
 		Network::TCP::Connection& conn;
-		const HTTPTransportOptions& options;
+		const HTTPTransportOptions& topts;
 		const Network::ConnectionInfo& conninfo;
+		const ErrorResponseType& errorResponseType;
 		std::vector<uint8_t> buffer;
 		bool keepAlive = false;
 	};
@@ -83,6 +85,7 @@ namespace Lambda {
 	class WebsocketContext {
 		private:
 			Network::TCP::Connection& conn;
+			const HTTPTransportOptions& topts;
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
 			std::mutex m_read_lock;
@@ -90,7 +93,7 @@ namespace Lambda {
 
 		public:
 
-			WebsocketContext(Network::TCP::Connection& connRef);
+			WebsocketContext(Network::TCP::Connection& connRef, const HTTPTransportOptions& toptsRef);
 			~WebsocketContext();
 
 			bool awaitMessage();
@@ -111,7 +114,7 @@ namespace Lambda {
 			ActiveProtocol activeProto = ActiveProtocol::HTTP;
 
 		public:
-			IncomingConnection(Network::TCP::Connection& conn, const HTTPTransportOptions& opts);
+			IncomingConnection(Network::TCP::Connection& conn, const ServeOptions& opts);
 
 			IncomingConnection(const IncomingConnection& other) = delete;
 			IncomingConnection& operator=(const IncomingConnection& other) = delete;

@@ -19,6 +19,7 @@ void Handlers::connectionHandler(
 	};
 
 	const auto& conninfo = conn.info();
+	std::optional<std::string> handlerError;
 
 	if (config.loglevel.connections) fprintf(stdout,
 		"%s%s:%i connected on %i\n",
@@ -30,8 +31,30 @@ void Handlers::connectionHandler(
 
 	try {
 
-		auto connctx = IncomingConnection(conn, config.transport);
-		handlerCallback(connctx);
+		auto connctx = IncomingConnection(conn, config);
+
+		try {
+
+			handlerCallback(connctx);
+
+		} catch(const std::exception& e) {
+			handlerError = e.what();
+		} catch(...) {
+			handlerError = "unhandled exception";
+		}
+
+		if (handlerError.has_value()) {
+
+			if (config.loglevel.requests) fprintf(stderr,
+				"%s%s crashed: %s\n",
+				createLogTimeStamp().c_str(),
+				"tcp handler",
+				handlerError.value().c_str()
+			);
+
+			auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
+			connctx.respond(errorResponse);
+		}
 
 	} catch(const std::exception& e) {
 

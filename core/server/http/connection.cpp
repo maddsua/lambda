@@ -9,9 +9,13 @@ using namespace Lambda::Server::HTTPTransport;
 
 IncomingConnection::IncomingConnection(
 	Network::TCP::Connection& conn,
-	const HTTPTransportOptions& opts
-) : ctx({ conn, opts, conn.info() }) {}
-
+	const ServeOptions& opts
+) : ctx({
+	conn,
+	opts.transport,
+	conn.info(),
+	opts.errorResponseType
+}) {}
 
 std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 

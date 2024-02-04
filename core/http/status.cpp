@@ -89,6 +89,18 @@ Status::Status(uint32_t code) {
 uint32_t Status::code() const noexcept {
 	return this->m_code;
 }
+
 const std::string& Status::text() const noexcept {
 	return this->m_text;
+}
+
+Status::Type Status::type() const noexcept {
+
+	if (this->m_code < 200) return Type::Info;
+	else if (this->m_code >= 200 && this->m_code < 300) return Type::Success;
+	else if (this->m_code >= 300 && this->m_code < 400) return Type::Redirect;
+	else if (this->m_code >= 400 && this->m_code < 500) return Type::ClientError;
+	else if (this->m_code >= 500) return Type::ServerError;
+	
+	return Type::Unknown;
 }

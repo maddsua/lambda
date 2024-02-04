@@ -1,10 +1,9 @@
-#include <vector>
+#include "../internal.hpp"
 
-#include "./templates.hpp"
+using namespace Lambda::Server;
+using namespace Lambda::Server::Pages;
 
-using namespace Lambda;
-
-std::string HTML::renderTemplate(const std::string& templateSource, const TemplateProps& props) {
+std::string Pages::renderTemplate(const std::string& templateSource, const TemplateProps& props) {
 
 	auto result = templateSource;
 
