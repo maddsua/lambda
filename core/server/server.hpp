@@ -54,7 +54,7 @@ namespace Lambda {
 
 	struct HTTPReaderContext {
 		Network::TCP::Connection& conn;
-		const HTTPTransportOptions& cfg;
+		const HTTPTransportOptions& topts;
 		const Network::ConnectionInfo& conninfo;
 		const ErrorResponseType& errorResponseType;
 		std::vector<uint8_t> buffer;
@@ -85,6 +85,7 @@ namespace Lambda {
 	class WebsocketContext {
 		private:
 			Network::TCP::Connection& conn;
+			const HTTPTransportOptions& topts;
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
 			std::mutex m_read_lock;
@@ -92,7 +93,7 @@ namespace Lambda {
 
 		public:
 
-			WebsocketContext(Network::TCP::Connection& connRef);
+			WebsocketContext(Network::TCP::Connection& connRef, const HTTPTransportOptions& toptsRef);
 			~WebsocketContext();
 
 			bool awaitMessage();
