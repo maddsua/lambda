@@ -30,7 +30,7 @@ WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& ini
 	this->ctx.buffer.clear();
 
 	this->activeProto = ActiveProtocol::WS;
-	return WebsocketContext(this->ctx.conn);
+	return WebsocketContext(this->ctx.conn, this->ctx.topts);
 }
 
 WebsocketContext IncomingConnection::upgrateToWebsocket() {
