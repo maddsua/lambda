@@ -45,27 +45,67 @@ void ServerInstance::start() {
 			auto nextConn = this->listener.acceptConnection();
 			if (!nextConn.has_value()) break;
 
-			switch (this->handlerType) {
+			std::thread([&](Lambda::Network::TCP::Connection&& conn) {
 
-				case HandlerType::Serverless: {
-					auto connectionWorker = std::thread(serverlessHandler,
-						std::move(nextConn.value()),
-						std::ref(this->config),
-						std::ref(this->httpHandler));
-					connectionWorker.detach();
-				} break;
+				const auto& conninfo = conn.info();
 
-				case HandlerType::Connection: {
-					auto connectionWorker = std::thread(connectionHandler,
-						std::move(nextConn.value()),
-						std::ref(this->config),
-						std::ref(this->tcpHandler));
-					connectionWorker.detach();
-				} break;
+				if (this->config.loglevel.connections) {
+					fprintf(stdout,
+						"%s:%i connected on %i\n",
+						conninfo.remoteAddr.hostname.c_str(),
+						conninfo.remoteAddr.port,
+						conninfo.hostPort
+					);
+				}
 
-				default:
-					throw std::runtime_error("ServerInstance cannot invode an undefined handlerCallback");
-			}
+				try {
+
+					switch (this->handlerType) {
+
+						case HandlerType::Serverless: {
+							serverlessHandler(conn, this->config, this->httpHandler);
+						} break;
+
+						case HandlerType::Connection: {
+							connectionHandler(conn, this->config, this->tcpHandler);
+						} break;
+
+						default: {
+							this->terminated = true;
+							throw std::runtime_error("connection handler undefined");
+						} break;
+					}
+
+				} catch(const std::exception& e) {
+
+					if (config.loglevel.connections || config.loglevel.requests) {
+						fprintf(stderr,
+							"[Service] Connection to %s terminated: %s\n",
+							conninfo.remoteAddr.hostname.c_str(),
+							e.what()
+						);
+					}
+
+				} catch(...) {
+
+					if (config.loglevel.connections || config.loglevel.requests) {
+						fprintf(stderr,
+							"[Service] Connection to %s terminated (unknown error)\n",
+							conninfo.remoteAddr.hostname.c_str()
+						);
+					}
+				}
+
+				if (config.loglevel.connections) {
+					fprintf(stdout,
+						"%s:%i disconnected from %i\n",
+						conninfo.remoteAddr.hostname.c_str(),
+						conninfo.remoteAddr.port,
+						conninfo.hostPort
+					);
+				}
+
+			}, std::move(nextConn.value())).detach();
 		}
 	});
 
