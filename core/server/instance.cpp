@@ -79,7 +79,7 @@ void ServerInstance::start() {
 				}
 
 				if (handlerError.has_value() && (config.loglevel.connections || config.loglevel.requests)) {
-					syncout.log({ "[Service] Connection to", conninfo.remoteAddr.hostname, "terminated (", handlerError.value(), ')' });
+					syncout.error({ "[Service] Connection to", conninfo.remoteAddr.hostname, "terminated (", handlerError.value(), ')' });
 				} else if (config.loglevel.connections) {
 					syncout.log({ conninfo.remoteAddr.hostname, ":", conninfo.remoteAddr.port, "disconnected from", conninfo.hostPort });
 				}
