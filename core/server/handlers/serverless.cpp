@@ -23,7 +23,7 @@ void Handlers::serverlessHandler(
 	Network::TCP::Connection& conn,
 	const ServeOptions& config,
 	const ServerlessCallback& handlerCallback
-) noexcept {
+) {
 
 	const auto& conninfo = conn.info();
 
