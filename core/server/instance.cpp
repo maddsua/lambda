@@ -38,6 +38,11 @@ ServerInstance::ServerInstance(
 }
 
 void ServerInstance::start() {
+
+	if (this->config.service.fastPortReuse) {
+		syncout.log("Warning: fast port reuse enabled");
+	}
+
 	this->watchdogWorker = std::async([&]() {
 
 		while (!this->terminated && this->listener.active()) {
