@@ -109,7 +109,7 @@ void ServerInstance::start() {
 		}
 	});
 
-	syncout.log({ "[Service] Started server at http://localhost:", this->config.service.port, '/' });
+	syncout.log("[Service] Started server at http://localhost:" + std::to_string(this->config.service.port) + '/');
 }
 
 void ServerInstance::shutdownn() {
