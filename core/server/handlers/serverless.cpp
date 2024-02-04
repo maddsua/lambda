@@ -60,7 +60,7 @@ void Handlers::serverlessHandler(
 				response = handlerCallback(next, {
 					requestID,
 					conninfo,
-					Console(requestID, config.loglevel.timestamps)
+					Console()
 				});
 
 			} catch(const std::exception& e) {

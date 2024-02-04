@@ -1,6 +1,6 @@
 
 #include "../polyfill/polyfill.hpp"
-#include "./console.hpp"
+#include "./utils.hpp"
 
 using namespace Lambda;
 
@@ -53,29 +53,9 @@ Console::Entry::Entry(long double thing) {
 	this->value = std::to_string(thing);
 }
 
-Console::Console(
-	const std::string& setid
-) : m_id(setid) {}
-
-Console::Console(
-	const std::string& setid,
-	bool useTimestamps
-) : m_id(setid), m_timestamps(useTimestamps) {}
-
-std::string Console::serializeEntries(const std::initializer_list<Console::Entry>& list) const {
+std::string Console::serializeEntries(const std::initializer_list<Console::Entry>& list) const noexcept {
 
 	std::string temp;
-
-	if (this->m_timestamps) {
-		temp.append(Date().toHRTString());
-		temp.push_back(' ');
-	}
-
-	if (this->m_id.size()) {
-		temp.push_back('[');
-		temp.append(this->m_id);
-		temp.append("] ");
-	}
 
 	for (auto elem : list) {
 		if (temp.size()) temp.push_back(' ');
@@ -87,17 +67,20 @@ std::string Console::serializeEntries(const std::initializer_list<Console::Entry
 	return temp;
 }
 
-void Console::log(std::initializer_list<Console::Entry> list) const {
+void Console::log(std::initializer_list<Console::Entry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
+	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stdout);
 }
 
-void Console::error(std::initializer_list<Console::Entry> list) const {
+void Console::error(std::initializer_list<Console::Entry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
+	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }
 
-void Console::warn(std::initializer_list<Console::Entry> list) const {
+void Console::warn(std::initializer_list<Console::Entry> list) noexcept {
 	std::string temp = this->serializeEntries(list);
+	std::lock_guard<std::mutex> lock(this->m_write_lock);
 	fwrite(temp.c_str(), sizeof(char), temp.size(), stderr);
 }

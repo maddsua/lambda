@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <mutex>
 
 namespace Lambda {
 
@@ -77,6 +78,39 @@ namespace Lambda {
 		constexpr size_t operator""_KB(unsigned long long size) {
 			return 1024 * size;
 		}
+	};
+
+	class Console {
+		private:
+
+			struct Entry {
+				Entry(const std::string& thing);
+				Entry(const char* thing);
+				Entry(bool thing);
+				Entry(char thing);
+				Entry(unsigned char thing);
+				Entry(short thing);
+				Entry(unsigned short thing);
+				Entry(int thing);
+				Entry(unsigned int thing);
+				Entry(float thing);
+				Entry(double thing);
+				Entry(long thing);
+				Entry(unsigned long thing);
+				Entry(long long thing);
+				Entry(unsigned long long thing);
+				Entry(long double thing);
+
+				std::string value;
+			};
+
+			std::string serializeEntries(const std::initializer_list<Console::Entry>& list) const noexcept;
+			std::mutex m_write_lock;
+
+		public:
+			void log(std::initializer_list<Console::Entry> list) noexcept;
+			void error(std::initializer_list<Console::Entry> list) noexcept;
+			void warn(std::initializer_list<Console::Entry> list) noexcept;
 	};
 };
 
