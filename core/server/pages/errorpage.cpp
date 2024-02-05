@@ -2,11 +2,12 @@
 #include "../internal.hpp"
 #include "../../http/http.hpp"
 #include "../../json/json.hpp"
+#include "../../html/html.hpp"
 
 using namespace Lambda;
+using namespace Lambda::HTML;
 using namespace Lambda::Server;
 using namespace Lambda::Server::Pages;
-using namespace Lambda::Server::Pages::Templates;
 
 HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& message) {
 	return renderErrorPage(code, message, ErrorResponseType::HTML);
@@ -18,9 +19,7 @@ HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& mess
 
 	if (type == ErrorResponseType::HTML) {
 
-		auto templateSource = servicePage();
-
-		pagecontent = renderTemplate(templateSource, {
+		pagecontent = renderTemplate(Templates::servicePage, {
 			{ "svcpage_statuscode", std::to_string(code.code()) },
 			{ "svcpage_statustext", code.text() },
 			{ "svcpage_message_text", message }

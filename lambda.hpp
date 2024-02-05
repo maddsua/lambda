@@ -17,6 +17,7 @@
 	#include "./core/server/server.hpp"
 	#include "./core/polyfill/polyfill.hpp"
 	#include "./core/json/json.hpp"
+	#include "./core/html/html.hpp"
 	#include "./core/encoding/encoding.hpp"
 	#include "./core/crypto/crypto.hpp"
 	#include "./core/compression/compression.hpp"
