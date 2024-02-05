@@ -59,14 +59,6 @@ namespace Lambda::Server {
 	};
 
 	namespace Pages {
-
-		namespace Templates {
-			const std::string& servicePage() noexcept;
-		};
-
-		typedef std::map<std::string, std::string> TemplateProps;
-		std::string renderTemplate(const std::string& templateSource, const TemplateProps& props);
-
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type);
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message);
 	};

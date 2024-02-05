@@ -5,15 +5,13 @@
 
 using namespace Lambda;
 using namespace Lambda::JSON;
-using namespace Lambda::Server::Pages;
+using namespace Lambda::HTML;
 
 int main(int argc, char const *argv[]) {
 
 	auto handler = [&](const Request& req, const Context& context) {
 
-		auto templateSource = Templates::servicePage();
-
-		auto pagehtml = renderTemplate(templateSource, {
+		auto pagehtml = renderTemplate(Templates::servicePage, {
 			{ "svcpage_statuscode", "101" },
 			{ "svcpage_statustext", "We're live!" },
 			{ "svcpage_message_text", "Congrats, you have compiled it xD" }

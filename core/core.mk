@@ -4,6 +4,7 @@ include core/crypto/crypto.mk
 include core/encoding/encoding.mk
 include core/http/http.mk
 include core/json/json.mk
+include core/html/html.mk
 include core/network/network.mk
 include core/polyfill/polyfill.mk
 include core/server/server.mk

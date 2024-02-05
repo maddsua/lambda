@@ -1,7 +1,38 @@
-#include "../internal.hpp"
+#include "./html.hpp"
 
-using namespace Lambda::Server;
-using namespace Lambda::Server::Pages;
+#include <optional>
+
+using namespace Lambda;
+using namespace Lambda::HTML;
+
+std::optional<std::string> getTemplateVariableFromSlice(const std::string& source, size_t startpos, size_t endpost);
+
+std::string HTML::renderTemplate(const std::string& templateSource, const TemplateProps& props) {
+
+	auto result = templateSource;
+
+	size_t searchStart = 0;
+	size_t templateOpen = std::string::npos;
+
+	while ((templateOpen = result.find("{{", searchStart)) != std::string::npos) {
+
+		auto templateClose = result.find("}}", templateOpen);
+		if (templateClose == std::string::npos) break;
+
+		auto templateVar = getTemplateVariableFromSlice(result, templateOpen + 2, templateClose);
+		if (!templateVar.has_value()) {
+			searchStart = templateClose + 2;
+			continue;
+		}
+
+		auto valueItr = props.find(templateVar.value());
+		auto templContent = valueItr != props.end() ? valueItr->second : "";
+		result.replace(templateOpen, templateClose + 2 - templateOpen, templContent);
+		searchStart = templateOpen + templContent.size();
+	}
+
+	return result;
+}
 
 std::optional<std::string> getTemplateVariableFromSlice(const std::string& source, size_t startpos, size_t endpost) {
 
@@ -72,31 +103,4 @@ std::optional<std::string> getTemplateVariableFromSlice(const std::string& sourc
 
 	auto varnameLength = ((varnameEnd != std::string::npos ? varnameEnd : endpost) - varnameStart);
 	return source.substr(varnameStart, varnameLength);
-}
-
-std::string Pages::renderTemplate(const std::string& templateSource, const TemplateProps& props) {
-
-	auto result = templateSource;
-
-	size_t searchStart = 0;
-	size_t templateOpen = std::string::npos;
-
-	while ((templateOpen = result.find("{{", searchStart)) != std::string::npos) {
-
-		auto templateClose = result.find("}}", templateOpen);
-		if (templateClose == std::string::npos) break;
-
-		auto templateVar = getTemplateVariableFromSlice(result, templateOpen + 2, templateClose);
-		if (!templateVar.has_value()) {
-			searchStart = templateClose + 2;
-			continue;
-		}
-
-		auto valueItr = props.find(templateVar.value());
-		auto templContent = valueItr != props.end() ? valueItr->second : "";
-		result.replace(templateOpen, templateClose + 2 - templateOpen, templContent);
-		searchStart = templateOpen + templContent.size();
-	}
-
-	return result;
 }
