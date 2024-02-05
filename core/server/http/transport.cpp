@@ -193,18 +193,32 @@ std::optional<IncomingRequest> HTTPTransport::requestReader(HTTPReaderContext& c
 
 void HTTPTransport::writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx) {
 
-	std::vector<uint8_t> responseBody;
-	auto responseHeaders = response.headers;
-
 	auto applyEncoding = ContentEncodings::None;
-	auto responseContentType = Strings::toLowerCase(responseHeaders.get("content-type"));
 
-	for (const auto& item : compressibleTypes) {
-		if (Strings::includes(responseContentType, item)) {
-			applyEncoding = ctx.acceptsEncoding;
-			break;
+	auto responseHeaders = response.headers;
+	const auto& contentTypeHeader = responseHeaders.get("content-type");
+
+	if (contentTypeHeader.size()) {
+
+		auto contentTypeNormalized = Strings::toLowerCase(contentTypeHeader);
+
+		//	when content type is provided, check if it's a text format,
+		//	so that we won't be trying to compress jpegs and stuff
+		for (const auto& item : compressibleTypes) {
+			if (Strings::includes(contentTypeNormalized, item)) {
+				applyEncoding = ctx.acceptsEncoding;
+				break;
+			}
 		}
+
+	} else {
+		//	set content type in case it's not provided in response
+		//	by default, it's assumed to be a html page. works fine with just text too
+		responseHeaders.set("content-type", "text/html; charset=utf-8");
+		applyEncoding = ctx.acceptsEncoding;
 	}
+
+	std::vector<uint8_t> responseBody;
 
 	switch (applyEncoding) {
 
@@ -237,11 +251,6 @@ void HTTPTransport::writeResponse(const HTTP::Response& response, const HTTPWrit
 	//	set connection header to acknowledge keep-alive mode
 	if (ctx.keepAlive) {
 		responseHeaders.set("connection", "keep-alive");
-	}
-
-	//	set content type in case it's not provided in response
-	if (!response.headers.has("content-type")) {
-		responseHeaders.set("content-type", "text/html; charset=utf-8");
 	}
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
