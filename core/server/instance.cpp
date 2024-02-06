@@ -9,7 +9,7 @@
 using namespace Lambda;
 using namespace Lambda::Server::Handlers;
 
-ServerInstance::ServerInstance(
+LambdaInstance::LambdaInstance(
 	ServerlessCallback handlerCallback,
 	ServerConfig init
 ) : listener({
@@ -23,7 +23,7 @@ ServerInstance::ServerInstance(
 	this->start();
 }
 
-ServerInstance::ServerInstance(
+LambdaInstance::LambdaInstance(
 	ConnectionCallback handlerCallback,
 	ServerConfig init
 ) : listener({
@@ -37,7 +37,7 @@ ServerInstance::ServerInstance(
 	this->start();
 }
 
-void ServerInstance::start() {
+void LambdaInstance::start() {
 
 	if (this->config.service.fastPortReuse) {
 		syncout.log("Warning: fast port reuse enabled");
@@ -112,26 +112,26 @@ void ServerInstance::start() {
 	syncout.log("[Service] Started server at http://localhost:" + std::to_string(this->config.service.port) + '/');
 }
 
-void ServerInstance::shutdownn() {
+void LambdaInstance::shutdownn() {
 	syncout.log("[Service] Shutting down...");
 	this->terminate();
 }
 
-void ServerInstance::terminate() {
+void LambdaInstance::terminate() {
 	this->terminated = true;
 	this->listener.stop();
 	this->awaitFinished();
 }
 
-void ServerInstance::awaitFinished() {
+void LambdaInstance::awaitFinished() {
 	if (this->watchdogWorker.valid())
 		this->watchdogWorker.get();
 }
 
-ServerInstance::~ServerInstance() {
+LambdaInstance::~LambdaInstance() {
 	this->terminate();
 }
 
-const ServerConfig& ServerInstance::getConfig() const noexcept {
+const ServerConfig& LambdaInstance::getConfig() const noexcept {
 	return this->config;
 }

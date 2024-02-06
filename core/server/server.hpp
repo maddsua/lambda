@@ -74,7 +74,7 @@ namespace Lambda {
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
 	typedef std::function<void(IncomingConnection&)> ConnectionCallback;
 
-	class ServerInstance {
+	class LambdaInstance {
 		private:
 
 			enum struct HandlerType {
@@ -96,9 +96,9 @@ namespace Lambda {
 			void terminate();
 
 		public:
-			ServerInstance(ServerlessCallback handlerCallback, ServerConfig init);
-			ServerInstance(ConnectionCallback handlerCallback, ServerConfig init);
-			~ServerInstance();
+			LambdaInstance(ServerlessCallback handlerCallback, ServerConfig init);
+			LambdaInstance(ConnectionCallback handlerCallback, ServerConfig init);
+			~LambdaInstance();
 
 			void shutdownn();
 			void awaitFinished();

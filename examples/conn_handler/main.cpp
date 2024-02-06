@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
 
 	ServerConfig initparams;
 	initparams.loglevel.connections = true;
-	auto server = ServerInstance(handler, initparams);
+	auto server = LambdaInstance(handler, initparams);
 
 	server.awaitFinished();
 

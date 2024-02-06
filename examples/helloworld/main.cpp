@@ -15,7 +15,7 @@ auto requestHandler = [](const Request& req, const Context& context) {
 };
 
 int main(int argc, char const *argv[]) {
-	auto server = ServerInstance(requestHandler, {});
+	auto server = LambdaInstance(requestHandler, {});
 	server.awaitFinished();
 	return 0;
 }
