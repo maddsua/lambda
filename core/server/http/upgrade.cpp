@@ -14,8 +14,13 @@ WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& ini
 	auto headerUpgrade = Strings::toLowerCase(initialRequest.headers.get("Upgrade"));
 	auto headerWsKey = initialRequest.headers.get("Sec-WebSocket-Key");
 
-	if (headerUpgrade != "websocket" || !headerWsKey.size())
-		throw std::runtime_error("Websocket initialization aborted: no valid handshake headers present");
+	if (headerUpgrade != "websocket" || !headerWsKey.size()) {
+		throw std::runtime_error("Websocket initialization aborted: Invalid connection header");
+	}
+
+	if (this->ctx.hasPartialData()) {
+		throw std::runtime_error("Websocket initialization aborted: Connection has unprocessed data");
+	}
 
 	auto combinedKey = headerWsKey + wsMagicString;
 
