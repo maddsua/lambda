@@ -94,17 +94,13 @@ std::optional<std::string> StaticServer::resolvePath(const std::string& pathname
 		basePath.push_back('/');
 	}
 
-	std::initializer_list<std::function<std::string()>> candidateList = {
-		[&]() {
-			return basePath + "index.html";
-		},
-		[&]() {
-			return basePath + "index.htm";
-		},
+	std::initializer_list<std::string> candidateList = {
+		"index.html",
+		"index.htm"
 	};
 
-	for (auto candidate : candidateList) {
-		auto variant = candidate();
+	for (const auto& candidate : candidateList) {
+		const auto variant = basePath + candidate;
 		if (checkAvailability(variant)) {
 			return variant;
 		}
