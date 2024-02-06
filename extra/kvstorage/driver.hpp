@@ -2,20 +2,20 @@
 #ifndef  __LIB_MADDSUA_LAMBDA_EXTRA_WEB_STORAGE_DRIVER__
 #define  __LIB_MADDSUA_LAMBDA_EXTRA_WEB_STORAGE_DRIVER__
 
-#include "./webstorage.hpp"
+#include "./kvstorage.hpp"
 
 #include <fstream>
 #include <optional>
 
-namespace Lambda::Storage::WebStorage {
+namespace Lambda::Storage::KVStorage {
 
-	class KVDriver {
+	class Driver {
 		private:
 			constexpr static char const magicstring[] = "mlkvdb";
 
 			const std::string m_filename;
 			std::fstream m_stream;
-			KVStorage* m_init_data = nullptr;
+			Container* m_init_data = nullptr;
 
 			struct DBBasicHeader {
 				char magic[sizeof(magicstring) - 1];
@@ -29,14 +29,13 @@ namespace Lambda::Storage::WebStorage {
 			};
 
 		public:
-			KVDriver(const std::string& filename);
-			~KVDriver();
+			Driver(const std::string& filename);
+			~Driver();
 			void handleTransaction(const Transaction& tractx);
-			std::optional<KVStorage> sync();
+			std::optional<Container> sync();
 
 			static const uint32_t version = 3;
 	};
-
 };
 
 #endif

@@ -6,7 +6,7 @@ using namespace Lambda;
 
 int main(int argc, char const *argv[]) {
 
-	auto storage = Lambda::Storage::LocalStorage();
+	LocalStorage storage;
 
 	auto handler = [&](const Request& req, const Context& context) {
 
@@ -38,9 +38,7 @@ int main(int argc, char const *argv[]) {
 		return HTTP::Response(400, "bad request");
 	};
 
-	ServerConfig initparams;
-	initparams.loglevel.requests = true;
-	auto server = LambdaInstance(handler, initparams);
+	auto server = LambdaInstance(handler, {});
 	server.awaitFinished();
 
 	return 0;
