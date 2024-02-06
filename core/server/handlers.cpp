@@ -53,11 +53,11 @@ void Handlers::serverlessHandler(
 
 		if (handlerError.has_value()) {
 
-			response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
-
 			if (config.loglevel.requests) {
 				syncout.error({ requestID, "crashed:", handlerError.value() });
 			}
+
+			response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 		}
 
 		response.headers.set("x-request-id", requestID);
