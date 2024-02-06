@@ -7,3 +7,4 @@ include examples/servicepage/Makefile
 include examples/websocket/Makefile
 include examples/reply/Makefile
 include examples/helloworld/Makefile
+include examples/static_server/Makefile
