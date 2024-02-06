@@ -1,8 +1,8 @@
 
-#include "../internal.hpp"
-#include "../../http/http.hpp"
-#include "../../json/json.hpp"
-#include "../../html/html.hpp"
+#include "./internal.hpp"
+#include "../http/http.hpp"
+#include "../json/json.hpp"
+#include "../html/html.hpp"
 
 using namespace Lambda;
 using namespace Lambda::HTML;
