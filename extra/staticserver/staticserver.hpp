@@ -22,7 +22,6 @@ namespace Lambda {
 			std::string flattenPathName(std::string urlpath) const noexcept;
 			std::optional<std::string> resolvePath(const std::string& pathname) const noexcept;
 	};
-
 };
 
 #endif
