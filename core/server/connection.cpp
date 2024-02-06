@@ -1,13 +1,40 @@
-#include "../server.hpp"
-#include "../../http/http.hpp"
-#include "../../polyfill/polyfill.hpp"
-#include "../../crypto/crypto.hpp"
-#include "../../encoding/encoding.hpp"
+#include "./server.hpp"
+#include "./internal.hpp"
+#include "../http/http.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "../crypto/crypto.hpp"
+#include "../encoding/encoding.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Server;
 using namespace Lambda::Websocket;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+IncomingConnection::IncomingConnection(
+	Network::TCP::Connection& connInit,
+	const ServeOptions& optsInit
+) : conn(connInit), opts(optsInit), ctx(conn, opts.transport) {}
+
+std::optional<HTTP::Request> IncomingConnection::nextRequest() {
+
+	if (this->activeProto != ActiveProtocol::HTTP) {
+		throw std::runtime_error("Cannot read next http request: connection protocol was changed");
+	}
+
+	auto nextOpt = this->ctx.nextRequest();
+	if (!nextOpt.has_value()) return std::nullopt;
+	return nextOpt.value();
+}
+
+void IncomingConnection::respond(const HTTP::Response& response) {
+
+	if (this->activeProto != ActiveProtocol::HTTP) {
+		throw std::runtime_error("Cannot send http response to a connection that had it's protocol changed");
+	}
+
+	this->ctx.respond(response);
+}
 
 WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& initialRequest) {
 
