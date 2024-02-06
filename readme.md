@@ -11,25 +11,16 @@ Does it sound like a deal? It does to me.
 Code style. This is all that takes to create a web server:
 
 ```c++
-#include <cstdio>
 #include "../../lambda.hpp"
-
 using namespace Lambda;
 
 auto requestHandler = [](const Request& req, const Context& context) {
-   const auto uaHeader = req.headers.get("user-agent");
-   const auto uaString = uaHeader.size() ? uaHeader : "Unknown";
-   return Response("Your user-agent is: " + uaString);
+   return Response("<h1>Hello World!<h1>");
 };
 
 int main(int argc, char const *argv[]) {
-
-   ServerConfig initparams;
-   initparams.loglevel.requests = true;
-   auto server = LambdaInstance(requestHandler, initparams);
-
+   auto server = LambdaInstance(requestHandler, {});
    server.awaitFinished();
-
    return 0;
 }
 ```
