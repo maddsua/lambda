@@ -72,7 +72,7 @@ void ServerInstance::start() {
 						} break;
 
 						case HandlerType::Connection: {
-							connectionHandler(conn, this->config, this->tcpHandler);
+							streamHandler(conn, this->config, this->tcpHandler);
 						} break;
 
 						default: {
