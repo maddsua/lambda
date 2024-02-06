@@ -24,30 +24,30 @@ static const std::initializer_list<std::string> compressibleTypes = {
 V1TransportContext::V1TransportContext(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
-) : conn(connInit), opts(optsInit) {}
+) : m_conn(connInit), m_opts(optsInit) {}
 
 std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
-	auto headerEnded = this->readbuffer.end();
-	while (this->conn.active() && headerEnded == this->readbuffer.end()) {
+	auto headerEnded = this->m_readbuff.end();
+	while (this->m_conn.active() && headerEnded == this->m_readbuff.end()) {
 
-		auto newBytes = this->conn.read();
+		auto newBytes = this->m_conn.read();
 		if (!newBytes.size()) break;
 
-		this->readbuffer.insert(this->readbuffer.end(), newBytes.begin(), newBytes.end());
-		headerEnded = std::search(this->readbuffer.begin(), this->readbuffer.end(), patternEndHeader.begin(), patternEndHeader.end());
+		this->m_readbuff.insert(this->m_readbuff.end(), newBytes.begin(), newBytes.end());
+		headerEnded = std::search(this->m_readbuff.begin(), this->m_readbuff.end(), patternEndHeader.begin(), patternEndHeader.end());
 
-		if (this->readbuffer.size() > this->opts.maxRequestSize) {
+		if (this->m_readbuff.size() > this->m_opts.maxRequestSize) {
 			throw std::runtime_error("request header size too big");
 		}
 	}
 
-	if (!this->readbuffer.size() || headerEnded == this->readbuffer.end()) {
+	if (!this->m_readbuff.size() || headerEnded == this->m_readbuff.end()) {
 		return std::nullopt;
 	}
 
-	auto headerFields = Strings::split(std::string(this->readbuffer.begin(), headerEnded), "\r\n");
-	this->readbuffer.erase(this->readbuffer.begin(), headerEnded + patternEndHeader.size());
+	auto headerFields = Strings::split(std::string(this->m_readbuff.begin(), headerEnded), "\r\n");
+	this->m_readbuff.erase(this->m_readbuff.begin(), headerEnded + patternEndHeader.size());
 
 	auto headerStartLine = Strings::split(headerFields.at(0), ' ');
 	if (headerStartLine.size() < 2) {
@@ -102,7 +102,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 	const auto hostHeader = next.headers.get("host");
 	const auto hostHeaderSem = hostHeader.size() ? hostHeader.find(':') : std::string::npos;
 
-	const auto& conninfo = this->conn.info();
+	const auto& conninfo = this->m_conn.info();
 
 	next.url.host = hostHeader.size() ? hostHeader : "lambdahost:" + std::to_string(conninfo.hostPort);
 
@@ -126,21 +126,21 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		}
 	}
 
-	if (this->opts.reuseConnections) {
+	if (this->m_opts.reuseConnections) {
 		auto connectionHeader = next.headers.get("connection");
-		if (this->keepAlive) this->keepAlive = !Strings::includes(connectionHeader, "close");
-			else this->keepAlive = Strings::includes(connectionHeader, "keep-alive");
+		if (this->m_keepalive) this->m_keepalive = !Strings::includes(connectionHeader, "close");
+			else this->m_keepalive = Strings::includes(connectionHeader, "keep-alive");
 	}
 
 	auto acceptEncodingHeader = next.headers.get("accept-encoding");
-	if (this->opts.useCompression && acceptEncodingHeader.size()) {
+	if (this->m_opts.useCompression && acceptEncodingHeader.size()) {
 
 		auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
 		auto acceptEncodingsSet = std::set<std::string>(encodingNames.begin(), encodingNames.end());
 
 		for (const auto& encoding : contentEncodingMap) {
 			if (acceptEncodingsSet.contains(encoding.second)) {
-				this->acceptsEncoding = encoding.first;
+				this->m_compress = encoding.first;
 				break;
 			}
 		}
@@ -151,27 +151,27 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 	if (bodySize) {
 
-		const auto totalRequestSize = std::distance(this->readbuffer.begin(), headerEnded) + bodySize;
+		const auto totalRequestSize = std::distance(this->m_readbuff.begin(), headerEnded) + bodySize;
 
-		if (totalRequestSize > this->opts.maxRequestSize) {
+		if (totalRequestSize > this->m_opts.maxRequestSize) {
 			throw std::runtime_error("total request size too big");
 		}
 
-		if (!this->conn.active()) {
+		if (!this->m_conn.active()) {
 			throw std::runtime_error("connection was terminated before request body could be received");
 		}
 
-		auto bodyRemaining = bodySize - this->readbuffer.size();
+		auto bodyRemaining = bodySize - this->m_readbuff.size();
 		if (bodyRemaining) {
-			auto temp = this->conn.read(bodyRemaining);
+			auto temp = this->m_conn.read(bodyRemaining);
 			if (temp.size() != bodyRemaining) {
 				throw std::runtime_error("connection terminated while receiving request body");
 			}
-			this->readbuffer.insert(this->readbuffer.end(), temp.begin(), temp.end());
+			this->m_readbuff.insert(this->m_readbuff.end(), temp.begin(), temp.end());
 		}
 
-		next.body = std::vector<uint8_t>(this->readbuffer.begin(), this->readbuffer.begin() + bodySize);
-		this->readbuffer.erase(this->readbuffer.begin(), this->readbuffer.begin() + bodySize);
+		next.body = std::vector<uint8_t>(this->m_readbuff.begin(), this->m_readbuff.begin() + bodySize);
+		this->m_readbuff.erase(this->m_readbuff.begin(), this->m_readbuff.begin() + bodySize);
 	}
 
 	return next;
@@ -192,7 +192,7 @@ void V1TransportContext::respond(const Response& response) {
 		//	so that we won't be trying to compress jpegs and stuff
 		for (const auto& item : compressibleTypes) {
 			if (Strings::includes(contentTypeNormalized, item)) {
-				applyEncoding = this->acceptsEncoding;
+				applyEncoding = this->m_compress;
 				break;
 			}
 		}
@@ -201,7 +201,7 @@ void V1TransportContext::respond(const Response& response) {
 		//	set content type in case it's not provided in response
 		//	by default, it's assumed to be a html page. works fine with just text too
 		responseHeaders.set("content-type", "text/html; charset=utf-8");
-		applyEncoding = this->acceptsEncoding;
+		applyEncoding = this->m_compress;
 	}
 
 	std::vector<uint8_t> responseBody;
@@ -235,8 +235,10 @@ void V1TransportContext::respond(const Response& response) {
 	responseHeaders.set("server", "maddsua/lambda");
 
 	//	set connection header to acknowledge keep-alive mode
-	if (this->keepAlive) {
+	if (this->m_keepalive) {
 		responseHeaders.set("connection", "keep-alive");
+	} else {
+		responseHeaders.set("connection", "close");
 	}
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
@@ -245,6 +247,14 @@ void V1TransportContext::respond(const Response& response) {
 	}
 	headerBuff += "\r\n";
 
-	this->conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
-	if (bodySize) this->conn.write(responseBody);
+	this->m_conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
+	if (bodySize) this->m_conn.write(responseBody);
+}
+
+void V1TransportContext::reset() noexcept {
+	this->m_readbuff.clear();
+}
+
+bool V1TransportContext::hasPartialData() const noexcept {
+	this->m_readbuff.size() > 0;
 }
