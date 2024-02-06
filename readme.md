@@ -26,7 +26,7 @@ int main(int argc, char const *argv[]) {
 
    ServerConfig initparams;
    initparams.loglevel.requests = true;
-   auto server = ServerInstance(requestHandler, initparams);
+   auto server = LambdaInstance(requestHandler, initparams);
 
    server.awaitFinished();
 
