@@ -46,15 +46,6 @@ namespace Lambda {
 		Network::ConnectionInfo conninfo;
 	};
 
-	struct HTTPTransportContext {
-		HTTP::Transport::ContentEncodings acceptsEncoding = HTTP::Transport::ContentEncodings::None;
-		bool keepAlive = false;
-	};
-
-	struct IncomingRequest : HTTPTransportContext {
-		HTTP::Request request;
-	};
-
 	struct IncomingConnection {
 		private:
 
