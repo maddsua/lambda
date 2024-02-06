@@ -6,7 +6,7 @@ using namespace Lambda;
 
 int main(int argc, char const *argv[]) {
 
-	auto storage = Lambda::Storage::LocalStorage();
+	auto storage = Lambda::Storage::Interface();
 
 	auto handler = [&](const Request& req, const Context& context) {
 

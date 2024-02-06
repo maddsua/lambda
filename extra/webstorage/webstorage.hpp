@@ -8,11 +8,11 @@
 
 namespace Lambda::Storage {
 
-	namespace WebStorage {
+	namespace WebStorage::KV {
 
-		class KVDriver;
+		class Driver;
 
-		typedef std::unordered_map<std::string, std::string> KVStorage;
+		typedef std::unordered_map<std::string, std::string> Container;
 
 		enum struct TransactionType : uint16_t {
 			Put, Remove, Clear
@@ -24,13 +24,17 @@ namespace Lambda::Storage {
 			const std::string* value = nullptr;
 		};
 
-		class KVInterface {
+		class StorageInterface {
 			protected:
-				KVStorage data;
+				KV::Container data;
 				std::mutex mtlock;
-				KVDriver* driver = nullptr;
+				KV::Driver* driver = nullptr;
 
 			public:
+				StorageInterface();
+				StorageInterface(const std::string& dbfile);
+				~StorageInterface();
+
 				std::string getItem(const std::string& key);
 				bool hasItem(const std::string& key) const noexcept;
 				void setItem(const std::string& key, const std::string& value);
@@ -40,14 +44,8 @@ namespace Lambda::Storage {
 		};
 	};
 
-	typedef WebStorage::KVInterface SessionStorage;
+	typedef WebStorage::KV::StorageInterface LocalStorage;
 
-	class LocalStorage : public WebStorage::KVInterface {
-		public:
-			LocalStorage();
-			LocalStorage(const std::string& dbfile);
-			~LocalStorage();
-	};
 };
 
 #endif

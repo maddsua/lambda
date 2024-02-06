@@ -1,6 +1,6 @@
 
-#include "./webstorage.hpp"
 #include "./driver.hpp"
+#include "./webstorage.hpp"
 #include "../../core/utils/utils.hpp"
 
 #include <filesystem>
@@ -10,8 +10,9 @@
 
 using namespace Lambda::Storage;
 using namespace Lambda::Storage::WebStorage;
+using namespace Lambda::Storage::WebStorage::KV;
 
-KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
+Driver::Driver(const std::string& filename) : m_filename(filename) {
 
 	if (std::filesystem::exists(this->m_filename)) {
 
@@ -38,7 +39,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 			throw std::runtime_error("Unsupported db version");
 		}
 
-		this->m_init_data = new KVStorage();
+		this->m_init_data = new Container();
 
 		while (this->m_stream.is_open() && !this->m_stream.eof()) {
 
@@ -142,7 +143,7 @@ KVDriver::KVDriver(const std::string& filename) : m_filename(filename) {
 	}
 }
 
-KVDriver::~KVDriver() {
+Driver::~Driver() {
 
 	this->m_stream.flush();
 	this->m_stream.close();
@@ -152,7 +153,7 @@ KVDriver::~KVDriver() {
 	}
 }
 
-std::optional<KVStorage> KVDriver::sync() {
+std::optional<Container> Driver::sync() {
 
 	if (this->m_init_data == nullptr) {
 		return std::nullopt;
@@ -166,9 +167,9 @@ std::optional<KVStorage> KVDriver::sync() {
 	return temp;
 }
 
-void KVDriver::handleTransaction(const Transaction& tractx) {
+void Driver::handleTransaction(const Transaction& tractx) {
 
-	KVDriver::RecordHeader recordHeader {
+	Driver::RecordHeader recordHeader {
 		Bits::storenormx(static_cast<std::underlying_type_t<TransactionType>>(tractx.type)),
 		Bits::storenormx(static_cast<uint16_t>(tractx.key ? tractx.key->size() : 0)),
 		Bits::storenormx(static_cast<uint32_t>(tractx.value ? tractx.value->size() : 0))
