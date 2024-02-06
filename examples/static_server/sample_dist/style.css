@@ -1,0 +1,42 @@
+html, body {
+	font-size: 16px;
+	overflow-x: hidden;
+}
+
+body {
+	font-family: sans-serif;
+	color: #262626;
+	background-color: whitesmoke;
+	overflow-x: hidden;
+}
+
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+	border: none;
+	outline: none;
+}
+
+main {
+	padding: 2rem;
+	display: flex;
+	height: 100vh;
+	align-items: center;
+	justify-content: center;
+}
+
+.message {
+	display: grid;
+	grid-template-columns: 100%;
+	gap: 1rem;
+	max-width: 35rem;
+	padding: 2rem;
+	border-radius: 0.75rem;
+	background-color: white;
+	box-shadow: 0 0 1rem hsla(0, 0%, 0%, 0.1);
+}
+
+.message .smol {
+	font-size: 0.9rem;
+}

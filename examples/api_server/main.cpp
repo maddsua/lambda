@@ -7,7 +7,7 @@ using namespace Lambda::JSON;
 
 int main(int argc, char const *argv[]) {
 
-	auto handler = [&](const Request& req, const Context& context) {
+	auto handler = [](const Request& req, const Context& context) {
 
 		//	get search query "user" param
 		//	try opening url as http://localhost:8180/?user=maddsua
