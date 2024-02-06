@@ -76,3 +76,5 @@ jobs:
         run: make example.conn_handler
       - name: Reply with client's user agent example
         run: make example.reply
+      - name: Hello world example
+        run: make example.helloworld

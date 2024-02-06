@@ -6,3 +6,4 @@ include examples/kvserver/Makefile
 include examples/servicepage/Makefile
 include examples/websocket/Makefile
 include examples/reply/Makefile
+include examples/helloworld/Makefile
