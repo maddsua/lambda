@@ -13,10 +13,9 @@ using namespace Lambda::HTTP;
 using namespace Lambda::HTML;
 
 std::vector<uint8_t> readBinaryFileSync(const std::string& filepath) {
-	std::ifstream file(filepath, std::ios::binary);
-	if (!file) return {};
-	std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(file), {});
-	return buffer;
+	auto readablefile = std::fstream(filepath, std::ios::in | std::ios::binary);
+	if (!readablefile.is_open()) return {};
+	return std::vector<uint8_t>(std::istreambuf_iterator<char>(readablefile), {});
 }
 
 std::string StaticServer::flattenPathName(std::string urlpath) const noexcept {
