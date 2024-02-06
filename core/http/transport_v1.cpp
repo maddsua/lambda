@@ -256,5 +256,5 @@ void V1TransportContext::reset() noexcept {
 }
 
 bool V1TransportContext::hasPartialData() const noexcept {
-	this->m_readbuff.size() > 0;
+	return this->m_readbuff.size() > 0;
 }
