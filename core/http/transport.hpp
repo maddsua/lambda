@@ -24,11 +24,11 @@ namespace Lambda::HTTP::Transport {
 
 	class V1TransportContext {
 		private:
-			Network::TCP::Connection& conn;
-			const TransportOptions& opts;
-			std::vector<uint8_t> readbuffer;
-			bool keepAlive = false;
-			ContentEncodings acceptsEncoding = ContentEncodings::None;
+			Network::TCP::Connection& m_conn;
+			const TransportOptions& m_opts;
+			std::vector<uint8_t> m_readbuff;
+			bool m_keepalive = false;
+			ContentEncodings m_compress = ContentEncodings::None;
 
 		public:
 			V1TransportContext(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
@@ -38,6 +38,8 @@ namespace Lambda::HTTP::Transport {
 
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
+			void reset() noexcept;
+			bool hasPartialData() const noexcept;
 	};
 };
 
