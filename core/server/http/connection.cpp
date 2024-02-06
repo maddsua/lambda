@@ -5,17 +5,11 @@
 
 using namespace Lambda;
 using namespace Lambda::Server;
-using namespace Lambda::Server::HTTPTransport;
 
 IncomingConnection::IncomingConnection(
-	Network::TCP::Connection& conn,
-	const ServeOptions& opts
-) : ctx({
-	conn,
-	opts.transport,
-	conn.info(),
-	opts.errorResponseType
-}) {}
+	Network::TCP::Connection& connInit,
+	const ServeOptions& optsInit
+) : conn(connInit), opts(optsInit), ctx(conn, opts.transport) {}
 
 std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
@@ -23,14 +17,9 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 		throw std::runtime_error("Cannot read next http request: connection protocol was changed");
 	}
 
-	auto nextOpt = requestReader(this->ctx);
+	auto nextOpt = this->ctx.nextRequest();
 	if (!nextOpt.has_value()) return std::nullopt;
-	auto& next = nextOpt.value();
-
-	this->ctx.keepAlive = next.keepAlive;
-	this->ctx.acceptsEncoding = next.acceptsEncoding;
-
-	return next.request;
+	return nextOpt.value();
 }
 
 void IncomingConnection::respond(const HTTP::Response& response) {
@@ -39,9 +28,5 @@ void IncomingConnection::respond(const HTTP::Response& response) {
 		throw std::runtime_error("Cannot send http response to a connection that had it's protocol changed");
 	}
 
-	writeResponse(response, {
-		this->ctx.acceptsEncoding,
-		this->ctx.keepAlive,
-		this->ctx.conn,
-	});
+	this->ctx.respond(response);
 }

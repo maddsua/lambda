@@ -6,11 +6,13 @@
 #include <queue>
 #include <future>
 
-#include "../utils/utils.hpp"
+
 #include "../network/network.hpp"
 #include "../network/tcp/listener.hpp"
+#include "../http/transport.hpp"
 #include "../http/http.hpp"
 #include "../websocket/websocket.hpp"
+#include "../utils/utils.hpp"
 
 namespace Lambda {
 
@@ -20,19 +22,13 @@ namespace Lambda {
 		bool timestamps = false;
 	};
 
-	struct HTTPTransportOptions {
-		bool useCompression = true;
-		bool reuseConnections = true;
-		size_t maxRequestSize = 25 * 1024 * 1024;
-	};
-
 	enum struct ErrorResponseType {
 		HTML, JSON
 	};
 
 	struct ServeOptions {
 		LogOptions loglevel;
-		HTTPTransportOptions transport;
+		HTTP::Transport::TransportOptions transport;
 		ErrorResponseType errorResponseType = ErrorResponseType::HTML;
 	};
 
@@ -51,21 +47,8 @@ namespace Lambda {
 		Network::ConnectionInfo conninfo;
 	};
 
-	struct HTTPReaderContext {
-		Network::TCP::Connection& conn;
-		const HTTPTransportOptions& topts;
-		const Network::ConnectionInfo& conninfo;
-		const ErrorResponseType& errorResponseType;
-		std::vector<uint8_t> buffer;
-		bool keepAlive = false;
-	};
-
-	enum struct ContentEncodings {
-		None, Brotli, Gzip, Deflate,
-	};
-
 	struct HTTPTransportContext {
-		ContentEncodings acceptsEncoding = ContentEncodings::None;
+		HTTP::Transport::ContentEncodings acceptsEncoding = HTTP::Transport::ContentEncodings::None;
 		bool keepAlive = false;
 	};
 
@@ -73,18 +56,10 @@ namespace Lambda {
 		HTTP::Request request;
 	};
 
-	struct HTTPWriterContext : HTTPTransportContext {
-		Network::TCP::Connection& conn;
-	};
-
-	struct ConnectionContext : HTTPReaderContext {
-		ContentEncodings acceptsEncoding = ContentEncodings::None;
-	};
-
 	class WebsocketContext {
 		private:
 			Network::TCP::Connection& conn;
-			const HTTPTransportOptions& topts;
+			const HTTP::Transport::TransportOptions& topts;
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
 			std::mutex m_read_lock;
@@ -93,7 +68,7 @@ namespace Lambda {
 
 		public:
 
-			WebsocketContext(Network::TCP::Connection& connRef, const HTTPTransportOptions& toptsRef);
+			WebsocketContext(Network::TCP::Connection& connRef, const HTTP::Transport::TransportOptions& toptsRef);
 			~WebsocketContext();
 
 			bool awaitMessage();
@@ -110,11 +85,13 @@ namespace Lambda {
 				HTTP, WS
 			};
 
-			ConnectionContext ctx;
+			Network::TCP::Connection& conn;
+			const ServeOptions& opts;
+			HTTP::Transport::V1TransportContext ctx;
 			ActiveProtocol activeProto = ActiveProtocol::HTTP;
 
 		public:
-			IncomingConnection(Network::TCP::Connection& conn, const ServeOptions& opts);
+			IncomingConnection(Network::TCP::Connection& connInit, const ServeOptions& optsInit);
 
 			IncomingConnection(const IncomingConnection& other) = delete;
 			IncomingConnection& operator=(const IncomingConnection& other) = delete;

@@ -18,7 +18,7 @@ static const time_t sockRcvTimeout = 100;
 
 WebsocketContext::WebsocketContext(
 	Network::TCP::Connection& connRef,
-	const HTTPTransportOptions& toptsRef
+	const HTTP::Transport::TransportOptions& toptsRef
 ) : conn(connRef), topts(toptsRef) {
 
 	this->conn.flags.closeOnTimeout = false;
