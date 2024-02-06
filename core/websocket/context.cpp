@@ -1,12 +1,12 @@
-#include "../server.hpp"
-#include "../internal.hpp"
-#include "../../utils/utils.hpp"
+#include "./websocket.hpp"
+#include "./transport.hpp"
+#include "../utils/utils.hpp"
 
 #include <cstring>
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
-using namespace Lambda::Server::WSTransport;
+using namespace Lambda::Websocket::Transport;
 
 //	The recv function blocks execution infinitely until it receives somethig,
 //	which is not optimal for this usecase.

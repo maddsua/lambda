@@ -235,10 +235,8 @@ void V1TransportContext::respond(const Response& response) {
 	responseHeaders.set("server", "maddsua/lambda");
 
 	//	set connection header to acknowledge keep-alive mode
-	if (this->m_keepalive) {
+	if (this->m_keepalive && !responseHeaders.has("connection")) {
 		responseHeaders.set("connection", "keep-alive");
-	} else {
-		responseHeaders.set("connection", "close");
 	}
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
