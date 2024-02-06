@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <map>
+#include <optional>
 
 namespace Lambda::HTTP {
 
@@ -212,6 +213,16 @@ namespace Lambda::HTTP {
 		Request(const std::string& urlinit, const Method& methodInit, const Headers& headersinit, BodyBuffer& bodyinit);
 
 		Cookies getCookies() const;
+	};
+
+	namespace Auth {
+
+		struct BasicCredentials {
+			const std::string user;
+			const std::string password;
+		};
+
+		std::optional<BasicCredentials> parseBasicAuth(const std::string& header);
 	};
 };
 

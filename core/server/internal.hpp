@@ -14,14 +14,6 @@ namespace Lambda::Server {
 		void connectionHandler(Network::TCP::Connection& conn, const ServeOptions& config, const ConnectionCallback& handlerCallback);
 	};
 
-	namespace HTTPTransport {
-
-		std::optional<IncomingRequest> requestReader(HTTPReaderContext& ctx);
-		void writeResponse(const HTTP::Response& response, const HTTPWriterContext& ctx);
-
-		std::optional<std::pair<std::string, std::string>> parseBasicAuth(const std::string& header);
-	};
-
 	namespace WSTransport {
 
 		enum struct OpCode : uint8_t {
