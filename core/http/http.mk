@@ -1,6 +1,6 @@
 
 LIB_CORE_HTTP			=	core/http.a
-LIB_CORE_HTTP_DEPS		=	core/http/request.o core/http/response.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o
+LIB_CORE_HTTP_DEPS		=	core/http/request.o core/http/response.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o core/http/auth.o
 
 # http stuff
 $(LIB_CORE_HTTP): $(LIB_CORE_HTTP_DEPS)
@@ -32,3 +32,6 @@ core/http/status.o: core/http/status.cpp
 
 core/http/body.o: core/http/body.cpp
 	g++ -c $(CFLAGS) core/http/body.cpp -o core/http/body.o
+
+core/http/auth.o: core/http/auth.cpp
+	g++ -c $(CFLAGS) core/http/auth.cpp -o core/http/auth.o
