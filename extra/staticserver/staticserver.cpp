@@ -1,11 +1,22 @@
 #include "./staticserver.hpp"
 #include "../../core/html/html.hpp"
 
+#include <filesystem>
+
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTML;
 
-StaticServer::StaticServer(const std::string& rootDir) : m_root(rootDir) {}
+StaticServer::StaticServer(const std::string& rootDir) : m_root(rootDir) {
+
+	if (!std::filesystem::exists(this->m_root)) {
+		throw std::runtime_error("StaticServer startup error: path \"" + this->m_root + "\" does not exist");
+	}
+
+	if (!std::filesystem::is_directory(this->m_root)) {
+		throw std::runtime_error("StaticServer startup error: path \"" + this->m_root + "\" is not a directory");
+	}
+}
 
 HTTP::Response StaticServer::serve(const HTTP::Request& request) const noexcept {
 	return serve(request.url.pathname);
