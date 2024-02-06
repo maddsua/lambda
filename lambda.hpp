@@ -30,6 +30,7 @@
 		typedef HTTP::Request Request;
 		typedef HTTP::Response Response;
 		typedef RequestContext Context;
+		typedef Storage::LocalStorage LocalStorage;
 	};
 
 #endif
