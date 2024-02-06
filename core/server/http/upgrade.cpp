@@ -5,6 +5,7 @@
 #include "../../encoding/encoding.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Websocket;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 

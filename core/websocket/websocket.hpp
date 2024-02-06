@@ -1,9 +1,14 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKETS__
 #define __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKETS__
 
+#include "../network/tcp/connection.hpp"
+#include "../http/transport.hpp"
+
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <future>
+#include <queue>
 
 namespace Lambda::Websocket {
 
@@ -36,6 +41,28 @@ namespace Lambda::Websocket {
 		MandatoryExtension = 1010,
 		InternalServerError = 1011,
 		TLSHandshakeFailed = 1015
+	};
+
+	class WebsocketContext {
+		private:
+			Network::TCP::Connection& conn;
+			const HTTP::Transport::TransportOptions& topts;
+			std::future<void> m_reader;
+			std::queue<Websocket::Message> m_queue;
+			std::mutex m_read_lock;
+			bool m_stopped = false;
+			void asyncWorker();
+
+		public:
+
+			WebsocketContext(Network::TCP::Connection& connRef, const HTTP::Transport::TransportOptions& toptsRef);
+			~WebsocketContext();
+
+			bool awaitMessage();
+			bool hasMessage() const noexcept;
+			Websocket::Message nextMessage();
+			void sendMessage(const Websocket::Message& msg);
+			void close(Websocket::CloseReason reason);
 	};
 };
 
