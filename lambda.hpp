@@ -24,7 +24,7 @@
 	#include "./core/utils/utils.hpp"
 
 	//	include extra "modules"
-	#include "./extra/webstorage/webstorage.hpp"
+	#include "./extra/kvstorage/kvstorage.hpp"
 
 	namespace Lambda {
 		typedef HTTP::Request Request;

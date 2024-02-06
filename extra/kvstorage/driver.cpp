@@ -1,6 +1,6 @@
 
 #include "./driver.hpp"
-#include "./webstorage.hpp"
+#include "./kvstorage.hpp"
 #include "../../core/utils/utils.hpp"
 
 #include <filesystem>
@@ -9,8 +9,7 @@
 #include <memory.h>
 
 using namespace Lambda::Storage;
-using namespace Lambda::Storage::WebStorage;
-using namespace Lambda::Storage::WebStorage::KV;
+using namespace Lambda::Storage::KVStorage;
 
 Driver::Driver(const std::string& filename) : m_filename(filename) {
 

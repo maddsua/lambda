@@ -1,10 +1,9 @@
 
-#include "./webstorage.hpp"
+#include "./kvstorage.hpp"
 #include "./driver.hpp"
 
 using namespace Lambda::Storage;
-using namespace Lambda::Storage::WebStorage;
-using namespace Lambda::Storage::WebStorage::KV;
+using namespace Lambda::Storage::KVStorage;
 
 StorageInterface::StorageInterface() {
 

@@ -8,7 +8,7 @@
 
 namespace Lambda::Storage {
 
-	namespace WebStorage::KV {
+	namespace KVStorage {
 
 		class Driver;
 
@@ -26,9 +26,9 @@ namespace Lambda::Storage {
 
 		class StorageInterface {
 			protected:
-				KV::Container data;
+				Container data;
 				std::mutex mtlock;
-				KV::Driver* driver = nullptr;
+				Driver* driver = nullptr;
 
 			public:
 				StorageInterface();
@@ -44,7 +44,7 @@ namespace Lambda::Storage {
 		};
 	};
 
-	typedef WebStorage::KV::StorageInterface LocalStorage;
+	typedef KVStorage::StorageInterface LocalStorage;
 
 };
 
