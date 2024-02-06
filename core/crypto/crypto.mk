@@ -1,6 +1,6 @@
 
 LIB_CORE_CRYPTO			=	core/crypto.a
-LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o  core/crypto/uid.o
+LIB_CORE_CRYPTO_DEPS	=	core/crypto/sha1.o core/crypto/uid.o
 
 # crypto stuff
 $(LIB_CORE_CRYPTO): $(LIB_CORE_CRYPTO_DEPS)
