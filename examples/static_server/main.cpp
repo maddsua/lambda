@@ -6,7 +6,7 @@ using namespace Lambda;
 
 int main(int argc, char const *argv[]) {
 
-	StaticServer sserver("./dist");
+	StaticServer sserver("examples/static_server/dist");
 
 	auto handler = [&](const Request& req, const Context& context) {
 		return sserver.serve(req);
