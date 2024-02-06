@@ -1,6 +1,6 @@
 #include "./transport.hpp"
-#include "../../polyfill/polyfill.hpp"
-#include "../../compression/compression.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "../compression/compression.hpp"
 
 #include <set>
 #include <algorithm>
