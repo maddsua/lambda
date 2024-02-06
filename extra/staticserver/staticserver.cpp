@@ -1,12 +1,23 @@
 #include "./staticserver.hpp"
 #include "../../core/html/html.hpp"
+#include "../../core/polyfill/polyfill.hpp"
 
 #include <filesystem>
 #include <functional>
+#include <fstream>
+#include <vector>
+#include <cstdint>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTML;
+
+std::vector<uint8_t> readBinaryFileSync(const std::string& filepath) {
+	std::ifstream file(filepath, std::ios::binary);
+	if (!file) return {};
+	std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(file), {});
+	return buffer;
+}
 
 std::string StaticServer::flattenPathName(std::string urlpath) const noexcept {
 
@@ -112,15 +123,22 @@ HTTP::Response StaticServer::serve(const std::string& pathname) const noexcept {
 	auto normalizedPathname = flattenPathName(pathname);
 	auto resolvedFile = this->resolvePath(normalizedPathname);
 
-	if (resolvedFile.has_value()) {
-		puts(resolvedFile.value().c_str());
-		return Response(200, "found");
+	//	return 404
+	if (!resolvedFile.has_value()) {
+		return Response(404, renderTemplate(Templates::servicePage, {
+			{ "svcpage_statuscode", "404" },
+			{ "svcpage_statustext", "Resource not found" },
+			{ "svcpage_message_text", '"' + pathname + "\" could not be located" }
+		}));
 	}
 
-	//	return 404
-	return Response(404, renderTemplate(Templates::servicePage, {
-		{ "svcpage_statuscode", "404" },
-		{ "svcpage_statustext", "Resource not found" },
-		{ "svcpage_message_text", '"' + pathname + "\" could not be located" }
-	}));
+	auto& resolvedFilePath = resolvedFile.value();
+	auto extension = std::filesystem::relative(resolvedFilePath).extension();
+	auto mimetype = Content::getExtMimetype(extension.generic_string());
+
+	auto fileContent = readBinaryFileSync(resolvedFilePath);
+
+	return Response(200, {
+		{ "content-type", mimetype }
+	}, fileContent);
 }
