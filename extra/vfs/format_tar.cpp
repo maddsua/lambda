@@ -35,35 +35,39 @@ struct TarPosixHeader {
 static const uint16_t tarBlockSize = 512;
 static_assert(sizeof(TarPosixHeader) == tarBlockSize);
 
-enum struct EntryMode : char {
+enum struct EntryType : char {
 	Normal = '0',
 	LongLink = 'L',
-	Directory = '5',
+	Directory = '5'
 };
 
 struct TarBasicHeader {
 	std::string name;
 	size_t size = 0;
 	time_t modified = 0;
-	EntryMode mode = EntryMode::Normal;
+	EntryType typeflag = EntryType::Normal;
 	bool isEof = false;
 };
 
 TarPosixHeader createHeader(const TarBasicHeader& header) {
 
-	const auto encodeTarInt = [](char* buffer, int16_t buffsize, int64_t number) {
+	const auto encodeTarInt = [](char* dest, int16_t destSize, int64_t value) {
 
-		//	actually don't need this memset here,
-		//	the entire header structure will be all zeros
-		//memset(buffer, 0, buffsize);
+		std::string buffer;
+		const int64_t targetlen = destSize - 1;
+		
+		while (value > 0) {
+			int64_t remainder = value % 8;
+			buffer = std::to_string(remainder) + buffer;
+			value /= 8;
+		}
 
-		char format[10];
-		snprintf(format, sizeof(format), "%%0%io", buffsize - 1);
+		if (buffer.size() < targetlen) {
+			const auto leftpad = std::string(targetlen - buffer.size(), '0');
+			buffer.insert(buffer.begin(), leftpad.begin(), leftpad.end());
+		}
 
-		char value[24];
-		snprintf(value, sizeof(value), format, number);
-
-		strncpy(buffer, value, buffsize - 1);
+		strncpy(dest, buffer.c_str(), destSize);
 	};
 
 	TarPosixHeader posixHeader;
@@ -71,7 +75,7 @@ TarPosixHeader createHeader(const TarBasicHeader& header) {
 
 	strcpy(posixHeader.magic, "ustar");
 	strcpy(posixHeader.version, "00");
-	posixHeader.typeflag = static_cast<std::underlying_type_t<TarBasicHeader>>(header.mode);
+	posixHeader.typeflag = static_cast<std::underlying_type_t<TarBasicHeader>>(header.typeflag);
 
 	strncpy(posixHeader.mode, "0100777", 7);
 	strncpy(posixHeader.uid, "0000000", 7);
@@ -130,31 +134,28 @@ TarBasicHeader decodeHeader(const TarPosixHeader& posixHeader) {
 		checksumSigned += *((int8_t*)(&posixHeader) + i);
 	}
 
-	auto parseTarInt = [](const std::string& field) {
-		try { return std::stoull(field, nullptr, 8); }
-			catch(...) { return 0ULL; }
+	const auto parseTarInt = [](const char* field, size_t fieldsize) {
+		return std::stoull(std::string(field, fieldsize), nullptr, 8);
 	};
 
-	auto originalChecksum = parseTarInt(std::string(posixHeader.chksum, sizeof(posixHeader.chksum)));
+	auto originalChecksum = parseTarInt(posixHeader.chksum, sizeof(posixHeader.chksum));
 	if (!(originalChecksum == checksumUnsigned || originalChecksum == checksumSigned)) {
 		throw std::runtime_error("Tar checksum error");
 	}
 
 	TarBasicHeader header;
 
-	//	this is not required by the tar standard,
-	//	but lambda is not a cli archive tool, and I don't want it
-	//	to crash in case of a corrupted tar file
-	auto nameSize = posixHeader.name[sizeof(posixHeader.name) - 1] == 0 ? strlen(posixHeader.name) : sizeof(posixHeader.name);
+	const bool nameFieldFit = posixHeader.name[sizeof(posixHeader.name) - 1] == 0;
+	const size_t nameFieldLength = nameFieldFit ? strlen(posixHeader.name) : sizeof(posixHeader.name);
 
-	header.name = std::string(posixHeader.name, nameSize);
-	header.mode = static_cast<EntryMode>(posixHeader.typeflag);
+	header.name = std::string(posixHeader.name, nameFieldLength);
+	header.typeflag = static_cast<EntryType>(posixHeader.typeflag);
 
 	//	decode file size
-	header.size = parseTarInt(std::string(posixHeader.size, sizeof(posixHeader.size)));
+	header.size = parseTarInt(posixHeader.size, sizeof(posixHeader.size));
 
 	//	get last modification date
-	header.modified = parseTarInt(std::string(posixHeader.mtime, sizeof(posixHeader.mtime)));
+	header.modified = parseTarInt(posixHeader.mtime, sizeof(posixHeader.mtime));
 
 	return header;
 }
