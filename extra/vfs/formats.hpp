@@ -3,9 +3,11 @@
 
 #include "./vfs.hpp"
 
-namespace Lambda::VFS {
+namespace Lambda::VFS::Formats {
 
 	namespace Tar {
+
+		extern const std::initializer_list<std::string> supportedExtensions;
 
 	};
 };
