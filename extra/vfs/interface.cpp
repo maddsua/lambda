@@ -121,7 +121,7 @@ std::optional<VirtualFileInfo> Interface::fileInfo(const std::string& path) noex
 
 	auto itr = this->m_data.find(pathNormalized);
 	if (itr == this->m_data.end()) {
-		std::nullopt;
+		return std::nullopt;
 	}
 
 	VirtualFileInfo info {
