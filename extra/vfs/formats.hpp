@@ -22,6 +22,7 @@ namespace Lambda::VFS::Formats {
 			void push(VirtualFile&& item);
 			void close() noexcept;
 			bool done() const noexcept;
+			bool empty() const noexcept;
 	};
 
 	namespace Tar {
