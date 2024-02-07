@@ -165,6 +165,12 @@ size_t getPaddingSize(size_t contentSize) {
 	return (tarBlockSize * ((contentSize / tarBlockSize) + 1)) - contentSize;
 }
 
+void paddBlock(std::vector<uint8_t>& buff) {
+	const auto paddSize = getPaddingSize(buff.size());
+	if (!paddSize) return;
+	buff.resize(buff.size() + paddSize, 0);
+}
+
 void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 
 	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
@@ -190,6 +196,7 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 			const auto longlinkSerialized = serializeHeader(longlinkHeader);
 			writeBuff.insert(writeBuff.end(), longlinkSerialized.begin(), longlinkSerialized.end());
 			writeBuff.insert(writeBuff.end(), nextFile.name.begin(), nextFile.name.end());
+			paddBlock(writeBuff);
 		}
 
 		TarBasicHeader tarEntry {
@@ -202,6 +209,7 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 		const auto entryHeaderSerialized = serializeHeader(tarEntry);
 		writeBuff.insert(writeBuff.end(), entryHeaderSerialized.begin(), entryHeaderSerialized.end());
 		writeBuff.insert(writeBuff.end(), nextFile.buffer.begin(), nextFile.buffer.end());
+		paddBlock(writeBuff);
 
 		outfile.write((char*)writeBuff.data(), writeBuff.size());
 		outfile.flush();
