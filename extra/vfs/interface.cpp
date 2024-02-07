@@ -1,5 +1,7 @@
 #include "./vfs.hpp"
 #include "../../core/polyfill/polyfill.hpp"
+#include "./formats.hpp"
+
 #include <filesystem>
 
 using namespace Lambda;
@@ -33,10 +35,19 @@ const std::optional<VirtualFile> Interface::read(const std::string& path) noexce
 void Interface::write(const std::string& path, const std::vector <uint8_t>& content) noexcept {
 
 	const auto pathNormalized = Strings::toLowerCase(path);
+	const auto newSize = path.size() + content.size();
 
 	std::lock_guard<std::mutex> lock(this->m_lock);
 
 	const auto itr = this->m_data.find(pathNormalized);
+
+	if (itr == this->m_data.end()) {
+		this->m_info.totalSize += newSize;
+		this->m_info.totalFiles++;
+	} else {
+		const auto oldSize = itr->first.size() + itr->second.buffer.size();
+		this->m_info.totalSize += (newSize - oldSize);
+	}
 
 	StoredValue vfsentry {
 		content,
@@ -59,20 +70,24 @@ void Interface::remove(const std::string& path) noexcept {
 
 	auto itr = this->m_data.find(pathNormalized);
 	if (itr != this->m_data.end()) {
+		this->m_info.totalSize -= (itr->first.size() + itr->second.buffer.size());
+		this->m_info.totalFiles--;
 		this->m_data.erase(itr);
 	}
 }
 
-void Interface::move(const std::string& path, const std::string& newPath) {
+void Interface::move(const std::string& oldPath, const std::string& newPath) {
 
-	const auto pathNormalized = Strings::toLowerCase(path);
-	const auto newPathNormalized = Strings::toLowerCase(path);
+	const auto pathNormalized = Strings::toLowerCase(oldPath);
+	const auto newPathNormalized = Strings::toLowerCase(newPath);
 
+	this->m_info.totalSize += (newPath.size() - oldPath.size());
+	
 	std::lock_guard <std::mutex> lock(this->m_lock);
 
 	const auto itrOld = this->m_data.find(pathNormalized);
 	if (itrOld == this->m_data.end()) {
-		throw std::filesystem::filesystem_error("Virtual file not found", path, std::error_code(2L, std::generic_category()));
+		throw std::filesystem::filesystem_error("Virtual file not found", oldPath, std::error_code(2L, std::generic_category()));
 	}
 
 	this->m_data[newPathNormalized] = itrOld->second;
@@ -116,4 +131,39 @@ std::optional<VirtualFileInfo> Interface::fileInfo(const std::string& path) noex
 	};
 
 	return info;
+}
+
+bool isSupportedFileExtension(const std::string& filepath, const std::initializer_list<std::string>& extensions) {
+
+	const auto pathNormalized = Strings::toLowerCase(filepath);
+
+	const auto pathExtension = std::filesystem::path(pathNormalized).extension();
+
+	for (const auto& item : pathExtension) {
+		if (item == pathExtension) return true;
+	}
+
+	return false;
+}
+
+void Interface::loadSnapshot(const std::string& path) {
+
+	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
+
+	}
+
+	throw std::runtime_error("loadSnapshot() error: vfs uses file extension to determine storage file format and it was not recognized");
+}
+
+void Interface::saveSnapshot(const std::string& path) {
+
+	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
+
+	}
+	
+	throw std::runtime_error("saveSnapshot() error: vfs uses file extension to determine storage file format and it was not recognized");
+}
+
+const VFSInfo& Interface::stats() const noexcept {
+	return this->m_info;
 }
