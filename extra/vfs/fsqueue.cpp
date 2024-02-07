@@ -33,12 +33,20 @@ VirtualFile FSQueue::next() {
 
 bool FSQueue::await() {
 
-	auto readerDone = false;
 	while (!this->m_done && !this->m_queue.size()) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
 	return this->m_queue.size();
+}
+
+bool FSQueue::awaitEmpty() {
+
+	while (!this->m_done && this->m_queue.size()) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
+
+	return !this->m_queue.size();
 }
 
 void FSQueue::close() noexcept {
