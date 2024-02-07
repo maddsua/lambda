@@ -34,3 +34,8 @@ struct TarPosixHeader {
 static const uint16_t tarBlockSize = 512;
 static_assert(sizeof(TarPosixHeader) == tarBlockSize);
 
+
+
+void Tar::exportArchive(const std::string& path, FSQueue& queue) {
+
+}
