@@ -50,7 +50,7 @@ struct TarBasicHeader {
 	time_t modified = 0;
 };
 
-std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
+void serializeHeader(const TarBasicHeader& header, std::vector<uint8_t>& destBuff) {
 
 	const auto encodeTarInt = [](char* dest, int16_t destSize, size_t value) {
 
@@ -103,7 +103,7 @@ std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 	encodeTarInt(posixHeader.chksum, sizeof(posixHeader.chksum), checksumSigned);
 
 	const auto headerDataPtr = reinterpret_cast<uint8_t*>(&posixHeader);
-	return std::vector<uint8_t>(headerDataPtr, headerDataPtr + sizeof(posixHeader));
+	destBuff.insert(destBuff.end(), headerDataPtr, headerDataPtr + sizeof(posixHeader));
 }
 
 std::optional<TarBasicHeader> parseHeader(const TarPosixHeader& posixHeader) {
@@ -193,8 +193,7 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 				nextFile.modified,
 			};
 
-			const auto longlinkSerialized = serializeHeader(longlinkHeader);
-			writeBuff.insert(writeBuff.end(), longlinkSerialized.begin(), longlinkSerialized.end());
+			serializeHeader(longlinkHeader, writeBuff);
 			writeBuff.insert(writeBuff.end(), nextFile.name.begin(), nextFile.name.end());
 			paddBlock(writeBuff);
 		}
@@ -206,8 +205,7 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 			nextFile.modified,
 		};
 
-		const auto entryHeaderSerialized = serializeHeader(tarEntry);
-		writeBuff.insert(writeBuff.end(), entryHeaderSerialized.begin(), entryHeaderSerialized.end());
+		serializeHeader(tarEntry, writeBuff);
 		writeBuff.insert(writeBuff.end(), nextFile.buffer.begin(), nextFile.buffer.end());
 		paddBlock(writeBuff);
 
