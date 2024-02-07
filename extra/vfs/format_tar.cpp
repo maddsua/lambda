@@ -160,6 +160,11 @@ TarBasicHeader decodeHeader(const TarPosixHeader& posixHeader) {
 	return header;
 }
 
+size_t getPaddingSize(size_t contentSize) {
+	if (contentSize == 0 || contentSize == tarBlockSize) return 0;
+	return (tarBlockSize * ((contentSize / tarBlockSize) + 1)) - contentSize;
+}
+
 void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 
 }
