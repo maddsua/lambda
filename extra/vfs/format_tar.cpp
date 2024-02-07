@@ -52,13 +52,13 @@ struct TarBasicHeader {
 
 std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 
-	const auto encodeTarInt = [](char* dest, int16_t destSize, int64_t value) {
+	const auto encodeTarInt = [](char* dest, int16_t destSize, size_t value) {
 
 		std::string buffer;
-		const int64_t targetlen = destSize - 1;
+		const size_t targetlen = destSize - 1;
 		
 		while (value > 0) {
-			int64_t remainder = value % 8;
+			size_t remainder = value % 8;
 			buffer = std::to_string(remainder) + buffer;
 			value /= 8;
 		}
@@ -76,7 +76,7 @@ std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 
 	strcpy(posixHeader.magic, "ustar");
 	strcpy(posixHeader.version, "00");
-	posixHeader.typeflag = static_cast<std::underlying_type_t<TarBasicHeader>>(header.typeflag);
+	posixHeader.typeflag = static_cast<std::underlying_type_t<EntryType>>(header.typeflag);
 
 	strncpy(posixHeader.mode, "0100777", 7);
 	strncpy(posixHeader.uid, "0000000", 7);
