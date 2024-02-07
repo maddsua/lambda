@@ -29,7 +29,7 @@ namespace Lambda::VFS::Formats {
 
 		extern const std::initializer_list<std::string> supportedExtensions;
 
-		
+		void exportArchive(const std::string& path, FSQueue& queue);
 	};
 	
 };
