@@ -3,6 +3,7 @@
 #include "./formats.hpp"
 
 #include <filesystem>
+#include <future>
 
 using namespace Lambda;
 using namespace Lambda::VFS;
@@ -156,11 +157,38 @@ void Interface::loadSnapshot(const std::string& path) {
 
 void Interface::saveSnapshot(const std::string& path) {
 
+	Formats::FSQueue outqueue;
+	std::future<void> writerPromise;
+
 	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
 
+		writerPromise = std::async(Formats::Tar::exportArchive, path, std::ref(outqueue));
+
+		for (const auto& entry : this->m_data) {
+
+			if (!outqueue.awaitEmpty()) break;
+
+			VirtualFile vfsfile {
+				entry.second.buffer,
+				entry.second.created,
+				entry.second.modified,
+				entry.first
+			};
+
+			outqueue.push(std::move(vfsfile));
+		}
+
+	} else {
+		throw std::runtime_error("saveSnapshot() error: vfs uses file extension to determine storage file format and it was not recognized");
 	}
-	
-	throw std::runtime_error("saveSnapshot() error: vfs uses file extension to determine storage file format and it was not recognized");
+
+	if (!outqueue.done()) {
+		outqueue.close();
+	}
+
+	if (writerPromise.valid()) {
+		writerPromise.get();
+	}
 }
 
 const VFSInfo& Interface::stats() const noexcept {
