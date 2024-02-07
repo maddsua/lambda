@@ -1,6 +1,7 @@
 
 # Test JSON extra module
 TEST_JSON_TARGET = $(EXEPFX)json.test$(EXEEXT)
+
 test.json: $(TEST_JSON_TARGET)
 	$(TEST_JSON_TARGET)
 
