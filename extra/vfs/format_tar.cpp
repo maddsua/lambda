@@ -220,3 +220,7 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 	outfile.flush();
 	outfile.close();
 }
+
+void Tar::importArchive(const std::string& path, FSQueue& queue) {
+	queue.close();
+}
