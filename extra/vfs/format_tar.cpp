@@ -78,9 +78,9 @@ std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 	strcpy(posixHeader.version, "00");
 	posixHeader.typeflag = static_cast<std::underlying_type_t<EntryType>>(header.typeflag);
 
-	strncpy(posixHeader.mode, "0100777", 7);
-	strncpy(posixHeader.uid, "0000000", 7);
-	strncpy(posixHeader.gid, "0000000", 7);
+	strncpy(posixHeader.mode, "0100777", sizeof(posixHeader.mode));
+	strncpy(posixHeader.uid, "0000000", sizeof(posixHeader.uid));
+	strncpy(posixHeader.gid, "0000000", sizeof(posixHeader.gid));
 
 	strncpy(posixHeader.name, header.name.c_str(), sizeof(posixHeader.name) - 1);
 
@@ -102,7 +102,7 @@ std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 
 	encodeTarInt(posixHeader.chksum, sizeof(posixHeader.chksum), checksumSigned);
 
-	const auto const headerDataPtr = reinterpret_cast<uint8_t*>(&posixHeader);
+	const auto headerDataPtr = reinterpret_cast<uint8_t*>(&posixHeader);
 	return std::vector<uint8_t>(headerDataPtr, headerDataPtr + sizeof(posixHeader));
 }
 
@@ -135,11 +135,11 @@ std::optional<TarBasicHeader> parseHeader(const TarPosixHeader& posixHeader) {
 	}
 
 	const auto parseTarInt = [](const char* field, size_t fieldsize) {
-		return std::stoull(std::string(field, fieldsize), nullptr, 8);
+		return std::stoll(std::string(field, fieldsize), nullptr, 8);
 	};
 
 	auto originalChecksum = parseTarInt(posixHeader.chksum, sizeof(posixHeader.chksum));
-	if (!(originalChecksum == checksumUnsigned || originalChecksum == checksumSigned)) {
+	if (!(originalChecksum == static_cast<int64_t>(checksumUnsigned) || originalChecksum == checksumSigned)) {
 		throw std::runtime_error("Tar checksum error");
 	}
 
