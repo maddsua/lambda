@@ -2,6 +2,8 @@
 
 #include <cassert>
 #include <cstring>
+#include <fstream>
+#include <filesystem>
 
 using namespace Lambda;
 using namespace Lambda::VFS;
@@ -43,13 +45,12 @@ enum struct EntryType : char {
 
 struct TarBasicHeader {
 	std::string name;
+	EntryType typeflag = EntryType::Normal;
 	size_t size = 0;
 	time_t modified = 0;
-	EntryType typeflag = EntryType::Normal;
-	bool isEof = false;
 };
 
-TarPosixHeader createHeader(const TarBasicHeader& header) {
+std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 
 	const auto encodeTarInt = [](char* dest, int16_t destSize, int64_t value) {
 
@@ -101,16 +102,15 @@ TarPosixHeader createHeader(const TarBasicHeader& header) {
 
 	encodeTarInt(posixHeader.chksum, sizeof(posixHeader.chksum), checksumSigned);
 
-	return posixHeader;
+	const auto const headerDataPtr = reinterpret_cast<uint8_t*>(&posixHeader);
+	return std::vector<uint8_t>(headerDataPtr, headerDataPtr + sizeof(posixHeader));
 }
 
-TarBasicHeader decodeHeader(const TarPosixHeader& posixHeader) {
+std::optional<TarBasicHeader> parseHeader(const TarPosixHeader& posixHeader) {
 
 	//	check for empty block
 	if (((uint8_t*)(&posixHeader))[0] == 0) {
-		TarBasicHeader temp;
-		temp.isEof = true;
-		return temp;
+		return std::nullopt;
 	}
 
 	//	ensure ustar format
@@ -167,4 +167,50 @@ size_t getPaddingSize(size_t contentSize) {
 
 void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 
+	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
+	if (!outfile.is_open()) {
+		throw std::filesystem::filesystem_error("Could not open file for write", path, std::error_code(5L, std::generic_category()));
+	}
+
+	std::vector<uint8_t> writeBuff;
+
+	while (queue.await()) {
+
+		auto nextFile = queue.next();
+
+		if (nextFile.name.size() >= sizeof(TarPosixHeader::name)) {
+
+			TarBasicHeader longlinkHeader {
+				"././@LongLink",
+				EntryType::LongLink,
+				nextFile.name.size(),
+				nextFile.modified,
+			};
+
+			const auto longlinkSerialized = serializeHeader(longlinkHeader);
+			writeBuff.insert(writeBuff.end(), longlinkSerialized.begin(), longlinkSerialized.end());
+			writeBuff.insert(writeBuff.end(), nextFile.name.begin(), nextFile.name.end());
+		}
+
+		TarBasicHeader tarEntry {
+			nextFile.name,
+			EntryType::Normal,
+			nextFile.buffer.size(),
+			nextFile.modified,
+		};
+
+		const auto entryHeaderSerialized = serializeHeader(tarEntry);
+		writeBuff.insert(writeBuff.end(), entryHeaderSerialized.begin(), entryHeaderSerialized.end());
+		writeBuff.insert(writeBuff.end(), nextFile.buffer.begin(), nextFile.buffer.end());
+
+		outfile.write((char*)writeBuff.data(), writeBuff.size());
+		outfile.flush();
+		writeBuff.erase(writeBuff.begin(), writeBuff.end());
+	}
+
+	writeBuff.resize(writeBuff.size() + (2 * tarBlockSize), 0);
+	outfile.write((char*)writeBuff.data(), writeBuff.size());
+
+	outfile.flush();
+	outfile.close();
 }
