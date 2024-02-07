@@ -136,7 +136,6 @@ std::optional<VirtualFileInfo> Interface::fileInfo(const std::string& path) noex
 bool isSupportedFileExtension(const std::string& filepath, const std::initializer_list<std::string>& extensions) {
 
 	const auto pathNormalized = Strings::toLowerCase(filepath);
-
 	const auto pathExtension = std::filesystem::path(pathNormalized).extension();
 
 	for (const auto& item : pathExtension) {
