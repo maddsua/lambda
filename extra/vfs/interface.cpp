@@ -148,25 +148,55 @@ bool isSupportedFileExtension(const std::string& filepath, const std::initialize
 
 void Interface::loadSnapshot(const std::string& path) {
 
+	Formats::FSQueue readerQueue;
+	std::future<void> readerPromise;
+
 	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
 
+		readerPromise = std::async(Formats::Tar::importArchive, path, std::ref(readerQueue));
+
+		while (readerQueue.await()) {
+			
+			const auto next = readerQueue.next();
+			const auto pathNormalized = Strings::toLowerCase(next.name);
+			
+			StoredValue vfsentry {
+				next.buffer,
+				std::time(nullptr),
+				next.modified
+			};
+
+			std::lock_guard<std::mutex> lock(this->m_lock);
+			this->m_data[pathNormalized] = vfsentry;
+		}
+
+	} else {
+		throw std::runtime_error("loadSnapshot() error: vfs uses file extension to determine storage file format and it was not recognized");
 	}
 
-	throw std::runtime_error("loadSnapshot() error: vfs uses file extension to determine storage file format and it was not recognized");
+	if (!readerQueue.done()) {
+		readerQueue.close();
+	}
+
+	if (readerPromise.valid()) {
+		readerPromise.get();
+	}
 }
 
 void Interface::saveSnapshot(const std::string& path) {
 
-	Formats::FSQueue outqueue;
+	Formats::FSQueue writerQueue;
 	std::future<void> writerPromise;
 
 	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
 
-		writerPromise = std::async(Formats::Tar::exportArchive, path, std::ref(outqueue));
+		writerPromise = std::async(Formats::Tar::exportArchive, path, std::ref(writerQueue));
+
+		std::lock_guard<std::mutex> lock(this->m_lock);
 
 		for (const auto& entry : this->m_data) {
 
-			if (!outqueue.awaitEmpty()) break;
+			if (!writerQueue.awaitEmpty()) break;
 
 			VirtualFile vfsfile {
 				entry.second.buffer,
@@ -175,15 +205,15 @@ void Interface::saveSnapshot(const std::string& path) {
 				entry.first
 			};
 
-			outqueue.push(std::move(vfsfile));
+			writerQueue.push(std::move(vfsfile));
 		}
 
 	} else {
 		throw std::runtime_error("saveSnapshot() error: vfs uses file extension to determine storage file format and it was not recognized");
 	}
 
-	if (!outqueue.done()) {
-		outqueue.close();
+	if (!writerQueue.done()) {
+		writerQueue.close();
 	}
 
 	if (writerPromise.valid()) {
