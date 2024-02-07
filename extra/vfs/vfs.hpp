@@ -40,6 +40,7 @@ namespace Lambda {
 			private:
 				std::unordered_map <std::string, StoredValue> m_data;
 				std::mutex m_lock;
+				VFSInfo m_info;
 
 			public:
 
@@ -87,6 +88,8 @@ namespace Lambda {
 				 * Supported formats are: .tar, .tar.gz, .tgz
 				*/
 				void saveSnapshot(const std::string& path);
+
+				const VFSInfo& stats() const noexcept;
 		};
 	};
 
