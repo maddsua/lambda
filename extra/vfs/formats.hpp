@@ -28,6 +28,7 @@ namespace Lambda::VFS::Formats {
 
 		extern const std::initializer_list<std::string> supportedExtensions;
 
+		
 	};
 	
 };
