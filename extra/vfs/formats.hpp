@@ -18,6 +18,7 @@ namespace Lambda::VFS::Formats {
 			FSQueue& operator=(FSQueue&& other) noexcept;
 
 			bool await();
+			bool awaitEmpty();
 			VirtualFile next();
 			void push(VirtualFile&& item);
 			void close() noexcept;
