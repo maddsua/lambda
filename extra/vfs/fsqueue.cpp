@@ -48,3 +48,7 @@ void FSQueue::close() noexcept {
 bool FSQueue::done() const noexcept {
 	return this->m_done;
 }
+
+bool FSQueue::empty() const noexcept {
+	return this->m_queue.size() == 0;
+}
