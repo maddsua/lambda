@@ -76,7 +76,7 @@ namespace Lambda::Compress {
 			Stage m_stage = Stage::Ready;
 
 		public:
-			GzipStreamDecompressor(Quality quality);
+			GzipStreamDecompressor();
 			GzipStreamDecompressor(const GzipStreamDecompressor&) = delete;
 			GzipStreamDecompressor(GzipStreamDecompressor&& other);
 			~GzipStreamDecompressor();
