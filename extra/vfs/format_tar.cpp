@@ -35,6 +35,22 @@ class InflatableReader {
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
+		void m_bufferToSatisfy(size_t expectedSize) {
+
+			if (this->m_buff.size() >= expectedSize || this->m_readstream.eof()) {
+				return;
+			}
+
+			auto& decompressor = this->m_gz_decompressor.value();
+
+			std::vector<uint8_t> tempBuff(expectedSize);
+			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+			tempBuff.resize(this->m_readstream.gcount());
+
+			auto nextDecompressed = decompressor.nextChunk(tempBuff);
+			this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.end());
+		}
+
 	public:
 		InflatableReader(std::fstream& readStream) : m_readstream(readStream) {
 			m_gz_decompressor = GzipStreamDecompressor();
@@ -56,25 +72,12 @@ class InflatableReader {
 
 				case Compression::Gzip: {
 
-					auto& decompressor = this->m_gz_decompressor.value();
+					this->m_bufferToSatisfy(expectedSize);
 
-					size_t readBytes = 0;
-
-					if (this->m_buff.size() < expectedSize && !this->m_readstream.eof()) {
-
-						std::vector<uint8_t> tempBuff(expectedSize);
-						this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
-						const size_t fsBytesRead = this->m_readstream.gcount();
-						tempBuff.resize(fsBytesRead);
-
-						auto nextDecompressed = decompressor.nextChunk(tempBuff);
-						this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.end());
-						readBytes = nextDecompressed.size();
-					}
-
-					dest.insert(dest.end(), this->m_buff.begin(), this->m_buff.begin() + readBytes);
-					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + readBytes);
-					return readBytes;
+					auto outSize = std::min(expectedSize, this->m_buff.size());
+					dest.insert(dest.end(), this->m_buff.begin(), this->m_buff.begin() + outSize);
+					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + outSize);
+					return outSize;
 
 				} break;
 				
@@ -99,16 +102,7 @@ class InflatableReader {
 
 				case Compression::Gzip: {
 
-					auto& decompressor = this->m_gz_decompressor.value();
-
-					if (this->m_buff.size() < skipSize && !this->m_readstream.eof()) {
-
-						std::vector<uint8_t> tempBuff(this->bufferSize);
-						this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
-
-						auto nextDecompressed = decompressor.nextChunk(tempBuff);
-						this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.begin() + this->m_readstream.gcount());
-					}
+					this->m_bufferToSatisfy(skipSize);
 
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
 
@@ -124,7 +118,9 @@ class InflatableReader {
 		}
 
 		bool isEof() const noexcept {
-			return this->m_readstream.eof();
+			const auto isCompressed = this->m_compression == Compression::None;
+			const auto isFsEof = this->m_readstream.eof();
+			return isCompressed ? isFsEof : isFsEof && !this->m_buff.size();
 		}
 };
 
