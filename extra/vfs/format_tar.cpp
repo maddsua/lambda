@@ -411,8 +411,7 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 			} break;
 			
-			default:
-				break;
+			default: break;
 		}
 	}
 
