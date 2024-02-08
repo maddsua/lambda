@@ -1,6 +1,8 @@
 
-LIB_CORE_COMPRESS		=	core/compression.a
-LIB_CORE_COMPRESS_DEPS	=	core/compression/brotli.o core/compression/zlib_oneshot.o core/compression/zlib_stream_compress.o core/compression/zlib_stream_decompress.o
+LIB_CORE_COMPRESS			=	core/compression.a
+LIB_CORE_COMPRESS_DEPS		=	$(LIB_CORE_COMPRESS_LZ_DEPS) $(LIB_CORE_COMPRESS_BR_DEPS)
+LIB_CORE_COMPRESS_LZ_DEPS	=	core/compression/zlib_oneshot.o core/compression/zlib_stream_compress.o core/compression/zlib_stream_decompress.o
+LIB_CORE_COMPRESS_BR_DEPS	=	core/compression/brotli.o
 
 # compression stuff
 $(LIB_CORE_COMPRESS): $(LIB_CORE_COMPRESS_DEPS)
