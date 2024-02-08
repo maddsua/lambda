@@ -32,9 +32,9 @@ int main(int argc, char const *argv[]) {
 
 	std::cout << "size of size_t " << sizeof(size_t) << std::endl;
 
-	for (const auto& item : entries) {
+	/*for (const auto& item : entries) {
 		printf("%s | %llu\n", item.name.c_str(), item.size);
-	}
+	}*/
 
 	for (const auto& item : dataset) {
 
