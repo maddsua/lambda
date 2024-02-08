@@ -191,7 +191,6 @@ std::vector<uint8_t> GzipStreamCompressor::nextChunk(std::vector<uint8_t>& next,
 	} while (castedctx->avail_out == 0);
 
 	return resultBuff;
-
 }
 
 std::vector<uint8_t> GzipStreamCompressor::nextChunk(std::vector<uint8_t>& next) {
