@@ -18,7 +18,7 @@ const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
 };
 
-class InflatableReader {
+class TarReader {
 	private:
 
 		enum struct Compression {
@@ -52,7 +52,7 @@ class InflatableReader {
 		}
 
 	public:
-		InflatableReader(std::fstream& readStream) : m_readstream(readStream) {
+		TarReader(std::fstream& readStream) : m_readstream(readStream) {
 			m_gz_decompressor = GzipStreamDecompressor();
 
 			uint8_t magicBytes[8];
@@ -363,7 +363,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
-	auto reader = InflatableReader(infile);
+	auto reader = TarReader(infile);
 	std::optional<std::string> nextLongLink;
 
 	while (!reader.isEof()) {
