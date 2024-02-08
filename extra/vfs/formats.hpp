@@ -26,9 +26,7 @@ namespace Lambda::VFS::Formats {
 			void close() noexcept;
 			bool done() const noexcept;
 			bool empty() const noexcept;
-			void setWatcher(std::future<void>* watch) {
-				this->watchForExit = watch;
-			}
+			void setWatcher(std::future<void>* watch);
 	};
 
 	namespace Tar {

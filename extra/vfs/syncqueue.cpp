@@ -68,3 +68,7 @@ bool SyncQueue::done() const noexcept {
 bool SyncQueue::empty() const noexcept {
 	return this->m_queue.size() == 0;
 }
+
+void SyncQueue::setWatcher(std::future<void>* watch) {
+	this->watchForExit = watch;
+}
