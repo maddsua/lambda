@@ -34,5 +34,21 @@ int main(int argc, char const *argv[]) {
 		printf("%s | %llu\n", item.name.c_str(), item.size);
 	}
 
+	for (const auto& item : dataset) {
+
+		auto restored = vfs2.read(item.first);
+		if (!restored.has_value()) {
+			throw std::runtime_error("VFS failed to restore file \"" + item.first + '\"');
+		}
+
+		if (item.second.size() != restored.value().size()) {
+			throw std::runtime_error("File size mismatch for \"" + item.first + '\"');
+		}
+
+		if (item.second != restored.value().text()) {
+			throw std::runtime_error("Content mismatch of \"" + item.first + '\"');
+		}
+	}
+
 	return 0;
 }
