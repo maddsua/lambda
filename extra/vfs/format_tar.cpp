@@ -30,7 +30,8 @@ class ArcReader {
 
 		std::fstream& m_readstream;
 		std::vector <uint8_t> m_buff;
-		Format format = Format::Plain;
+		std::optional<GzipStreamDecompressor> m_gz_decompressor;
+		Format m_format = Format::Plain;
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
@@ -47,9 +48,32 @@ class ArcReader {
 			dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + this->m_readstream.gcount());
 		}
 
-		size_t skip(size_t expectedSize) {
-			if (this->m_readstream.eof()) return 0;
-			this->m_readstream.seekg(expectedSize, std::ios::cur);
+		size_t skip(size_t skipSize) {
+
+			switch (this->m_format) {
+
+				case Format::Gzip: {
+
+					if (this->m_buff.size() < skipSize && !this->m_readstream.eof()) {
+
+						std::vector<uint8_t> tempBuff(this->bufferSize);
+						this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+
+						auto nextDecompressed = this->m_gz_decompressor.value().nextChunk(tempBuff);
+						this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.begin() + this->m_readstream.gcount());
+					}
+
+					const auto oldSize = this->m_buff.size();
+					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
+					return this->m_buff.size() - oldSize;
+
+				} break;
+				
+				default: {
+					if (this->m_readstream.eof()) return 0;
+					this->m_readstream.seekg(skipSize, std::ios::cur);
+				} break;
+			}
 		}
 
 		bool isEof() const noexcept {
