@@ -46,7 +46,7 @@ namespace Lambda::Compress {
 		public:
 
 			enum struct StreamFlush {
-				Auto, Finish
+				Noflush, Finish
 			};
 
 			GzipStreamCompressor(Quality quality);
