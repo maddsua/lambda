@@ -233,18 +233,36 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
-	std::vector<uint8_t> readBuff;
+	//std::vector<uint8_t> readBuff;
 
 	while (!infile.eof()) {
 
 		std::array<uint8_t, sizeof(TarPosixHeader)> rawHeader;
 		infile.read(reinterpret_cast<char*>(rawHeader.data()), rawHeader.size());
 
-		if (infile.gcount() < rawHeader.size() || !rawHeader[0]) break;
+		if (!rawHeader[0] || static_cast<size_t>(infile.gcount()) < rawHeader.size()) break;
 
 		auto nextHeader = parseHeader(rawHeader);
 
-		
+		std::vector<uint8_t> content;
+		content.resize(nextHeader.size);
+		infile.read(reinterpret_cast<char*>(content.data()), content.size());
+
+		if (content.size() != nextHeader.size) {
+			throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+		}
+
+		auto paddingSize = getPaddingSize(content.size());
+		if (paddingSize) {
+			infile.seekg(paddingSize, std::ios::cur);
+		}
+
+		queue.push({
+			content,
+			nextHeader.modified,
+			nextHeader.modified,
+			nextHeader.name
+		});
 	}
 
 	queue.close();
