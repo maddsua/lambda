@@ -13,11 +13,11 @@ using namespace Lambda::VFS::Formats;
 using namespace Lambda::VFS::Formats::Tar;
 using namespace Lambda::Compress;
 
-const std::initializer_list<std::string> Tar::supportedExtensions {
+static const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
 };
 
-const std::initializer_list<std::string> gzippedExtensions {
+static const std::initializer_list<std::string> gzippedExtensions {
 	".tar.gz", ".tgz"
 };
 
