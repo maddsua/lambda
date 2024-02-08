@@ -381,7 +381,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 				linkName.insert(linkName.end(), temp.begin(), temp.end());
 
 				if (linkName.size() != nextHeader.size) {
-					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+					throw std::runtime_error("Incomplete linglink tar entry: \"" + nextHeader.name + "\"");
 				}
 
 				auto paddingSize = getPaddingSize(linkName.size());
