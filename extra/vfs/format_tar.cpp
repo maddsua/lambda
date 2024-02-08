@@ -21,6 +21,27 @@ const std::initializer_list<std::string> gzippedExtensions {
 	".tar.gz", ".tgz"
 };
 
+class ArcReader {
+	private:
+		std::fstream& m_readstream;
+		std::vector <uint8_t> m_buff;
+
+	public:
+		ArcReader(std::fstream& readStream) : m_readstream(readStream) {}
+
+		size_t read(std::vector<uint8_t>& dest, size_t expectedSize) {
+
+		}
+
+		size_t skip(size_t expectedSize) {
+
+		}
+
+		bool isEof() const noexcept {
+			return m_readstream.eof();
+		}
+};
+
 struct TarPosixHeader {
 	char name[100];
 	char mode[8];
