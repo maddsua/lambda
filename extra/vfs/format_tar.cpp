@@ -253,11 +253,11 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
-	std::optional<GzipStreamCompressor> compressor;
+	std::optional<GzipStreamDecompressor> decompressor;
 
 	bool isGzipped = path.ends_with("gz");
 	if (isGzipped) {
-		compressor = GzipStreamCompressor(Quality::Noice);
+		decompressor = GzipStreamDecompressor(Quality::Noice);
 	}
 
 	std::optional<std::string> nextLongLink;
@@ -266,12 +266,12 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 	while (!infile.eof() || readBuff.size()) {
 
-		std::array<uint8_t, GzipStreamCompressor::chunkSize> tempBuffer;
+		std::array<uint8_t, GzipStreamDecompressor::chunkSize> tempBuffer;
 		infile.read(reinterpret_cast<char*>(tempBuffer.data()), tempBuffer.size());
 
-		if (compressor.has_value()) {
-			auto& compressorRef = compressor.value();
-			//compressor
+		if (decompressor.has_value()) {
+			auto& decompressorRef = decompressor.value();
+			auto decompressedChunk = decompressorRef.nextChunk(readBuff, GzipStreamCompressor::StreamFlush::Finish);
 		} else {
 			readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
 		}
