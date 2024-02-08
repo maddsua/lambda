@@ -11,6 +11,7 @@ using namespace Lambda;
 using namespace Lambda::VFS;
 using namespace Lambda::VFS::Formats;
 using namespace Lambda::VFS::Formats::Tar;
+using namespace Lambda::Compress;
 
 const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
@@ -176,7 +177,12 @@ void paddBlock(std::vector<uint8_t>& buff) {
 
 void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 
-	//bool isGzipped = path.ends_with('gz');
+	std::optional<GzipStreamCompressor> compressor;
+
+	bool isGzipped = path.ends_with("gz");
+	if (isGzipped) {
+		compressor = GzipStreamCompressor(Quality::Noice);
+	}
 
 	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
 	if (!outfile.is_open()) {
@@ -214,13 +220,27 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 		writeBuff.insert(writeBuff.end(), nextFile.buffer.begin(), nextFile.buffer.end());
 		paddBlock(writeBuff);
 
-		outfile.write((char*)writeBuff.data(), writeBuff.size());
+		if (compressor.has_value()) {
+			auto& compressorRef = compressor.value();
+			auto compressedChunk = compressorRef.nextChunk(writeBuff);
+			outfile.write((char*)compressedChunk.data(), compressedChunk.size());
+		} else {
+			outfile.write((char*)writeBuff.data(), writeBuff.size());
+		}
+
 		outfile.flush();
 		writeBuff.erase(writeBuff.begin(), writeBuff.end());
 	}
 
 	writeBuff.resize(writeBuff.size() + (2 * tarBlockSize), 0);
-	outfile.write((char*)writeBuff.data(), writeBuff.size());
+
+	if (compressor.has_value()) {
+		auto& compressorRef = compressor.value();
+		auto compressedChunk = compressorRef.nextChunk(writeBuff);
+		outfile.write((char*)compressedChunk.data(), compressedChunk.size());
+	} else {
+		outfile.write((char*)writeBuff.data(), writeBuff.size());
+	}
 
 	outfile.flush();
 	outfile.close();
