@@ -38,7 +38,7 @@ class ArcReader {
 		ArcReader(std::fstream& readStream) : m_readstream(readStream) {}
 
 		size_t read(std::vector<uint8_t>& dest, size_t expectedSize) {
-			
+
 			if (this->m_readstream.eof()) return 0;
 
 			std::array<uint8_t, this->bufferSize> tempBuff;
