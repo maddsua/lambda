@@ -15,40 +15,51 @@ const std::vector<std::pair<std::string, std::string>> dataset = {
 
 int main(int argc, char const *argv[]) {
 
-	const std::string tarfileloc = "test.tar";
+	const std::initializer_list<std::string> formats = {
+		"temp.test.tar",
+		"temp.test.tar.gz",
+		"temp.test.tgz",
+	};
 
-	Lambda::VirtualFilesystem vfs;
+	for (const auto& tarfileloc : formats) {
 
-	for (const auto& item : dataset) {
-		vfs.write(item.first, item.second);
-	}
+		printf("\n-----\n\nTesting output: %s\n\n", tarfileloc.c_str());
 
-	vfs.saveSnapshot(tarfileloc);
+		Lambda::VirtualFilesystem vfs;
 
-	Lambda::VirtualFilesystem vfs2;
-	vfs2.loadSnapshot(tarfileloc);
-
-	auto entries = vfs2.listAll();
-
-	for (const auto& item : entries) {
-		printf("%s | %zu\n", item.name.c_str(), item.size);
-	}
-
-	for (const auto& item : dataset) {
-
-		auto restored = vfs2.read(item.first);
-		if (!restored.has_value()) {
-			throw std::runtime_error("VFS failed to restore file \"" + item.first + '\"');
+		for (const auto& item : dataset) {
+			vfs.write(item.first, item.second);
 		}
 
-		if (item.second.size() != restored.value().size()) {
-			throw std::runtime_error("File size mismatch for \"" + item.first + '\"');
+		vfs.saveSnapshot(tarfileloc);
+
+		Lambda::VirtualFilesystem vfs2;
+		vfs2.loadSnapshot(tarfileloc);
+
+		auto entries = vfs2.listAll();
+
+		for (const auto& item : entries) {
+			printf("%s | %zu bytes\n", item.name.c_str(), item.size);
 		}
 
-		if (item.second != restored.value().text()) {
-			throw std::runtime_error("Content mismatch of \"" + item.first + '\"');
+		for (const auto& item : dataset) {
+
+			auto restored = vfs2.read(item.first);
+			if (!restored.has_value()) {
+				throw std::runtime_error("VFS failed to restore file \"" + item.first + '\"');
+			}
+
+			if (item.second.size() != restored.value().size()) {
+				throw std::runtime_error("File size mismatch for \"" + item.first + '\"');
+			}
+
+			if (item.second != restored.value().text()) {
+				throw std::runtime_error("Content mismatch of \"" + item.first + '\"');
+			}
 		}
 	}
+
+	puts("\n--------------------\n\nDone VFS IO test");
 
 	return 0;
 }
