@@ -1,4 +1,5 @@
 #include "./formats.hpp"
+#include "../../core/polyfill/polyfill.hpp"
 #include "../../core/compression/compression.hpp"
 
 #include <cassert>
@@ -13,12 +14,8 @@ using namespace Lambda::VFS::Formats;
 using namespace Lambda::VFS::Formats::Tar;
 using namespace Lambda::Compress;
 
-static const std::initializer_list<std::string> Tar::supportedExtensions {
+const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
-};
-
-static const std::initializer_list<std::string> gzippedExtensions {
-	".tar.gz", ".tgz"
 };
 
 class InflatableReader {
@@ -289,7 +286,7 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 
 	std::optional<GzipStreamCompressor> compressor;
 
-	bool isGzipped = path.ends_with("gz");
+	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
 	if (isGzipped) {
 		compressor = GzipStreamCompressor(Quality::Noice);
 	}
