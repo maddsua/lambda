@@ -73,8 +73,8 @@ class InflatableReader {
 				case Compression::Gzip: {
 
 					this->m_bufferToSatisfy(expectedSize);
-
 					auto outSize = std::min(expectedSize, this->m_buff.size());
+
 					dest.insert(dest.end(), this->m_buff.begin(), this->m_buff.begin() + outSize);
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + outSize);
 					return outSize;
@@ -103,7 +103,6 @@ class InflatableReader {
 				case Compression::Gzip: {
 
 					this->m_bufferToSatisfy(skipSize);
-
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
 
 				} break;
