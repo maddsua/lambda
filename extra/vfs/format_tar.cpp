@@ -21,7 +21,7 @@ const std::initializer_list<std::string> gzippedExtensions {
 	".tar.gz", ".tgz"
 };
 
-class ArcReader {
+class InflatableReader {
 	private:
 
 		enum struct Format {
@@ -36,7 +36,9 @@ class ArcReader {
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
 	public:
-		ArcReader(std::fstream& readStream) : m_readstream(readStream) {}
+		InflatableReader(std::fstream& readStream) : m_readstream(readStream) {
+			m_gz_decompressor = GzipStreamDecompressor();
+		}
 
 		size_t read(std::vector<uint8_t>& dest, size_t expectedSize) {
 
@@ -351,14 +353,16 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
+	auto reader = InflatableReader(infile);
+
 	std::optional<std::string> nextLongLink;
 
-	while (!infile.eof()) {
+	while (!reader.isEof()) {
 
-		auto rawHeader = std::vector<uint8_t>(sizeof(TarPosixHeader));
-		infile.read(reinterpret_cast<char*>(rawHeader.data()), rawHeader.size());
+		std::vector<uint8_t> rawHeader;
+		auto bytesRead = reader.read(rawHeader, sizeof(TarPosixHeader));
 
-		if (!rawHeader[0] || static_cast<size_t>(infile.gcount()) < rawHeader.size()) break;
+		if (!rawHeader[0] || bytesRead < rawHeader.size()) break;
 
 		auto nextHeader = parseHeader(rawHeader);
 
@@ -371,8 +375,10 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 				}
 
 				std::string linkName;
-				linkName.resize(nextHeader.size);
-				infile.read(linkName.data(), linkName.size());
+
+				std::vector<uint8_t> temp;
+				reader.read(temp, nextHeader.size);
+				linkName.insert(linkName.end(), temp.begin(), temp.end());
 
 				if (linkName.size() != nextHeader.size) {
 					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
@@ -380,7 +386,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 				auto paddingSize = getPaddingSize(linkName.size());
 				if (paddingSize) {
-					infile.seekg(paddingSize, std::ios::cur);
+					reader.skip(paddingSize);
 				}
 
 				nextLongLink = linkName;
@@ -390,8 +396,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 			case EntryType::Normal: {
 
 				std::vector<uint8_t> content;
-				content.resize(nextHeader.size);
-				infile.read(reinterpret_cast<char*>(content.data()), content.size());
+				reader.read(content, nextHeader.size);
 
 				if (content.size() != nextHeader.size) {
 					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
@@ -399,7 +404,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 				auto paddingSize = getPaddingSize(content.size());
 				if (paddingSize) {
-					infile.seekg(paddingSize, std::ios::cur);
+					reader.skip(paddingSize);
 				}
 
 				queue.push({
