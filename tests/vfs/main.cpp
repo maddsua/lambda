@@ -30,11 +30,9 @@ int main(int argc, char const *argv[]) {
 
 	auto entries = vfs2.listAll();
 
-	std::cout << "size of size_t " << sizeof(size_t) << std::endl;
-
-	/*for (const auto& item : entries) {
-		printf("%s | %llu\n", item.name.c_str(), item.size);
-	}*/
+	for (const auto& item : entries) {
+		printf("%s | %zu\n", item.name.c_str(), item.size);
+	}
 
 	for (const auto& item : dataset) {
 
