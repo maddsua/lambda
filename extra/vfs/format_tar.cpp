@@ -318,7 +318,12 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 				auto paddingSize = getPaddingSize(linkName.size());
 				if (paddingSize) {
-					infile.seekg(paddingSize, std::ios::cur);
+
+					if (readBuff.size() < paddingSize) {
+						readMore(paddingSize);
+					}
+
+					readBuff.erase(readBuff.begin(), readBuff.begin() + paddingSize);
 				}
 
 				nextLongLink = linkName;
@@ -327,17 +332,27 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 			case EntryType::Normal: {
 
-				std::vector<uint8_t> content;
-				content.resize(nextHeader.size);
-				infile.read(reinterpret_cast<char*>(content.data()), content.size());
+				if (readBuff.size() < nextHeader.size) {
 
-				if (content.size() != nextHeader.size) {
-					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+					readMore(nextHeader.size);
+
+					if (readBuff.size() < nextHeader.size) {
+						throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+					}
 				}
+
+				std::vector<uint8_t> content;
+				content.insert(content.end(), readBuff.begin(), readBuff.begin() + nextHeader.size);
+				readBuff.erase(readBuff.begin(), readBuff.begin() + nextHeader.size);
 
 				auto paddingSize = getPaddingSize(content.size());
 				if (paddingSize) {
-					infile.seekg(paddingSize, std::ios::cur);
+
+					if (readBuff.size() < paddingSize) {
+						readMore(paddingSize);
+					}
+
+					readBuff.erase(readBuff.begin(), readBuff.begin() + paddingSize);
 				}
 
 				queue.push({
