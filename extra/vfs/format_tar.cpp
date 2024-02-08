@@ -356,7 +356,6 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 	}
 
 	auto reader = InflatableReader(infile);
-
 	std::optional<std::string> nextLongLink;
 
 	while (!reader.isEof()) {
