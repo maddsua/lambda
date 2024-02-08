@@ -167,6 +167,12 @@ GzipStreamCompressor::~GzipStreamCompressor() {
 
 std::vector<uint8_t> GzipStreamCompressor::nextChunk(std::vector<uint8_t>& next, StreamFlush flush) {
 
+	if (this->m_stage == Stage::Ended) {
+		throw std::runtime_error("Cannot push nextChunk to a stream that has been ended");
+	}
+
+	this->m_stage = Stage::Progress;
+
 	z_stream* castedctx = reinterpret_cast<z_stream*>(this->m_stream);
 
 	castedctx->avail_in = next.size();
@@ -198,6 +204,12 @@ std::vector<uint8_t> GzipStreamCompressor::nextChunk(std::vector<uint8_t>& next)
 }
 
 std::vector<uint8_t> GzipStreamCompressor::end() {
+
+	if (this->m_stage != Stage::Progress) {
+		throw std::runtime_error("Cannot end a stream that has been already ended");
+	}
+
+	this->m_stage = Stage::Ended;
 
 	z_stream* castedctx = reinterpret_cast<z_stream*>(this->m_stream);
 
@@ -241,4 +253,6 @@ void GzipStreamCompressor::reset() {
 
 		default: break;
 	}
+
+	this->m_stage = Stage::Ready;
 }
