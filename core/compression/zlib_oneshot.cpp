@@ -1,29 +1,48 @@
 #include "./compression.hpp"
-#include "./streams.hpp"
+
+#include <cstring>
+#include <stdexcept>
+#include <array>
+
+#include <zlib.h>
 
 using namespace Lambda;
 using namespace Lambda::Compress;
-using namespace Lambda::Compress::Streams;
 
-ZlibStream::ZlibStream() {
-	memset(&this->stream, 0, sizeof(z_stream));
-}
+struct ZlibStream {
+	z_stream stream;
+	static const size_t chunk = defaultChunkSize;
 
-ZlibCompressStream::ZlibCompressStream(int compression, int winbits) {
-	auto initResult = deflateInit2(&this->stream, compression, Z_DEFLATED, winbits, 8, Z_DEFAULT_STRATEGY);
-	if (initResult != Z_OK) throw std::runtime_error("Could not initialize deflate (zlib error code " + std::to_string(initResult) + ')');
-}
-ZlibCompressStream::~ZlibCompressStream() {
-	(void)deflateEnd(&this->stream);
-}
+	ZlibStream() {
+		memset(&this->stream, 0, sizeof(z_stream));
+	}
+};
 
-ZlibDecompressStream::ZlibDecompressStream(int winbits) {
-	auto initResult = inflateInit2(&this->stream, winbits);
-	if (initResult != Z_OK) throw std::runtime_error("Could not initialize inflate (zlib error code " + std::to_string(initResult) + ')');
-}
-ZlibDecompressStream::~ZlibDecompressStream() {
-	(void)inflateEnd(&this->stream);
-}
+struct ZlibCompressStream : ZlibStream {
+
+	ZlibCompressStream(int compression, int winbits) {
+		auto initResult = deflateInit2(&this->stream, compression, Z_DEFLATED, winbits, 8, Z_DEFAULT_STRATEGY);
+		if (initResult != Z_OK) throw std::runtime_error("Could not initialize deflate (zlib error code " + std::to_string(initResult) + ')');
+	}
+
+	~ZlibCompressStream() {
+		deflateEnd(&this->stream);
+	}
+};
+
+struct ZlibDecompressStream : ZlibStream {
+
+	static const int winbitOpenAuto = 32;
+
+	ZlibDecompressStream() {
+		auto initResult = inflateInit2(&this->stream, winbitOpenAuto);
+		if (initResult != Z_OK) throw std::runtime_error("Could not initialize inflate (zlib error code " + std::to_string(initResult) + ')');
+	}
+
+	~ZlibDecompressStream() {
+		inflateEnd(&this->stream);
+	}
+};
 
 std::vector<uint8_t> Compress::zlibCompressBuffer(const std::vector<uint8_t>& input, Quality quality, ZlibSetHeader header) {
 
@@ -82,11 +101,9 @@ std::vector<uint8_t> Compress::zlibDecompressBuffer(const std::vector<uint8_t>& 
 
 	if (!input.size()) return {};
 
-	static const auto winbitOpenAuto = 32;
-
 	try {
 
-		auto zlib = ZlibDecompressStream(winbitOpenAuto);
+		auto zlib = ZlibDecompressStream();
 		std::vector<uint8_t> decompressed;
 
 		size_t cursor_in = 0;
