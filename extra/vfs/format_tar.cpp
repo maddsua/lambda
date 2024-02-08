@@ -24,27 +24,37 @@ const std::initializer_list<std::string> gzippedExtensions {
 class InflatableReader {
 	private:
 
-		enum struct Format {
-			Plain, Gzip
+		enum struct Compression {
+			None, Gzip
 		};
 
 		std::fstream& m_readstream;
 		std::vector <uint8_t> m_buff;
 		std::optional<GzipStreamDecompressor> m_gz_decompressor;
-		Format m_format = Format::Gzip;
+		Compression m_compression = Compression::None;
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
 	public:
 		InflatableReader(std::fstream& readStream) : m_readstream(readStream) {
 			m_gz_decompressor = GzipStreamDecompressor();
+
+			uint8_t magicBytes[8];
+			this->m_readstream.read(reinterpret_cast<char*>(magicBytes), sizeof(magicBytes));
+			this->m_readstream.clear();
+			this->m_readstream.seekg(0, std::ios::beg);
+
+			uint8_t refdataHeaderGzip[] = { 0x1f, 0x8b, 0x08 };
+			if (!memcmp(magicBytes, refdataHeaderGzip, sizeof(refdataHeaderGzip))) {
+				this->m_compression = Compression::Gzip;
+			}
 		}
 
 		size_t read(std::vector<uint8_t>& dest, size_t expectedSize) {
 
-			switch (this->m_format) {
+			switch (this->m_compression) {
 
-				case Format::Gzip: {
+				case Compression::Gzip: {
 
 					auto& decompressor = this->m_gz_decompressor.value();
 
@@ -85,9 +95,9 @@ class InflatableReader {
 
 		void skip(size_t skipSize) {
 
-			switch (this->m_format) {
+			switch (this->m_compression) {
 
-				case Format::Gzip: {
+				case Compression::Gzip: {
 
 					auto& decompressor = this->m_gz_decompressor.value();
 
