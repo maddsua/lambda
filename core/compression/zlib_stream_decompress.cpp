@@ -41,9 +41,10 @@ GzipStreamDecompressor::~GzipStreamDecompressor() {
 	delete reinterpret_cast<z_stream*>(this->m_stream);
 }
 
-/*std::vector<uint8_t> GzipStreamDecompressor::nextChunk(std::vector<uint8_t>& next, StreamFlush flush) {
 
-	if (this->m_stage == Stage::Ended) {
+std::vector<uint8_t> GzipStreamDecompressor::nextChunk(std::vector<uint8_t>& next) {
+
+	if (this->m_stage == Stage::Done) {
 		throw std::runtime_error("Cannot push nextChunk to a stream that has been ended");
 	}
 
@@ -62,47 +63,13 @@ GzipStreamDecompressor::~GzipStreamDecompressor() {
 		castedctx->avail_out = tempBuff.size();
 		castedctx->next_out = tempBuff.data();
 
-		auto resultStat = deflate(castedctx, flush == StreamFlush::Finish ? Z_FINISH : Z_NO_FLUSH);
+		auto resultStat = inflate(castedctx, Z_NO_FLUSH);
 		if (resultStat < 0) {
 			throw std::runtime_error("deflate stream error " + std::to_string(resultStat));
 		}
 
-		auto sizeOut = tempBuff.size() - castedctx->avail_out;
-		resultBuff.insert(resultBuff.end(), tempBuff.begin(), tempBuff.begin() + sizeOut);
-
-	} while (castedctx->avail_out == 0);
-
-	return resultBuff;
-}*/
-
-std::vector<uint8_t> GzipStreamDecompressor::nextChunk(std::vector<uint8_t>& next) {
-	return {};
-}
-
-std::vector<uint8_t> GzipStreamDecompressor::end() {
-
-	if (this->m_stage != Stage::Progress) {
-		throw std::runtime_error("Cannot end a stream that has been already ended");
-	}
-
-	this->m_stage = Stage::Ended;
-
-	z_stream* castedctx = reinterpret_cast<z_stream*>(this->m_stream);
-
-	castedctx->avail_in = 0;
-	castedctx->next_in = nullptr;
-
-	std::array<uint8_t, this->chunkSize> tempBuff;
-	std::vector<uint8_t> resultBuff;
-
-	do {
-
-		castedctx->avail_out = tempBuff.size();
-		castedctx->next_out = tempBuff.data();
-
-		auto resultStat = deflate(castedctx, Z_FINISH);
-		if (resultStat < 0) {
-			throw std::runtime_error("deflate stream error " + std::to_string(resultStat));
+		if (resultStat == Z_STREAM_END) {
+			this->m_stage = Stage::Done;
 		}
 
 		auto sizeOut = tempBuff.size() - castedctx->avail_out;
@@ -113,13 +80,17 @@ std::vector<uint8_t> GzipStreamDecompressor::end() {
 	return resultBuff;
 }
 
-void GzipStreamDecompressor::reset() {
+bool GzipStreamDecompressor::isDone() const noexcept {
+	this->m_stage == Stage::Done;
+}
+
+void GzipStreamDecompressor::reset() noexcept {
 
 	//	I wanted to add some other stuff here but let's leave it all just is,
 	//	having a switch here doesn't hurt anybody
 	switch (this->m_stage) {
 
-		case Stage::Ended: {
+		case Stage::Done: {
 			deflateReset(reinterpret_cast<z_stream*>(this->m_stream));
 		} break;
 
