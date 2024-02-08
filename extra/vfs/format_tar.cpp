@@ -66,7 +66,7 @@ class InflatableReader {
 			}
 		}
 
-		size_t read(std::vector<uint8_t>& dest, size_t expectedSize) {
+		size_t readChunk(std::vector<uint8_t>& dest, size_t expectedSize) {
 
 			switch (this->m_compression) {
 
@@ -77,9 +77,9 @@ class InflatableReader {
 
 					dest.insert(dest.end(), this->m_buff.begin(), this->m_buff.begin() + outSize);
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + outSize);
-					return outSize;
 
-				} break;
+					return outSize;
+				};
 
 				default: {
 
@@ -87,16 +87,16 @@ class InflatableReader {
 
 					std::vector<uint8_t> tempBuff(expectedSize);
 					this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+
 					const size_t bytesRead = this->m_readstream.gcount();
-
 					dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + bytesRead);
-					return bytesRead;
 
-				} break;
+					return bytesRead;
+				};
 			}
 		}
 
-		void skip(size_t skipSize) {
+		void skipNext(size_t skipSize) {
 
 			switch (this->m_compression) {
 
@@ -365,7 +365,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 	while (!reader.isEof()) {
 
 		std::vector<uint8_t> rawHeader;
-		auto bytesRead = reader.read(rawHeader, sizeof(TarPosixHeader));
+		auto bytesRead = reader.readChunk(rawHeader, sizeof(TarPosixHeader));
 
 		if (!rawHeader[0] || bytesRead < rawHeader.size()) break;
 
@@ -382,7 +382,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 				std::string linkName;
 
 				std::vector<uint8_t> temp;
-				reader.read(temp, nextHeader.size);
+				reader.readChunk(temp, nextHeader.size);
 				linkName.insert(linkName.end(), temp.begin(), temp.end());
 
 				if (linkName.size() != nextHeader.size) {
@@ -391,7 +391,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 				auto paddingSize = getPaddingSize(linkName.size());
 				if (paddingSize) {
-					reader.skip(paddingSize);
+					reader.skipNext(paddingSize);
 				}
 
 				nextLongLink = linkName;
@@ -401,7 +401,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 			case EntryType::Normal: {
 
 				std::vector<uint8_t> content;
-				reader.read(content, nextHeader.size);
+				reader.readChunk(content, nextHeader.size);
 
 				if (content.size() != nextHeader.size) {
 					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
@@ -409,7 +409,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 				auto paddingSize = getPaddingSize(content.size());
 				if (paddingSize) {
-					reader.skip(paddingSize);
+					reader.skipNext(paddingSize);
 				}
 
 				queue.push({
