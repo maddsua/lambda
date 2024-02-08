@@ -113,10 +113,13 @@ void serializeHeader(const TarBasicHeader& header, std::vector<uint8_t>& destBuf
 	destBuff.insert(destBuff.end(), headerDataPtr, headerDataPtr + sizeof(posixHeader));
 }
 
-TarBasicHeader parseHeader(const std::array<uint8_t, sizeof(TarPosixHeader)>& headerBuff) {
+TarBasicHeader parseHeader(const std::vector<uint8_t>& headerBuff) {
 
 	//	check for empty block
 	assert(headerBuff[0] != 0);
+
+	//	check available space
+	assert(headerBuff.size() >= sizeof(TarPosixHeader));
 
 	const auto posixHeader = reinterpret_cast<const TarPosixHeader*>(headerBuff.data());
 
@@ -279,13 +282,12 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 		if (readBuff.size() < sizeof(TarPosixHeader) && !infile.eof()) {
 			continue;
+		} else if (!readBuff.size() || readBuff.size() < sizeof(TarPosixHeader) || !readBuff[0]) {
+			break;
 		}
 
-		std::array<uint8_t, sizeof(TarPosixHeader)> rawHeader;
-
-		if (!rawHeader[0] || static_cast<size_t>(infile.gcount()) < rawHeader.size()) break;
-
-		auto nextHeader = parseHeader(rawHeader);
+		auto nextHeader = parseHeader(readBuff);
+		readBuff.erase(readBuff.begin(), readBuff.begin() + sizeof(TarPosixHeader));
 
 		switch (nextHeader.typeflag) {
 
