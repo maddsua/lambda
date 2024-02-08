@@ -15,7 +15,7 @@ const std::vector<std::pair<std::string, std::string>> dataset = {
 
 int main(int argc, char const *argv[]) {
 
-	const std::string tarfileloc = "test.tar.gz";
+	const std::string tarfileloc = "test.tar";
 
 	Lambda::VirtualFilesystem vfs;
 
