@@ -40,12 +40,43 @@ class ArcReader {
 
 		size_t read(std::vector<uint8_t>& dest, size_t expectedSize) {
 
-			if (this->m_readstream.eof()) return 0;
+			switch (this->m_format) {
 
-			std::array<uint8_t, this->bufferSize> tempBuff;
-			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+				case Format::Gzip: {
 
-			dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + this->m_readstream.gcount());
+					size_t readBytes = 0;
+
+					if (this->m_buff.size() < expectedSize && !this->m_readstream.eof()) {
+
+						std::vector<uint8_t> tempBuff(expectedSize);
+						this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+						const size_t fsBytesRead = this->m_readstream.gcount();
+						tempBuff.resize(fsBytesRead);
+
+						auto nextDecompressed = this->m_gz_decompressor.value().nextChunk(tempBuff);
+						this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.end());
+						readBytes = nextDecompressed.size();
+					}
+
+					dest.insert(dest.end(), this->m_buff.begin(), this->m_buff.begin() + readBytes);
+					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + readBytes);
+					return readBytes;
+
+				} break;
+				
+				default: {
+
+					if (this->m_readstream.eof()) return 0;
+
+					std::vector<uint8_t> tempBuff(expectedSize);
+					this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+					const size_t bytesRead = this->m_readstream.gcount();
+
+					dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + bytesRead);
+					return bytesRead;
+
+				} break;
+			}
 		}
 
 		void skip(size_t skipSize) {
