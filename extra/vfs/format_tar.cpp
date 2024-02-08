@@ -23,8 +23,16 @@ const std::initializer_list<std::string> gzippedExtensions {
 
 class ArcReader {
 	private:
+
+		enum struct Format {
+			Plain, Gzip
+		};
+
 		std::fstream& m_readstream;
 		std::vector <uint8_t> m_buff;
+		Format format = Format::Plain;
+
+		static const size_t bufferSize = 2 * 1024 * 1024;
 
 	public:
 		ArcReader(std::fstream& readStream) : m_readstream(readStream) {}
@@ -33,7 +41,7 @@ class ArcReader {
 			
 			if (this->m_readstream.eof()) return 0;
 
-			std::array<uint8_t, 1024> tempBuff;
+			std::array<uint8_t, this->bufferSize> tempBuff;
 			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
 
 			dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + this->m_readstream.gcount());
