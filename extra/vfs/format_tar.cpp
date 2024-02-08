@@ -267,23 +267,29 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 	std::vector<uint8_t> readBuff;
 
-	while (!infile.eof() || readBuff.size()) {
+	const auto readMore = [&](std::optional<size_t> expectedSize) {
 
-		std::vector<uint8_t> tempBuffer(GzipStreamDecompressor::chunkSize);
+		if (infile.eof()) return 0ULL;
+
+		std::vector<uint8_t> tempBuffer(expectedSize.has_value() ? expectedSize.value() : GzipStreamDecompressor::chunkSize);
 		infile.read(reinterpret_cast<char*>(tempBuffer.data()), tempBuffer.size());
 
 		if (decompressor.has_value()) {
 			auto& decompressorRef = decompressor.value();
 			auto decompressedChunk = decompressorRef.nextChunk(tempBuffer);
 			readBuff.insert(readBuff.end(), decompressedChunk.begin(), decompressedChunk.end());
-		} else {
-			readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
+			return decompressedChunk.size();
 		}
 
-		if (readBuff.size() < sizeof(TarPosixHeader) && !infile.eof()) {
-			continue;
-		} else if (!readBuff.size() || readBuff.size() < sizeof(TarPosixHeader) || !readBuff[0]) {
-			break;
+		readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
+		return static_cast<size_t>(infile.gcount());
+	};
+
+	while (!infile.eof() || readBuff.size()) {
+
+		if (readBuff.size() < sizeof(TarPosixHeader)) {
+			auto bytesRead = readMore(sizeof(TarPosixHeader));
+			if (bytesRead < sizeof(TarPosixHeader)) break;
 		}
 
 		auto nextHeader = parseHeader(readBuff);
