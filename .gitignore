@@ -24,3 +24,4 @@ deps/build/package-lock.json
 dllinfo.rc
 lambda_sfi.hpp
 *.tar
+*.gz
