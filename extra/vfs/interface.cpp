@@ -152,6 +152,7 @@ void Interface::loadSnapshot(const std::string& path) {
 
 	Formats::FSQueue readerQueue;
 	std::future<void> readerPromise;
+	readerQueue.setWatcher(&readerPromise);
 
 	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
 
@@ -189,6 +190,7 @@ void Interface::saveSnapshot(const std::string& path) {
 
 	Formats::FSQueue writerQueue;
 	std::future<void> writerPromise;
+	writerQueue.setWatcher(&writerPromise);
 
 	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
 
