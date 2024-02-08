@@ -18,9 +18,11 @@ size_t VirtualFile::size() const noexcept {
 
 const std::optional<VirtualFile> Interface::read(const std::string& path) noexcept {
 
+	const auto pathNormalized = Strings::toLowerCase(path);
+
 	std::lock_guard<std::mutex> lock(this->m_lock);
 
-	auto itr = this->m_data.find(path);
+	auto itr = this->m_data.find(pathNormalized);
 	if (itr == this->m_data.end()) return std::nullopt;
 
 	VirtualFile vfsfile {
