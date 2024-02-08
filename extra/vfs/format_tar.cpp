@@ -18,17 +18,57 @@ const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
 };
 
+enum struct ArchiveCompression {
+	None, Gzip
+};
+
+struct TarPosixHeader {
+	char name[100];
+	char mode[8];
+	char uid[8];
+	char gid[8];
+	char size[12];
+	char mtime[12];
+	char chksum[8];
+	char typeflag;
+	char linkname[100];
+	char magic[6];
+	char version[2];
+	char uname[32];
+	char gname[32];
+	char devmajor[8];
+	char devminor[8];
+	char prefix[155];
+	char zero[12];
+};
+
+static const uint16_t tarBlockSize = 512;
+static_assert(sizeof(TarPosixHeader) == tarBlockSize);
+
+size_t getPaddingSize(size_t contentSize) {
+	if (contentSize == 0 || contentSize == tarBlockSize) return 0;
+	return (tarBlockSize * ((contentSize / tarBlockSize) + 1)) - contentSize;
+}
+
+enum struct EntryType : char {
+	Normal = '0',
+	LongLink = 'L',
+	Directory = '5'
+};
+
+struct TarBasicHeader {
+	std::string name;
+	EntryType typeflag = EntryType::Normal;
+	size_t size = 0;
+	time_t modified = 0;
+};
+
 class InflatableReader {
 	private:
-
-		enum struct Compression {
-			None, Gzip
-		};
-
 		std::ifstream& m_readstream;
 		std::vector <uint8_t> m_buff;
 		std::optional<GzipStreamDecompressor> m_gz_decompressor;
-		Compression m_compression = Compression::None;
+		ArchiveCompression m_compression;
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
@@ -52,17 +92,11 @@ class InflatableReader {
 		}
 
 	public:
-		InflatableReader(std::ifstream& readStream) : m_readstream(readStream) {
-			m_gz_decompressor = GzipStreamDecompressor();
+		InflatableReader(std::ifstream& readStream, ArchiveCompression usedCompression)
+			: m_readstream(readStream), m_compression(usedCompression) {
 
-			uint8_t magicBytes[8];
-			this->m_readstream.read(reinterpret_cast<char*>(magicBytes), sizeof(magicBytes));
-			this->m_readstream.clear();
-			this->m_readstream.seekg(0, std::ios::beg);
-
-			uint8_t refdataHeaderGzip[] = { 0x1f, 0x8b, 0x08 };
-			if (!memcmp(magicBytes, refdataHeaderGzip, sizeof(refdataHeaderGzip))) {
-				this->m_compression = Compression::Gzip;
+			if (usedCompression == ArchiveCompression::Gzip) {
+				m_gz_decompressor = GzipStreamDecompressor();
 			}
 		}
 
@@ -70,7 +104,7 @@ class InflatableReader {
 
 			switch (this->m_compression) {
 
-				case Compression::Gzip: {
+				case ArchiveCompression::Gzip: {
 
 					this->m_bufferToContain(expectedSize);
 					const auto outSize = std::min(expectedSize, this->m_buff.size());
@@ -105,7 +139,7 @@ class InflatableReader {
 
 			switch (this->m_compression) {
 
-				case Compression::Gzip: {
+				case ArchiveCompression::Gzip: {
 
 					this->m_bufferToContain(skipSize);
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
@@ -122,49 +156,80 @@ class InflatableReader {
 		}
 
 		bool isEof() const noexcept {
-			const auto isCompressed = this->m_compression == Compression::None;
+			const auto isCompressed = this->m_compression == ArchiveCompression::None;
 			const auto isFsEof = this->m_readstream.eof();
 			return isCompressed ? isFsEof : isFsEof && !this->m_buff.size();
 		}
 };
 
-struct TarPosixHeader {
-	char name[100];
-	char mode[8];
-	char uid[8];
-	char gid[8];
-	char size[12];
-	char mtime[12];
-	char chksum[8];
-	char typeflag;
-	char linkname[100];
-	char magic[6];
-	char version[2];
-	char uname[32];
-	char gname[32];
-	char devmajor[8];
-	char devminor[8];
-	char prefix[155];
-	char zero[12];
+class DeflatableWriter {
+	private:
+		std::ofstream& m_readstream;
+		std::optional<GzipStreamCompressor> m_gz_compressor;
+		ArchiveCompression m_compression;
+
+	public:
+		DeflatableWriter(std::ofstream& readStream, ArchiveCompression usedCompression)
+			: m_readstream(readStream), m_compression(usedCompression) {
+
+			if (usedCompression == ArchiveCompression::Gzip) {
+				m_gz_compressor = GzipStreamCompressor(Quality::Noice);
+			}
+		}
+
+		void writeChunk(std::vector<uint8_t> data) {
+
+			const auto paddingSize = getPaddingSize(data.size());
+			if (paddingSize) {
+				data.resize(data.size() + paddingSize, 0);
+			}
+
+			switch (this->m_compression) {
+
+				case ArchiveCompression::Gzip: {
+
+					auto& compressor = this->m_gz_compressor.value();
+					auto compressedChunk = compressor.nextChunk(data);
+					this->m_readstream.write(reinterpret_cast<char*>(compressedChunk.data()), compressedChunk.size());
+
+				} break;
+				
+				default: {
+
+					this->m_readstream.write(reinterpret_cast<char*>(data.data()), data.size());
+
+				} break;
+			}
+
+			this->m_readstream.flush();
+		}
+
+		void endStream() {
+
+			auto trailingEmptyBlock = std::vector<uint8_t>(2 * tarBlockSize, 0);
+
+			switch (this->m_compression) {
+
+				case ArchiveCompression::Gzip: {
+
+					auto& compressor = this->m_gz_compressor.value();
+					auto compressedChunk = compressor.nextChunk(trailingEmptyBlock, GzipStreamCompressor::StreamFlush::Finish);
+					this->m_readstream.write(reinterpret_cast<char*>(compressedChunk.data()), compressedChunk.size());
+
+				} break;
+				
+				default: {
+
+					this->m_readstream.write(reinterpret_cast<char*>(trailingEmptyBlock.data()), trailingEmptyBlock.size());
+
+				} break;
+			}
+
+			this->m_readstream.flush();
+		}
 };
 
-static const uint16_t tarBlockSize = 512;
-static_assert(sizeof(TarPosixHeader) == tarBlockSize);
-
-enum struct EntryType : char {
-	Normal = '0',
-	LongLink = 'L',
-	Directory = '5'
-};
-
-struct TarBasicHeader {
-	std::string name;
-	EntryType typeflag = EntryType::Normal;
-	size_t size = 0;
-	time_t modified = 0;
-};
-
-void serializeHeader(const TarBasicHeader& header, std::vector<uint8_t>& destBuff) {
+std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 
 	const auto encodeTarInt = [](char* dest, int16_t destSize, size_t value) {
 
@@ -217,7 +282,7 @@ void serializeHeader(const TarBasicHeader& header, std::vector<uint8_t>& destBuf
 	encodeTarInt(posixHeader.chksum, sizeof(posixHeader.chksum), checksumSigned);
 
 	const auto headerDataPtr = reinterpret_cast<uint8_t*>(&posixHeader);
-	destBuff.insert(destBuff.end(), headerDataPtr, headerDataPtr + sizeof(posixHeader));
+	return std::vector<uint8_t>(headerDataPtr, headerDataPtr + sizeof(posixHeader));
 }
 
 TarBasicHeader parseHeader(const std::vector<uint8_t>& headerBuff) {
@@ -274,32 +339,15 @@ TarBasicHeader parseHeader(const std::vector<uint8_t>& headerBuff) {
 	return header;
 }
 
-size_t getPaddingSize(size_t contentSize) {
-	if (contentSize == 0 || contentSize == tarBlockSize) return 0;
-	return (tarBlockSize * ((contentSize / tarBlockSize) + 1)) - contentSize;
-}
-
-void paddBlock(std::vector<uint8_t>& buff) {
-	const auto paddSize = getPaddingSize(buff.size());
-	if (!paddSize) return;
-	buff.resize(buff.size() + paddSize, 0);
-}
-
 void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 
-	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
+	auto outfile = std::ofstream(path, std::ios::binary);
 	if (!outfile.is_open()) {
 		throw std::filesystem::filesystem_error("Could not open file for write", path, std::error_code(5L, std::generic_category()));
 	}
 
-	std::optional<GzipStreamCompressor> compressor;
-
 	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
-	if (isGzipped) {
-		compressor = GzipStreamCompressor(Quality::Noice);
-	}
-
-	std::vector<uint8_t> writeBuff;
+	auto writer = DeflatableWriter(outfile, isGzipped ? ArchiveCompression::Gzip : ArchiveCompression::None);
 
 	while (queue.await()) {
 
@@ -314,9 +362,8 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 				nextFile.modified,
 			};
 
-			serializeHeader(longlinkHeader, writeBuff);
-			writeBuff.insert(writeBuff.end(), nextFile.name.begin(), nextFile.name.end());
-			paddBlock(writeBuff);
+			writer.writeChunk(serializeHeader(longlinkHeader));
+			writer.writeChunk(std::vector<uint8_t>(nextFile.name.begin(), nextFile.name.end()));
 		}
 
 		TarBasicHeader tarEntry {
@@ -326,34 +373,11 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 			nextFile.modified,
 		};
 
-		serializeHeader(tarEntry, writeBuff);
-		writeBuff.insert(writeBuff.end(), nextFile.buffer.begin(), nextFile.buffer.end());
-		paddBlock(writeBuff);
-
-		if (compressor.has_value()) {
-			auto& compressorRef = compressor.value();
-			auto compressedChunk = compressorRef.nextChunk(writeBuff);
-			outfile.write((char*)compressedChunk.data(), compressedChunk.size());
-		} else {
-			outfile.write((char*)writeBuff.data(), writeBuff.size());
-		}
-
-		outfile.flush();
-		writeBuff.erase(writeBuff.begin(), writeBuff.end());
+		writer.writeChunk(serializeHeader(tarEntry));
+		writer.writeChunk(nextFile.buffer);
 	}
 
-	writeBuff.resize(writeBuff.size() + (2 * tarBlockSize), 0);
-
-	if (compressor.has_value()) {
-		auto& compressorRef = compressor.value();
-		auto compressedChunk = compressorRef.nextChunk(writeBuff, GzipStreamCompressor::StreamFlush::Finish);
-		outfile.write((char*)compressedChunk.data(), compressedChunk.size());
-	} else {
-		outfile.write((char*)writeBuff.data(), writeBuff.size());
-	}
-
-	outfile.flush();
-	outfile.close();
+	writer.endStream();
 }
 
 void Tar::importArchive(const std::string& path, SyncQueue& queue) {
@@ -363,7 +387,9 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
-	auto reader = InflatableReader(infile);
+	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
+	auto reader = InflatableReader(infile, isGzipped ? ArchiveCompression::Gzip : ArchiveCompression::None);
+
 	std::optional<std::string> nextLongLink;
 
 	while (!reader.isEof()) {
