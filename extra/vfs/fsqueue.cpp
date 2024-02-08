@@ -34,7 +34,11 @@ VirtualFile FSQueue::next() {
 bool FSQueue::await() {
 
 	while (!this->m_done && !this->m_queue.size()) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		if (this->watchForExit != nullptr) {
+			if (watchForExit->wait_for(std::chrono::milliseconds(1)) == std::future_status::ready) break;
+		} else {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
 	}
 
 	return this->m_queue.size();
@@ -43,7 +47,11 @@ bool FSQueue::await() {
 bool FSQueue::awaitEmpty() {
 
 	while (!this->m_done && this->m_queue.size()) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		if (this->watchForExit != nullptr) {
+			if (watchForExit->wait_for(std::chrono::milliseconds(1)) == std::future_status::ready) break;
+		} else {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
 	}
 
 	return !this->m_queue.size();
