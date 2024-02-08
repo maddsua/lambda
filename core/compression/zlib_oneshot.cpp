@@ -32,8 +32,10 @@ struct ZlibCompressStream : ZlibStream {
 
 struct ZlibDecompressStream : ZlibStream {
 
-	ZlibDecompressStream(int winbits) {
-		auto initResult = inflateInit2(&this->stream, winbits);
+	static const int winbitOpenAuto = 32;
+
+	ZlibDecompressStream() {
+		auto initResult = inflateInit2(&this->stream, winbitOpenAuto);
 		if (initResult != Z_OK) throw std::runtime_error("Could not initialize inflate (zlib error code " + std::to_string(initResult) + ')');
 	}
 
@@ -99,11 +101,9 @@ std::vector<uint8_t> Compress::zlibDecompressBuffer(const std::vector<uint8_t>& 
 
 	if (!input.size()) return {};
 
-	static const auto winbitOpenAuto = 32;
-
 	try {
 
-		auto zlib = ZlibDecompressStream(winbitOpenAuto);
+		auto zlib = ZlibDecompressStream();
 		std::vector<uint8_t> decompressed;
 
 		size_t cursor_in = 0;
