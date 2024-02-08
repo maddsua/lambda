@@ -348,12 +348,11 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 	}
 
 	std::optional<std::string> nextLongLink;
-	ArcReader arcstream(infile);
 
 	while (!infile.eof()) {
 
-		std::vector<uint8_t> rawHeader;
-		arcstream.read(rawHeader, sizeof(TarPosixHeader));
+		auto rawHeader = std::vector<uint8_t>(sizeof(TarPosixHeader));
+		infile.read(reinterpret_cast<char*>(rawHeader.data()), rawHeader.size());
 
 		if (!rawHeader[0] || static_cast<size_t>(infile.gcount()) < rawHeader.size()) break;
 
