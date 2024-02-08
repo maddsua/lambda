@@ -25,7 +25,7 @@ class InflatableReader {
 			None, Gzip
 		};
 
-		std::fstream& m_readstream;
+		std::ifstream& m_readstream;
 		std::vector <uint8_t> m_buff;
 		std::optional<GzipStreamDecompressor> m_gz_decompressor;
 		Compression m_compression = Compression::None;
@@ -52,7 +52,7 @@ class InflatableReader {
 		}
 
 	public:
-		InflatableReader(std::fstream& readStream) : m_readstream(readStream) {
+		InflatableReader(std::ifstream& readStream) : m_readstream(readStream) {
 			m_gz_decompressor = GzipStreamDecompressor();
 
 			uint8_t magicBytes[8];
@@ -358,7 +358,7 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 
 void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
-	auto infile = std::fstream(path, std::ios::in | std::ios::binary);
+	auto infile = std::ifstream(path, std::ios::binary);
 	if (!infile.is_open()) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
