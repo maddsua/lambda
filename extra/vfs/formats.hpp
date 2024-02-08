@@ -4,6 +4,7 @@
 #include "./vfs.hpp"
 
 #include <queue>
+#include <future>
 
 namespace Lambda::VFS::Formats {
 
@@ -12,6 +13,7 @@ namespace Lambda::VFS::Formats {
 			std::queue<VirtualFile> m_queue;
 			std::mutex m_lock;
 			bool m_done = false;
+			std::future<void>* watchForExit = nullptr;
 
 		public:
 			FSQueue& operator=(const FSQueue& other) = delete;
@@ -24,6 +26,9 @@ namespace Lambda::VFS::Formats {
 			void close() noexcept;
 			bool done() const noexcept;
 			bool empty() const noexcept;
+			void setWatcher(std::future<void>* watch) {
+				this->watchForExit = watch;
+			}
 	};
 
 	namespace Tar {
