@@ -48,7 +48,7 @@ class ArcReader {
 			dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + this->m_readstream.gcount());
 		}
 
-		size_t skip(size_t skipSize) {
+		void skip(size_t skipSize) {
 
 			switch (this->m_format) {
 
@@ -63,20 +63,14 @@ class ArcReader {
 						this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.begin() + this->m_readstream.gcount());
 					}
 
-					const auto oldSize = this->m_buff.size();
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
-					return this->m_buff.size() - oldSize;
 
 				} break;
 				
 				default: {
 
-					if (this->m_readstream.eof()) return 0;
-
-					const auto oldPos = this->m_readstream.tellg();
-
+					if (this->m_readstream.eof()) return;
 					this->m_readstream.seekg(skipSize, std::ios::cur);
-					return this->m_readstream.tellg() - oldPos;
 
 				} break;
 			}
