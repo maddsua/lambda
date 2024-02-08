@@ -202,14 +202,12 @@ void Interface::saveSnapshot(const std::string& path) {
 
 			if (!writerQueue.awaitEmpty()) break;
 
-			VirtualFile vfsfile {
+			writerQueue.push({
 				entry.second.buffer,
 				entry.second.created,
 				entry.second.modified,
 				entry.first
-			};
-
-			writerQueue.push(std::move(vfsfile));
+			});
 		}
 
 	} else {
