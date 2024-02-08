@@ -89,7 +89,7 @@ std::vector<uint8_t> GzipStreamCompressor::nextChunk(std::vector<uint8_t>& next,
 }
 
 std::vector<uint8_t> GzipStreamCompressor::nextChunk(std::vector<uint8_t>& next) {
-	return this->nextChunk(next, StreamFlush::Auto);
+	return this->nextChunk(next, StreamFlush::Noflush);
 }
 
 std::vector<uint8_t> GzipStreamCompressor::end() {
