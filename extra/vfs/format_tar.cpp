@@ -257,7 +257,7 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 	bool isGzipped = path.ends_with("gz");
 	if (isGzipped) {
-		decompressor = GzipStreamDecompressor(Quality::Noice);
+		decompressor = GzipStreamDecompressor();
 	}
 
 	std::optional<std::string> nextLongLink;
@@ -272,6 +272,7 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 		if (decompressor.has_value()) {
 			auto& decompressorRef = decompressor.value();
 			auto decompressedChunk = decompressorRef.nextChunk(readBuff);
+			readBuff.insert(readBuff.end(), decompressedChunk.begin(), decompressedChunk.end());
 		} else {
 			readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
 		}
