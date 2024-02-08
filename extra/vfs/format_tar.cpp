@@ -70,8 +70,14 @@ class ArcReader {
 				} break;
 				
 				default: {
+
 					if (this->m_readstream.eof()) return 0;
+
+					const auto oldPos = this->m_readstream.tellg();
+
 					this->m_readstream.seekg(skipSize, std::ios::cur);
+					return this->m_readstream.tellg() - oldPos;
+
 				} break;
 			}
 		}
