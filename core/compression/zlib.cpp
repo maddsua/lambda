@@ -180,7 +180,7 @@ std::vector<uint8_t> GzipStreamCompressor::nextChunk(std::vector<uint8_t>& next,
 		castedctx->avail_out = tempBuff.size();
 		castedctx->next_out = tempBuff.data();
 
-		auto resultStat = deflate(castedctx, flush == StreamFlush::Finish ? Z_NO_FLUSH : Z_FINISH);
+		auto resultStat = deflate(castedctx, flush == StreamFlush::Finish ? Z_FINISH : Z_NO_FLUSH);
 		if (resultStat < 0) {
 			throw std::runtime_error("deflate stream error " + std::to_string(resultStat));
 		}
