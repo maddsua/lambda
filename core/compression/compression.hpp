@@ -6,6 +6,8 @@
 
 namespace Lambda::Compress {
 
+	static const size_t defaultChunkSize = 128 * 1024;
+
 	enum struct Quality {
 		Store = 0,
 		Barely = 1,
@@ -27,6 +29,9 @@ namespace Lambda::Compress {
 		Defalte = 8,
 		Raw = -15,
 	};
+
+	std::vector<uint8_t> zlibCompressBuffer(const std::vector<uint8_t>& input, Quality quality, ZlibSetHeader header);
+	std::vector<uint8_t> zlibDecompressBuffer(const std::vector<uint8_t>& input);
 
 	class GzipStreamCompressor {
 		private:
@@ -60,8 +65,31 @@ namespace Lambda::Compress {
 			static const size_t chunkSize = 128 * 1024;
 	};
 
-	std::vector<uint8_t> zlibCompressBuffer(const std::vector<uint8_t>& input, Quality quality, ZlibSetHeader header);
-	std::vector<uint8_t> zlibDecompressBuffer(const std::vector<uint8_t>& input);
+	class GzipStreamDecompressor {
+		private:
+
+			enum struct Stage {
+				Ready, Progress, Done
+			};
+
+			void* m_stream = nullptr;
+			Stage m_stage = Stage::Ready;
+
+		public:
+			GzipStreamDecompressor();
+			GzipStreamDecompressor(const GzipStreamDecompressor&) = delete;
+			GzipStreamDecompressor(GzipStreamDecompressor&& other);
+			~GzipStreamDecompressor();
+
+			GzipStreamDecompressor& operator=(const GzipStreamDecompressor& other) = delete;
+			GzipStreamDecompressor& operator=(GzipStreamDecompressor&& other) noexcept;
+
+			std::vector<uint8_t> nextChunk(std::vector<uint8_t>& next);
+			bool isDone() const noexcept;
+			void reset() noexcept;
+
+			static const size_t chunkSize = 128 * 1024;
+	};
 };
 
 #endif

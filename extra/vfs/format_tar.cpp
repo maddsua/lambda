@@ -1,4 +1,5 @@
 #include "./formats.hpp"
+#include "../../core/polyfill/polyfill.hpp"
 #include "../../core/compression/compression.hpp"
 
 #include <cassert>
@@ -17,8 +18,114 @@ const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
 };
 
-const std::initializer_list<std::string> gzippedExtensions {
-	".tar.gz", ".tgz"
+class InflatableReader {
+	private:
+
+		enum struct Compression {
+			None, Gzip
+		};
+
+		std::fstream& m_readstream;
+		std::vector <uint8_t> m_buff;
+		std::optional<GzipStreamDecompressor> m_gz_decompressor;
+		Compression m_compression = Compression::None;
+
+		static const size_t bufferSize = 2 * 1024 * 1024;
+
+		/**
+		 * Read end decompress enough data to contain expectedSize
+		*/
+		void m_bufferToContain(size_t expectedSize) {
+
+			if (this->m_buff.size() >= expectedSize || this->m_readstream.eof()) {
+				return;
+			}
+
+			auto& decompressor = this->m_gz_decompressor.value();
+
+			std::vector<uint8_t> tempBuff(expectedSize);
+			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+			tempBuff.resize(this->m_readstream.gcount());
+
+			auto nextDecompressed = decompressor.nextChunk(tempBuff);
+			this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.end());
+		}
+
+	public:
+		InflatableReader(std::fstream& readStream) : m_readstream(readStream) {
+			m_gz_decompressor = GzipStreamDecompressor();
+
+			uint8_t magicBytes[8];
+			this->m_readstream.read(reinterpret_cast<char*>(magicBytes), sizeof(magicBytes));
+			this->m_readstream.clear();
+			this->m_readstream.seekg(0, std::ios::beg);
+
+			uint8_t refdataHeaderGzip[] = { 0x1f, 0x8b, 0x08 };
+			if (!memcmp(magicBytes, refdataHeaderGzip, sizeof(refdataHeaderGzip))) {
+				this->m_compression = Compression::Gzip;
+			}
+		}
+
+		std::vector<uint8_t> readChunk(size_t expectedSize) {
+
+			switch (this->m_compression) {
+
+				case Compression::Gzip: {
+
+					this->m_bufferToContain(expectedSize);
+					const auto outSize = std::min(expectedSize, this->m_buff.size());
+
+					const auto result = std::vector<uint8_t>(this->m_buff.begin(), this->m_buff.begin() + outSize);
+					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + outSize);
+
+					return result;
+				};
+
+				default: {
+
+					if (this->m_readstream.eof()) {
+						return {};
+					}
+
+					std::vector<uint8_t> tempBuff(expectedSize);
+					this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+
+					const auto bytesRead = this->m_readstream.gcount();
+					return std::vector<uint8_t>(tempBuff.begin(), tempBuff.begin() + bytesRead);
+				};
+			}
+		}
+
+		std::string readTextChunk(size_t expectedSize) {
+			const auto temp = this->readChunk(expectedSize);
+			return std::string(temp.begin(), temp.end());
+		}
+
+		void skipNext(size_t skipSize) {
+
+			switch (this->m_compression) {
+
+				case Compression::Gzip: {
+
+					this->m_bufferToContain(skipSize);
+					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
+
+				} break;
+				
+				default: {
+
+					if (this->m_readstream.eof()) return;
+					this->m_readstream.seekg(skipSize, std::ios::cur);
+
+				} break;
+			}
+		}
+
+		bool isEof() const noexcept {
+			const auto isCompressed = this->m_compression == Compression::None;
+			const auto isFsEof = this->m_readstream.eof();
+			return isCompressed ? isFsEof : isFsEof && !this->m_buff.size();
+		}
 };
 
 struct TarPosixHeader {
@@ -113,10 +220,13 @@ void serializeHeader(const TarBasicHeader& header, std::vector<uint8_t>& destBuf
 	destBuff.insert(destBuff.end(), headerDataPtr, headerDataPtr + sizeof(posixHeader));
 }
 
-TarBasicHeader parseHeader(const std::array<uint8_t, sizeof(TarPosixHeader)>& headerBuff) {
+TarBasicHeader parseHeader(const std::vector<uint8_t>& headerBuff) {
 
 	//	check for empty block
 	assert(headerBuff[0] != 0);
+
+	//	check available space
+	assert(headerBuff.size() >= sizeof(TarPosixHeader));
 
 	const auto posixHeader = reinterpret_cast<const TarPosixHeader*>(headerBuff.data());
 
@@ -175,18 +285,18 @@ void paddBlock(std::vector<uint8_t>& buff) {
 	buff.resize(buff.size() + paddSize, 0);
 }
 
-void Tar::exportArchive(const std::string& path, FSQueue& queue) {
-
-	std::optional<GzipStreamCompressor> compressor;
-
-	bool isGzipped = path.ends_with("gz");
-	if (isGzipped) {
-		compressor = GzipStreamCompressor(Quality::Noice);
-	}
+void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 
 	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
 	if (!outfile.is_open()) {
 		throw std::filesystem::filesystem_error("Could not open file for write", path, std::error_code(5L, std::generic_category()));
+	}
+
+	std::optional<GzipStreamCompressor> compressor;
+
+	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
+	if (isGzipped) {
+		compressor = GzipStreamCompressor(Quality::Noice);
 	}
 
 	std::vector<uint8_t> writeBuff;
@@ -246,25 +356,22 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 	outfile.close();
 }
 
-void Tar::importArchive(const std::string& path, FSQueue& queue) {
+void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 	auto infile = std::fstream(path, std::ios::in | std::ios::binary);
 	if (!infile.is_open()) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
+	auto reader = InflatableReader(infile);
 	std::optional<std::string> nextLongLink;
 
-	//std::vector<uint8_t> readBuff;
+	while (!reader.isEof()) {
 
-	while (!infile.eof()) {
+		const auto rawHeader = reader.readChunk(sizeof(TarPosixHeader));
+		if (rawHeader.size() < sizeof(TarPosixHeader) || !rawHeader[0]) break;
 
-		std::array<uint8_t, sizeof(TarPosixHeader)> rawHeader;
-		infile.read(reinterpret_cast<char*>(rawHeader.data()), rawHeader.size());
-
-		if (!rawHeader[0] || static_cast<size_t>(infile.gcount()) < rawHeader.size()) break;
-
-		auto nextHeader = parseHeader(rawHeader);
+		const auto nextHeader = parseHeader(rawHeader);
 
 		switch (nextHeader.typeflag) {
 
@@ -274,17 +381,14 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 					throw std::runtime_error("More than one longlink in tar sequence");
 				}
 
-				std::string linkName;
-				linkName.resize(nextHeader.size);
-				infile.read(linkName.data(), linkName.size());
-
+				const auto linkName = reader.readTextChunk(nextHeader.size);
 				if (linkName.size() != nextHeader.size) {
-					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+					throw std::runtime_error("Incomplete linglink tar entry: \"" + nextHeader.name + "\"");
 				}
 
 				auto paddingSize = getPaddingSize(linkName.size());
 				if (paddingSize) {
-					infile.seekg(paddingSize, std::ios::cur);
+					reader.skipNext(paddingSize);
 				}
 
 				nextLongLink = linkName;
@@ -293,17 +397,14 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 			case EntryType::Normal: {
 
-				std::vector<uint8_t> content;
-				content.resize(nextHeader.size);
-				infile.read(reinterpret_cast<char*>(content.data()), content.size());
-
+				const auto content = reader.readChunk(nextHeader.size);
 				if (content.size() != nextHeader.size) {
 					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
 				}
 
 				auto paddingSize = getPaddingSize(content.size());
 				if (paddingSize) {
-					infile.seekg(paddingSize, std::ios::cur);
+					reader.skipNext(paddingSize);
 				}
 
 				queue.push({
@@ -319,8 +420,7 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 			} break;
 			
-			default:
-				break;
+			default: break;
 		}
 	}
 

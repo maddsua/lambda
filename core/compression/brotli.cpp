@@ -1,23 +1,38 @@
 #include "./compression.hpp"
-#include "./streams.hpp"
+
+#include <stdexcept>
+
+#include <brotli/encode.h>
+#include <brotli/decode.h>
 
 using namespace Lambda;
 using namespace Lambda::Compress;
-using namespace Lambda::Compress::Streams;
 
-BrotliCompressStream::BrotliCompressStream() {
-	this->stream = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
-}
-BrotliCompressStream::~BrotliCompressStream() {
-	BrotliEncoderDestroyInstance(this->stream);
-}
+struct BrotliCompressStream {
+	BrotliEncoderState* stream = nullptr;
+	static const size_t chunk = defaultChunkSize;
 
-BrotliDecompressStream::BrotliDecompressStream() {
-	this->stream = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
-}
-BrotliDecompressStream::~BrotliDecompressStream() {
-	BrotliDecoderDestroyInstance(this->stream);
-}
+	BrotliCompressStream() {
+		this->stream = BrotliEncoderCreateInstance(nullptr, nullptr, nullptr);
+	}
+
+	~BrotliCompressStream() {
+		BrotliEncoderDestroyInstance(this->stream);
+	}
+};
+
+struct BrotliDecompressStream {
+	BrotliDecoderState* stream = nullptr;
+	static const size_t chunk = defaultChunkSize;
+
+	BrotliDecompressStream() {
+		this->stream = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
+	}
+
+	~BrotliDecompressStream() {
+		BrotliDecoderDestroyInstance(this->stream);
+	}
+};
 
 std::vector<uint8_t> Compress::brotliCompressBuffer(const std::vector<uint8_t>& input, Quality quality) {
 
