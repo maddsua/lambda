@@ -63,34 +63,39 @@ class InflatableReader {
 			}
 		}
 
-		size_t readChunk(std::vector<uint8_t>& dest, size_t expectedSize) {
+		std::vector<uint8_t> readChunk(size_t expectedSize) {
 
 			switch (this->m_compression) {
 
 				case Compression::Gzip: {
 
 					this->m_bufferToContain(expectedSize);
-					auto outSize = std::min(expectedSize, this->m_buff.size());
+					const auto outSize = std::min(expectedSize, this->m_buff.size());
 
-					dest.insert(dest.end(), this->m_buff.begin(), this->m_buff.begin() + outSize);
+					const auto result = std::vector<uint8_t>(this->m_buff.begin(), this->m_buff.begin() + outSize);
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + outSize);
 
-					return outSize;
+					return result;
 				};
 
 				default: {
 
-					if (this->m_readstream.eof()) return 0;
+					if (this->m_readstream.eof()) {
+						return {};
+					}
 
 					std::vector<uint8_t> tempBuff(expectedSize);
 					this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
 
-					const size_t bytesRead = this->m_readstream.gcount();
-					dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + bytesRead);
-
-					return bytesRead;
+					const auto bytesRead = this->m_readstream.gcount();
+					return std::vector<uint8_t>(tempBuff.begin(), tempBuff.begin() + bytesRead);
 				};
 			}
+		}
+
+		std::string readTextChunk(size_t expectedSize) {
+			const auto temp = this->readChunk(expectedSize);
+			return std::string(temp.begin(), temp.end());
 		}
 
 		void skipNext(size_t skipSize) {
@@ -360,9 +365,9 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 	while (!reader.isEof()) {
 
-		std::vector<uint8_t> rawHeader;
-		const auto bytesRead = reader.readChunk(rawHeader, sizeof(TarPosixHeader));
-		if (bytesRead < rawHeader.size() || !rawHeader[0]) break;
+		const auto rawHeader = reader.readChunk(sizeof(TarPosixHeader));
+		if (rawHeader.size() < sizeof(TarPosixHeader) || !rawHeader[0]) break;
+
 		const auto nextHeader = parseHeader(rawHeader);
 
 		switch (nextHeader.typeflag) {
@@ -373,12 +378,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 					throw std::runtime_error("More than one longlink in tar sequence");
 				}
 
-				std::string linkName;
-
-				std::vector<uint8_t> temp;
-				reader.readChunk(temp, nextHeader.size);
-				linkName.insert(linkName.end(), temp.begin(), temp.end());
-
+				const auto linkName = reader.readTextChunk(nextHeader.size);
 				if (linkName.size() != nextHeader.size) {
 					throw std::runtime_error("Incomplete linglink tar entry: \"" + nextHeader.name + "\"");
 				}
@@ -394,9 +394,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 			case EntryType::Normal: {
 
-				std::vector<uint8_t> content;
-				reader.readChunk(content, nextHeader.size);
-
+				const auto content = reader.readChunk(nextHeader.size);
 				if (content.size() != nextHeader.size) {
 					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
 				}
