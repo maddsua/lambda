@@ -45,7 +45,6 @@ namespace Lambda::Compress::Streams {
 		ZlibDecompressStream(int winbits);
 		~ZlibDecompressStream();
 	};
-
 };
 
 #endif
