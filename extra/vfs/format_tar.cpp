@@ -31,7 +31,7 @@ class ArcReader {
 		std::fstream& m_readstream;
 		std::vector <uint8_t> m_buff;
 		std::optional<GzipStreamDecompressor> m_gz_decompressor;
-		Format m_format = Format::Plain;
+		Format m_format = Format::Gzip;
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
@@ -355,28 +355,10 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 	}
 
 	std::optional<std::string> nextLongLink;
+	ArcReader arcstream(infile);
 
-	std::vector<uint8_t> readBuff;
 
-	const auto readMore = [&](std::optional<size_t> expectedSize) {
-
-		if (infile.eof()) return 0ULL;
-
-		std::vector<uint8_t> tempBuffer(expectedSize.has_value() ? expectedSize.value() : GzipStreamDecompressor::chunkSize);
-		infile.read(reinterpret_cast<char*>(tempBuffer.data()), tempBuffer.size());
-
-		if (decompressor.has_value()) {
-			auto& decompressorRef = decompressor.value();
-			auto decompressedChunk = decompressorRef.nextChunk(tempBuffer);
-			readBuff.insert(readBuff.end(), decompressedChunk.begin(), decompressedChunk.end());
-			return decompressedChunk.size();
-		}
-
-		readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
-		return static_cast<size_t>(infile.gcount());
-	};
-
-	while (!infile.eof() || readBuff.size()) {
+	while (!arcstream.isEof()) {
 
 		if (readBuff.size() < sizeof(TarPosixHeader)) {
 			auto bytesRead = readMore(sizeof(TarPosixHeader));
