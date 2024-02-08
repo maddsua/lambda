@@ -30,15 +30,22 @@ class ArcReader {
 		ArcReader(std::fstream& readStream) : m_readstream(readStream) {}
 
 		size_t read(std::vector<uint8_t>& dest, size_t expectedSize) {
+			
+			if (this->m_readstream.eof()) return 0;
 
+			std::array<uint8_t, 1024> tempBuff;
+			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+
+			dest.insert(dest.end(), tempBuff.begin(), tempBuff.begin() + this->m_readstream.gcount());
 		}
 
 		size_t skip(size_t expectedSize) {
-
+			if (this->m_readstream.eof()) return 0;
+			this->m_readstream.seekg(expectedSize, std::ios::cur);
 		}
 
 		bool isEof() const noexcept {
-			return m_readstream.eof();
+			return this->m_readstream.eof();
 		}
 };
 
