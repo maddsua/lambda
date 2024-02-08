@@ -14,6 +14,10 @@ const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
 };
 
+const std::initializer_list<std::string> gzippedExtensions {
+	".tar.gz", ".tgz"
+};
+
 struct TarPosixHeader {
 	char name[100];
 	char mode[8];
