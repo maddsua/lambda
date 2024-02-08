@@ -236,7 +236,7 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 
 	if (compressor.has_value()) {
 		auto& compressorRef = compressor.value();
-		auto compressedChunk = compressorRef.nextChunk(writeBuff);
+		auto compressedChunk = compressorRef.nextChunk(writeBuff, GzipStreamCompressor::StreamFlush::Finish);
 		outfile.write((char*)compressedChunk.data(), compressedChunk.size());
 	} else {
 		outfile.write((char*)writeBuff.data(), writeBuff.size());
