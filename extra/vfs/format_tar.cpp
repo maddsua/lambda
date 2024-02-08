@@ -177,16 +177,16 @@ void paddBlock(std::vector<uint8_t>& buff) {
 
 void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 
+	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
+	if (!outfile.is_open()) {
+		throw std::filesystem::filesystem_error("Could not open file for write", path, std::error_code(5L, std::generic_category()));
+	}
+
 	std::optional<GzipStreamCompressor> compressor;
 
 	bool isGzipped = path.ends_with("gz");
 	if (isGzipped) {
 		compressor = GzipStreamCompressor(Quality::Noice);
-	}
-
-	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
-	if (!outfile.is_open()) {
-		throw std::filesystem::filesystem_error("Could not open file for write", path, std::error_code(5L, std::generic_category()));
 	}
 
 	std::vector<uint8_t> writeBuff;
@@ -253,14 +253,34 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
+	std::optional<GzipStreamCompressor> compressor;
+
+	bool isGzipped = path.ends_with("gz");
+	if (isGzipped) {
+		compressor = GzipStreamCompressor(Quality::Noice);
+	}
+
 	std::optional<std::string> nextLongLink;
 
-	//std::vector<uint8_t> readBuff;
+	std::vector<uint8_t> readBuff;
 
-	while (!infile.eof()) {
+	while (!infile.eof() || readBuff.size()) {
+
+		std::array<uint8_t, GzipStreamCompressor::chunkSize> tempBuffer;
+		infile.read(reinterpret_cast<char*>(tempBuffer.data()), tempBuffer.size());
+
+		if (compressor.has_value()) {
+			auto& compressorRef = compressor.value();
+			//compressor
+		} else {
+			readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
+		}
+
+		if (readBuff.size() < sizeof(TarPosixHeader) && !infile.eof()) {
+			continue;
+		}
 
 		std::array<uint8_t, sizeof(TarPosixHeader)> rawHeader;
-		infile.read(reinterpret_cast<char*>(rawHeader.data()), rawHeader.size());
 
 		if (!rawHeader[0] || static_cast<size_t>(infile.gcount()) < rawHeader.size()) break;
 
