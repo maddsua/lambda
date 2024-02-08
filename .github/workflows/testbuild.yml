@@ -53,6 +53,8 @@ jobs:
         run: make test.brotli
       - name: Error messages test
         run: make test.errors
+      - name: VFS test
+        run: make test.vfs
 
   build_examples:
     needs: build_lib
