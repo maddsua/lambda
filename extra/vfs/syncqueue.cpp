@@ -13,8 +13,8 @@ SyncQueue& SyncQueue::operator=(SyncQueue&& other) noexcept {
 }
 
 void SyncQueue::push(VirtualFile&& item) {
-	std::lock_guard<std::mutex>lock(this->m_lock);
-	this->m_queue.push(item);
+	std::lock_guard<std::mutex>lock(this->m_queue_lock);
+	this->m_queue.push_back(item);
 }
 
 VirtualFile SyncQueue::next() {
@@ -23,19 +23,22 @@ VirtualFile SyncQueue::next() {
 		throw std::runtime_error("cannot get next item from an empty FSQueue");
 	}
 
-	std::lock_guard<std::mutex>lock(this->m_lock);
+	std::lock_guard<std::mutex>lock(this->m_queue_lock);
 
 	VirtualFile temp = this->m_queue.front();
-	this->m_queue.pop();
+	this->m_queue.erase(this->m_queue.begin());
 
 	return temp;
 }
 
 bool SyncQueue::await() {
 
+	std::lock_guard<std::mutex>lock(this->m_future_lock);
+
 	while (!this->m_done && !this->m_queue.size()) {
-		if (this->watchForExit != nullptr) {
-			if (watchForExit->wait_for(std::chrono::milliseconds(1)) == std::future_status::ready) break;
+
+		if (this->m_watch_future != nullptr) {
+			if (m_watch_future->wait_for(std::chrono::milliseconds(1)) == std::future_status::ready) break;
 		} else {
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
@@ -46,9 +49,12 @@ bool SyncQueue::await() {
 
 bool SyncQueue::awaitEmpty() {
 
+	std::lock_guard<std::mutex>lock(this->m_future_lock);
+
 	while (!this->m_done && this->m_queue.size()) {
-		if (this->watchForExit != nullptr) {
-			if (watchForExit->wait_for(std::chrono::milliseconds(1)) == std::future_status::ready) break;
+
+		if (this->m_watch_future != nullptr) {
+			if (m_watch_future->wait_for(std::chrono::milliseconds(1)) == std::future_status::ready) break;
 		} else {
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
@@ -69,6 +75,7 @@ bool SyncQueue::empty() const noexcept {
 	return this->m_queue.size() == 0;
 }
 
-void SyncQueue::setWatcher(std::future<void>* watch) {
-	this->watchForExit = watch;
+void SyncQueue::setPromiseExitWatcher(std::future<void>* watch) noexcept {
+	std::lock_guard<std::mutex>lock(this->m_future_lock);
+	this->m_watch_future = watch;
 }

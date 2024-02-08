@@ -3,17 +3,18 @@
 
 #include "./vfs.hpp"
 
-#include <queue>
+#include <vector>
 #include <future>
 
 namespace Lambda::VFS::Formats {
 
 	class SyncQueue {
 		private:
-			std::queue<VirtualFile> m_queue;
-			std::mutex m_lock;
+			std::vector<VirtualFile> m_queue;
+			std::mutex m_queue_lock;
+			std::mutex m_future_lock;
 			bool m_done = false;
-			std::future<void>* watchForExit = nullptr;
+			std::future<void>* m_watch_future = nullptr;
 
 		public:
 			SyncQueue& operator=(const SyncQueue& other) = delete;
@@ -26,7 +27,7 @@ namespace Lambda::VFS::Formats {
 			void close() noexcept;
 			bool done() const noexcept;
 			bool empty() const noexcept;
-			void setWatcher(std::future<void>* watch);
+			void setPromiseExitWatcher(std::future<void>* watch) noexcept;
 	};
 
 	namespace Tar {
