@@ -178,7 +178,7 @@ void paddBlock(std::vector<uint8_t>& buff) {
 
 void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 
-	bool isGzipped = path.ends_with('gz');
+	//bool isGzipped = path.ends_with('gz');
 
 	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
 	if (!outfile.is_open()) {
