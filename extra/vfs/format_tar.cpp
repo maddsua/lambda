@@ -271,7 +271,7 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 		if (decompressor.has_value()) {
 			auto& decompressorRef = decompressor.value();
-			auto decompressedChunk = decompressorRef.nextChunk(readBuff, GzipStreamCompressor::StreamFlush::Finish);
+			auto decompressedChunk = decompressorRef.nextChunk(readBuff);
 		} else {
 			readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
 		}
