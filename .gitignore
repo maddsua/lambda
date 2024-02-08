@@ -25,3 +25,4 @@ dllinfo.rc
 lambda_sfi.hpp
 *.tar
 *.gz
+*.tgz
