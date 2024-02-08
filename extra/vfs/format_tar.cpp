@@ -32,6 +32,9 @@ class InflatableReader {
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
+		/**
+		 * Read end decompress enough data to contain expectedSize
+		*/
 		void m_bufferToContain(size_t expectedSize) {
 
 			if (this->m_buff.size() >= expectedSize || this->m_readstream.eof()) {
