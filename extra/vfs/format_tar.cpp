@@ -303,13 +303,18 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 					throw std::runtime_error("More than one longlink in tar sequence");
 				}
 
-				std::string linkName;
-				linkName.resize(nextHeader.size);
-				infile.read(linkName.data(), linkName.size());
+				if (readBuff.size() < nextHeader.size) {
 
-				if (linkName.size() != nextHeader.size) {
-					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+					readMore(nextHeader.size);
+
+					if (readBuff.size() < nextHeader.size) {
+						throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+					}
 				}
+
+				std::string linkName;
+				linkName.insert(linkName.end(), readBuff.begin(), readBuff.begin() + nextHeader.size);
+				readBuff.erase(readBuff.begin(), readBuff.begin() + nextHeader.size);
 
 				auto paddingSize = getPaddingSize(linkName.size());
 				if (paddingSize) {
