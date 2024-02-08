@@ -233,6 +233,8 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
+	std::optional<std::string> nextLongLink;
+
 	//std::vector<uint8_t> readBuff;
 
 	while (!infile.eof()) {
@@ -244,25 +246,62 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 		auto nextHeader = parseHeader(rawHeader);
 
-		std::vector<uint8_t> content;
-		content.resize(nextHeader.size);
-		infile.read(reinterpret_cast<char*>(content.data()), content.size());
+		switch (nextHeader.typeflag) {
 
-		if (content.size() != nextHeader.size) {
-			throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+			case EntryType::LongLink: {
+
+				if (nextLongLink.has_value()) {
+					throw std::runtime_error("More than one longlink in tar sequence");
+				}
+
+				std::string linkName;
+				linkName.resize(nextHeader.size);
+				infile.read(linkName.data(), linkName.size());
+
+				if (linkName.size() != nextHeader.size) {
+					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+				}
+
+				auto paddingSize = getPaddingSize(linkName.size());
+				if (paddingSize) {
+					infile.seekg(paddingSize, std::ios::cur);
+				}
+
+				nextLongLink = linkName;
+
+			} break;
+
+			case EntryType::Normal: {
+
+				std::vector<uint8_t> content;
+				content.resize(nextHeader.size);
+				infile.read(reinterpret_cast<char*>(content.data()), content.size());
+
+				if (content.size() != nextHeader.size) {
+					throw std::runtime_error("Incomplete file content for tar entry: \"" + nextHeader.name + "\"");
+				}
+
+				auto paddingSize = getPaddingSize(content.size());
+				if (paddingSize) {
+					infile.seekg(paddingSize, std::ios::cur);
+				}
+
+				queue.push({
+					content,
+					nextHeader.modified,
+					nextHeader.modified,
+					nextLongLink.has_value() ? nextLongLink.value() : nextHeader.name
+				});
+
+				if (nextLongLink.has_value()) {
+					nextLongLink = std::nullopt;
+				}
+
+			} break;
+			
+			default:
+				break;
 		}
-
-		auto paddingSize = getPaddingSize(content.size());
-		if (paddingSize) {
-			infile.seekg(paddingSize, std::ios::cur);
-		}
-
-		queue.push({
-			content,
-			nextHeader.modified,
-			nextHeader.modified,
-			nextHeader.name
-		});
 	}
 
 	queue.close();
