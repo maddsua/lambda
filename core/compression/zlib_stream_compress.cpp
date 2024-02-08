@@ -101,11 +101,18 @@ std::vector<uint8_t> GzipStreamCompressor::end() {
 		castedctx->next_out = tempBuff.data();
 
 		auto resultStat = deflate(castedctx, Z_FINISH);
-		if (resultStat < 0) {
-			throw std::runtime_error("deflate stream error " + std::to_string(resultStat));
+
+		switch (resultStat) {
+			case Z_ERRNO: throw std::runtime_error("inflate error: os error " + std::to_string(errno));
+			case Z_STREAM_ERROR: throw std::runtime_error("inflate error: stream error");
+			case Z_DATA_ERROR: throw std::runtime_error("inflate error: data error");
+			case Z_MEM_ERROR: throw std::runtime_error("inflate error: insufficient memory");
+			case Z_BUF_ERROR: throw std::runtime_error("inflate error: buffer error");
+			case Z_VERSION_ERROR: throw std::runtime_error("inflate error: unsupported version");
+			default: break;
 		}
 
-		auto sizeOut = tempBuff.size() - castedctx->avail_out;
+		const auto sizeOut = tempBuff.size() - castedctx->avail_out;
 		resultBuff.insert(resultBuff.end(), tempBuff.begin(), tempBuff.begin() + sizeOut);
 
 	} while (castedctx->avail_out == 0);
