@@ -44,6 +44,8 @@ class ArcReader {
 
 				case Format::Gzip: {
 
+					auto& decompressor = this->m_gz_decompressor.value();
+
 					size_t readBytes = 0;
 
 					if (this->m_buff.size() < expectedSize && !this->m_readstream.eof()) {
@@ -53,7 +55,7 @@ class ArcReader {
 						const size_t fsBytesRead = this->m_readstream.gcount();
 						tempBuff.resize(fsBytesRead);
 
-						auto nextDecompressed = this->m_gz_decompressor.value().nextChunk(tempBuff);
+						auto nextDecompressed = decompressor.nextChunk(tempBuff);
 						this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.end());
 						readBytes = nextDecompressed.size();
 					}
@@ -85,12 +87,14 @@ class ArcReader {
 
 				case Format::Gzip: {
 
+					auto& decompressor = this->m_gz_decompressor.value();
+
 					if (this->m_buff.size() < skipSize && !this->m_readstream.eof()) {
 
 						std::vector<uint8_t> tempBuff(this->bufferSize);
 						this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
 
-						auto nextDecompressed = this->m_gz_decompressor.value().nextChunk(tempBuff);
+						auto nextDecompressed = decompressor.nextChunk(tempBuff);
 						this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.begin() + this->m_readstream.gcount());
 					}
 
