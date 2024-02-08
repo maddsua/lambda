@@ -60,6 +60,38 @@ namespace Lambda::Compress {
 			static const size_t chunkSize = 128 * 1024;
 	};
 
+	class GzipStreamDecompressor {
+		private:
+
+			enum struct Stage {
+				Ready, Progress, Ended
+			};
+
+			void* m_stream = nullptr;
+			Stage m_stage = Stage::Ready;
+
+		public:
+
+			enum struct StreamFlush {
+				Auto, Finish
+			};
+
+			GzipStreamDecompressor(Quality quality);
+			GzipStreamDecompressor(const GzipStreamDecompressor&) = delete;
+			GzipStreamDecompressor(GzipStreamDecompressor&& other);
+			~GzipStreamDecompressor();
+
+			GzipStreamDecompressor& operator=(const GzipStreamDecompressor& other) = delete;
+			GzipStreamDecompressor& operator=(GzipStreamDecompressor&& other);
+
+			std::vector<uint8_t> nextChunk(std::vector<uint8_t>& next);
+			std::vector<uint8_t> nextChunk(std::vector<uint8_t>& next, StreamFlush flush);
+			std::vector<uint8_t> end();
+			void reset();
+
+			static const size_t chunkSize = 128 * 1024;
+	};
+
 	std::vector<uint8_t> zlibCompressBuffer(const std::vector<uint8_t>& input, Quality quality, ZlibSetHeader header);
 	std::vector<uint8_t> zlibDecompressBuffer(const std::vector<uint8_t>& input);
 };
