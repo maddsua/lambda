@@ -5,6 +5,7 @@
 #include <cstring>
 #include <fstream>
 #include <filesystem>
+#include <array>
 
 using namespace Lambda;
 using namespace Lambda::VFS;
@@ -111,56 +112,53 @@ void serializeHeader(const TarBasicHeader& header, std::vector<uint8_t>& destBuf
 	destBuff.insert(destBuff.end(), headerDataPtr, headerDataPtr + sizeof(posixHeader));
 }
 
-std::optional<TarBasicHeader> parseHeader(const TarPosixHeader& posixHeader) {
+TarBasicHeader parseHeader(const std::array<uint8_t, sizeof(TarPosixHeader)>& headerBuff) {
 
 	//	check for empty block
-	if (((uint8_t*)(&posixHeader))[0] == 0) {
-		return std::nullopt;
-	}
+	assert(headerBuff[0] != 0);
+
+	const auto posixHeader = reinterpret_cast<const TarPosixHeader*>(headerBuff.data());
 
 	//	ensure ustar format
-	if (strcmp(posixHeader.magic, "ustar")) {
+	if (strcmp(posixHeader->magic, "ustar")) {
 		throw std::runtime_error("Tar record is not recognized. Only ustar is supported");
 	}
 
 	//	calculate header checksum
-	uint64_t checksumUnsigned = 0;
-	int64_t checksumSigned = 0;
+	int64_t checksumCalculated = 0;
 
-	for (size_t i = 0; i < tarBlockSize; i++) {
+	for (size_t i = 0; i < headerBuff.size(); i++) {
 
 		if (i >= 148 && i < 156) {
-			checksumUnsigned += 32;
-			checksumSigned += 32;
+			checksumCalculated += 32;
 			continue;
 		}
 
-		checksumUnsigned += *((uint8_t*)(&posixHeader) + i);
-		checksumSigned += *((int8_t*)(&posixHeader) + i);
+		checksumCalculated += headerBuff[i];
 	}
 
 	const auto parseTarInt = [](const char* field, size_t fieldsize) {
 		return std::stoll(std::string(field, fieldsize), nullptr, 8);
 	};
 
-	auto originalChecksum = parseTarInt(posixHeader.chksum, sizeof(posixHeader.chksum));
-	if (!(originalChecksum == static_cast<int64_t>(checksumUnsigned) || originalChecksum == checksumSigned)) {
+	auto originalChecksum = parseTarInt(posixHeader->chksum, sizeof(posixHeader->chksum));
+	if (originalChecksum != checksumCalculated) {
 		throw std::runtime_error("Tar checksum error");
 	}
 
 	TarBasicHeader header;
 
-	const bool nameFieldFit = posixHeader.name[sizeof(posixHeader.name) - 1] == 0;
-	const size_t nameFieldLength = nameFieldFit ? strlen(posixHeader.name) : sizeof(posixHeader.name);
+	const bool nameFieldFit = posixHeader->name[sizeof(posixHeader->name) - 1] == 0;
+	const size_t nameFieldLength = nameFieldFit ? strlen(posixHeader->name) : sizeof(posixHeader->name);
 
-	header.name = std::string(posixHeader.name, nameFieldLength);
-	header.typeflag = static_cast<EntryType>(posixHeader.typeflag);
+	header.name = std::string(posixHeader->name, nameFieldLength);
+	header.typeflag = static_cast<EntryType>(posixHeader->typeflag);
 
 	//	decode file size
-	header.size = parseTarInt(posixHeader.size, sizeof(posixHeader.size));
+	header.size = parseTarInt(posixHeader->size, sizeof(posixHeader->size));
 
 	//	get last modification date
-	header.modified = parseTarInt(posixHeader.mtime, sizeof(posixHeader.mtime));
+	header.modified = parseTarInt(posixHeader->mtime, sizeof(posixHeader->mtime));
 
 	return header;
 }
@@ -229,5 +227,25 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 }
 
 void Tar::importArchive(const std::string& path, FSQueue& queue) {
+
+	auto infile = std::fstream(path, std::ios::in | std::ios::binary);
+	if (!infile.is_open()) {
+		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
+	}
+
+	std::vector<uint8_t> readBuff;
+
+	while (!infile.eof()) {
+
+		std::array<uint8_t, sizeof(TarPosixHeader)> rawHeader;
+		infile.read(reinterpret_cast<char*>(rawHeader.data()), rawHeader.size());
+
+		if (infile.gcount() < rawHeader.size() || !rawHeader[0]) break;
+
+		auto nextHeader = parseHeader(rawHeader);
+
+		
+	}
+
 	queue.close();
 }
