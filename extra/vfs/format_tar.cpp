@@ -266,12 +266,12 @@ void Tar::importArchive(const std::string& path, FSQueue& queue) {
 
 	while (!infile.eof() || readBuff.size()) {
 
-		std::array<uint8_t, GzipStreamDecompressor::chunkSize> tempBuffer;
+		std::vector<uint8_t> tempBuffer(GzipStreamDecompressor::chunkSize);
 		infile.read(reinterpret_cast<char*>(tempBuffer.data()), tempBuffer.size());
 
 		if (decompressor.has_value()) {
 			auto& decompressorRef = decompressor.value();
-			auto decompressedChunk = decompressorRef.nextChunk(readBuff);
+			auto decompressedChunk = decompressorRef.nextChunk(tempBuffer);
 			readBuff.insert(readBuff.end(), decompressedChunk.begin(), decompressedChunk.end());
 		} else {
 			readBuff.insert(readBuff.end(), tempBuffer.begin(), tempBuffer.end());
