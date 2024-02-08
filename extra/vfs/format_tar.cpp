@@ -269,7 +269,7 @@ void paddBlock(std::vector<uint8_t>& buff) {
 	buff.resize(buff.size() + paddSize, 0);
 }
 
-void Tar::exportArchive(const std::string& path, FSQueue& queue) {
+void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 
 	auto outfile = std::fstream(path, std::ios::out | std::ios::binary);
 	if (!outfile.is_open()) {
@@ -340,7 +340,7 @@ void Tar::exportArchive(const std::string& path, FSQueue& queue) {
 	outfile.close();
 }
 
-void Tar::importArchive(const std::string& path, FSQueue& queue) {
+void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 
 	auto infile = std::fstream(path, std::ios::in | std::ios::binary);
 	if (!infile.is_open()) {

@@ -6,18 +6,18 @@ using namespace Lambda;
 using namespace Lambda::VFS;
 using namespace Lambda::VFS::Formats;
 
-FSQueue& FSQueue::operator=(FSQueue&& other) noexcept {
+SyncQueue& SyncQueue::operator=(SyncQueue&& other) noexcept {
 	this->m_done = other.m_done;
 	this->m_queue = std::move(other.m_queue);
 	return *this;
 }
 
-void FSQueue::push(VirtualFile&& item) {
+void SyncQueue::push(VirtualFile&& item) {
 	std::lock_guard<std::mutex>lock(this->m_lock);
 	this->m_queue.push(item);
 }
 
-VirtualFile FSQueue::next() {
+VirtualFile SyncQueue::next() {
 
 	if (!this->m_queue.size()) {
 		throw std::runtime_error("cannot get next item from an empty FSQueue");
@@ -31,7 +31,7 @@ VirtualFile FSQueue::next() {
 	return temp;
 }
 
-bool FSQueue::await() {
+bool SyncQueue::await() {
 
 	while (!this->m_done && !this->m_queue.size()) {
 		if (this->watchForExit != nullptr) {
@@ -44,7 +44,7 @@ bool FSQueue::await() {
 	return this->m_queue.size();
 }
 
-bool FSQueue::awaitEmpty() {
+bool SyncQueue::awaitEmpty() {
 
 	while (!this->m_done && this->m_queue.size()) {
 		if (this->watchForExit != nullptr) {
@@ -57,14 +57,14 @@ bool FSQueue::awaitEmpty() {
 	return !this->m_queue.size();
 }
 
-void FSQueue::close() noexcept {
+void SyncQueue::close() noexcept {
 	this->m_done = true;
 }
 
-bool FSQueue::done() const noexcept {
+bool SyncQueue::done() const noexcept {
 	return this->m_done;
 }
 
-bool FSQueue::empty() const noexcept {
+bool SyncQueue::empty() const noexcept {
 	return this->m_queue.size() == 0;
 }

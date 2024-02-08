@@ -150,7 +150,7 @@ bool isSupportedFileExtension(const std::string& filepath, const std::initialize
 
 void Interface::loadSnapshot(const std::string& path) {
 
-	Formats::FSQueue readerQueue;
+	Formats::SyncQueue readerQueue;
 	std::future<void> readerPromise;
 	readerQueue.setWatcher(&readerPromise);
 
@@ -188,7 +188,7 @@ void Interface::loadSnapshot(const std::string& path) {
 
 void Interface::saveSnapshot(const std::string& path) {
 
-	Formats::FSQueue writerQueue;
+	Formats::SyncQueue writerQueue;
 	std::future<void> writerPromise;
 	writerQueue.setWatcher(&writerPromise);
 

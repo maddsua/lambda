@@ -8,7 +8,7 @@
 
 namespace Lambda::VFS::Formats {
 
-	class FSQueue {
+	class SyncQueue {
 		private:
 			std::queue<VirtualFile> m_queue;
 			std::mutex m_lock;
@@ -16,8 +16,8 @@ namespace Lambda::VFS::Formats {
 			std::future<void>* watchForExit = nullptr;
 
 		public:
-			FSQueue& operator=(const FSQueue& other) = delete;
-			FSQueue& operator=(FSQueue&& other) noexcept;
+			SyncQueue& operator=(const SyncQueue& other) = delete;
+			SyncQueue& operator=(SyncQueue&& other) noexcept;
 
 			bool await();
 			bool awaitEmpty();
@@ -35,8 +35,8 @@ namespace Lambda::VFS::Formats {
 
 		extern const std::initializer_list<std::string> supportedExtensions;
 
-		void exportArchive(const std::string& path, FSQueue& queue);
-		void importArchive(const std::string& path, FSQueue& queue);
+		void exportArchive(const std::string& path, SyncQueue& queue);
+		void importArchive(const std::string& path, SyncQueue& queue);
 	};
 	
 };
