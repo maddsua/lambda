@@ -361,11 +361,9 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 	while (!reader.isEof()) {
 
 		std::vector<uint8_t> rawHeader;
-		auto bytesRead = reader.readChunk(rawHeader, sizeof(TarPosixHeader));
-
-		if (!rawHeader[0] || bytesRead < rawHeader.size()) break;
-
-		auto nextHeader = parseHeader(rawHeader);
+		const auto bytesRead = reader.readChunk(rawHeader, sizeof(TarPosixHeader));
+		if (bytesRead < rawHeader.size() || !rawHeader[0]) break;
+		const auto nextHeader = parseHeader(rawHeader);
 
 		switch (nextHeader.typeflag) {
 
