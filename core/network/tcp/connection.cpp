@@ -115,7 +115,7 @@ void Connection::setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction) {
 		const auto timeoutValue = valueMs;
 	#else
 		timeval timeoutValue;
-		timeoutValue.tv_sec = value / 1000;
+		timeoutValue.tv_sec = valueMs / 1000;
 		timeoutValue.tv_usec = 0;
 	#endif
 
