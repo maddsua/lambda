@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <future>
+#include <shared_mutex>
 
 namespace Lambda::VFS::Formats {
 
@@ -12,7 +13,7 @@ namespace Lambda::VFS::Formats {
 		private:
 			std::vector<VirtualFile> m_queue;
 			std::mutex m_queue_lock;
-			std::mutex m_future_lock;
+			std::shared_mutex m_future_lock;
 			bool m_done = false;
 			std::future<void>* m_watch_future = nullptr;
 

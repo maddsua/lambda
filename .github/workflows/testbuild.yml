@@ -30,6 +30,7 @@ jobs:
   build_and_run_tests:
     needs: build_lib
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - name: Prepare
