@@ -1,8 +1,18 @@
 #include "./connection.hpp"
 #include "../sysnetw.hpp"
 
+#include <algorithm>
+
 using namespace Lambda::Network;
 using namespace Lambda::Network::TCP;
+
+static const std::initializer_list<int> blockingEndedCodes = {
+	#ifdef _WIN32
+		WSAETIMEDOUT
+	#else
+		EAGAIN, ETIMEDOUT, EWOULDBLOCK
+	#endif
+};
 
 Connection::Connection(
 	SockHandle handleInit,
@@ -73,10 +83,9 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	std::lock_guard<std::mutex> lock(this->m_readMutex);
 
-	std::vector<uint8_t> chunk;
-	chunk.resize(expectedSize);
+	auto chunk = std::vector<uint8_t>(expectedSize);
 
-	auto bytesReceived = recv(this->hSocket, (char*)chunk.data(), chunk.size(), 0);
+	auto bytesReceived = recv(this->hSocket, reinterpret_cast<char*>(chunk.data()), chunk.size(), 0);
 
 	if (bytesReceived == 0) {
 
@@ -87,20 +96,20 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 		auto apiError = Errors::getApiError();
 
-		switch (apiError) {
+		//	I could use std::any_of here,
+		//	but that syntax sugar seems out of place here
+		for (const auto code : blockingEndedCodes) {
+			
+			if (apiError != code) continue;
 
-			case LNE_TIMEDOUT: {
-
-				if (this->flags.closeOnTimeout) {
-					this->end();
-				}
-
-				return {};
+			if (this->flags.closeOnTimeout) {
+				this->end();
 			}
 
-			default:
-				throw Lambda::APIError(apiError, "network error while receiving data");
-		}	
+			return {};
+		}
+
+		throw Lambda::APIError(apiError, "network error while receiving data");
 	}
 
 	chunk.resize(bytesReceived);
@@ -109,18 +118,28 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 	return chunk;
 }
 
-void Connection::setTimeouts(uint32_t value, SetTimeoutsDirection direction) {
+void Connection::setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction) {
+
+	#ifdef _WIN32
+		const auto timeoutValue = valueMs;
+	#else
+		timeval timeoutValue;
+		timeoutValue.tv_sec = valueMs / 1000;
+		timeoutValue.tv_usec = 0;
+	#endif
+
+	const auto timeouValuePtr = reinterpret_cast<const char*>(&timeoutValue);
 
 	if (direction != SetTimeoutsDirection::Receive) {
-		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&value, sizeof(value)))
+		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, timeouValuePtr, sizeof(timeoutValue)))
 			throw Lambda::APIError("failed to set socket TX timeout");
-		this->m_info.timeouts.send = value;
+		this->m_info.timeouts.send = valueMs;
 	}
 
 	if (direction != SetTimeoutsDirection::Send) {
-		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&value, sizeof(value)))
+		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, timeouValuePtr, sizeof(timeoutValue)))
 			throw Lambda::APIError("failed to set socket RX timeout");
-		this->m_info.timeouts.receive = value;
+		this->m_info.timeouts.receive = valueMs;
 	}
 }
 

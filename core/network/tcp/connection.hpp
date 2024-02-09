@@ -33,8 +33,8 @@ namespace Lambda::Network::TCP {
 			void end() noexcept;
 			bool active() const noexcept;
 
-			void setTimeouts(uint32_t value, SetTimeoutsDirection direction);
-			void setTimeouts(uint32_t value);
+			void setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction);
+			void setTimeouts(uint32_t valueMs);
 
 			static const uint32_t TimeoutMs = 15000;
 			static const uint32_t ReadChunkSize = 2048;

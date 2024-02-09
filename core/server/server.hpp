@@ -19,6 +19,7 @@ namespace Lambda {
 		bool connections = true;
 		bool requests = true;
 		bool timestamps = false;
+		bool startMessage = true;
 	};
 
 	enum struct ErrorResponseType {

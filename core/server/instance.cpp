@@ -109,7 +109,9 @@ void LambdaInstance::start() {
 		}
 	});
 
-	syncout.log("[Service] Started server at http://localhost:" + std::to_string(this->config.service.port) + '/');
+	if (config.loglevel.startMessage) {
+		syncout.log("[Service] Started server at http://localhost:" + std::to_string(this->config.service.port) + '/');
+	}
 }
 
 void LambdaInstance::shutdownn() {
