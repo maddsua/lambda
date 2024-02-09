@@ -16,8 +16,6 @@
 		#include <ws2tcpip.h>
 		#include <stdexcept>
 
-		#define LNE_TIMEDOUT	WSAETIMEDOUT
-
 		inline bool wsaWakeUp() {
 
 			static bool wsaInitCalled = false;
@@ -40,7 +38,6 @@
 		#include <arpa/inet.h>
 		#include <cerrno>
 
-		#define LNE_TIMEDOUT	ETIMEDOUT
 		#define INVALID_SOCKET	(-1)
 
 		#define closesocket(socketHandle) (close(socketHandle))
