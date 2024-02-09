@@ -1,7 +1,7 @@
 #ifndef __LIB_MADDSUA_LAMBDA_EXTRA_COMPRESSION__
 #define __LIB_MADDSUA_LAMBDA_EXTRA_COMPRESSION__
 
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 
 namespace Lambda::Compress {
