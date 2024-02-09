@@ -2,6 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_EXTRA_COMPRESSION__
 
 #include <cstdint>
+#include <cstddef>
 #include <vector>
 
 namespace Lambda::Compress {
