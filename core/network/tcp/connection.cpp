@@ -109,18 +109,28 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 	return chunk;
 }
 
-void Connection::setTimeouts(uint32_t value, SetTimeoutsDirection direction) {
+void Connection::setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction) {
+
+	#ifdef _WIN32
+		const auto timeoutValue = valueMs;
+	#else
+		timeval timeoutValue;
+		timeoutValue.tv_sec = value / 1000;
+		timeoutValue.tv_usec = 0;
+	#endif
+
+	const auto timeouValuePtr = reinterpret_cast<const char*>(&timeoutValue);
 
 	if (direction != SetTimeoutsDirection::Receive) {
-		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&value, sizeof(value)))
+		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, timeouValuePtr, sizeof(timeoutValue)))
 			throw Lambda::APIError("failed to set socket TX timeout");
-		this->m_info.timeouts.send = value;
+		this->m_info.timeouts.send = valueMs;
 	}
 
 	if (direction != SetTimeoutsDirection::Send) {
-		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&value, sizeof(value)))
+		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, timeouValuePtr, sizeof(timeoutValue)))
 			throw Lambda::APIError("failed to set socket RX timeout");
-		this->m_info.timeouts.receive = value;
+		this->m_info.timeouts.receive = valueMs;
 	}
 }
 
