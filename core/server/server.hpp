@@ -91,7 +91,7 @@ namespace Lambda {
 			HandlerType handlerType = HandlerType::Undefined;
 
 			std::future<void> watchdogWorker;
-			bool terminated = false;
+			bool m_terminated = false;
 
 			void start();
 			void terminate();

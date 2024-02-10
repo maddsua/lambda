@@ -1,6 +1,5 @@
 #include "./server.hpp"
 #include "./internal.hpp"
-#include "../crypto/crypto.hpp"
 #include "../network/tcp/listener.hpp"
 
 #include <cstdio>
@@ -45,7 +44,7 @@ void LambdaInstance::start() {
 
 	this->watchdogWorker = std::async([&]() {
 
-		while (!this->terminated && this->listener.active()) {
+		while (!this->m_terminated && this->listener.active()) {
 
 			auto nextConn = this->listener.acceptConnection();
 			if (!nextConn.has_value()) break;
@@ -76,7 +75,7 @@ void LambdaInstance::start() {
 						} break;
 
 						default: {
-							this->terminated = true;
+							this->m_terminated = true;
 							throw std::runtime_error("connection handler undefined");
 						} break;
 					}
@@ -110,7 +109,7 @@ void LambdaInstance::start() {
 	});
 
 	if (config.loglevel.startMessage) {
-		syncout.log("[Service] Started server at http://localhost:" + std::to_string(this->config.service.port) + '/');
+		syncout.log("[Service] Started at http://localhost:" + std::to_string(this->config.service.port) + '/');
 	}
 }
 
@@ -120,7 +119,7 @@ void LambdaInstance::shutdownn() {
 }
 
 void LambdaInstance::terminate() {
-	this->terminated = true;
+	this->m_terminated = true;
 	this->listener.stop();
 	this->awaitFinished();
 }
