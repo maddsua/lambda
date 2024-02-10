@@ -69,7 +69,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
-		throw NetworkError("network error while sending data", getOSError());
+		throw NetworkError("Network error while sending data", getOSError());
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -79,7 +79,7 @@ std::vector<uint8_t> Connection::read() {
 std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	if (this->hSocket == INVALID_SOCKET)
-		throw std::runtime_error("can't read from a closed connection");
+		throw std::runtime_error("Can't read from a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->m_readMutex);
 
@@ -109,7 +109,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 			return {};
 		}
 
-		throw NetworkError("network error while receiving data", osError);
+		throw NetworkError("Network error while receiving data", osError);
 	}
 
 	chunk.resize(bytesReceived);
