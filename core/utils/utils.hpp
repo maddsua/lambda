@@ -21,7 +21,7 @@ namespace Lambda {
 		std::string formatMessage(int32_t errorCode) noexcept;
 	};
 
-	class Error : std::exception {
+	class Error : public std::exception {
 		protected:
 			std::string m_text;
 
