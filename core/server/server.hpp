@@ -55,11 +55,11 @@ namespace Lambda {
 				HTTP, WS
 			};
 
-			Crypto::ShortID m_ctx_id;
-
 			Network::TCP::Connection& conn;
 			const ServeOptions& opts;
 			HTTP::Transport::V1TransportContext ctx;
+			Crypto::ShortID m_ctx_id;
+
 			ActiveProtocol activeProto = ActiveProtocol::HTTP;
 
 		public:
