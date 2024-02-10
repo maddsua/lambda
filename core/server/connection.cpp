@@ -6,6 +6,8 @@
 #include "../encoding/encoding.hpp"
 
 using namespace Lambda;
+using namespace Lambda::HTTP;
+using namespace Lambda::HTTP::Transport;
 using namespace Lambda::Server;
 using namespace Lambda::Websocket;
 
@@ -22,9 +24,30 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 		throw std::runtime_error("Cannot read next http request: connection protocol was changed");
 	}
 
-	auto nextOpt = this->ctx.nextRequest();
-	if (!nextOpt.has_value()) return std::nullopt;
-	return nextOpt.value();
+	try {
+
+		const auto nextOpt = this->ctx.nextRequest();
+		if (!nextOpt.has_value()) return std::nullopt;
+		return nextOpt.value();
+
+	} catch(const ProtocolError& err) {
+
+		/*
+			Look. It's not very pretty to rethrow an error but it's way better
+			than coming up with	some elaborate structures that will provide a way
+			to distinguish between different kinds of errors.
+			Also most of the library uses exceptions to do error handling anyway
+			so making any of that that would be just super inconsistent and confusing.
+		*/
+
+		if (err.respondStatus.has_value()) {
+			this->respond(Pages::renderErrorPage(err.respondStatus.value(), err.message(), this->opts.errorResponseType));
+		}
+
+		throw;
+	}
+
+	return std::nullopt;
 }
 
 void IncomingConnection::respond(const HTTP::Response& response) {

@@ -24,7 +24,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 V1TransportContext::V1TransportContext(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
-) : m_conn(connInit), m_opts(optsInit) {}
+) : m_conn(connInit), m_topts(optsInit) {}
 
 std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
@@ -37,8 +37,8 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		this->m_readbuff.insert(this->m_readbuff.end(), newBytes.begin(), newBytes.end());
 		headerEnded = std::search(this->m_readbuff.begin(), this->m_readbuff.end(), patternEndHeader.begin(), patternEndHeader.end());
 
-		if (this->m_readbuff.size() > this->m_opts.maxRequestSize) {
-			throw std::runtime_error("request header size too big");
+		if (this->m_readbuff.size() > this->m_topts.maxRequestSize) {
+			throw ProtocolError("Request header too large", 413);
 		}
 	}
 
@@ -51,7 +51,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 	auto headerStartLine = Strings::split(headerFields.at(0), ' ');
 	if (headerStartLine.size() < 2) {
-		throw std::runtime_error("invalid HTTP request");
+		throw ProtocolError("Invalid HTTP request");
 	}
 
 	auto& requestMethodString = headerStartLine.at(0);
@@ -66,12 +66,12 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 		const auto separator = headerline.find(':');
 		if (separator == std::string::npos) {
-			throw std::runtime_error("invalid header structure (no separation betwen name and header value)");
+			throw ProtocolError("Invalid request headers structure", 400);
 		}
 
 		const auto headerKey = Strings::trim(headerline.substr(0, separator));
 		if (!headerKey.size()) {
-			throw std::runtime_error("invalid header (empty header name)");
+			throw ProtocolError("Invalid request header (empty name)", 400);
 		}
 
 		const auto headerValue = Strings::trim(headerline.substr(separator + 1));
@@ -126,14 +126,14 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		}
 	}
 
-	if (this->m_opts.reuseConnections) {
+	if (this->m_topts.reuseConnections) {
 		auto connectionHeader = next.headers.get("connection");
 		if (this->m_keepalive) this->m_keepalive = !Strings::includes(connectionHeader, "close");
 			else this->m_keepalive = Strings::includes(connectionHeader, "keep-alive");
 	}
 
 	auto acceptEncodingHeader = next.headers.get("accept-encoding");
-	if (this->m_opts.useCompression && acceptEncodingHeader.size()) {
+	if (this->m_topts.useCompression && acceptEncodingHeader.size()) {
 
 		auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
 		auto acceptEncodingsSet = std::set<std::string>(encodingNames.begin(), encodingNames.end());
@@ -153,20 +153,18 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 		const auto totalRequestSize = std::distance(this->m_readbuff.begin(), headerEnded) + bodySize;
 
-		if (totalRequestSize > this->m_opts.maxRequestSize) {
-			throw std::runtime_error("total request size too big");
-		}
-
-		if (!this->m_conn.active()) {
-			throw std::runtime_error("connection was terminated before request body could be received");
+		if (totalRequestSize > this->m_topts.maxRequestSize) {
+			throw ProtocolError("Total request size is too large", 413);
 		}
 
 		auto bodyRemaining = bodySize - this->m_readbuff.size();
 		if (bodyRemaining) {
+	
 			auto temp = this->m_conn.read(bodyRemaining);
 			if (temp.size() != bodyRemaining) {
-				throw std::runtime_error("connection terminated while receiving request body");
+				throw ProtocolError("Incomplete request body");
 			}
+
 			this->m_readbuff.insert(this->m_readbuff.end(), temp.begin(), temp.end());
 		}
 
