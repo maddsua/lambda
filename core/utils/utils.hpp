@@ -22,7 +22,7 @@ namespace Lambda {
 	};
 
 	class Error : std::exception {
-		private:
+		protected:
 			std::string m_text;
 
 		public:
