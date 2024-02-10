@@ -23,16 +23,17 @@ namespace Lambda::HTTP::Transport {
 		None, Brotli, Gzip, Deflate,
 	};
 
+	struct TransportErrorResponse {
+		const HTTP::Status& status;
+		const std::string& message;
+	};
+
 	class TransportError : public Lambda::Error {
 		public:
-			enum struct Action {
-				Respond, Terminate
-			};
+			const std::optional<TransportErrorResponse> errorResponse;
 
-			const Action action;
-
-			TransportError(const std::string& message) : Error(message), action(Action::Terminate) {}
-			TransportError(const std::string& message, Action setAction) : Error(message), action(setAction) {}
+			TransportError(const std::string& message) : Error(message) {}
+			TransportError(const std::string& message, TransportErrorResponse respondWith) : Error(message), errorResponse(respondWith) {}
 	};
 
 	class V1TransportContext {
