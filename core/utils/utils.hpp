@@ -21,6 +21,19 @@ namespace Lambda {
 		std::string formatMessage(int32_t errorCode) noexcept;
 	};
 
+	class Error : std::exception {
+		private:
+			std::string m_text;
+
+		public:
+			Error(const std::string& message) : m_text(message) {}
+			Error(const char* message) : m_text(message) {}
+			Error(const std::exception& init) : m_text(init.what()) {}
+
+			const char* what() const noexcept override { return this->m_text.c_str(); }
+			const std::string& message() const noexcept { return this->m_text; }
+	};
+
 	class APIError : public std::exception {
 		private:
 			int32_t m_code = 0;
