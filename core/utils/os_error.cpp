@@ -34,7 +34,8 @@ std::string OS_Error::toString() const noexcept {
 
 		char* tempMessage = nullptr;
 		auto formatResult = FormatMessageA(
-			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, this->code, 0, (LPSTR)&tempMessage, 0, NULL);
 		if (!formatResult) return "os error " + std::to_string(this->code);
 
