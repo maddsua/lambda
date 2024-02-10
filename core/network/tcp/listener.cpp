@@ -90,7 +90,7 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 
 	Address nextAddr {
 		peerIpCString ? peerIpCString : "",
-		80,
+		ntohs(peerAddr.sin_port),
 		ConnectionTransport::TCP
 	};
 
