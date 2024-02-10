@@ -20,6 +20,7 @@ namespace Lambda {
 		bool requests = true;
 		bool timestamps = false;
 		bool startMessage = true;
+		bool transportErrors = true;
 	};
 
 	enum struct ErrorResponseType {
