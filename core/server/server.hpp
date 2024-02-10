@@ -17,9 +17,8 @@
 namespace Lambda {
 
 	struct LogOptions {
-		bool transportEvents = true;
+		bool transportEvents = false;
 		bool requests = true;
-		bool timestamps = false;
 		bool startMessage = true;
 	};
 
