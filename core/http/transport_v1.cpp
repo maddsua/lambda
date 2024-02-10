@@ -38,7 +38,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		headerEnded = std::search(this->m_readbuff.begin(), this->m_readbuff.end(), patternEndHeader.begin(), patternEndHeader.end());
 
 		if (this->m_readbuff.size() > this->m_opts.maxRequestSize) {
-			throw TransportError("Request header too large", TransportError::Action::Respond);
+			throw TransportError("Request header too large", 413);
 		}
 	}
 
@@ -66,12 +66,12 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 		const auto separator = headerline.find(':');
 		if (separator == std::string::npos) {
-			throw TransportError("Invalid request headers structure", TransportError::Action::Respond);
+			throw TransportError("Invalid request headers structure", 400);
 		}
 
 		const auto headerKey = Strings::trim(headerline.substr(0, separator));
 		if (!headerKey.size()) {
-			throw TransportError("Invalid request header (empty name)", TransportError::Action::Respond);
+			throw TransportError("Invalid request header (empty name)", 400);
 		}
 
 		const auto headerValue = Strings::trim(headerline.substr(separator + 1));
@@ -154,7 +154,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		const auto totalRequestSize = std::distance(this->m_readbuff.begin(), headerEnded) + bodySize;
 
 		if (totalRequestSize > this->m_opts.maxRequestSize) {
-			throw TransportError("Request size too large", TransportError::Action::Respond);
+			throw TransportError("Request size too large", 400);
 		}
 
 		auto bodyRemaining = bodySize - this->m_readbuff.size();
