@@ -84,7 +84,7 @@ namespace Lambda::HTTP {
 
 			struct CookieData {
 				std::string value;
-				std::initializer_list<CookieParams> props;
+				std::vector<CookieParams> props;
 			};
 
 			std::unordered_map<std::string, std::string> m_data;
