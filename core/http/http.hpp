@@ -73,22 +73,22 @@ namespace Lambda::HTTP {
 	class Cookies {
 		protected:
 
-			struct SetParam {
+			struct CookieParams {
 				std::string key;
 				std::string value;
 
-				SetParam(const std::string& init);
-				SetParam(const char* init);
-				SetParam(std::initializer_list<std::string> init);
+				CookieParams(const std::string& init);
+				CookieParams(const char* init);
+				CookieParams(std::initializer_list<std::string> init);
 			};
 
-			struct SetItem {
+			struct CookieData {
 				std::string value;
-				std::initializer_list<SetParam> props;
+				std::vector<CookieParams> props;
 			};
 
 			std::unordered_map<std::string, std::string> m_data;
-			std::map<std::string, SetItem> m_set_queue;
+			std::map<std::string, CookieData> m_set_queue;
 
 		public:
 			Cookies() = default;
@@ -102,7 +102,7 @@ namespace Lambda::HTTP {
 			std::string get(const std::string& key) const;
 			bool has(const std::string& key) const;
 			void set(const std::string& key, const std::string& value);
-			void set(const std::string& key, const std::string& value, const std::initializer_list<SetParam>& props);
+			void set(const std::string& key, const std::string& value, const std::initializer_list<CookieParams>& props);
 			void del(const std::string& key);
 			std::vector<KVpair> entries() const;
 			size_t size() const noexcept;

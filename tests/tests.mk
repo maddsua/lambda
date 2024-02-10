@@ -9,3 +9,5 @@ include tests/strings/strings.test.mk
 include tests/errors/errors.test.mk
 include tests/tcp/tcp.test.mk
 include tests/vfs/vfs.test.mk
+include tests/cookie/cookie.test.mk
+include tests/headers/headers.test.mk

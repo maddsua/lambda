@@ -59,7 +59,7 @@ void Cookies::set(const std::string& key, const std::string& value) {
 	this->m_set_queue[keyNormalized] = { value };
 }
 
-void Cookies::set(const std::string& key, const std::string& value, const std::initializer_list<SetParam>& props) {
+void Cookies::set(const std::string& key, const std::string& value, const std::initializer_list<CookieParams>& props) {
 	const auto keyNormalized = Strings::toLowerCase(key);
 	this->m_data[keyNormalized] = value;
 	this->m_set_queue[keyNormalized] = { value, props };
@@ -96,15 +96,15 @@ std::vector<std::string> Cookies::serialize() const {
 	return temp;
 }
 
-Cookies::SetParam::SetParam(const std::string& init) {
+Cookies::CookieParams::CookieParams(const std::string& init) {
 	this->key = init;
 }
 
-Cookies::SetParam::SetParam(const char* init) {
+Cookies::CookieParams::CookieParams(const char* init) {
 	this->key = init;
 }
 
-Cookies::SetParam::SetParam(std::initializer_list<std::string> init) {
+Cookies::CookieParams::CookieParams(std::initializer_list<std::string> init) {
 
 	for (auto itr = init.begin(); itr != init.end(); itr++) {
 

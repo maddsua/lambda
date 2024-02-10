@@ -14,15 +14,16 @@ KVContainer::KVContainer(KVContainer&& other) {
 KVContainer::KVContainer(const std::initializer_list<KVpair>& init) {
 	for (const auto& entry : init) {
 
-		const auto keyNormalized = Strings::toLowerCase(entry.first);
+		const auto keyNormalized = Strings::trim(Strings::toLowerCase(entry.first));
 		const auto element = this->m_data.find(keyNormalized);
+		const auto valueNormalized = Strings::trim(entry.second);
 
 		if (element == this->m_data.end()) {
-			this->m_data[keyNormalized] = { entry.second };
+			this->m_data[keyNormalized] = { valueNormalized };
 			continue;
 		}
 
-		element->second.push_back(entry.second);
+		element->second.push_back(valueNormalized);
 	}
 }
 
