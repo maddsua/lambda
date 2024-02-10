@@ -32,26 +32,12 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 	} catch(const TransportError& err) {
 		
-		/*if (this->opts.loglevel.transportErrors) {
-			syncout.error({ "HTTP TransportError:", err.message() });
-		}*/
-
 		if (err.action == TransportError::Action::Respond) {
 			this->respond(Pages::renderErrorPage(400, err.message(), this->opts.errorResponseType));
 		}
 
-		throw err;
-
-		//this->conn.end();
-
-	}/* catch(const std::exception& err) {
-		
-		if (this->opts.loglevel.transportErrors) {
-			syncout.error({ "Connection error:", err.what() });
-		}
-
-		this->conn.end();
-	}*/
+		throw;
+	}
 
 	return std::nullopt;
 }
