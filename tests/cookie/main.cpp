@@ -18,9 +18,9 @@ int main(int argc, char const *argv[]) {
 		newCookies.set("userid", "test_user_0");
 		newCookies.set("x_lambda", "control", {
 			"Secure",
-			{"expires", "23 Oct 2077 08:28:00 GMT"}
+			{ "expires", "23 Oct 2077 08:28:00 GMT" }
 		});
-		
+
 		const auto generated = Strings::join(newCookies.serialize(), "\n");
 
 		if (generated != compareValid) {
@@ -28,6 +28,8 @@ int main(int argc, char const *argv[]) {
 			throw std::runtime_error("Invalid serialization result");
 		}
 	}
+
+	puts("Cookie serialization test ok");
 
 	return 0;
 }
