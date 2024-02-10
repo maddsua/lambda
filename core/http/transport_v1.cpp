@@ -24,7 +24,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 V1TransportContext::V1TransportContext(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
-) : m_conn(connInit), m_opts(optsInit) {}
+) : m_conn(connInit), m_topts(optsInit) {}
 
 std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
@@ -37,7 +37,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		this->m_readbuff.insert(this->m_readbuff.end(), newBytes.begin(), newBytes.end());
 		headerEnded = std::search(this->m_readbuff.begin(), this->m_readbuff.end(), patternEndHeader.begin(), patternEndHeader.end());
 
-		if (this->m_readbuff.size() > this->m_opts.maxRequestSize) {
+		if (this->m_readbuff.size() > this->m_topts.maxRequestSize) {
 			throw TransportError("Request header too large", 413);
 		}
 	}
@@ -126,14 +126,14 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		}
 	}
 
-	if (this->m_opts.reuseConnections) {
+	if (this->m_topts.reuseConnections) {
 		auto connectionHeader = next.headers.get("connection");
 		if (this->m_keepalive) this->m_keepalive = !Strings::includes(connectionHeader, "close");
 			else this->m_keepalive = Strings::includes(connectionHeader, "keep-alive");
 	}
 
 	auto acceptEncodingHeader = next.headers.get("accept-encoding");
-	if (this->m_opts.useCompression && acceptEncodingHeader.size()) {
+	if (this->m_topts.useCompression && acceptEncodingHeader.size()) {
 
 		auto encodingNames = Strings::split(acceptEncodingHeader, ", ");
 		auto acceptEncodingsSet = std::set<std::string>(encodingNames.begin(), encodingNames.end());
@@ -153,7 +153,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 		const auto totalRequestSize = std::distance(this->m_readbuff.begin(), headerEnded) + bodySize;
 
-		if (totalRequestSize > this->m_opts.maxRequestSize) {
+		if (totalRequestSize > this->m_topts.maxRequestSize) {
 			throw TransportError("Total request size is too large", 413);
 		}
 
