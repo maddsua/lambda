@@ -69,7 +69,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
-		throw Lambda::APIError("network error while sending data");
+		throw NetworkError("network error while sending data", OS_Error());
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -94,13 +94,13 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	} else if (bytesReceived < 0) {
 
-		auto apiError = Errors::getApiError();
+		auto osError = Lambda::OS_Error();
 
 		//	I could use std::any_of here,
 		//	but that syntax sugar seems out of place here
 		for (const auto code : blockingEndedCodes) {
 			
-			if (apiError != code) continue;
+			if (osError.code() != code) continue;
 
 			if (this->flags.closeOnTimeout) {
 				this->end();
@@ -109,7 +109,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 			return {};
 		}
 
-		throw Lambda::APIError(apiError, "network error while receiving data");
+		throw NetworkError("network error while receiving data", osError);
 	}
 
 	chunk.resize(bytesReceived);
@@ -132,13 +132,13 @@ void Connection::setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction) {
 
 	if (direction != SetTimeoutsDirection::Receive) {
 		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, timeouValuePtr, sizeof(timeoutValue)))
-			throw Lambda::APIError("failed to set socket TX timeout");
+			throw NetworkError("failed to set socket TX timeout", OS_Error());
 		this->m_info.timeouts.send = valueMs;
 	}
 
 	if (direction != SetTimeoutsDirection::Send) {
 		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, timeouValuePtr, sizeof(timeoutValue)))
-			throw Lambda::APIError("failed to set socket RX timeout");
+			throw NetworkError("failed to set socket RX timeout", OS_Error());
 		this->m_info.timeouts.receive = valueMs;
 	}
 }
