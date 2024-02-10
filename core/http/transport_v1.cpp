@@ -154,7 +154,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		const auto totalRequestSize = std::distance(this->m_readbuff.begin(), headerEnded) + bodySize;
 
 		if (totalRequestSize > this->m_opts.maxRequestSize) {
-			throw TransportError("Request size too large", 400);
+			throw TransportError("Request size too large", 413);
 		}
 
 		auto bodyRemaining = bodySize - this->m_readbuff.size();
