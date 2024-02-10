@@ -30,7 +30,7 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 		if (!nextOpt.has_value()) return std::nullopt;
 		return nextOpt.value();
 
-	} catch(const TransportError& err) {
+	} catch(const ProtocolError& err) {
 		
 		/*
 			Look. It's not very pretty to rethrow an error but it's way better

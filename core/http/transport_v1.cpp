@@ -38,7 +38,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		headerEnded = std::search(this->m_readbuff.begin(), this->m_readbuff.end(), patternEndHeader.begin(), patternEndHeader.end());
 
 		if (this->m_readbuff.size() > this->m_topts.maxRequestSize) {
-			throw TransportError("Request header too large", 413);
+			throw ProtocolError("Request header too large", 413);
 		}
 	}
 
@@ -51,7 +51,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 	auto headerStartLine = Strings::split(headerFields.at(0), ' ');
 	if (headerStartLine.size() < 2) {
-		throw TransportError("Invalid HTTP request");
+		throw ProtocolError("Invalid HTTP request");
 	}
 
 	auto& requestMethodString = headerStartLine.at(0);
@@ -66,12 +66,12 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 		const auto separator = headerline.find(':');
 		if (separator == std::string::npos) {
-			throw TransportError("Invalid request headers structure", 400);
+			throw ProtocolError("Invalid request headers structure", 400);
 		}
 
 		const auto headerKey = Strings::trim(headerline.substr(0, separator));
 		if (!headerKey.size()) {
-			throw TransportError("Invalid request header (empty name)", 400);
+			throw ProtocolError("Invalid request header (empty name)", 400);
 		}
 
 		const auto headerValue = Strings::trim(headerline.substr(separator + 1));
@@ -154,7 +154,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		const auto totalRequestSize = std::distance(this->m_readbuff.begin(), headerEnded) + bodySize;
 
 		if (totalRequestSize > this->m_topts.maxRequestSize) {
-			throw TransportError("Total request size is too large", 413);
+			throw ProtocolError("Total request size is too large", 413);
 		}
 
 		auto bodyRemaining = bodySize - this->m_readbuff.size();
@@ -162,7 +162,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 	
 			auto temp = this->m_conn.read(bodyRemaining);
 			if (temp.size() != bodyRemaining) {
-				throw TransportError("Incomplete request body");
+				throw ProtocolError("Incomplete request body");
 			}
 
 			this->m_readbuff.insert(this->m_readbuff.end(), temp.begin(), temp.end());

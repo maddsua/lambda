@@ -23,7 +23,7 @@ namespace Lambda::HTTP::Transport {
 		None, Brotli, Gzip, Deflate,
 	};
 
-	class TransportError : public Lambda::Error {
+	class ProtocolError : public Lambda::Error {
 		public:
 
 			/**
@@ -39,8 +39,8 @@ namespace Lambda::HTTP::Transport {
 			*/
 			const std::optional<HTTP::Status> respondStatus;
 
-			TransportError(const std::string& message) : Error(message) {}
-			TransportError(const std::string& message, HTTP::Status respondWithStatus) : Error(message), respondStatus(respondWithStatus) {}
+			ProtocolError(const std::string& message) : Error(message) {}
+			ProtocolError(const std::string& message, HTTP::Status respondWithStatus) : Error(message), respondStatus(respondWithStatus) {}
 	};
 
 	class V1TransportContext {
