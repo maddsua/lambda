@@ -62,7 +62,7 @@ bool Connection::active() const noexcept {
 void Connection::write(const std::vector<uint8_t>& data) {
 
 	if (this->hSocket == INVALID_SOCKET)
-		throw std::runtime_error("cann't write to a closed connection");
+		throw NetworkError("Cann't write to a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->m_writeMutex);
 
@@ -79,7 +79,7 @@ std::vector<uint8_t> Connection::read() {
 std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	if (this->hSocket == INVALID_SOCKET)
-		throw std::runtime_error("Can't read from a closed connection");
+		throw NetworkError("Can't read from a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->m_readMutex);
 
