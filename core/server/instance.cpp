@@ -55,7 +55,7 @@ void LambdaInstance::start() {
 				auto connctx = IncomingConnection(conn, this->config);
 				std::optional<std::exception> handlerError;
 
-				if (this->config.loglevel.connections) {
+				if (this->config.loglevel.transportEvents) {
 					syncout.log({
 						"[Transport]",
 						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
@@ -66,10 +66,10 @@ void LambdaInstance::start() {
 
 				const auto displayHandlerCrashMessage = [&](const std::string& message) {
 
-					if (!(config.loglevel.connections || config.loglevel.requests)) return;
+					if (!(config.loglevel.transportEvents || config.loglevel.requests)) return;
 
 					auto transportDisplayID = connctx.contextID().toString();
-					if (!this->config.loglevel.connections) {
+					if (!this->config.loglevel.transportEvents) {
 						transportDisplayID += '(' + conninfo.remoteAddr.hostname + 
 							':' + std::to_string(conninfo.remoteAddr.port) + ')';
 					}
@@ -108,7 +108,7 @@ void LambdaInstance::start() {
 					return;
 				}
 
-				if (config.loglevel.connections) {
+				if (config.loglevel.transportEvents) {
 					syncout.log({
 						"[Transport]",
 						connctx.contextID().toString(),

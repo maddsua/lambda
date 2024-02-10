@@ -26,20 +26,21 @@ void Handlers::serverlessHandler(
 ) {
 
 	const auto& conninfo = connctx.conninfo();
+	const auto& ctxid = connctx.contextID().toString();
 
 	while (auto nextOpt = connctx.nextRequest()){
 
 		if (!nextOpt.has_value()) break;
 
 		const auto& next = nextOpt.value();
-		const auto& requestID = Crypto::ShortID();
+		const auto& requestID = Crypto::ShortID().toString();
 
-		if (config.loglevel.connections) {
+		if (config.loglevel.transportEvents) {
 			syncout.log({
 				"[Serverless]",
-				connctx.contextID().toString(),
+				ctxid,
 				"->",
-				requestID.toString()
+				requestID
 			});
 		}
 
@@ -49,8 +50,8 @@ void Handlers::serverlessHandler(
 		try {
 
 			response = handlerCallback(next, {
-				connctx.contextID().toString(),
-				requestID.toString(),
+				ctxid,
+				requestID,
 				conninfo
 			});
 
@@ -65,7 +66,7 @@ void Handlers::serverlessHandler(
 			if (config.loglevel.requests) {
 				syncout.error({
 					"[Serverless]",
-					requestID.toString(),
+					requestID,
 					"crashed:",
 					handlerError.value()
 				});
@@ -74,14 +75,14 @@ void Handlers::serverlessHandler(
 			response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 		}
 
-		response.headers.set("x-request-id", connctx.contextID().toString() + '-' + requestID.toString());
+		response.headers.set("x-request-id", ctxid + '-' + requestID);
 
 		connctx.respond(response);
 
 		if (config.loglevel.requests) {
 			syncout.log({
 				"[Serverless]",
-				requestID.toString(),
+				config.loglevel.transportEvents ? requestID : conninfo.remoteAddr.hostname,
 				next.method.toString(),
 				next.url.pathname,
 				"-->",
@@ -109,7 +110,7 @@ void Handlers::streamHandler(
 
 	if (handlerError.has_value()) {
 
-		if (config.loglevel.requests || config.loglevel.connections) {
+		if (config.loglevel.requests || config.loglevel.transportEvents) {
 			syncout.error({
 				"[Transport] streamHandler crashed in",
 				connctx.contextID().toString() + ":",
