@@ -69,7 +69,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
-		throw NetworkError("network error while sending data", OS_Error());
+		throw NetworkError("network error while sending data", getOSError());
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -94,7 +94,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	} else if (bytesReceived < 0) {
 
-		auto osError = Lambda::OS_Error();
+		auto osError = Lambda::getOSError();
 
 		//	I could use std::any_of here,
 		//	but that syntax sugar seems out of place here
@@ -132,13 +132,13 @@ void Connection::setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction) {
 
 	if (direction != SetTimeoutsDirection::Receive) {
 		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, timeouValuePtr, sizeof(timeoutValue)))
-			throw NetworkError("failed to set socket TX timeout", OS_Error());
+			throw NetworkError("failed to set socket TX timeout", getOSError());
 		this->m_info.timeouts.send = valueMs;
 	}
 
 	if (direction != SetTimeoutsDirection::Send) {
 		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, timeouValuePtr, sizeof(timeoutValue)))
-			throw NetworkError("failed to set socket RX timeout", OS_Error());
+			throw NetworkError("failed to set socket RX timeout", getOSError());
 		this->m_info.timeouts.receive = valueMs;
 	}
 }

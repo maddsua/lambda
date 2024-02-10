@@ -17,15 +17,18 @@
 namespace Lambda {
 
 	/**
-	 * Captures last errno or GetLastError
-	 * 
-	 * Also provides a method to turn error code into a nice text message
+	 * Holds OS error code and provides a method to turn it into a nice text message
 	*/
 	struct OS_Error {
 		const int32_t code = 0;
 		std::string toString() const noexcept;
 	};
 
+	/**
+	 * Captures last errno or GetLastError
+	 * 
+	 * Is platform-aware, which is the entire point of having it.
+	*/
 	OS_Error getOSError() noexcept;
 
 	class Error : public std::exception {

@@ -44,10 +44,8 @@ namespace Lambda::Network {
 
 		public:
 			NetworkError(const std::string& message) : Error(message) {}
-			NetworkError(
-				const std::string& message,
-				const OS_Error& os_error
-			) : Error(message + " (" + os_error.toString() + ")"), m_os_error(os_error) {}
+			NetworkError(const std::string& message, const OS_Error& os_error)
+				: Error(message + " (" + os_error.toString() + ")"), m_os_error(os_error) {}
 
 			const OS_Error& osError() const noexcept { return this->m_os_error; }
 	};

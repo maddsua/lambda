@@ -11,6 +11,11 @@ using namespace Lambda;
 
 OS_Error Lambda::getOSError() noexcept {
 
+	/*
+		Error code casted to a i32, it's not like winapi features
+		any errors with codes bigger than it can hold.
+		Also unix uses it by default, so that's why.
+	*/
 	int32_t errorCode = (
 		#ifdef _WIN32
 			GetLastError()
