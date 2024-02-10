@@ -69,6 +69,8 @@ namespace Lambda {
 			IncomingConnection& operator=(const IncomingConnection& other) = delete;
 
 			const Crypto::ShortID& contextID() const noexcept;
+			Network::TCP::Connection& tcpconn() const noexcept;
+			const Network::ConnectionInfo& conninfo() const noexcept;
 
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);

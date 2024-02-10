@@ -35,13 +35,12 @@ uint32_t shorthashIpAddressString(const std::string& ipAddress) {
 }
 
 void Handlers::serverlessHandler(
-	Network::TCP::Connection& conn,
+	IncomingConnection& connctx,
 	const ServeOptions& config,
 	const ServerlessCallback& handlerCallback
 ) {
 
-	const auto& conninfo = conn.info();
-	auto connctx = IncomingConnection(conn, config);
+	const auto& conninfo = connctx.conninfo();
 
 	while (auto nextOpt = connctx.nextRequest()){
 
@@ -93,28 +92,15 @@ void Handlers::serverlessHandler(
 }
 
 void Handlers::streamHandler(
-	Network::TCP::Connection& conn,
+	IncomingConnection& connctx,
 	const ServeOptions& config,
 	const ConnectionCallback& handlerCallback
 ) {
 
-	const auto& conninfo = conn.info();
-	auto connctx = IncomingConnection(conn, config);
 	std::optional<std::string> handlerError;
 
-	if (config.loglevel.requests) {
-		syncout.log({
-			"[Transport]",
-			conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
-			"created",
-			connctx.contextID().toString()
-		});
-	}
-
 	try {
-
 		handlerCallback(connctx);
-
 	} catch(const std::exception& e) {
 		handlerError = e.what();
 	} catch(...) {
@@ -133,13 +119,5 @@ void Handlers::streamHandler(
 
 		auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 		connctx.respond(errorResponse);
-	}
-
-	if (config.loglevel.requests) {
-		syncout.error({
-			"[Transport]",
-			connctx.contextID().toString(),
-			"closed ok"
-		});
 	}
 }

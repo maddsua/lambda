@@ -52,57 +52,67 @@ void LambdaInstance::start() {
 			std::thread([&](Lambda::Network::TCP::Connection&& conn) {
 
 				const auto& conninfo = conn.info();
-				std::optional<std::string> handlerError;
+				auto connctx = IncomingConnection(conn, this->config);
+				std::optional<std::exception> handlerError;
 
 				if (this->config.loglevel.connections) {
 					syncout.log({
-						"[Service]",
+						"[Transport]",
 						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
-						"connected on",
-						conninfo.hostPort
+						"created",
+						connctx.contextID().toString()
 					});
 				}
+
+				const auto displayHandlerCrashMessage = [&](const std::string& message) {
+
+					if (!(config.loglevel.connections || config.loglevel.requests)) return;
+
+					auto transportDisplayID = connctx.contextID().toString();
+					if (!this->config.loglevel.connections) {
+						transportDisplayID += '(' + conninfo.remoteAddr.hostname + 
+							':' + std::to_string(conninfo.remoteAddr.port) + ')';
+					}
+
+					syncout.error({
+						"[Transport]",
+						transportDisplayID,
+						"terminated:",
+						handlerError.value().what()
+					});
+				};
 
 				try {
 
 					switch (this->handlerType) {
 
 						case HandlerType::Serverless: {
-							serverlessHandler(conn, this->config, this->httpHandler);
+							serverlessHandler(connctx, this->config, this->httpHandler);
 						} break;
 
 						case HandlerType::Connection: {
-							streamHandler(conn, this->config, this->tcpHandler);
+							streamHandler(connctx, this->config, this->tcpHandler);
 						} break;
 
 						default: {
 							this->m_terminated = true;
-							throw std::runtime_error("connection handler undefined");
+							throw Lambda::Error("Instance handler undefined");
 						} break;
 					}
 
-				} catch(const std::exception& e) {
-					handlerError = e.what();
+				} catch(const std::exception& err) {
+					displayHandlerCrashMessage(err.what());
+					return;
 				} catch(...) {
-					handlerError = "unknown error";
+					displayHandlerCrashMessage("Unknown exception");
+					return;
 				}
 
-				if (handlerError.has_value() && (config.loglevel.connections || config.loglevel.requests)) {
-
-					syncout.error({
-						"[Service] Connection to",
-						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
-						"terminated",
-						'(' + handlerError.value() + ')'
-					});
-
-				} else if (config.loglevel.connections) {
-
+				if (config.loglevel.connections) {
 					syncout.log({
-						"[Service]",
-						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
-						"disconnected from",
-						conninfo.hostPort
+						"[Transport]",
+						connctx.contextID().toString(),
+						"closed ok"
 					});
 				}
 

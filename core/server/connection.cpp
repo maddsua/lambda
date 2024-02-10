@@ -22,6 +22,14 @@ const Crypto::ShortID& IncomingConnection::contextID() const noexcept {
 	return this->m_ctx_id;
 }
 
+Network::TCP::Connection& IncomingConnection::tcpconn() const noexcept {
+	return this->conn;
+}
+
+const Network::ConnectionInfo& IncomingConnection::conninfo() const noexcept {
+	return this->conn.info();
+}
+
 std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 	if (this->activeProto != ActiveProtocol::HTTP) {
