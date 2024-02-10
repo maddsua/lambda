@@ -19,6 +19,21 @@ using namespace Lambda;
 using namespace Lambda::Server;
 using namespace Lambda::Server::Handlers;
 
+uint32_t shorthashIpAddressString(const std::string& ipAddress) {
+
+	union {
+		int32_t i32 = 0;
+		uint8_t buff[4];
+	} id;
+
+	for (size_t i = 0; i < ipAddress.size(); i++) {
+		if (ipAddress[i] == '.' || ipAddress[i] == ':') continue;
+		id.buff[i % 4] ^= ipAddress[i];
+	}
+
+	return id.i32;
+}
+
 void Handlers::serverlessHandler(
 	Network::TCP::Connection& conn,
 	const ServeOptions& config,
@@ -33,7 +48,7 @@ void Handlers::serverlessHandler(
 		if (!nextOpt.has_value()) break;
 
 		const auto& next = nextOpt.value();
-		const auto& requestID = connctx.requestID().toString();
+		const auto& requestID = connctx.requestID().toString() + '-' + connctx.contextID().toString() + '-' + Crypto::ShortID(shorthashIpAddressString(conninfo.remoteAddr.hostname + std::to_string(conninfo.remoteAddr.port))).toString();
 
 		HTTP::Response response;
 		std::optional<std::string> handlerError;
