@@ -32,8 +32,9 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 	} catch(const TransportError& err) {
 		
-		if (err.action == TransportError::Action::Respond) {
-			this->respond(Pages::renderErrorPage(400, err.message(), this->opts.errorResponseType));
+		if (err.errorResponse.has_value()) {
+			const auto& errorResponse = err.errorResponse.value();
+			this->respond(Pages::renderErrorPage(errorResponse.status, errorResponse.message, this->opts.errorResponseType));
 		}
 
 		throw;
