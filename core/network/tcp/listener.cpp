@@ -14,14 +14,14 @@ ListenSocket::ListenSocket(const ListenConfig& init) : config(init) {
 
 	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (this->hSocket == INVALID_SOCKET) {
-		throw Lambda::APIError("failed to create listen socket");
+		throw NetworkError("Failed to create listen socket", Lambda::getOSError());
 	}
 
 	//	allow fast port reuse
 	if (init.allowPortReuse) {
 		uint32_t sockoptReuseaddr = 1;
 		if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
-			auto apierror = Lambda::APIError("failed to create listen socket");
+			auto apierror = NetworkError("Failed to enable fast port reuse", Lambda::getOSError());
 			closesocket(this->hSocket);
 			throw apierror;
 		}
@@ -34,14 +34,14 @@ ListenSocket::ListenSocket(const ListenConfig& init) : config(init) {
 	serverAddr.sin_port = htons(init.port);
 
 	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr))) {
-		auto apierror = Lambda::APIError("failed to bind socket");
+		auto apierror = NetworkError("Failed to bind() socket", Lambda::getOSError());
 		closesocket(this->hSocket);
 		throw apierror;
 	}
 
 	//	listen for incoming connections
 	if (listen(this->hSocket, SOMAXCONN)) {
-		auto apierror = Lambda::APIError("socket listen failed");
+		auto apierror = NetworkError("Socket listen() failed", Lambda::getOSError());
 		closesocket(this->hSocket);
 		throw apierror;
 	}
@@ -70,7 +70,7 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 
 	//	check that we have a valid socket
 	if (this->hSocket == INVALID_SOCKET) {
-		throw std::runtime_error("cannot accept anything from a closed socket");
+		throw NetworkError("Cannot accept anything from a closed socket");
 	}
 
 	//	accept network connection
@@ -81,7 +81,7 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 	//	verify that we have a valid socket
 	if (nextSocket == INVALID_SOCKET) {
 		if (this->hSocket == INVALID_SOCKET) return std::nullopt;
-		throw Lambda::APIError("socket accept failed");
+		throw NetworkError("Socket accept() failed", Lambda::getOSError());
 	}
 
 	//	try getting peer host name
@@ -90,7 +90,7 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 
 	Address nextAddr {
 		peerIpCString ? peerIpCString : "",
-		80,
+		ntohs(peerAddr.sin_port),
 		ConnectionTransport::TCP
 	};
 

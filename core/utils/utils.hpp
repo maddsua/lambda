@@ -16,10 +16,20 @@
 
 namespace Lambda {
 
-	namespace Errors {
-		int32_t getApiError() noexcept;
-		std::string formatMessage(int32_t errorCode) noexcept;
+	/**
+	 * Holds OS error code and provides a method to turn it into a nice text message
+	*/
+	struct OS_Error {
+		const int32_t code = 0;
+		std::string toString() const noexcept;
 	};
+
+	/**
+	 * Captures last errno or GetLastError
+	 * 
+	 * Is platform-aware, which is the entire point of having it.
+	*/
+	OS_Error getOSError() noexcept;
 
 	class Error : public std::exception {
 		protected:
@@ -32,22 +42,6 @@ namespace Lambda {
 
 			const char* what() const noexcept override { return this->m_text.c_str(); }
 			const std::string& message() const noexcept { return this->m_text; }
-	};
-
-	class APIError : public std::exception {
-		private:
-			int32_t m_code = 0;
-			std::string m_text;
-
-		public:
-			APIError();
-			APIError(int32_t code);
-			APIError(int32_t code, const std::string& commentText);
-			APIError(const std::string& commentText);
-			APIError(const APIError& other);
-			const char* what() const noexcept override;
-			const std::string& message() const noexcept;
-			int32_t code() const noexcept;
 	};
 
 	namespace Bits {
