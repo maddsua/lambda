@@ -18,6 +18,14 @@ IncomingConnection::IncomingConnection(
 	const ServeOptions& optsInit
 ) : conn(connInit), opts(optsInit), ctx(conn, opts.transport) {}
 
+const Crypto::ShortID& IncomingConnection::contextID() const noexcept {
+	return this->m_ctx_id;
+}
+
+const Crypto::ShortID& IncomingConnection::requestID() const noexcept {
+	return this->m_lastrq_id;
+}
+
 std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 	if (this->activeProto != ActiveProtocol::HTTP) {
