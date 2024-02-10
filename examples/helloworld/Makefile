@@ -1,10 +1,10 @@
 
-# sample api server
-EXAMPLE_REPLY_TARGET = reply.example$(EXEEXT)
-example.reply: $(EXAMPLE_REPLY_TARGET)
+# simple hello world example
+EXAMPLE_HELLOWORLD_TARGET = helloworld.example$(EXEEXT)
+example.helloworld: $(EXAMPLE_HELLOWORLD_TARGET)
 
-$(EXAMPLE_REPLY_TARGET): examples/reply/main.o $(LAMBDA_LIBSHARED)
-	g++ $(CFLAGS) examples/reply/main.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o $(EXAMPLE_REPLY_TARGET)
+$(EXAMPLE_HELLOWORLD_TARGET): examples/helloworld/main.o $(LAMBDA_LIBSHARED)
+	g++ $(CFLAGS) examples/helloworld/main.o $(LAMBDA_LIBSHARED) $(EXTERNAL_LIBS) $(LINK_SYSTEM_LIBS) -o $(EXAMPLE_HELLOWORLD_TARGET)
 
-examples/reply/main.o: examples/reply/main.cpp
-	g++ -c $(CFLAGS) examples/reply/main.cpp -o examples/reply/main.o
+examples/helloworld/main.o: examples/helloworld/main.cpp
+	g++ -c $(CFLAGS) examples/helloworld/main.cpp -o examples/helloworld/main.o
