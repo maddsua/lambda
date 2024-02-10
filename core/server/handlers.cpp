@@ -32,7 +32,7 @@ void Handlers::serverlessHandler(
 		if (!nextOpt.has_value()) break;
 
 		const auto& next = nextOpt.value();
-		const auto& requestID = connctx.contextID().toString() + '-' + Crypto::ShortID().toString();
+		const auto& requestID = Crypto::ShortID();
 
 		HTTP::Response response;
 		std::optional<std::string> handlerError;
@@ -40,7 +40,7 @@ void Handlers::serverlessHandler(
 		try {
 
 			response = handlerCallback(next, {
-				requestID,
+				requestID.toString(),
 				conninfo
 			});
 
@@ -53,19 +53,24 @@ void Handlers::serverlessHandler(
 		if (handlerError.has_value()) {
 
 			if (config.loglevel.requests) {
-				syncout.error({ requestID, "crashed:", handlerError.value() });
+				syncout.error({
+					"[Serverless]",
+					requestID.toString(),
+					"crashed:",
+					handlerError.value()
+				});
 			}
 
 			response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 		}
 
-		response.headers.set("x-request-id", requestID);
+		response.headers.set("x-request-id", connctx.contextID().toString() + '-' + requestID.toString());
 
 		connctx.respond(response);
 
 		if (config.loglevel.requests) {
 			syncout.log({
-				'[' + requestID + ']',
+				'[' + requestID.toString() + ']',
 				'(' + conninfo.remoteAddr.hostname + ')',
 				next.method.toString(),
 				next.url.pathname,
