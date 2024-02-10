@@ -38,7 +38,7 @@ namespace Lambda::Network {
 		Both, Send, Receive
 	};
 
-	class NetworkError : Lambda::Error {
+	class NetworkError : public Lambda::Error {
 		private:
 			OS_Error m_os_error;
 
