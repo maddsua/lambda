@@ -48,7 +48,7 @@ void Handlers::serverlessHandler(
 		if (!nextOpt.has_value()) break;
 
 		const auto& next = nextOpt.value();
-		const auto& requestID = connctx.requestID().toString() + '-' + connctx.contextID().toString() + '-' + Crypto::ShortID(shorthashIpAddressString(conninfo.remoteAddr.hostname + std::to_string(conninfo.remoteAddr.port))).toString();
+		const auto& requestID = Crypto::ShortID().toString() + '-' + connctx.contextID().toString() + '-' + Crypto::ShortID(shorthashIpAddressString(conninfo.remoteAddr.hostname + std::to_string(conninfo.remoteAddr.port))).toString();
 
 		HTTP::Response response;
 		std::optional<std::string> handlerError;
@@ -98,8 +98,17 @@ void Handlers::streamHandler(
 	const ConnectionCallback& handlerCallback
 ) {
 
+	const auto& conninfo = conn.info();
 	auto connctx = IncomingConnection(conn, config);
 	std::optional<std::string> handlerError;
+
+	if (config.loglevel.connections) {
+		syncout.log({
+			conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
+			"created transport ",
+			connctx.contextID().toString()
+		});
+	}
 
 	try {
 
@@ -113,8 +122,13 @@ void Handlers::streamHandler(
 
 	if (handlerError.has_value()) {
 
-		if (config.loglevel.requests) {
-			syncout.error({ "tcp handler crashed:", handlerError.value() });
+		if (config.loglevel.requests || config.loglevel.connections) {
+			syncout.error({
+				"streamHandler in transport",
+				connctx.contextID().toString(),
+				"crashed:",
+				handlerError.value()
+			});
 		}
 
 		auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
