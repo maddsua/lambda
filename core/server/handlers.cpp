@@ -34,12 +34,22 @@ void Handlers::serverlessHandler(
 		const auto& next = nextOpt.value();
 		const auto& requestID = Crypto::ShortID();
 
+		if (config.loglevel.connections) {
+			syncout.log({
+				"[Serverless]",
+				connctx.contextID().toString(),
+				"->",
+				requestID.toString()
+			});
+		}
+
 		HTTP::Response response;
 		std::optional<std::string> handlerError;
 
 		try {
 
 			response = handlerCallback(next, {
+				connctx.contextID().toString(),
 				requestID.toString(),
 				conninfo
 			});
@@ -70,8 +80,8 @@ void Handlers::serverlessHandler(
 
 		if (config.loglevel.requests) {
 			syncout.log({
-				'[' + requestID.toString() + ']',
-				'(' + conninfo.remoteAddr.hostname + ')',
+				"[Serverless]",
+				requestID.toString(),
 				next.method.toString(),
 				next.url.pathname,
 				"-->",
