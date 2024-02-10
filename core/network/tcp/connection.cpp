@@ -69,7 +69,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
-		throw NetworkError("Network error while sending data", getOSError());
+		throw NetworkError(getOSError().toString());
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -109,7 +109,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 			return {};
 		}
 
-		throw NetworkError("Network error while receiving data", osError);
+		throw NetworkError(getOSError().toString());
 	}
 
 	chunk.resize(bytesReceived);
