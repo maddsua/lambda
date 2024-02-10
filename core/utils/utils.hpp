@@ -16,9 +16,13 @@
 
 namespace Lambda {
 
-	namespace Errors {
-		int32_t getApiError() noexcept;
-		std::string formatMessage(int32_t errorCode) noexcept;
+	class OS_Error {
+		int32_t m_code = 0;
+
+		OS_Error();
+		OS_Error(int32_t code);
+		int32_t code() const noexcept;
+		std::string toString() const noexcept;
 	};
 
 	class Error : public std::exception {
@@ -32,22 +36,6 @@ namespace Lambda {
 
 			const char* what() const noexcept override { return this->m_text.c_str(); }
 			const std::string& message() const noexcept { return this->m_text; }
-	};
-
-	class APIError : public std::exception {
-		private:
-			int32_t m_code = 0;
-			std::string m_text;
-
-		public:
-			APIError();
-			APIError(int32_t code);
-			APIError(int32_t code, const std::string& commentText);
-			APIError(const std::string& commentText);
-			APIError(const APIError& other);
-			const char* what() const noexcept override;
-			const std::string& message() const noexcept;
-			int32_t code() const noexcept;
 	};
 
 	namespace Bits {
