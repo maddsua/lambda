@@ -102,10 +102,11 @@ void Handlers::streamHandler(
 	auto connctx = IncomingConnection(conn, config);
 	std::optional<std::string> handlerError;
 
-	if (config.loglevel.connections) {
+	if (config.loglevel.requests) {
 		syncout.log({
+			"[Transport]",
 			conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
-			"created transport ",
+			"created",
 			connctx.contextID().toString()
 		});
 	}
@@ -124,14 +125,21 @@ void Handlers::streamHandler(
 
 		if (config.loglevel.requests || config.loglevel.connections) {
 			syncout.error({
-				"streamHandler in transport",
-				connctx.contextID().toString(),
-				"crashed:",
+				"[Transport] streamHandler crashed in",
+				connctx.contextID().toString() + ":",
 				handlerError.value()
 			});
 		}
 
 		auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 		connctx.respond(errorResponse);
+	}
+
+	if (config.loglevel.requests) {
+		syncout.error({
+			"[Transport]",
+			connctx.contextID().toString(),
+			"closed ok"
+		});
 	}
 }
