@@ -90,7 +90,7 @@ void LambdaInstance::start() {
 
 					syncout.error({
 						"[Service] Connection to",
-						conninfo.remoteAddr.hostname,
+						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
 						"terminated",
 						'(' + handlerError.value() + ')'
 					});
