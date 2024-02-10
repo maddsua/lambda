@@ -6,6 +6,8 @@
 #include "../encoding/encoding.hpp"
 
 using namespace Lambda;
+using namespace Lambda::HTTP;
+using namespace Lambda::HTTP::Transport;
 using namespace Lambda::Server;
 using namespace Lambda::Websocket;
 
@@ -28,11 +30,27 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 		if (!nextOpt.has_value()) return std::nullopt;
 		return nextOpt.value();
 
-	} catch(const std::exception& e) {
-		std::cerr << e.what() << '\n';
+	} catch(const TransportError& err) {
+		
+		if (this->opts.loglevel.transportErrors) {
+			syncout.error({ "HTTP TransportError:", err.message() });
+		}
+
+		if (err.action == TransportError::Action::Respond) {
+			this->respond(Pages::renderErrorPage(400, err.message(), this->opts.errorResponseType));
+		}
+
+		this->conn.end();
+
+	} catch(const std::exception& err) {
+		
+		if (this->opts.loglevel.transportErrors) {
+			syncout.error({ "Connection error:", err.what() });
+		}
+
+		this->conn.end();
 	}
 
-	//this->opts.loglevel.transportErrors;
 	return std::nullopt;
 }
 
