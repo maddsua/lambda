@@ -11,6 +11,7 @@
 #include "../http/transport.hpp"
 #include "../http/http.hpp"
 #include "../websocket/websocket.hpp"
+#include "../crypto/crypto.hpp"
 #include "../utils/utils.hpp"
 
 namespace Lambda {
@@ -53,6 +54,9 @@ namespace Lambda {
 			enum struct ActiveProtocol {
 				HTTP, WS
 			};
+
+			Crypto::ShortID m_ctx_id;
+			Crypto::ShortID m_lastrq_id;
 
 			Network::TCP::Connection& conn;
 			const ServeOptions& opts;
