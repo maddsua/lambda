@@ -1,6 +1,8 @@
 #ifndef __LIB_MADDSUA_LAMBDA_NETWORK__
 #define __LIB_MADDSUA_LAMBDA_NETWORK__
 
+#include "../utils/utils.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -34,6 +36,20 @@ namespace Lambda::Network {
 
 	enum struct SetTimeoutsDirection {
 		Both, Send, Receive
+	};
+
+	class NetworkError : Lambda::Error {
+		private:
+			OS_Error m_os_error;
+
+		public:
+			NetworkError(const std::string& message) : Error(message) {}
+			NetworkError(
+				const std::string& message,
+				const OS_Error& os_error
+			) : Error(message + " (" + os_error.toString() + ")"), m_os_error(os_error) {}
+
+			const OS_Error& osError() const noexcept { return this->m_os_error; }
 	};
 
 	#ifdef _WIN32
