@@ -56,7 +56,6 @@ namespace Lambda {
 			};
 
 			Crypto::ShortID m_ctx_id;
-			Crypto::ShortID m_lastrq_id;
 
 			Network::TCP::Connection& conn;
 			const ServeOptions& opts;
@@ -70,7 +69,6 @@ namespace Lambda {
 			IncomingConnection& operator=(const IncomingConnection& other) = delete;
 
 			const Crypto::ShortID& contextID() const noexcept;
-			const Crypto::ShortID& requestID() const noexcept;
 
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
