@@ -21,16 +21,12 @@ namespace Lambda {
 	 * 
 	 * Also provides a method to turn error code into a nice text message
 	*/
-	class OS_Error {
-		private:
-			int32_t m_code = 0;
-
-		public:
-			OS_Error();
-			OS_Error(int32_t code);
-			int32_t code() const noexcept;
-			std::string toString() const noexcept;
+	struct OS_Error {
+		const int32_t code = 0;
+		std::string toString() const noexcept;
 	};
+
+	OS_Error getOSError() noexcept;
 
 	class Error : public std::exception {
 		protected:
