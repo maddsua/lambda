@@ -46,7 +46,7 @@ namespace Lambda::HTTP::Transport {
 	class V1TransportContext {
 		private:
 			Network::TCP::Connection& m_conn;
-			const TransportOptions& m_opts;
+			const TransportOptions& m_topts;
 			std::vector<uint8_t> m_readbuff;
 			bool m_keepalive = false;
 			ContentEncodings m_compress = ContentEncodings::None;
