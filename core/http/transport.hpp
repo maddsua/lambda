@@ -3,6 +3,7 @@
 
 #include "../network/tcp/connection.hpp"
 #include "./http.hpp"
+#include "../utils/utils.hpp"
 
 #include <vector>
 #include <string>
@@ -20,6 +21,18 @@ namespace Lambda::HTTP::Transport {
 
 	enum struct ContentEncodings {
 		None, Brotli, Gzip, Deflate,
+	};
+
+	class TransportError : Lambda::Error {
+		public:
+			enum struct Action {
+				Respond, Terminate
+			};
+
+			const Action action;
+
+			TransportError(const std::string& message) : Error(message), action(Action::Terminate) {}
+			TransportError(const std::string& message, Action setAction) : Error(message), action(setAction) {}
 	};
 
 	class V1TransportContext {
