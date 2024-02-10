@@ -58,6 +58,8 @@ jobs:
         run: make test.vfs
       - name: HTTP/Cookie test
         run: make test.cookie
+      - name: HTTP/Headers test
+        run: make test.headers
 
   build_examples:
     needs: build_lib
