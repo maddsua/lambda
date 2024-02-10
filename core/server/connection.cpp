@@ -16,9 +16,8 @@ static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 uint32_t hashConnectionData(const Network::Address& remoteAddr) {
 	time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	size_t hash = std::hash<std::string>{}(remoteAddr.hostname + std::to_string(remoteAddr.port));
-	uint32_t timefp = (timeHighres & ~0UL) ^ (timeHighres & (static_cast<size_t>(~0UL) << 32));
-	uint32_t infofp = (hash & ~0UL) ^ (hash & (static_cast<size_t>(~0UL) << 32));
-	return timefp ^ infofp;
+	return (timeHighres & ~0UL) ^ (timeHighres & (static_cast<size_t>(~0UL) << 32)) ^
+		(hash & ~0UL) ^ (hash & (static_cast<size_t>(~0UL) << 32));
 }
 
 IncomingConnection::IncomingConnection(
