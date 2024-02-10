@@ -45,7 +45,7 @@ int main(int argc, char const *argv[]) {
 	};
 
 	ServerConfig initparams;
-	initparams.loglevel.transportEvents = false;
+	initparams.loglevel.transportEvents = true;
 	initparams.loglevel.requests = true;
 	auto server = LambdaInstance(handler, initparams);
 
