@@ -2,10 +2,13 @@
 #include "../encoding/encoding.hpp"
 #include "../polyfill/polyfill.hpp"
 
-#include <chrono>
+#include <random>
 
 using namespace Lambda;
 using namespace Lambda::Crypto;
+
+static auto rng_gen = std::mt19937(std::random_device{}());
+static auto rng_dist = std::uniform_int_distribution<int32_t>(1, std::numeric_limits<int32_t>::max());
 
 ShortID::ShortID() {
 	this->update();
@@ -32,8 +35,7 @@ ShortID& ShortID::operator=(const ShortID& other) noexcept {
 }
 
 void ShortID::update() noexcept {
-	time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-	this->m_id.u32 = (timeHighres & ~0UL) ^ (timeHighres & (static_cast<size_t>(~0UL) << 32));
+	this->m_id.u32 = rng_dist(rng_gen);
 	this->m_serialize();
 }
 
