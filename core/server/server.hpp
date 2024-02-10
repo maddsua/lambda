@@ -44,6 +44,7 @@ namespace Lambda {
 	};
 
 	struct RequestContext {
+		const std::string& contextID;
 		const std::string& requestID;
 		const Network::ConnectionInfo& conninfo;
 	};
