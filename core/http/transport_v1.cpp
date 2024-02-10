@@ -38,7 +38,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		headerEnded = std::search(this->m_readbuff.begin(), this->m_readbuff.end(), patternEndHeader.begin(), patternEndHeader.end());
 
 		if (this->m_readbuff.size() > this->m_opts.maxRequestSize) {
-			throw std::runtime_error("request header size too big");
+			throw TransportError("Request header too large", TransportError::Action::Respond);
 		}
 	}
 
@@ -51,7 +51,7 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 	auto headerStartLine = Strings::split(headerFields.at(0), ' ');
 	if (headerStartLine.size() < 2) {
-		throw std::runtime_error("invalid HTTP request");
+		throw TransportError("Invalid HTTP request");
 	}
 
 	auto& requestMethodString = headerStartLine.at(0);
@@ -66,12 +66,12 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 
 		const auto separator = headerline.find(':');
 		if (separator == std::string::npos) {
-			throw std::runtime_error("invalid header structure (no separation betwen name and header value)");
+			throw TransportError("Invalid request headers structure", TransportError::Action::Respond);
 		}
 
 		const auto headerKey = Strings::trim(headerline.substr(0, separator));
 		if (!headerKey.size()) {
-			throw std::runtime_error("invalid header (empty header name)");
+			throw TransportError("Invalid request header (empty name)", TransportError::Action::Respond);
 		}
 
 		const auto headerValue = Strings::trim(headerline.substr(separator + 1));
@@ -154,19 +154,17 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 		const auto totalRequestSize = std::distance(this->m_readbuff.begin(), headerEnded) + bodySize;
 
 		if (totalRequestSize > this->m_opts.maxRequestSize) {
-			throw std::runtime_error("total request size too big");
-		}
-
-		if (!this->m_conn.active()) {
-			throw std::runtime_error("connection was terminated before request body could be received");
+			throw TransportError("Request size too large", TransportError::Action::Respond);
 		}
 
 		auto bodyRemaining = bodySize - this->m_readbuff.size();
 		if (bodyRemaining) {
+	
 			auto temp = this->m_conn.read(bodyRemaining);
 			if (temp.size() != bodyRemaining) {
-				throw std::runtime_error("connection terminated while receiving request body");
+				throw TransportError("Incomplete request body");
 			}
+
 			this->m_readbuff.insert(this->m_readbuff.end(), temp.begin(), temp.end());
 		}
 
