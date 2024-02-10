@@ -23,7 +23,7 @@ namespace Lambda::HTTP::Transport {
 		None, Brotli, Gzip, Deflate,
 	};
 
-	class TransportError : Lambda::Error {
+	class TransportError : public Lambda::Error {
 		public:
 			enum struct Action {
 				Respond, Terminate
