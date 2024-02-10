@@ -32,6 +32,14 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 	} catch(const TransportError& err) {
 		
+		/*
+			Look. It's not very pretty to rethrow an error but it's way better
+			than coming up with	some elaborate structures that will provide a way
+			to distinguish between different kinds of errors.
+			Also most of the library uses exceptions to do error handling anyway
+			so making any of that that would be just super inconsistent and confusing.
+		*/
+
 		if (err.respondStatus.has_value()) {
 			this->respond(Pages::renderErrorPage(err.respondStatus.value(), err.message(), this->opts.errorResponseType));
 		}
