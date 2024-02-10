@@ -35,15 +35,6 @@ void Handlers::serverlessHandler(
 		const auto& next = nextOpt.value();
 		const auto& requestID = Crypto::ShortID().toString();
 
-		if (config.loglevel.transportEvents) {
-			syncout.log({
-				"[Serverless]",
-				ctxid,
-				"->",
-				requestID
-			});
-		}
-
 		HTTP::Response response;
 		std::optional<std::string> handlerError;
 
@@ -82,7 +73,7 @@ void Handlers::serverlessHandler(
 		if (config.loglevel.requests) {
 			syncout.log({
 				"[Serverless]",
-				config.loglevel.transportEvents ? requestID : conninfo.remoteAddr.hostname,
+				(config.loglevel.transportEvents ? ctxid + '-' : conninfo.remoteAddr.hostname + ' ') + requestID,
 				next.method.toString(),
 				next.url.pathname,
 				"-->",
