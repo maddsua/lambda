@@ -16,13 +16,20 @@
 
 namespace Lambda {
 
+	/**
+	 * Captures last errno or GetLastError
+	 * 
+	 * Also provides a method to turn error code into a nice text message
+	*/
 	class OS_Error {
-		int32_t m_code = 0;
+		private:
+			int32_t m_code = 0;
 
-		OS_Error();
-		OS_Error(int32_t code);
-		int32_t code() const noexcept;
-		std::string toString() const noexcept;
+		public:
+			OS_Error();
+			OS_Error(int32_t code);
+			int32_t code() const noexcept;
+			std::string toString() const noexcept;
 	};
 
 	class Error : public std::exception {
