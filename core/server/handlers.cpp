@@ -32,8 +32,8 @@ void Handlers::serverlessHandler(
 
 		if (!nextOpt.has_value()) break;
 
-		auto& next = nextOpt.value();
-		auto requestID = Crypto::ShortID().toString();
+		const auto& next = nextOpt.value();
+		const auto& requestID = connctx.requestID().toString();
 
 		HTTP::Response response;
 		std::optional<std::string> handlerError;
