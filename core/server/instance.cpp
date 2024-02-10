@@ -39,7 +39,7 @@ LambdaInstance::LambdaInstance(
 void LambdaInstance::start() {
 
 	if (this->config.service.fastPortReuse) {
-		syncout.log("Warning: fast port reuse enabled");
+		syncout.log("[Service] Warning: fast port reuse enabled");
 	}
 
 	this->watchdogWorker = std::async([&]() {
@@ -56,6 +56,7 @@ void LambdaInstance::start() {
 
 				if (this->config.loglevel.connections) {
 					syncout.log({
+						"[Service]",
 						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
 						"connected on",
 						conninfo.hostPort
@@ -98,6 +99,7 @@ void LambdaInstance::start() {
 				} else if (config.loglevel.connections) {
 
 					syncout.log({
+						"[Service]",
 						conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
 						"disconnected from",
 						conninfo.hostPort
