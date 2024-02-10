@@ -31,7 +31,7 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 		return nextOpt.value();
 
 	} catch(const ProtocolError& err) {
-		
+
 		/*
 			Look. It's not very pretty to rethrow an error but it's way better
 			than coming up with	some elaborate structures that will provide a way
