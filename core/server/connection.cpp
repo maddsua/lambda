@@ -13,10 +13,30 @@ using namespace Lambda::Websocket;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
+uint32_t hashConnectionData(const Network::Address& remoteAddr) {
+	time_t timeHighres = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+	size_t hash = std::hash<std::string>{}(remoteAddr.hostname + std::to_string(remoteAddr.port));
+	return (timeHighres & ~0UL) ^ (timeHighres & (static_cast<size_t>(~0UL) << 32)) ^
+		(hash & ~0UL) ^ (hash & (static_cast<size_t>(~0UL) << 32));
+}
+
 IncomingConnection::IncomingConnection(
 	Network::TCP::Connection& connInit,
 	const ServeOptions& optsInit
-) : conn(connInit), opts(optsInit), ctx(conn, opts.transport) {}
+) : conn(connInit), opts(optsInit), ctx(conn, opts.transport),
+	m_ctx_id(hashConnectionData(connInit.info().remoteAddr)) {}
+
+const Crypto::ShortID& IncomingConnection::contextID() const noexcept {
+	return this->m_ctx_id;
+}
+
+Network::TCP::Connection& IncomingConnection::tcpconn() const noexcept {
+	return this->conn;
+}
+
+const Network::ConnectionInfo& IncomingConnection::conninfo() const noexcept {
+	return this->conn.info();
+}
 
 std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
@@ -39,7 +59,6 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 			Also most of the library uses exceptions to do error handling anyway
 			so making any of that that would be just super inconsistent and confusing.
 		*/
-
 		if (err.respondStatus.has_value()) {
 			this->respond(Pages::renderErrorPage(err.respondStatus.value(), err.message(), this->opts.errorResponseType));
 		}

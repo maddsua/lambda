@@ -25,15 +25,30 @@ namespace Lambda::Crypto {
 
 	class ShortID {
 		private:
+
 			union {
-				uint32_t numeric = 0;
-				char buffer[sizeof(uint32_t)];
+				uint32_t u32 = 0;
+				uint8_t buff[sizeof(uint32_t)];
 			} m_id;
+
+			std::string m_str;
+
+			void m_serialize() noexcept;
 
 		public:
 			ShortID();
 			ShortID(uint32_t init);
-			std::string toString() const;
+
+			ShortID(const ShortID& other) noexcept;
+			ShortID(ShortID&& other) noexcept;
+
+			ShortID& operator=(const ShortID& other) noexcept;
+
+			void update() noexcept;
+			void update(uint32_t value) noexcept;
+
+			uint32_t id() const noexcept;
+			const std::string& toString() const noexcept;
 	};
 }
 

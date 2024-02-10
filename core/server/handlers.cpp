@@ -20,20 +20,20 @@ using namespace Lambda::Server;
 using namespace Lambda::Server::Handlers;
 
 void Handlers::serverlessHandler(
-	Network::TCP::Connection& conn,
+	IncomingConnection& connctx,
 	const ServeOptions& config,
 	const ServerlessCallback& handlerCallback
 ) {
 
-	const auto& conninfo = conn.info();
-	auto connctx = IncomingConnection(conn, config);
+	const auto& conninfo = connctx.conninfo();
+	const auto& ctxid = connctx.contextID().toString();
 
 	while (auto nextOpt = connctx.nextRequest()){
 
 		if (!nextOpt.has_value()) break;
 
-		auto& next = nextOpt.value();
-		auto requestID = Crypto::ShortID().toString();
+		const auto& next = nextOpt.value();
+		const auto& requestID = Crypto::ShortID().toString();
 
 		HTTP::Response response;
 		std::optional<std::string> handlerError;
@@ -41,6 +41,7 @@ void Handlers::serverlessHandler(
 		try {
 
 			response = handlerCallback(next, {
+				ctxid,
 				requestID,
 				conninfo
 			});
@@ -54,20 +55,25 @@ void Handlers::serverlessHandler(
 		if (handlerError.has_value()) {
 
 			if (config.loglevel.requests) {
-				syncout.error({ requestID, "crashed:", handlerError.value() });
+				syncout.error({
+					"[Serverless]",
+					requestID,
+					"crashed:",
+					handlerError.value()
+				});
 			}
 
 			response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 		}
 
-		response.headers.set("x-request-id", requestID);
+		response.headers.set("x-request-id", ctxid + '-' + requestID);
 
 		connctx.respond(response);
 
 		if (config.loglevel.requests) {
 			syncout.log({
-				'[' + requestID + ']',
-				'(' + conninfo.remoteAddr.hostname + ')',
+				"[Serverless]",
+				(config.loglevel.transportEvents ? ctxid + '-' : conninfo.remoteAddr.hostname + ' ') + requestID,
 				next.method.toString(),
 				next.url.pathname,
 				"-->",
@@ -78,18 +84,15 @@ void Handlers::serverlessHandler(
 }
 
 void Handlers::streamHandler(
-	Network::TCP::Connection& conn,
+	IncomingConnection& connctx,
 	const ServeOptions& config,
 	const ConnectionCallback& handlerCallback
 ) {
 
-	auto connctx = IncomingConnection(conn, config);
 	std::optional<std::string> handlerError;
 
 	try {
-
 		handlerCallback(connctx);
-
 	} catch(const std::exception& e) {
 		handlerError = e.what();
 	} catch(...) {
@@ -98,8 +101,12 @@ void Handlers::streamHandler(
 
 	if (handlerError.has_value()) {
 
-		if (config.loglevel.requests) {
-			syncout.error({ "tcp handler crashed:", handlerError.value() });
+		if (config.loglevel.requests || config.loglevel.transportEvents) {
+			syncout.error({
+				"[Transport] streamHandler crashed in",
+				connctx.contextID().toString() + ":",
+				handlerError.value()
+			});
 		}
 
 		auto errorResponse = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);

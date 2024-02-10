@@ -11,14 +11,14 @@
 #include "../http/transport.hpp"
 #include "../http/http.hpp"
 #include "../websocket/websocket.hpp"
+#include "../crypto/crypto.hpp"
 #include "../utils/utils.hpp"
 
 namespace Lambda {
 
 	struct LogOptions {
-		bool connections = true;
+		bool transportEvents = false;
 		bool requests = true;
-		bool timestamps = false;
 		bool startMessage = true;
 	};
 
@@ -43,8 +43,9 @@ namespace Lambda {
 	};
 
 	struct RequestContext {
-		std::string requestID;
-		Network::ConnectionInfo conninfo;
+		const std::string& contextID;
+		const std::string& requestID;
+		const Network::ConnectionInfo& conninfo;
 	};
 
 	struct IncomingConnection {
@@ -57,6 +58,8 @@ namespace Lambda {
 			Network::TCP::Connection& conn;
 			const ServeOptions& opts;
 			HTTP::Transport::V1TransportContext ctx;
+			Crypto::ShortID m_ctx_id;
+
 			ActiveProtocol activeProto = ActiveProtocol::HTTP;
 
 		public:
@@ -64,6 +67,10 @@ namespace Lambda {
 
 			IncomingConnection(const IncomingConnection& other) = delete;
 			IncomingConnection& operator=(const IncomingConnection& other) = delete;
+
+			const Crypto::ShortID& contextID() const noexcept;
+			Network::TCP::Connection& tcpconn() const noexcept;
+			const Network::ConnectionInfo& conninfo() const noexcept;
 
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
@@ -91,7 +98,7 @@ namespace Lambda {
 			HandlerType handlerType = HandlerType::Undefined;
 
 			std::future<void> watchdogWorker;
-			bool terminated = false;
+			bool m_terminated = false;
 
 			void start();
 			void terminate();

@@ -10,8 +10,8 @@
 namespace Lambda::Server {
 
 	namespace Handlers {
-		void serverlessHandler(Network::TCP::Connection& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback);
-		void streamHandler(Network::TCP::Connection& conn, const ServeOptions& config, const ConnectionCallback& handlerCallback);
+		void serverlessHandler(IncomingConnection& connctx, const ServeOptions& config, const ServerlessCallback& handlerCallback);
+		void streamHandler(IncomingConnection& connctx, const ServeOptions& config, const ConnectionCallback& handlerCallback);
 	};
 
 	namespace Pages {
