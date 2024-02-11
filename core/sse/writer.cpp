@@ -20,7 +20,7 @@ Writer::Writer(HTTP::Transport::V1TransportContext& httpCtx)
 
 void Writer::push(const EventMessage& event) {
 
-	if (this->m_conn.active()) {
+	if (!this->m_conn.active()) {
 		throw Lambda::Error("SSE listener disconnected");
 	}
 
