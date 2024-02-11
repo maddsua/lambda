@@ -6,5 +6,5 @@ TEST_STORAGE_DEPS	= $(LIB_EXTRA_KVSTORAGE_DEPS) $(LIB_CORE_ENCODING_DEPS) $(LIB_
 test.storage: $(TEST_STORAGE_TARGET)
 	$(TEST_STORAGE_TARGET)
 
-$(TEST_STORAGE_TARGET): tests/storage/main.cpp $(TEST_STORAGE_DEPS)
-	g++ $(CFLAGS) tests/storage/main.cpp $(TEST_STORAGE_DEPS) -o $(TEST_STORAGE_TARGET)
+$(TEST_STORAGE_TARGET): tests/storage/storage.test.cpp $(TEST_STORAGE_DEPS)
+	g++ $(CFLAGS) tests/storage/storage.test.cpp $(TEST_STORAGE_DEPS) -o $(TEST_STORAGE_TARGET)

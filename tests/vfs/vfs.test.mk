@@ -6,5 +6,5 @@ TEST_VFS_DEPS	= $(LIB_CORE_POLYFILL_DEPS) $(LIB_EXTRA_VFS_DEPS) $(LIB_CORE_COMPR
 test.vfs: $(TEST_VFS_TARGET)
 	$(TEST_VFS_TARGET)
 
-$(TEST_VFS_TARGET): tests/vfs/main.cpp $(TEST_VFS_DEPS)
-	g++ $(CFLAGS) tests/vfs/main.cpp $(TEST_VFS_DEPS) -lz -o $(TEST_VFS_TARGET)
+$(TEST_VFS_TARGET): tests/vfs/vfs.test.cpp $(TEST_VFS_DEPS)
+	g++ $(CFLAGS) tests/vfs/vfs.test.cpp $(TEST_VFS_DEPS) -lz -o $(TEST_VFS_TARGET)
