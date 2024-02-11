@@ -11,13 +11,18 @@ Writer::Writer(HTTP::Transport::TransportContextV1& httpCtx)
 	httpCtx.flags.autocompress = false;
 	httpCtx.flags.forceContentLength = false;
 
-	const auto upgradeResponse = HTTP::Response(200, {
+	const auto hasOrigin = true;	//	to be fixed with transport update
+
+	auto upgradeResponse = HTTP::Response(200, {
 		{ "connection", "keep-alive" },
 		{ "cache-control", "no-cache" },
 		{ "content-type", "text/event-stream; charset=UTF-8" },
 		{ "pragma", "no-cache" },
-		{ "Access-Control-Allow-Origin", "*" }, //	to be fixed with transport update
 	});
+
+	if (hasOrigin) {
+		upgradeResponse.headers.set("Access-Control-Allow-Origin", "*");
+	}
 
 	httpCtx.respond(upgradeResponse);
 }
