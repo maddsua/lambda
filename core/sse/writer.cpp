@@ -7,7 +7,7 @@ using namespace Lambda::SSE;
 
 Writer::Writer(HTTP::Transport::V1TransportContext& httpCtx)
 	: m_conn(httpCtx.getconn()) {
-		
+
 	const auto upgradeResponse = HTTP::Response(200, {
 		{ "connection", "keep-alive" },
 		{ "cache-control", "no-cache" },
@@ -19,6 +19,10 @@ Writer::Writer(HTTP::Transport::V1TransportContext& httpCtx)
 }
 
 void Writer::push(const EventMessage& event) {
+
+	if (this->m_conn.active()) {
+		throw Lambda::Error("SSE listener disconnected");
+	}
 
 	std::vector<std::pair<std::string, std::string>> messageFields;
 
@@ -51,4 +55,8 @@ void Writer::push(const EventMessage& event) {
 	serializedMessage.insert(serializedMessage.end(), lineSeparator.begin(), lineSeparator.end());
 
 	this->m_conn.write(serializedMessage);
+}
+
+bool Writer::connected() const noexcept {
+	return this->m_conn.active();
 }
