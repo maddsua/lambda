@@ -207,7 +207,7 @@ void V1TransportContext::respond(const Response& response) {
 			}
 		}
 
-	} else {
+	} else if (this->flags.autocompress) {
 		//	set content type in case it's not provided in response
 		//	by default, it's assumed to be a html page. works fine with just text too
 		responseHeaders.set("content-type", "text/html; charset=utf-8");
@@ -240,7 +240,11 @@ void V1TransportContext::respond(const Response& response) {
 	}
 
 	auto bodySize = responseBody.size();
-	responseHeaders.set("content-length", std::to_string(bodySize));
+
+	if (this->flags.forceContentLength) {
+		responseHeaders.set("content-length", std::to_string(bodySize));
+	}
+
 	responseHeaders.set("date", Date().toUTCString());
 	responseHeaders.set("server", "maddsua/lambda");
 
