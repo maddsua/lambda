@@ -59,6 +59,7 @@ namespace Lambda::HTTP::Transport {
 
 			const Network::ConnectionInfo& conninfo() const noexcept;
 			Network::TCP::Connection& getconn() noexcept;
+			const ContentEncodings& getEnconding() const noexcept;
 
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
