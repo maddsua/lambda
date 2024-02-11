@@ -123,5 +123,11 @@ WebsocketContext IncomingConnection::upgrateToWebsocket() {
 }
 
 SSE::Writer IncomingConnection::startEventStream() {
+
+	if (this->m_proto != ActiveProtocol::HTTP) {
+		throw std::runtime_error("Cannot upgrade http connection: protocol has been already changed");
+	}
+
+	this->m_proto = ActiveProtocol::SSE;
 	return SSE::Writer(this->m_tctx);
 }
