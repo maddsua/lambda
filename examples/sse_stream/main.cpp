@@ -15,7 +15,7 @@ int main(int argc, char const *argv[]) {
 		auto writer = conn.startEventStream();
 
 		while (writer.connected()) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 			writer.push({
 				"test message"
 			});
