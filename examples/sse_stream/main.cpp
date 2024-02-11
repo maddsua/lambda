@@ -12,14 +12,28 @@ int main(int argc, char const *argv[]) {
 		auto next = conn.nextRequest();
 		if (!next.has_value()) return;
 
+		if (next.value().url.pathname != "/") {
+			conn.respond({ 404, "not found "});
+			return;
+		}
+
 		auto writer = conn.startEventStream();
 
+		size_t numberOfMessages = 0;
+
 		while (writer.connected()) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+			numberOfMessages++;
 			writer.push({
-				"test message"
+				"test message " + std::to_string(numberOfMessages)
 			});
+
+			if (numberOfMessages > 5) break;
 		}
+
+		writer.close();
 	};
 
 	ServerConfig initparams;
