@@ -12,6 +12,6 @@ namespace Lambda::HTML {
 
 	typedef std::map<std::string, std::string> TemplateProps;
 	std::string renderTemplate(const std::string& templateSource, const TemplateProps& props);
-}
+};
 
 #endif
