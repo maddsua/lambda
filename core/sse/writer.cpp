@@ -5,7 +5,18 @@ using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::SSE;
 
-Writer::Writer(Network::TCP::Connection& conn) : m_conn(conn) {}
+Writer::Writer(HTTP::Transport::V1TransportContext& httpCtx)
+	: m_conn(httpCtx.getconn()) {
+		
+	const auto upgradeResponse = HTTP::Response(200, {
+		{ "connection", "keep-alive" },
+		{ "cache-control", "no-cache" },
+		{ "content-type", "text/event-stream; charset=UTF-8" },
+		{ "pragma", "no-cache" },
+	});
+
+	httpCtx.respond(upgradeResponse);
+}
 
 void Writer::push(const EventMessage& event) {
 
