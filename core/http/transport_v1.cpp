@@ -29,6 +29,10 @@ Network::TCP::Connection& V1TransportContext::getconn() noexcept {
 	return this->m_conn;
 }
 
+const ContentEncodings& V1TransportContext::getEnconding() const noexcept {
+	return this->m_compress;
+}
+
 V1TransportContext::V1TransportContext(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
