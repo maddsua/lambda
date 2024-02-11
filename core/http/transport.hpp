@@ -43,6 +43,11 @@ namespace Lambda::HTTP::Transport {
 			ProtocolError(const std::string& message, HTTP::Status respondWithStatus) : Error(message), respondStatus(respondWithStatus) {}
 	};
 
+	struct TransportFlags {
+		bool forceContentLength = true;
+		bool autocompress = true;
+	};
+
 	class TransportContextV1 {
 		private:
 			Network::TCP::Connection& m_conn;
@@ -66,10 +71,7 @@ namespace Lambda::HTTP::Transport {
 			void reset() noexcept;
 			bool hasPartialData() const noexcept;
 
-			struct {
-				bool forceContentLength = true;
-				bool autocompress = true;
-			} flags;
+			TransportFlags flags;
 	};
 
 	std::vector<uint8_t> compressContent(const std::vector<uint8_t>& data, ContentEncodings encoding);
