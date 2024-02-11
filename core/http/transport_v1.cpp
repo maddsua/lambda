@@ -217,7 +217,27 @@ void TransportContextV1::respond(const Response& response) {
 		}
 	}
 
-	const auto responseBody = compressContent(response.body.buffer(), applyEncoding);
+	std::vector<uint8_t> responseBody;
+
+	switch (applyEncoding) {
+
+		case ContentEncodings::Brotli: {
+			responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
+		} break;
+
+		case ContentEncodings::Gzip: {
+			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+		} break;
+
+		case ContentEncodings::Deflate: {
+			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+		} break;
+
+		default: {
+			responseBody = std::move(response.body.buffer());
+		} break;
+	}
+
 	const auto bodySize = responseBody.size();
 
 	if (applyEncoding != ContentEncodings::None) {

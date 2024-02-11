@@ -73,8 +73,6 @@ namespace Lambda::HTTP::Transport {
 
 			TransportFlags flags;
 	};
-
-	std::vector<uint8_t> compressContent(const std::vector<uint8_t>& data, ContentEncodings encoding);
 };
 
 #endif
