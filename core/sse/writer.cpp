@@ -73,3 +73,8 @@ void Writer::push(const EventMessage& event) {
 bool Writer::connected() const noexcept {
 	return this->m_conn.active();
 }
+
+void Writer::close() {
+	this->push({ "", "close" });
+	this->m_conn.end();
+}
