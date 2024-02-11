@@ -54,7 +54,11 @@ void Writer::push(const EventMessage& event) {
 
 	serializedMessage.insert(serializedMessage.end(), lineSeparator.begin(), lineSeparator.end());
 
-	this->m_conn.write(serializedMessage);
+	try {
+		this->m_conn.write(serializedMessage);
+	} catch(...) {
+		this->m_conn.end();
+	}
 }
 
 bool Writer::connected() const noexcept {
