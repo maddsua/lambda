@@ -53,7 +53,7 @@ namespace Lambda {
 		private:
 
 			enum struct ActiveProtocol {
-				HTTP, WS
+				HTTP, WS, SSE
 			};
 
 			Network::TCP::Connection& m_conn;
