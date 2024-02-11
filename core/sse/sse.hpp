@@ -22,7 +22,7 @@ namespace Lambda::SSE {
 			Network::TCP::Connection& m_conn;
 
 		public:
-			Writer(HTTP::Transport::V1TransportContext& httpCtx);
+			Writer(HTTP::Transport::TransportContextV1& httpCtx);
 			void push(const EventMessage& event);
 			bool connected() const noexcept;
 	};

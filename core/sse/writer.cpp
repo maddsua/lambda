@@ -5,14 +5,18 @@ using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::SSE;
 
-Writer::Writer(HTTP::Transport::V1TransportContext& httpCtx)
+Writer::Writer(HTTP::Transport::TransportContextV1& httpCtx)
 	: m_conn(httpCtx.getconn()) {
+
+	httpCtx.flags.autocompress = false;
+	httpCtx.flags.forceContentLength = false;
 
 	const auto upgradeResponse = HTTP::Response(200, {
 		{ "connection", "keep-alive" },
 		{ "cache-control", "no-cache" },
 		{ "content-type", "text/event-stream; charset=UTF-8" },
 		{ "pragma", "no-cache" },
+		{ "Access-Control-Allow-Origin", "*" }, //	to be fixed with transport update
 	});
 
 	httpCtx.respond(upgradeResponse);

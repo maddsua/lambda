@@ -1,7 +1,7 @@
 
 LIB_CORE_HTTP					=	core/http.a
-LIB_CORE_HTTP_HYPERTEXT_DEPS	=	core/http/request.o core/http/response.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o
-LIB_CORE_HTTP_TRANSPORT_DEPS	=	core/http/auth.o core/http/transport_v1.o
+LIB_CORE_HTTP_HYPERTEXT_DEPS	=	core/http/request.o core/http/response.o core/http/cookies.o core/http/kvcontainer.o core/http/url.o core/http/urlsearchparams.o core/http/method.o core/http/status.o core/http/body.o core/http/auth.o 
+LIB_CORE_HTTP_TRANSPORT_DEPS	=	core/http/transport.o core/http/transport_v1.o
 LIB_CORE_HTTP_DEPS				=	$(LIB_CORE_HTTP_HYPERTEXT_DEPS) $(LIB_CORE_HTTP_TRANSPORT_DEPS)
 
 # http stuff
@@ -37,6 +37,9 @@ core/http/body.o: core/http/body.cpp
 
 core/http/auth.o: core/http/auth.cpp
 	g++ -c $(CFLAGS) core/http/auth.cpp -o core/http/auth.o
+
+core/http/transport.o: core/http/transport.cpp
+	g++ -c $(CFLAGS) core/http/transport.cpp -o core/http/transport.o
 
 core/http/transport_v1.o: core/http/transport_v1.cpp
 	g++ -c $(CFLAGS) core/http/transport_v1.cpp -o core/http/transport_v1.o

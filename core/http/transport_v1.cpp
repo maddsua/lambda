@@ -21,24 +21,24 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-const Network::ConnectionInfo& V1TransportContext::conninfo() const noexcept {
+const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
 	return this->m_conn.info();
 }
 
-Network::TCP::Connection& V1TransportContext::getconn() noexcept {
+Network::TCP::Connection& TransportContextV1::getconn() noexcept {
 	return this->m_conn;
 }
 
-const ContentEncodings& V1TransportContext::getEnconding() const noexcept {
+const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
 	return this->m_compress;
 }
 
-V1TransportContext::V1TransportContext(
+TransportContextV1::TransportContextV1(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
 ) : m_conn(connInit), m_topts(optsInit) {}
 
-std::optional<HTTP::Request> V1TransportContext::nextRequest() {
+std::optional<HTTP::Request> TransportContextV1::nextRequest() {
 
 	auto headerEnded = this->m_readbuff.end();
 	while (this->m_conn.active() && headerEnded == this->m_readbuff.end()) {
@@ -187,59 +187,42 @@ std::optional<HTTP::Request> V1TransportContext::nextRequest() {
 	return next;
 }
 
-void V1TransportContext::respond(const Response& response) {
+void TransportContextV1::respond(const Response& response) {
 
 	auto applyEncoding = ContentEncodings::None;
 
 	auto responseHeaders = response.headers;
 	const auto& contentTypeHeader = responseHeaders.get("content-type");
 
-	if (contentTypeHeader.size()) {
+	if (this->flags.autocompress) {
 
-		auto contentTypeNormalized = Strings::toLowerCase(contentTypeHeader);
+		if (contentTypeHeader.size()) {
 
-		//	when content type is provided, check if it's a text format,
-		//	so that we won't be trying to compress jpegs and stuff
-		for (const auto& item : compressibleTypes) {
-			if (Strings::includes(contentTypeNormalized, item)) {
-				applyEncoding = this->m_compress;
-				break;
+			auto contentTypeNormalized = Strings::toLowerCase(contentTypeHeader);
+
+			//	when content type is provided, check if it's a text format,
+			//	so that we won't be trying to compress jpegs and stuff
+			for (const auto& item : compressibleTypes) {
+				if (Strings::includes(contentTypeNormalized, item)) {
+					applyEncoding = this->m_compress;
+					break;
+				}
 			}
+
+		} else {
+			//	set content type in case it's not provided in response
+			//	by default, it's assumed to be a html page. works fine with just text too
+			responseHeaders.set("content-type", "text/html; charset=utf-8");
+			applyEncoding = this->m_compress;
 		}
-
-	} else if (this->flags.autocompress) {
-		//	set content type in case it's not provided in response
-		//	by default, it's assumed to be a html page. works fine with just text too
-		responseHeaders.set("content-type", "text/html; charset=utf-8");
-		applyEncoding = this->m_compress;
 	}
 
-	std::vector<uint8_t> responseBody;
-
-	switch (applyEncoding) {
-
-		case ContentEncodings::Brotli: {
-			responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
-		} break;
-
-		case ContentEncodings::Gzip: {
-			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
-		} break;
-
-		case ContentEncodings::Deflate: {
-			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
-		} break;
-
-		default: {
-			responseBody = response.body.buffer();
-		} break;
-	}
+	const auto responseBody = compressContent(response.body.buffer(), applyEncoding);
+	const auto bodySize = responseBody.size();
 
 	if (applyEncoding != ContentEncodings::None) {
 		responseHeaders.set("content-encoding", contentEncodingMap.at(applyEncoding));
 	}
-
-	auto bodySize = responseBody.size();
 
 	if (this->flags.forceContentLength) {
 		responseHeaders.set("content-length", std::to_string(bodySize));
@@ -263,10 +246,10 @@ void V1TransportContext::respond(const Response& response) {
 	if (bodySize) this->m_conn.write(responseBody);
 }
 
-void V1TransportContext::reset() noexcept {
+void TransportContextV1::reset() noexcept {
 	this->m_readbuff.clear();
 }
 
-bool V1TransportContext::hasPartialData() const noexcept {
+bool TransportContextV1::hasPartialData() const noexcept {
 	return this->m_readbuff.size() > 0;
 }

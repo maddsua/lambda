@@ -43,7 +43,7 @@ namespace Lambda::HTTP::Transport {
 			ProtocolError(const std::string& message, HTTP::Status respondWithStatus) : Error(message), respondStatus(respondWithStatus) {}
 	};
 
-	class V1TransportContext {
+	class TransportContextV1 {
 		private:
 			Network::TCP::Connection& m_conn;
 			const TransportOptions& m_topts;
@@ -52,10 +52,10 @@ namespace Lambda::HTTP::Transport {
 			ContentEncodings m_compress = ContentEncodings::None;
 
 		public:
-			V1TransportContext(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
+			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
 
-			V1TransportContext(const V1TransportContext& other) = delete;
-			V1TransportContext& operator=(const V1TransportContext& other) = delete;
+			TransportContextV1(const TransportContextV1& other) = delete;
+			TransportContextV1& operator=(const TransportContextV1& other) = delete;
 
 			const Network::ConnectionInfo& conninfo() const noexcept;
 			Network::TCP::Connection& getconn() noexcept;
@@ -71,6 +71,8 @@ namespace Lambda::HTTP::Transport {
 				bool autocompress = true;
 			} flags;
 	};
+
+	std::vector<uint8_t> compressContent(const std::vector<uint8_t>& data, ContentEncodings encoding);
 };
 
 #endif

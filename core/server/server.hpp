@@ -58,7 +58,7 @@ namespace Lambda {
 
 			Network::TCP::Connection& m_conn;
 			const ServeOptions& opts;
-			HTTP::Transport::V1TransportContext m_tctx;
+			HTTP::Transport::TransportContextV1 m_tctx;
 			Crypto::ShortID m_ctx_id;
 
 			ActiveProtocol m_proto = ActiveProtocol::HTTP;
