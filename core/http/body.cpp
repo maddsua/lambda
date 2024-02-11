@@ -20,6 +20,25 @@ BodyBuffer::BodyBuffer(const std::vector<uint8_t>& content) {
 	this->m_data = content;
 }
 
+BodyBuffer& BodyBuffer::operator=(const char* content) noexcept {
+
+	if (content != nullptr) {
+		this->m_data = std::vector<uint8_t>(content, content + strlen(content));
+	}
+
+	return *this;
+}
+
+BodyBuffer& BodyBuffer::operator=(const std::string& content) noexcept {
+	this->m_data = std::vector<uint8_t>(content.begin(), content.end());
+	return *this;
+}
+
+BodyBuffer& BodyBuffer::operator=(const std::vector<uint8_t>& content) noexcept {
+	this->m_data = content;
+	return *this;
+}
+
 BodyBuffer::operator std::string () const {
 	return this->text();
 }
