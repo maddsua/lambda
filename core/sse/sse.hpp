@@ -24,6 +24,7 @@ namespace Lambda::SSE {
 		public:
 			Writer(HTTP::Transport::V1TransportContext& httpCtx);
 			void push(const EventMessage& event);
+			bool connected() const noexcept;
 	};
 };
 
