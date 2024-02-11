@@ -1,5 +1,5 @@
 
-LIB_CORE_html			=	core/html.a
+LIB_CORE_HTML			=	core/html.a
 LIB_CORE_HTML_PAGES		=	core/html/resources/servicepage.res
 LIB_CORE_HTML_DEPS		=	core/html/renderer.o core/html/templatemap.o $(LIB_CORE_HTML_PAGES)
 
