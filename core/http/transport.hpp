@@ -65,6 +65,11 @@ namespace Lambda::HTTP::Transport {
 			void respond(const HTTP::Response& response);
 			void reset() noexcept;
 			bool hasPartialData() const noexcept;
+
+			struct {
+				bool forceContentLength = true;
+				bool autocompress = true;
+			} flags;
 	};
 };
 
