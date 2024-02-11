@@ -119,10 +119,10 @@ namespace Lambda::HTTP {
 			 * Creates HTTP Body object
 			*/
 			BodyBuffer() = default;
-			BodyBuffer(const BodyBuffer& other);
-			BodyBuffer(const char* content);
-			BodyBuffer(const std::string& content);
-			BodyBuffer(const std::vector<uint8_t>& content);
+			explicit BodyBuffer(const BodyBuffer& other);
+			explicit BodyBuffer(const char* content);
+			explicit BodyBuffer(const std::string& content);
+			explicit BodyBuffer(const std::vector<uint8_t>& content);
 
 			operator std::string () const;
 
