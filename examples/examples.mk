@@ -8,3 +8,4 @@ include examples/websocket/Makefile
 include examples/reply/Makefile
 include examples/helloworld/Makefile
 include examples/static_server/Makefile
+include examples/sse_stream/Makefile

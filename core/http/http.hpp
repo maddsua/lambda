@@ -120,7 +120,7 @@ namespace Lambda::HTTP {
 			*/
 			BodyBuffer() = default;
 			explicit BodyBuffer(const BodyBuffer& other) noexcept;
-			explicit BodyBuffer(const char* content) noexcept;
+			BodyBuffer(const char* content) noexcept;
 			explicit BodyBuffer(const std::string& content) noexcept;
 			explicit BodyBuffer(const std::vector<uint8_t>& content) noexcept;
 
@@ -128,22 +128,22 @@ namespace Lambda::HTTP {
 			BodyBuffer& operator=(const std::string& content) noexcept;
 			BodyBuffer& operator=(const std::vector<uint8_t>& content) noexcept;
 
-			operator std::string () const;
+			operator std::string () const noexcept;
 
 			/**
 			 * Returns body text reoresentation
 			*/
-			std::string text() const;
+			std::string text() const noexcept;
 			
 			/**
 			 * Returns raw byte buffer
 			*/
-			const std::vector<uint8_t>& buffer() const;
+			const std::vector<uint8_t>& buffer() const noexcept;
 
 			/**
 			 * Returns body buffer size
 			*/
-			size_t size() const;
+			size_t size() const noexcept;
 	};
 
 	enum struct Methods {

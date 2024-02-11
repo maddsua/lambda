@@ -11,6 +11,7 @@
 #include "../http/transport.hpp"
 #include "../http/http.hpp"
 #include "../websocket/websocket.hpp"
+#include "../sse/sse.hpp"
 #include "../crypto/crypto.hpp"
 #include "../utils/utils.hpp"
 
@@ -55,12 +56,12 @@ namespace Lambda {
 				HTTP, WS
 			};
 
-			Network::TCP::Connection& conn;
+			Network::TCP::Connection& m_conn;
 			const ServeOptions& opts;
-			HTTP::Transport::V1TransportContext ctx;
+			HTTP::Transport::V1TransportContext m_tctx;
 			Crypto::ShortID m_ctx_id;
 
-			ActiveProtocol activeProto = ActiveProtocol::HTTP;
+			ActiveProtocol m_proto = ActiveProtocol::HTTP;
 
 		public:
 			IncomingConnection(Network::TCP::Connection& connInit, const ServeOptions& optsInit);
@@ -77,7 +78,9 @@ namespace Lambda {
 
 			Websocket::WebsocketContext upgrateToWebsocket();
 			Websocket::WebsocketContext upgrateToWebsocket(const HTTP::Request& initialRequest);
-	};	
+			
+			SSE::Writer startEventStream();
+	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
 	typedef std::function<void(IncomingConnection&)> ConnectionCallback;
