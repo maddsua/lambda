@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <map>
 #include <optional>
 
@@ -17,7 +16,7 @@ namespace Lambda::HTTP {
 	*/
 	class KVContainer {
 		protected:
-			std::unordered_map<std::string, std::vector<std::string>> m_data;
+			std::map<std::string, std::vector<std::string>> m_data;
 
 		public:
 			KVContainer() = default;
@@ -87,7 +86,7 @@ namespace Lambda::HTTP {
 				std::vector<CookieParams> props;
 			};
 
-			std::unordered_map<std::string, std::string> m_data;
+			std::map<std::string, std::string> m_data;
 			std::map<std::string, CookieData> m_set_queue;
 
 		public:
@@ -119,27 +118,31 @@ namespace Lambda::HTTP {
 			 * Creates HTTP Body object
 			*/
 			BodyBuffer() = default;
-			BodyBuffer(const BodyBuffer& other);
-			BodyBuffer(const char* content);
-			BodyBuffer(const std::string& content);
-			BodyBuffer(const std::vector<uint8_t>& content);
+			BodyBuffer(const BodyBuffer& other) noexcept;
+			BodyBuffer(const char* content) noexcept;
+			BodyBuffer(const std::string& content) noexcept;
+			BodyBuffer(const std::vector<uint8_t>& content) noexcept;
 
-			operator std::string () const;
+			BodyBuffer& operator=(const char* content) noexcept;
+			BodyBuffer& operator=(const std::string& content) noexcept;
+			BodyBuffer& operator=(const std::vector<uint8_t>& content) noexcept;
+
+			operator std::string () const noexcept;
 
 			/**
 			 * Returns body text reoresentation
 			*/
-			std::string text() const;
+			std::string text() const noexcept;
 			
 			/**
 			 * Returns raw byte buffer
 			*/
-			const std::vector<uint8_t>& buffer() const;
+			const std::vector<uint8_t>& buffer() const noexcept;
 
 			/**
 			 * Returns body buffer size
 			*/
-			size_t size() const;
+			size_t size() const noexcept;
 	};
 
 	enum struct Methods {

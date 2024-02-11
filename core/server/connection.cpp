@@ -23,7 +23,7 @@ uint32_t hashConnectionData(const Network::Address& remoteAddr) {
 IncomingConnection::IncomingConnection(
 	Network::TCP::Connection& connInit,
 	const ServeOptions& optsInit
-) : conn(connInit), opts(optsInit), ctx(conn, opts.transport),
+) : m_conn(connInit), opts(optsInit), m_tctx(m_conn, opts.transport),
 	m_ctx_id(hashConnectionData(connInit.info().remoteAddr)) {}
 
 const Crypto::ShortID& IncomingConnection::contextID() const noexcept {
@@ -31,22 +31,22 @@ const Crypto::ShortID& IncomingConnection::contextID() const noexcept {
 }
 
 Network::TCP::Connection& IncomingConnection::tcpconn() const noexcept {
-	return this->conn;
+	return this->m_conn;
 }
 
 const Network::ConnectionInfo& IncomingConnection::conninfo() const noexcept {
-	return this->conn.info();
+	return this->m_conn.info();
 }
 
 std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
-	if (this->activeProto != ActiveProtocol::HTTP) {
-		throw std::runtime_error("Cannot read next http request: connection protocol was changed");
+	if (this->m_proto != ActiveProtocol::HTTP) {
+		throw std::runtime_error("Cannot read next http request: connection protocol has been changed");
 	}
 
 	try {
 
-		const auto nextOpt = this->ctx.nextRequest();
+		const auto nextOpt = this->m_tctx.nextRequest();
 		if (!nextOpt.has_value()) return std::nullopt;
 		return nextOpt.value();
 
@@ -71,14 +71,18 @@ std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 void IncomingConnection::respond(const HTTP::Response& response) {
 
-	if (this->activeProto != ActiveProtocol::HTTP) {
+	if (this->m_proto != ActiveProtocol::HTTP) {
 		throw std::runtime_error("Cannot send http response to a connection that had it's protocol changed");
 	}
 
-	this->ctx.respond(response);
+	this->m_tctx.respond(response);
 }
 
 WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& initialRequest) {
+
+	if (this->m_proto != ActiveProtocol::HTTP) {
+		throw std::runtime_error("Cannot upgrade http connection: protocol has been already changed");
+	}
 
 	auto headerUpgrade = Strings::toLowerCase(initialRequest.headers.get("Upgrade"));
 	auto headerWsKey = initialRequest.headers.get("Sec-WebSocket-Key");
@@ -87,7 +91,7 @@ WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& ini
 		throw std::runtime_error("Websocket initialization aborted: Invalid connection header");
 	}
 
-	if (this->ctx.hasPartialData()) {
+	if (this->m_tctx.hasPartialData()) {
 		throw std::runtime_error("Websocket initialization aborted: Connection has unprocessed data");
 	}
 
@@ -102,10 +106,10 @@ WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& ini
 	});
 
 	this->respond(handshakeReponse);
-	this->ctx.reset();
+	this->m_tctx.reset();
 
-	this->activeProto = ActiveProtocol::WS;
-	return WebsocketContext(this->conn, this->opts.transport);
+	this->m_proto = ActiveProtocol::WS;
+	return WebsocketContext(this->m_conn, this->opts.transport);
 }
 
 WebsocketContext IncomingConnection::upgrateToWebsocket() {
@@ -116,4 +120,14 @@ WebsocketContext IncomingConnection::upgrateToWebsocket() {
 	}
 
 	return this->upgrateToWebsocket(request.value());
+}
+
+SSE::Writer IncomingConnection::startEventStream() {
+
+	if (this->m_proto != ActiveProtocol::HTTP) {
+		throw std::runtime_error("Cannot upgrade http connection: protocol has been already changed");
+	}
+
+	this->m_proto = ActiveProtocol::SSE;
+	return SSE::Writer(this->m_tctx);
 }

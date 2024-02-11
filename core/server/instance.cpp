@@ -53,7 +53,6 @@ void LambdaInstance::start() {
 
 				const auto& conninfo = conn.info();
 				auto connctx = IncomingConnection(conn, this->config);
-				std::optional<std::exception> handlerError;
 
 				if (this->config.loglevel.transportEvents) {
 					syncout.log({
@@ -78,7 +77,7 @@ void LambdaInstance::start() {
 						"[Transport]",
 						transportDisplayID,
 						"terminated:",
-						handlerError.value().what()
+						message
 					});
 				};
 

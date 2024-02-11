@@ -43,7 +43,12 @@ namespace Lambda::HTTP::Transport {
 			ProtocolError(const std::string& message, HTTP::Status respondWithStatus) : Error(message), respondStatus(respondWithStatus) {}
 	};
 
-	class V1TransportContext {
+	struct TransportFlags {
+		bool forceContentLength = true;
+		bool autocompress = true;
+	};
+
+	class TransportContextV1 {
 		private:
 			Network::TCP::Connection& m_conn;
 			const TransportOptions& m_topts;
@@ -52,15 +57,21 @@ namespace Lambda::HTTP::Transport {
 			ContentEncodings m_compress = ContentEncodings::None;
 
 		public:
-			V1TransportContext(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
+			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
 
-			V1TransportContext(const V1TransportContext& other) = delete;
-			V1TransportContext& operator=(const V1TransportContext& other) = delete;
+			TransportContextV1(const TransportContextV1& other) = delete;
+			TransportContextV1& operator=(const TransportContextV1& other) = delete;
+
+			const Network::ConnectionInfo& conninfo() const noexcept;
+			Network::TCP::Connection& getconn() noexcept;
+			const ContentEncodings& getEnconding() const noexcept;
 
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
 			void reset() noexcept;
 			bool hasPartialData() const noexcept;
+
+			TransportFlags flags;
 	};
 };
 

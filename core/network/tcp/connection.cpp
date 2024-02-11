@@ -14,6 +14,14 @@ static const std::initializer_list<int> blockingEndedCodes = {
 	#endif
 };
 
+/*static const std::initializer_list<int> clientDisconnectedCodes = {
+	#ifdef _WIN32
+		WSAECONNRESET
+	#else
+		ECONNRESET
+	#endif
+};*/
+
 Connection::Connection(
 	SockHandle handleInit,
 	const ConnectionInfo& infoInit
