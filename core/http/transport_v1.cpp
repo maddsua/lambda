@@ -21,6 +21,14 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
+const Network::ConnectionInfo& V1TransportContext::conninfo() const noexcept {
+	return this->m_conn.info();
+}
+
+Network::TCP::Connection& V1TransportContext::getconn() noexcept {
+	return this->m_conn;
+}
+
 V1TransportContext::V1TransportContext(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
