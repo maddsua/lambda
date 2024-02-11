@@ -41,7 +41,7 @@ const Network::ConnectionInfo& IncomingConnection::conninfo() const noexcept {
 std::optional<HTTP::Request> IncomingConnection::nextRequest() {
 
 	if (this->activeProto != ActiveProtocol::HTTP) {
-		throw std::runtime_error("Cannot read next http request: connection protocol was changed");
+		throw std::runtime_error("Cannot read next http request: connection protocol has been changed");
 	}
 
 	try {
@@ -79,6 +79,10 @@ void IncomingConnection::respond(const HTTP::Response& response) {
 }
 
 WebsocketContext IncomingConnection::upgrateToWebsocket(const HTTP::Request& initialRequest) {
+
+	if (this->activeProto != ActiveProtocol::HTTP) {
+		throw std::runtime_error("Cannot upgrade http connection: protocol has been already changed");
+	}
 
 	auto headerUpgrade = Strings::toLowerCase(initialRequest.headers.get("Upgrade"));
 	auto headerWsKey = initialRequest.headers.get("Sec-WebSocket-Key");
