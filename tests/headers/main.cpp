@@ -5,7 +5,7 @@
 
 using namespace Lambda;
 
-static const std::string compareData = "connection: upgrade\r\ncontent-length: 100\r\ncontent-encoding: br\r\n";
+static const std::string compareData = "connection: upgrade\r\ncontent-encoding: br\r\ncontent-length: 100\r\n";
 
 int main(int argc, char const *argv[]) {
 
