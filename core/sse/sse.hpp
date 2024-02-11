@@ -18,10 +18,10 @@ namespace Lambda::SSE {
 
 	class Writer {
 		private:
-			Network::TCP::Connection& conn;
+			Network::TCP::Connection& m_conn;
 
 		public:
-			Writer(Network::TCP::Connection& connRef);
+			Writer(Network::TCP::Connection& conn);
 			void push(const EventMessage& event);
 	};
 };
