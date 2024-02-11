@@ -8,6 +8,7 @@ BodyBuffer::BodyBuffer(const BodyBuffer& other) {
 }
 
 BodyBuffer::BodyBuffer(const char* content) {
+	if (content == nullptr) return;
 	this->m_data = std::vector<uint8_t>(content, content + strlen(content));
 }
 
