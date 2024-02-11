@@ -57,6 +57,9 @@ namespace Lambda::HTTP::Transport {
 			V1TransportContext(const V1TransportContext& other) = delete;
 			V1TransportContext& operator=(const V1TransportContext& other) = delete;
 
+			const Network::ConnectionInfo& conninfo() const noexcept;
+			Network::TCP::Connection& getconn() noexcept;
+
 			std::optional<HTTP::Request> nextRequest();
 			void respond(const HTTP::Response& response);
 			void reset() noexcept;
