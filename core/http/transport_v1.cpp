@@ -25,6 +25,10 @@ const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
 	return this->m_conn.info();
 }
 
+const TransportOptions& TransportContextV1::options() const noexcept {
+	return this->m_topts;
+}
+
 Network::TCP::Connection& TransportContextV1::tcpconn() const noexcept {
 	return this->m_conn;
 }

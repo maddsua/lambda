@@ -1,6 +1,7 @@
 #include "./internal.hpp"
 
 using namespace Lambda;
+using namespace Lambda::Websocket;
 using namespace Lambda::Server;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
@@ -38,11 +39,17 @@ void Server::connectionHandler(
 				return SSE::Writer(transport, next);
 			};
 
+			const std::function<WebsocketContext()> upgradeCallbackWS = [&]() {
+				handlerMode = HandlerMode::WS;
+				return WebsocketContext(transport, next);
+			};
+
 			const RequestContext requestCTX = {
 				contextID,
 				requestID,
 				conninfo,
-				upgradeCallbackSSE
+				upgradeCallbackSSE,
+				upgradeCallbackWS,
 			};
 
 			HTTP::Response response;

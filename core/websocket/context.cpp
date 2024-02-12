@@ -1,5 +1,9 @@
 #include "./websocket.hpp"
 #include "./transport.hpp"
+#include "../http/transport.hpp"
+#include "../polyfill/polyfill.hpp"
+#include "../crypto/crypto.hpp"
+#include "../encoding/encoding.hpp"
 #include "../utils/utils.hpp"
 
 #include <cstring>
@@ -7,6 +11,8 @@
 using namespace Lambda;
 using namespace Lambda::Websocket;
 using namespace Lambda::Websocket::Transport;
+
+static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 //	The recv function blocks execution infinitely until it receives somethig,
 //	which is not optimal for this usecase.
@@ -16,10 +22,32 @@ using namespace Lambda::Websocket::Transport;
 //	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t sockRcvTimeout = 100;
 
-WebsocketContext::WebsocketContext(
-	Network::TCP::Connection& connRef,
-	const HTTP::Transport::TransportOptions& toptsRef
-) : conn(connRef), topts(toptsRef) {
+WebsocketContext::WebsocketContext(HTTP::Transport::TransportContextV1& httpCtx, const HTTP::Request initRequest)
+	: conn(httpCtx.tcpconn()), topts(httpCtx.options()) {
+
+	auto headerUpgrade = Strings::toLowerCase(initRequest.headers.get("Upgrade"));
+	auto headerWsKey = initRequest.headers.get("Sec-WebSocket-Key");
+
+	if (headerUpgrade != "websocket" || !headerWsKey.size()) {
+		throw std::runtime_error("Websocket initialization aborted: Invalid connection header");
+	}
+
+	if (httpCtx.hasPartialData()) {
+		throw std::runtime_error("Websocket initialization aborted: Connection has unprocessed data");
+	}
+
+	auto combinedKey = headerWsKey + wsMagicString;
+
+	auto keyHash = Crypto::SHA1().update(combinedKey).digest();
+
+	auto handshakeReponse = HTTP::Response(101, {
+		{ "Upgrade", "websocket" },
+		{ "Connection", "Upgrade" },
+		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHash) }
+	});
+
+	httpCtx.respond(handshakeReponse);
+	httpCtx.reset();
 
 	this->conn.flags.closeOnTimeout = false;
 	this->conn.setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);

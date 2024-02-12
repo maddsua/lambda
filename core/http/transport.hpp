@@ -66,6 +66,7 @@ namespace Lambda::HTTP::Transport {
 
 			Network::TCP::Connection& tcpconn() const noexcept;
 			const Network::ConnectionInfo& conninfo() const noexcept;
+			const TransportOptions& options() const noexcept;
 			const ContentEncodings& getEnconding() const noexcept;
 
 			bool awaitNext();
