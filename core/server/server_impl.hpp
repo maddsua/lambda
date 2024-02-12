@@ -21,6 +21,10 @@ namespace Lambda::Server {
 
 	namespace Connections {
 
+		/**
+		 * UpgradeError is thrown whenever a transport context fails to create a subprotocol
+		 * (like Websocker or start SSE stream) 
+		*/
 		class UpgradeError : public Lambda::Error {
 			private:
 				const HTTP::Status m_status = 400;
