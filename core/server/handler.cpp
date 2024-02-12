@@ -6,6 +6,7 @@
 using namespace Lambda;
 using namespace Lambda::Websocket;
 using namespace Lambda::Server;
+using namespace Lambda::Server::Connections;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
@@ -105,14 +106,14 @@ void Server::connectionHandler(
 			typedef std::optional<HTTP::Response> FunctionResponse;
 			FunctionResponse functionResponse;
 
-			const auto handleFunctionError = [&](const std::exception& message) -> FunctionResponse {
+			const auto handleFunctionError = [&](const std::exception& error) -> FunctionResponse {
 
 				if (config.loglevel.requests) {
 					syncout.error({
 						'[' + requestID + ']',
 						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
 						"crashed:",
-						message.what()
+						error.what()
 					});
 				}
 
@@ -120,13 +121,33 @@ void Server::connectionHandler(
 					return std::nullopt;
 				}
 
-				return Pages::renderErrorPage(500, message.what(), config.errorResponseType);
+				return Pages::renderErrorPage(500, error.what(), config.errorResponseType);
+			};
+
+			const auto handleUpgradeError = [&](const UpgradeError& error) -> HTTP::Response {
+
+				handlerMode = HandlerMode::HTTP;
+
+				if (config.loglevel.requests) {
+					syncout.error({
+						'[' + requestID + ']',
+						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+						"upgrate aborted:",
+						error.what()
+					});
+				}
+
+				auto response = Pages::renderErrorPage(error.status(), error.what(), config.errorResponseType);
+				response.headers.set("connection", "close");
+
+				return response;
 			};
 
 			try {
 				functionResponse = handlerCallback(next, requestCTX).response;
-			} catch(const ProtocolError& err) {
-				handleProtocolError(err);
+			} catch(const UpgradeError& err) {
+				handlerMode = HandlerMode::HTTP;
+				functionResponse = handleUpgradeError(err);
 			} catch(const std::exception& err) {
 				functionResponse = handleFunctionError(err);
 			} catch(...) {
