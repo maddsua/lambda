@@ -79,8 +79,6 @@ jobs:
         run: make example.servicepage
       - name: Service crash handling example
         run: make example.handler_crash
-      - name: Extended request handler example
-        run: make example.conn_handler
       - name: Reply with client's user agent example
         run: make example.reply
       - name: Hello world example
