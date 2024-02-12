@@ -22,6 +22,11 @@ static const std::initializer_list<OpCode> supportedWsOpcodes = {
 };
 
 void WebsocketContext::sendMessage(const Websocket::Message& msg) {
+
+	if (this->m_stopped) {
+		throw Lambda::Error("Cannot send websocket message: connection was closed");
+	}
+
 	auto writeBuff = serializeMessage(msg);
 	this->transport.writeRaw(writeBuff);
 }
