@@ -36,10 +36,16 @@ void Server::connectionHandler(
 
 		if (!error.respondStatus.has_value() || !transport.ok()) return;
 
-		const auto errorResponse = Pages::renderErrorPage(error.respondStatus.value(), error.message(), config.errorResponseType);
-
 		try {
+
+			const auto errorResponse = Pages::renderErrorPage(
+				error.respondStatus.value(),
+				error.message(),
+				config.errorResponseType
+			);
+
 			transport.respond(errorResponse);
+
 		} catch(...) {
 
 			if (!config.loglevel.transportEvents) return;
