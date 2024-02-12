@@ -109,12 +109,7 @@ void Server::connectionHandler(
 			};
 
 			try {
-
-				auto tempResponse = handlerCallback(next, requestCTX);
-				if (tempResponse.response.has_value()) {
-					functionResponse = std::move(tempResponse.response.value());
-				}
-
+				functionResponse = handlerCallback(next, requestCTX).response;
 			} catch(const std::exception& err) {
 				functionResponse = handleFunctionError(err);
 			} catch(...) {
