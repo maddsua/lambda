@@ -31,8 +31,12 @@ TransportContextV1::TransportContextV1(
 
 bool TransportContextV1::awaitNext() {
 
+	if (this->m_keepalive == KeepAliveStatus::Close) {
+		return this->m_next != nullptr;
+	}
+
 	if (this->m_next != nullptr) {
-		throw Lambda::Error("awaitNext() cancelec: the previous requests was not processed yet");
+		return true;
 	}
 
 	auto headerEnded = this->m_readbuff.end();
@@ -134,9 +138,33 @@ bool TransportContextV1::awaitNext() {
 	}
 
 	if (this->m_topts.reuseConnections) {
-		auto connectionHeader = next.headers.get("connection");
-		if (this->m_keepalive) this->m_keepalive = !Strings::includes(connectionHeader, "close");
-			else this->m_keepalive = Strings::includes(connectionHeader, "keep-alive");
+
+		const auto connectionHeader = next.headers.get("connection");
+
+		switch (this->m_keepalive) {
+
+			/*
+			-----
+			This would be a redundant check as you can't
+			get any more requests since the connection was closed
+			-----
+
+			case KeepAliveStatus::Close: {
+				if (Strings::includes(connectionHeader, "keep-alive"))
+					this->m_keepalive = KeepAliveStatus::KeepAlive;
+			} break;
+			*/
+
+			case KeepAliveStatus::KeepAlive: {
+				if (Strings::includes(connectionHeader, "close"))
+					this->m_keepalive = KeepAliveStatus::Close;
+			} break;
+			
+			default: {
+				this->m_keepalive = Strings::includes(connectionHeader, "keep-alive") ?
+					KeepAliveStatus::KeepAlive : KeepAliveStatus::Close;
+			} break;
+		}
 	}
 
 	auto acceptEncodingHeader = next.headers.get("accept-encoding");
@@ -266,8 +294,11 @@ void TransportContextV1::respond(const Response& response) {
 	responseHeaders.set("server", "maddsua/lambda");
 
 	//	set connection header to acknowledge keep-alive mode
-	if (this->m_keepalive && !responseHeaders.has("connection")) {
-		responseHeaders.set("connection", "keep-alive");
+	const auto responseConnectionHeader = responseHeaders.get("connection");
+	if (responseConnectionHeader.size()) {
+		this->m_keepalive = Strings::includes(responseConnectionHeader, "close") ? KeepAliveStatus::Close : KeepAliveStatus::KeepAlive;
+	} else {
+		responseHeaders.set("connection", this->m_keepalive == KeepAliveStatus::KeepAlive ? "keep-alive" : "close");
 	}
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
@@ -279,7 +310,7 @@ void TransportContextV1::respond(const Response& response) {
 	this->m_conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 	if (bodySize) this->m_conn.write(responseBody);
 
-	if (Strings::toLowerCase(responseHeaders.get("connection")) == "close") {
+	if (this->m_keepalive == KeepAliveStatus::Close) {
 		this->m_conn.end();
 	}
 }

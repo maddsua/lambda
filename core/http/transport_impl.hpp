@@ -12,13 +12,17 @@
 
 namespace Lambda::HTTP::Transport {
 
+	enum struct KeepAliveStatus {
+		Unknown, KeepAlive, Close
+	};
+
 	class TransportContextV1 : public TransportContext {
 		private:
 			Network::TCP::Connection& m_conn;
 			const TransportOptions& m_topts;
 
 			std::vector<uint8_t> m_readbuff;
-			bool m_keepalive = false;
+			KeepAliveStatus m_keepalive = KeepAliveStatus::Unknown;
 			ContentEncodings m_compress = ContentEncodings::None;
 			HTTP::Request* m_next = nullptr;
 
