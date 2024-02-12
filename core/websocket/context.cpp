@@ -23,7 +23,7 @@ static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 static const time_t sockRcvTimeout = 100;
 
 WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest)
-	: conn(tctx.tcpconn()), topts(tctx.options()) {
+	: transport(tctx), topts(tctx.options()) {
 
 	auto headerUpgrade = Strings::toLowerCase(initRequest.headers.get("Upgrade"));
 	auto headerWsKey = initRequest.headers.get("Sec-WebSocket-Key");
@@ -49,8 +49,8 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 	tctx.respond(handshakeReponse);
 	tctx.reset();
 
-	this->conn.flags.closeOnTimeout = false;
-	this->conn.setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
+	this->transport.tcpconn().flags.closeOnTimeout = false;
+	this->transport.tcpconn().setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
 
 	this->m_reader = std::async(&WebsocketContext::asyncWorker, this);
 }
@@ -83,7 +83,7 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	closeMessageBuff.insert(closeMessageBuff.end(), closeReasonBuff.begin(), closeReasonBuff.end());	
 
-	this->conn.write(closeMessageBuff);
+	this->transport.writeRaw(closeMessageBuff);
 
 	if (this->m_reader.valid()) {
 		try { this->m_reader.get(); }

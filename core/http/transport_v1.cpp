@@ -24,26 +24,6 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
-	return this->m_conn.info();
-}
-
-const TransportOptions& TransportContextV1::options() const noexcept {
-	return this->m_topts;
-}
-
-Network::TCP::Connection& TransportContextV1::tcpconn() const noexcept {
-	return this->m_conn;
-}
-
-const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
-	return this->m_compress;
-}
-
-bool TransportContextV1::ok() const noexcept {
-	return this->m_conn.active();
-}
-
 TransportContextV1::TransportContextV1(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
@@ -52,7 +32,7 @@ TransportContextV1::TransportContextV1(
 bool TransportContextV1::awaitNext() {
 
 	if (this->m_next != nullptr) {
-		throw Lambda::Error("awaitNext() cannot receive more requests until the previous one is processed");
+		throw Lambda::Error("awaitNext() cancelec: the previous requests was not processed yet");
 	}
 
 	auto headerEnded = this->m_readbuff.end();
@@ -206,7 +186,7 @@ bool TransportContextV1::awaitNext() {
 HTTP::Request TransportContextV1::nextRequest() {
 
 	if (this->m_next == nullptr) {
-		throw Lambda::Error("nextRequest() canceled: no requests pending");
+		throw Lambda::Error("nextRequest() canceled: no requests pending. Use awaitNext() to read more requests");
 	}
 
 	const auto tempNext = std::move(*this->m_next);
@@ -218,6 +198,10 @@ HTTP::Request TransportContextV1::nextRequest() {
 }
 
 void TransportContextV1::respond(const Response& response) {
+
+	if (this->m_next != nullptr) {
+		throw Lambda::Error("respond() canceled: Before responding to a request one must be read with nextRequest() call first");
+	}
 
 	auto applyEncoding = ContentEncodings::None;
 
@@ -296,10 +280,61 @@ void TransportContextV1::respond(const Response& response) {
 	if (bodySize) this->m_conn.write(responseBody);
 }
 
+const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
+	return this->m_conn.info();
+}
+
+const TransportOptions& TransportContextV1::options() const noexcept {
+	return this->m_topts;
+}
+
+Network::TCP::Connection& TransportContextV1::tcpconn() const noexcept {
+	return this->m_conn;
+}
+
+const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
+	return this->m_compress;
+}
+
+bool TransportContextV1::ok() const noexcept {
+	return this->m_conn.active();
+}
+
 void TransportContextV1::reset() noexcept {
+
 	this->m_readbuff.clear();
+
+	if (this->m_next != nullptr) {
+		delete this->m_next;
+		this->m_next = nullptr;
+	}
 }
 
 bool TransportContextV1::hasPartialData() const noexcept {
 	return this->m_readbuff.size() > 0;
+}
+
+void TransportContextV1::close() {
+	this->m_conn.end();
+}
+
+void TransportContextV1::writeRaw(const std::vector<uint8_t>& data) {
+	this->m_conn.write(data);
+}
+
+std::vector<uint8_t> TransportContextV1::readRaw() {
+	return this->readRaw(Network::TCP::Connection::ReadChunkSize);
+}
+
+std::vector<uint8_t> TransportContextV1::readRaw(size_t expectedSize) {
+
+	auto bufferHave = std::move(this->m_readbuff);
+	this->m_readbuff = {};
+
+	if (bufferHave.size() < expectedSize) {
+		auto bufferFetched = this->m_conn.read(expectedSize - bufferHave.size());
+		bufferHave.insert(bufferHave.end(), bufferFetched.begin(), bufferFetched.end());
+	}
+
+	return bufferHave;
 }

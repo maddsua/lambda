@@ -61,8 +61,14 @@ namespace Lambda::HTTP::Transport {
 			virtual bool awaitNext() = 0;
 			virtual HTTP::Request nextRequest() = 0;
 			virtual void respond(const HTTP::Response& response) = 0;
+
+			virtual std::vector<uint8_t> readRaw() = 0;
+			virtual std::vector<uint8_t> readRaw(size_t expectedSize) = 0;
+			virtual void writeRaw(const std::vector<uint8_t>& data) = 0;
+
 			virtual void reset() noexcept = 0;
 			virtual bool hasPartialData() const noexcept = 0;
+			virtual void close() = 0;
 
 			TransportFlags flags;
 	};

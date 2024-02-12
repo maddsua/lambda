@@ -19,7 +19,7 @@ namespace Lambda::SSE {
 
 	class Writer {
 		private:
-			Network::TCP::Connection& m_conn;
+			HTTP::Transport::TransportContext& transport;
 
 		public:
 			Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest);

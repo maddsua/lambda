@@ -37,8 +37,14 @@ namespace Lambda::HTTP::Transport {
 			bool awaitNext();
 			HTTP::Request nextRequest();
 			void respond(const HTTP::Response& response);
+
+			std::vector<uint8_t> readRaw();
+			std::vector<uint8_t> readRaw(size_t expectedSize);
+			void writeRaw(const std::vector<uint8_t>& data);
+
 			void reset() noexcept;
 			bool hasPartialData() const noexcept;
+			void close();
 	};
 };
 
