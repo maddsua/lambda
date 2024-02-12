@@ -15,9 +15,43 @@ void Server::connectionHandler(
 
 	const auto contextID = Crypto::ShortID().toString();
 	const auto& conninfo = conn.info();
+
 	auto handlerMode = HandlerMode::HTTP;
 	auto transport = TransportContextV1(conn, config.transport);
-	std::optional<std::exception> transportError;
+
+	const auto handleTransportError = [&](const std::exception& error) -> void {
+
+		if (!(config.loglevel.transportEvents || config.loglevel.requests)) return;
+
+		syncout.error({
+			"[Transport]",
+			contextID,
+			'(' + conninfo.remoteAddr.hostname + ')',
+			"terminated:",
+			error.what()
+		});
+	};
+
+	const auto handleProtocolError = [&](const ProtocolError& error) {
+
+		if (!error.respondStatus.has_value() || !transport.ok()) return;
+
+		const auto errorResponse = Pages::renderErrorPage(error.respondStatus.value(), error.message(), config.errorResponseType);
+
+		try {
+			transport.respond(errorResponse);
+		} catch(...) {
+
+			if (!config.loglevel.transportEvents) return;
+
+			syncout.error({
+				"[Transport]",
+				"Failed to respond to protocol error in",
+				contextID,
+				"(network error)"
+			});
+		}
+	};
 
 	if (config.loglevel.transportEvents) {
 		syncout.log({
@@ -53,32 +87,44 @@ void Server::connectionHandler(
 				upgradeCallbackWS,
 			};
 
-			HTTP::Response response;
-			std::optional<std::string> handlerError;
+			std::optional<HTTP::Response> functionResponse;
 
-			try {
-				response = handlerCallback(next, requestCTX);
-			} catch(const std::exception& e) {
-				handlerError = e.what();
-			} catch(...) {
-				handlerError = "unhandled exception";
-			}
-
-			if (handlerError.has_value()) {
+			const auto handleHandlerException = [&](const char* message) {
 
 				if (config.loglevel.requests) {
 					syncout.error({
-						"[Serverless]",
+						'[' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ']',
 						requestID,
 						"crashed:",
-						handlerError.value()
+						message
 					});
 				}
 
-				response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
+				if (handlerMode == HandlerMode::HTTP) {
+					functionResponse = Pages::renderErrorPage(500, message, config.errorResponseType);
+				}
+			};
+
+			try {
+
+				auto tempResponse = handlerCallback(next, requestCTX);
+				if (tempResponse.response.has_value()) {
+					functionResponse = std::move(tempResponse.response.value());
+				}
+
+			} catch(const std::exception& e) {
+				handleHandlerException(e.what());
+			} catch(...) {
+				handleHandlerException("Unexpected handler exception");
 			}
 
 			if (handlerMode == HandlerMode::HTTP) {
+
+				if (!functionResponse.has_value()) {
+					functionResponse = Pages::renderErrorPage(500, "Handler failed to respond", config.errorResponseType);
+				}
+
+				auto& response = functionResponse.value();
 				response.headers.set("x-request-id", contextID + '-' + requestID);
 				transport.respond(response);
 			}
@@ -86,53 +132,25 @@ void Server::connectionHandler(
 			if (config.loglevel.requests) {
 				syncout.log({
 					'[' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ']',
-					"[Serverless]",
 					requestID,
 					next.method.toString(),
 					next.url.pathname,
 					"-->",
-					response.status.code()
+					functionResponse.value().status.code()
 				});
 			}
 		}
 
 	} catch(const ProtocolError& err) {
-
-		/*
-			Look. It's not very pretty to rethrow an error but it's way better
-			than coming up with	some elaborate structures that will provide a way
-			to distinguish between different kinds of errors.
-			Also most of the library uses exceptions to do error handling anyway
-			so making any of that that would be just super inconsistent and confusing.
-		*/
-		if (err.respondStatus.has_value()) {
-
-			const auto errorResponse = Pages::renderErrorPage(err.respondStatus.value(), err.message(), config.errorResponseType);
-
-			if (transport.ok()) {
-				try { transport.respond(errorResponse); } 
-					catch(...) {}
-			}
-		}
-
-		transportError = std::move(err);
-
+		handleProtocolError(err);
+		return handleTransportError(err);
 	} catch(const std::exception& err) {
-		transportError = std::move(err);
+		return handleTransportError(err);
 	} catch(...) {
-		transportError = std::runtime_error("Unknown exception");
+		return handleTransportError(std::runtime_error("Unknown exception"));
 	}
 
-	if (transportError.has_value() && (config.loglevel.transportEvents || config.loglevel.requests)) {
-		syncout.error({
-			"[Transport]",
-			contextID,
-			'(' + conninfo.remoteAddr.hostname + ')',
-			"terminated:",
-			transportError.value().what()
-		});
-
-	} else if (config.loglevel.transportEvents) {
+	if (config.loglevel.transportEvents) {
 		syncout.log({
 			"[Transport]",
 			contextID,
@@ -140,4 +158,22 @@ void Server::connectionHandler(
 			"disconnected"
 		});
 	}
+}
+
+HandlerResponse::HandlerResponse(const HTTP::Response& init)  {
+	this->response = init;
+}
+
+HandlerResponse::HandlerResponse(const std::string& init)  {
+	this->response = HTTP::Response(init);
+}
+
+HandlerResponse::HandlerResponse(const char* init) {
+	this->response = HTTP::Response(init);
+}
+
+HandlerResponse::HandlerResponse(const std::vector<uint8_t>& init) {
+	this->response = HTTP::Response(200, {
+		{ "content-type", "application/octet-stream" }
+	}, init);
 }

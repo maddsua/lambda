@@ -19,7 +19,17 @@ namespace Lambda {
 		const std::function<Websocket::WebsocketContext()>& upgrateToWebsocket;
 	};
 
-	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> RequestCallback;
+	struct HandlerResponse {
+		std::optional<HTTP::Response> response;
+
+		HandlerResponse() = default;
+		HandlerResponse(const HTTP::Response& init);
+		HandlerResponse(const std::string& init);
+		HandlerResponse(const char* init);
+		HandlerResponse(const std::vector<uint8_t>& init);
+	};
+
+	typedef std::function<HandlerResponse(const HTTP::Request&, const RequestContext&)> RequestCallback;
 };
 
 #endif

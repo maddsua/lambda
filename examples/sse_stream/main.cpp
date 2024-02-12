@@ -7,7 +7,7 @@ using namespace Lambda::JSON;
 
 int main(int argc, char const *argv[]) {
 
-	auto handler = [](const Request& req, const Context& context) {
+	auto handler = [](const Request& req, const Context& context) -> HandlerResponse {
 
 		if (req.url.pathname != "/") {
 			return HTTP::Response(404, "not found ");
@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]) {
 		}
 
 		writer.close();
-		return HTTP::Response();
+		return {};
 	};
 
 	ServerConfig initparams;

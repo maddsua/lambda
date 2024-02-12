@@ -7,7 +7,7 @@ using namespace Lambda::JSON;
 
 int main(int argc, char const *argv[]) {
 
-	auto handler = [&](const Request& req, const Context& context) {
+	auto handler = [&](const Request& req, const Context& context) -> HandlerResponse {
 
 		auto wsctx = context.upgrateToWebsocket();
 
@@ -21,7 +21,7 @@ int main(int argc, char const *argv[]) {
 			wsctx.close(Websocket::CloseReason::GoingAway);
 		}
 
-		return HTTP::Response();
+		return {};
 	};
 
 	ServerConfig initparams;
