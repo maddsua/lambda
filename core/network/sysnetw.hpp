@@ -24,7 +24,7 @@
 
 			WSADATA initdata;
 			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw std::runtime_error("WSA initialization failed:" + Lambda::getOSError().toString());
+				throw std::runtime_error("WSA initialization failed:" + Lambda::getOSError().message());
 
 			return true;
 		}

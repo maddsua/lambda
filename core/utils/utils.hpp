@@ -17,11 +17,20 @@
 namespace Lambda {
 
 	/**
-	 * Holds OS error code and provides a method to turn it into a nice text message
+	 * Holds OS error code and provides a method to turn it into a nice text message.
+	 * 
+	 * By default this structure is empty, use getOSError() function to capture the latest OS error
 	*/
 	struct OS_Error {
+		/**
+		 * OS API error code (like errno or WSAERROR)
+		*/
 		const int32_t code = 0;
-		std::string toString() const noexcept;
+
+		/**
+		 * Format a text error message from code
+		*/
+		std::string message() const noexcept;
 	};
 
 	/**

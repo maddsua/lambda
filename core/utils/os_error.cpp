@@ -3,8 +3,10 @@
 
 #ifdef _WIN32
 	#include <windows.h>
+	#define GetOSErrorCode() (GetLastError())
 #else
 	#include <cerrno>
+	#define GetOSErrorCode() (errno)
 #endif
 
 using namespace Lambda;
@@ -16,20 +18,10 @@ OS_Error Lambda::getOSError() noexcept {
 		any errors with codes bigger than it can hold.
 		Also unix uses it by default, so that's why.
 	*/
-	int32_t errorCode = (
-		#ifdef _WIN32
-			GetLastError()
-		#else
-			errno
-		#endif
-	);
-
-	return OS_Error {
-		errorCode
-	};
+	return OS_Error(GetOSErrorCode());
 }
 
-std::string OS_Error::toString() const noexcept {
+std::string OS_Error::message() const noexcept {
 	#ifdef _WIN32
 
 		char* tempMessage = nullptr;
