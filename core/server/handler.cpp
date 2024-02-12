@@ -94,6 +94,22 @@ void Server::connectionHandler(
 			}
 		}
 
+	} catch(const ProtocolError& err) {
+
+		/*
+			Look. It's not very pretty to rethrow an error but it's way better
+			than coming up with	some elaborate structures that will provide a way
+			to distinguish between different kinds of errors.
+			Also most of the library uses exceptions to do error handling anyway
+			so making any of that that would be just super inconsistent and confusing.
+		*/
+		if (err.respondStatus.has_value()) {
+			const auto errorResponse = Pages::renderErrorPage(err.respondStatus.value(), err.message(), config.errorResponseType);
+			transport.respond(errorResponse);
+		}
+
+		transportError = std::move(err);
+
 	} catch(const std::exception& err) {
 		transportError = std::move(err);
 	} catch(...) {
