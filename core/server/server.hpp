@@ -49,7 +49,7 @@ namespace Lambda {
 		const Network::ConnectionInfo& conninfo;
 
 		const std::function<SSE::Writer()>& startEventStream;
-		const std::function<WebsocketContext()>& upgrateToWebsocket;
+		const std::function<Websocket::WebsocketContext()>& upgrateToWebsocket;
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;

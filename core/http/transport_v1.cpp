@@ -37,6 +37,10 @@ const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
 	return this->m_compress;
 }
 
+bool TransportContextV1::ok() const noexcept {
+	return this->m_conn.active();
+}
+
 TransportContextV1::TransportContextV1(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit

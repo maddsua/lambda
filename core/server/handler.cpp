@@ -104,8 +104,13 @@ void Server::connectionHandler(
 			so making any of that that would be just super inconsistent and confusing.
 		*/
 		if (err.respondStatus.has_value()) {
+
 			const auto errorResponse = Pages::renderErrorPage(err.respondStatus.value(), err.message(), config.errorResponseType);
-			transport.respond(errorResponse);
+
+			if (transport.ok()) {
+				try { transport.respond(errorResponse); } 
+					catch(...) {}
+			}
 		}
 
 		transportError = std::move(err);
