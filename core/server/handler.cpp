@@ -112,7 +112,7 @@ void Server::connectionHandler(
 					syncout.error({
 						'[' + requestID + ']',
 						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
-						"crashed:",
+						"Handler crashed:",
 						error.what()
 					});
 				}
@@ -132,7 +132,7 @@ void Server::connectionHandler(
 					syncout.error({
 						'[' + requestID + ']',
 						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
-						"upgrate aborted:",
+						"Protocol switch aborted:",
 						error.what()
 					});
 				}

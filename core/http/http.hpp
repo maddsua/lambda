@@ -159,8 +159,11 @@ namespace Lambda::HTTP {
 			Method(const std::string& method);
 			Method(const char* method);
 
-			operator std::string () const noexcept;
-			operator Methods () const noexcept;
+			operator std::string() const noexcept;
+			operator Methods() const noexcept;
+
+			bool operator==(const std::string& other) const noexcept;
+			bool operator==(const char* other) const noexcept;
 
 			std::string toString() const noexcept;
 	};

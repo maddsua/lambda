@@ -29,20 +29,23 @@ static const time_t sockRcvTimeout = 100;
 WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest)
 	: transport(tctx), topts(tctx.options()) {
 
+	if (initRequest.method != "GET") {
+		throw UpgradeError("Websocket handshake method invalid", 405);
+	}
+
 	auto headerUpgrade = Strings::toLowerCase(initRequest.headers.get("Upgrade"));
 	auto headerWsKey = initRequest.headers.get("Sec-WebSocket-Key");
 
 	if (headerUpgrade != "websocket" || !headerWsKey.size()) {
-		throw UpgradeError("Websocket initialization aborted: Invalid connection header", 400);
+		throw UpgradeError("Websocket handshake header invalid", 400);
 	}
 
 	if (tctx.hasPartialData()) {
-		throw UpgradeError("Websocket initialization aborted: Connection has unprocessed data", 400);
+		throw UpgradeError("Websocket handshake has extra data after headers", 400);
 	}
 
-	auto combinedKey = headerWsKey + wsMagicString;
-
-	auto keyHash = Crypto::SHA1().update(combinedKey).digest();
+	const auto combinedKey = headerWsKey + wsMagicString;
+	const auto keyHash = Crypto::SHA1().update(combinedKey).digest();
 
 	auto handshakeReponse = HTTP::Response(101, {
 		{ "Upgrade", "websocket" },

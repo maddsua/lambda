@@ -41,14 +41,6 @@ std::string Method::toString() const noexcept {
 	return "GET";
 }
 
-Method::operator std::string () const noexcept {
-	return this->toString();
-}
-
-Method::operator Methods () const noexcept {
-	return this->value;
-}
-
 void Method::apply(const std::string& method) {
 
 	auto knownMethod = httpKnownMethods.find(Strings::toUpperCase(Strings::trim(method)));
@@ -58,4 +50,21 @@ void Method::apply(const std::string& method) {
 	}
 
 	this->value = knownMethod->second;
+}
+
+Method::operator std::string () const noexcept {
+	return this->toString();
+}
+
+Method::operator Methods () const noexcept {
+	return this->value;
+}
+
+bool Method::operator==(const std::string& other) const noexcept {
+	return this->toString() == other;
+}
+
+bool Method::operator==(const char* other) const noexcept {
+	if (!other) return false;
+	return this->toString() == other;
 }
