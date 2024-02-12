@@ -13,7 +13,8 @@ void Server::connectionHandler(
 
 	const auto contextID = Crypto::ShortID().toString();
 	const auto& conninfo = conn.info();
-	auto transCtx = TransportContextV1(conn, config.transport);
+	auto handlerMode = HandlerMode::HTTP;
+	auto transport = TransportContextV1(conn, config.transport);
 	std::optional<std::exception> transportError;
 
 	if (config.loglevel.transportEvents) {
@@ -27,13 +28,14 @@ void Server::connectionHandler(
 
 	try {
 
-		while (transCtx.awaitNext()) {
+		while (transport.awaitNext()) {
 			
-			const auto next = transCtx.nextRequest();
+			const auto next = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
 
 			const std::function<SSE::Writer()> upgradeCallbackSSE = [&]() {
-				return SSE::Writer(transCtx, next);
+				handlerMode = HandlerMode::SSE;
+				return SSE::Writer(transport, next);
 			};
 
 			const RequestContext requestCTX = {
@@ -68,8 +70,10 @@ void Server::connectionHandler(
 				response = Pages::renderErrorPage(500, handlerError.value(), config.errorResponseType);
 			}
 
-			response.headers.set("x-request-id", contextID + '-' + requestID);
-			transCtx.respond(response);
+			if (handlerMode == HandlerMode::HTTP) {
+				response.headers.set("x-request-id", contextID + '-' + requestID);
+				transport.respond(response);
+			}
 
 			if (config.loglevel.requests) {
 				syncout.log({
