@@ -51,6 +51,7 @@ void Server::connectionHandler(
 			);
 
 			transport.respond(errorResponse);
+			transport.close();
 
 		} catch(...) {
 
@@ -124,6 +125,8 @@ void Server::connectionHandler(
 
 			try {
 				functionResponse = handlerCallback(next, requestCTX).response;
+			} catch(const ProtocolError& err) {
+				handleProtocolError(err);
 			} catch(const std::exception& err) {
 				functionResponse = handleFunctionError(err);
 			} catch(...) {
