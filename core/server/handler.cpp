@@ -84,7 +84,7 @@ void Server::connectionHandler(
 		transportError = std::runtime_error("Unknown exception");
 	}
 	
-	if (transportError.has_value() || (config.loglevel.transportEvents || config.loglevel.requests)) {
+	if (transportError.has_value() && (config.loglevel.transportEvents || config.loglevel.requests)) {
 
 		auto transportDisplayID = contextID;
 		if (!config.loglevel.transportEvents) {
