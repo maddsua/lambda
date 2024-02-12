@@ -18,6 +18,9 @@ int main(int argc, char const *argv[]) {
 			syncout.log({ "Message:", nextmsg.text() });
 
 			wsctx.sendMessage({ "Copied that" });
+			wsctx.sendMessage({ "Btw here's a new message" });
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			wsctx.sendMessage({ "And one more" });
 			wsctx.close(Websocket::CloseReason::GoingAway);
 		}
 
