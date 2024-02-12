@@ -71,7 +71,7 @@ void Server::connectionHandler(
 	try {
 
 		while (transport.awaitNext()) {
-			
+
 			const auto next = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
 
