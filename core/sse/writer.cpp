@@ -5,13 +5,12 @@ using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::SSE;
 
-Writer::Writer(HTTP::Transport::TransportContextV1& httpCtx)
-	: m_conn(httpCtx.tcpconn()) {
+Writer::Writer(HTTP::Transport::TransportContextV1& httpCtx, const HTTP::Request initRequest) : m_conn(httpCtx.tcpconn()) {
 
 	httpCtx.flags.autocompress = false;
 	httpCtx.flags.forceContentLength = false;
 
-	const auto hasOrigin = true;	//	to be fixed with transport update
+	const auto originHeader = initRequest.headers.get("origin");
 
 	auto upgradeResponse = HTTP::Response(200, {
 		{ "connection", "keep-alive" },
@@ -20,8 +19,8 @@ Writer::Writer(HTTP::Transport::TransportContextV1& httpCtx)
 		{ "pragma", "no-cache" },
 	});
 
-	if (hasOrigin) {
-		upgradeResponse.headers.set("Access-Control-Allow-Origin", "*");
+	if (originHeader.size()) {
+		upgradeResponse.headers.set("Access-Control-Allow-Origin", originHeader);
 	}
 
 	httpCtx.respond(upgradeResponse);

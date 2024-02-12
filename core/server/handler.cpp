@@ -13,7 +13,7 @@ void Server::connectionHandler(
 
 	const auto contextID = Crypto::ShortID().toString();
 	const auto& conninfo = conn.info();
-	auto connctx = TransportContextV1(conn, config.transport);
+	auto transCtx = TransportContextV1(conn, config.transport);
 	std::optional<std::exception> transportError;
 
 	if (config.loglevel.transportEvents) {
@@ -27,22 +27,27 @@ void Server::connectionHandler(
 
 	try {
 
-		while (connctx.awaitNext()) {
+		while (transCtx.awaitNext()) {
 			
-			const auto next = connctx.nextRequest();
+			const auto next = transCtx.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
+
+			const std::function<SSE::Writer()> upgradeCallbackSSE = [&]() {
+				return SSE::Writer(transCtx, next);
+			};
+
+			const RequestContext requestCTX = {
+				contextID,
+				requestID,
+				conninfo,
+				upgradeCallbackSSE
+			};
 
 			HTTP::Response response;
 			std::optional<std::string> handlerError;
 
 			try {
-
-				response = handlerCallback(next, {
-					contextID,
-					requestID,
-					conninfo
-				});
-
+				response = handlerCallback(next, requestCTX);
 			} catch(const std::exception& e) {
 				handlerError = e.what();
 			} catch(...) {
@@ -64,7 +69,7 @@ void Server::connectionHandler(
 			}
 
 			response.headers.set("x-request-id", contextID + '-' + requestID);
-			connctx.respond(response);
+			transCtx.respond(response);
 
 			if (config.loglevel.requests) {
 				syncout.log({

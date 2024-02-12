@@ -7,17 +7,13 @@ using namespace Lambda::JSON;
 
 int main(int argc, char const *argv[]) {
 
-	auto handler = [&](Lambda::IncomingConnection& conn) {
+	auto handler = [](const Request& req, const Context& context) {
 
-		auto next = conn.nextRequest();
-		if (!next.has_value()) return;
-
-		if (next.value().url.pathname != "/") {
-			conn.respond({ 404, "not found "});
-			return;
+		if (req.url.pathname != "/") {
+			return HTTP::Response(404, "not found ");
 		}
 
-		auto writer = conn.startEventStream();
+		auto writer = context.startEventStream();
 
 		size_t numberOfMessages = 0;
 
@@ -34,6 +30,7 @@ int main(int argc, char const *argv[]) {
 		}
 
 		writer.close();
+		return HTTP::Response();
 	};
 
 	ServerConfig initparams;

@@ -48,7 +48,7 @@ namespace Lambda {
 		const std::string& requestID;
 		const Network::ConnectionInfo& conninfo;
 
-		const std::function<SSE::Writer()> startEventStream;
+		const std::function<SSE::Writer()>& startEventStream;
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
