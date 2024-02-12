@@ -21,7 +21,9 @@ void Server::connectionHandler(
 
 	const auto handleTransportError = [&](const std::exception& error) -> void {
 
-		if (!(config.loglevel.transportEvents || config.loglevel.requests)) return;
+		if (!(config.loglevel.transportEvents || config.loglevel.requests)) {
+			return;
+		}
 
 		syncout.error({
 			"[Transport]",
@@ -34,7 +36,9 @@ void Server::connectionHandler(
 
 	const auto handleProtocolError = [&](const ProtocolError& error) -> void {
 
-		if (!error.respondStatus.has_value() || !transport.ok()) return;
+		if (!error.respondStatus.has_value() || !transport.ok()) {
+			return;
+		}
 
 		try {
 
@@ -48,7 +52,9 @@ void Server::connectionHandler(
 
 		} catch(...) {
 
-			if (!config.loglevel.transportEvents) return;
+			if (!config.loglevel.transportEvents) {
+				return;
+			}
 
 			syncout.error({
 				"[Transport]",
