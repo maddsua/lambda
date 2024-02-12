@@ -1,4 +1,6 @@
 #include "./server_impl.hpp"
+#include "../http/transport.hpp"
+#include "../http/transport_impl.hpp"
 #include "../crypto/crypto.hpp"
 
 using namespace Lambda;

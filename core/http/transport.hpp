@@ -42,33 +42,27 @@ namespace Lambda::HTTP::Transport {
 		bool autocompress = true;
 	};
 
-	class TransportContextV1 {
-		private:
-			Network::TCP::Connection& m_conn;
-			const TransportOptions& m_topts;
-
-			std::vector<uint8_t> m_readbuff;
-			bool m_keepalive = false;
-			ContentEncodings m_compress = ContentEncodings::None;
-			HTTP::Request* m_next = nullptr;
-
+	class TransportContext {
 		public:
-			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
+			TransportContext() = default;
+			TransportContext(TransportContext&& other) = delete;
+			TransportContext(const TransportContext& other) = delete;
+			virtual ~TransportContext() = default;
 
-			TransportContextV1(const TransportContextV1& other) = delete;
-			TransportContextV1& operator=(const TransportContextV1& other) = delete;
+			TransportContext& operator=(const TransportContext& other) = delete;
+			TransportContext& operator=(TransportContext&& other) = delete;
 
-			Network::TCP::Connection& tcpconn() const noexcept;
-			const Network::ConnectionInfo& conninfo() const noexcept;
-			const TransportOptions& options() const noexcept;
-			const ContentEncodings& getEnconding() const noexcept;
-			bool ok() const noexcept;
+			virtual Network::TCP::Connection& tcpconn() const noexcept = 0;
+			virtual const Network::ConnectionInfo& conninfo() const noexcept = 0;
+			virtual const TransportOptions& options() const noexcept = 0;
+			virtual const ContentEncodings& getEnconding() const noexcept = 0;
+			virtual bool ok() const noexcept = 0;
 
-			bool awaitNext();
-			HTTP::Request nextRequest();
-			void respond(const HTTP::Response& response);
-			void reset() noexcept;
-			bool hasPartialData() const noexcept;
+			virtual bool awaitNext() = 0;
+			virtual HTTP::Request nextRequest() = 0;
+			virtual void respond(const HTTP::Response& response) = 0;
+			virtual void reset() noexcept = 0;
+			virtual bool hasPartialData() const noexcept = 0;
 
 			TransportFlags flags;
 	};

@@ -1,4 +1,5 @@
 #include "./transport.hpp"
+#include "./transport_impl.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../compression/compression.hpp"
 #include "../network/network.hpp"

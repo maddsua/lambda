@@ -22,7 +22,7 @@ static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 //	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t sockRcvTimeout = 100;
 
-WebsocketContext::WebsocketContext(HTTP::Transport::TransportContextV1& httpCtx, const HTTP::Request initRequest)
+WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& httpCtx, const HTTP::Request initRequest)
 	: conn(httpCtx.tcpconn()), topts(httpCtx.options()) {
 
 	auto headerUpgrade = Strings::toLowerCase(initRequest.headers.get("Upgrade"));

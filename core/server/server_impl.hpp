@@ -2,7 +2,6 @@
 #define __LIB_MADDSUA_LAMBDA_CORE_SERVER_IMPL__
 
 #include "./server.hpp"
-#include "../http/transport.hpp"
 #include "../network/tcp/connection.hpp"
 
 #include <string>
