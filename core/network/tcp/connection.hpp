@@ -9,6 +9,10 @@
 
 namespace Lambda::Network::TCP {
 
+	struct ConnectionFlags {
+		bool closeOnTimeout = true;
+	};
+
 	class Connection {
 		protected:
 			SockHandle hSocket;
@@ -39,9 +43,7 @@ namespace Lambda::Network::TCP {
 			static const uint32_t TimeoutMs = 15000;
 			static const uint32_t ReadChunkSize = 2048;
 
-			struct {
-				bool closeOnTimeout = true;
-			} flags;
+			ConnectionFlags flags;
 	};
 };
 
