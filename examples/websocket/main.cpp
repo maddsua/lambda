@@ -7,9 +7,9 @@ using namespace Lambda::JSON;
 
 int main(int argc, char const *argv[]) {
 
-	auto handler = [&](Lambda::IncomingConnection& conn) {
+	auto handler = [&](const Request& req, const Context& context) {
 
-		auto wsctx = conn.upgrateToWebsocket();
+		auto wsctx = context.upgrateToWebsocket();
 
 		while (wsctx.awaitMessage()) {
 
@@ -20,6 +20,8 @@ int main(int argc, char const *argv[]) {
 			wsctx.sendMessage({ "Copied that" });
 			wsctx.close(Websocket::CloseReason::GoingAway);
 		}
+
+		return HTTP::Response();
 	};
 
 	ServerConfig initparams;
