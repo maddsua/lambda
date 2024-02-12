@@ -114,7 +114,7 @@ void WebsocketContext::asyncWorker() {
 
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPingResponse = std::chrono::steady_clock::now();
-	auto pingWindow = std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout);
+	const auto pingWindow = std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout);
 
 	while (this->transport.isConnected() && !this->m_stopped) {
 
