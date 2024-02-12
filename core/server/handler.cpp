@@ -1,4 +1,5 @@
 #include "./server_impl.hpp"
+#include "../crypto/crypto.hpp"
 
 using namespace Lambda;
 using namespace Lambda::Websocket;
@@ -9,7 +10,7 @@ using namespace Lambda::HTTP::Transport;
 void Server::connectionHandler(
 	Lambda::Network::TCP::Connection&& conn,
 	const ServeOptions& config,
-	const ServerlessCallback& handlerCallback
+	const RequestCallback& handlerCallback
 ) noexcept {
 
 	const auto contextID = Crypto::ShortID().toString();
