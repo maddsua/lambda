@@ -1,5 +1,5 @@
-#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_INTERNAL__
-#define __LIB_MADDSUA_LAMBDA_CORE_SERVER_INTERNAL__
+#ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_IMPL__
+#define __LIB_MADDSUA_LAMBDA_CORE_SERVER_IMPL__
 
 #include "./server.hpp"
 #include "../http/transport.hpp"
@@ -14,7 +14,7 @@ namespace Lambda::Server {
 		HTTP, WS, SSE
 	};
 
-	void connectionHandler(Lambda::Network::TCP::Connection&& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback);
+	void connectionHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback) noexcept;
 
 	namespace Pages {
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type);
