@@ -63,7 +63,7 @@ const ConnectionInfo& Connection::info() const noexcept {
 	return this->m_info;
 }
 
-bool Connection::active() const noexcept {
+bool Connection::isOpen() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
 }
 

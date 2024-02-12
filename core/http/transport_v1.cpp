@@ -36,7 +36,7 @@ bool TransportContextV1::awaitNext() {
 	}
 
 	auto headerEnded = this->m_readbuff.end();
-	while (this->m_conn.active() && headerEnded == this->m_readbuff.end()) {
+	while (this->m_conn.isOpen() && headerEnded == this->m_readbuff.end()) {
 
 		auto newBytes = this->m_conn.read();
 		if (!newBytes.size()) break;
@@ -278,6 +278,10 @@ void TransportContextV1::respond(const Response& response) {
 
 	this->m_conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
 	if (bodySize) this->m_conn.write(responseBody);
+
+	if (Strings::toLowerCase(responseHeaders.get("connection")) == "close") {
+		this->m_conn.end();
+	}
 }
 
 const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
@@ -297,7 +301,7 @@ const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
 }
 
 bool TransportContextV1::ok() const noexcept {
-	return this->m_conn.active();
+	return this->m_conn.isOpen();
 }
 
 void TransportContextV1::reset() noexcept {
