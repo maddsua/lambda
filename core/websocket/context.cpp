@@ -9,6 +9,8 @@
 #include <cstring>
 
 using namespace Lambda;
+using namespace Lambda::HTTP;
+using namespace Lambda::HTTP::Transport;
 using namespace Lambda::Websocket;
 using namespace Lambda::Websocket::Transport;
 
@@ -29,11 +31,11 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 	auto headerWsKey = initRequest.headers.get("Sec-WebSocket-Key");
 
 	if (headerUpgrade != "websocket" || !headerWsKey.size()) {
-		throw std::runtime_error("Websocket initialization aborted: Invalid connection header");
+		throw ProtocolError("Websocket initialization aborted: Invalid connection header", 400);
 	}
 
 	if (tctx.hasPartialData()) {
-		throw std::runtime_error("Websocket initialization aborted: Connection has unprocessed data");
+		throw ProtocolError("Websocket initialization aborted: Connection has unprocessed data", 400);
 	}
 
 	auto combinedKey = headerWsKey + wsMagicString;
