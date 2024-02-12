@@ -47,68 +47,26 @@ namespace Lambda {
 		const std::string& contextID;
 		const std::string& requestID;
 		const Network::ConnectionInfo& conninfo;
-	};
 
-	struct IncomingConnection {
-		private:
-
-			enum struct ActiveProtocol {
-				HTTP, WS, SSE
-			};
-
-			Network::TCP::Connection& m_conn;
-			const ServeOptions& opts;
-			HTTP::Transport::TransportContextV1 m_tctx;
-			Crypto::ShortID m_ctx_id;
-
-			ActiveProtocol m_proto = ActiveProtocol::HTTP;
-
-		public:
-			IncomingConnection(Network::TCP::Connection& connInit, const ServeOptions& optsInit);
-
-			IncomingConnection(const IncomingConnection& other) = delete;
-			IncomingConnection& operator=(const IncomingConnection& other) = delete;
-
-			const Crypto::ShortID& contextID() const noexcept;
-			Network::TCP::Connection& tcpconn() const noexcept;
-			const Network::ConnectionInfo& conninfo() const noexcept;
-
-			std::optional<HTTP::Request> nextRequest();
-			void respond(const HTTP::Response& response);
-
-			Websocket::WebsocketContext upgrateToWebsocket();
-			Websocket::WebsocketContext upgrateToWebsocket(const HTTP::Request& initialRequest);
-			
-			SSE::Writer startEventStream();
+		const std::function<SSE::Writer()> startEventStream;
 	};
 
 	typedef std::function<HTTP::Response(const HTTP::Request&, const RequestContext&)> ServerlessCallback;
-	typedef std::function<void(IncomingConnection&)> ConnectionCallback;
 
 	class LambdaInstance {
 		private:
 
-			enum struct HandlerType {
-				Undefined, Connection, Serverless
-			};
-
 			Network::TCP::ListenSocket listener;
-
 			ServerlessCallback httpHandler;
-			ConnectionCallback tcpHandler;
-
 			ServerConfig config;
-			HandlerType handlerType = HandlerType::Undefined;
 
 			std::future<void> watchdogWorker;
 			bool m_terminated = false;
 
-			void start();
 			void terminate();
 
 		public:
 			LambdaInstance(ServerlessCallback handlerCallback, ServerConfig init);
-			LambdaInstance(ConnectionCallback handlerCallback, ServerConfig init);
 			~LambdaInstance();
 
 			void shutdownn();

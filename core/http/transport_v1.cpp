@@ -25,7 +25,7 @@ const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
 	return this->m_conn.info();
 }
 
-Network::TCP::Connection& TransportContextV1::getconn() noexcept {
+Network::TCP::Connection& TransportContextV1::tcpconn() const noexcept {
 	return this->m_conn;
 }
 
@@ -38,7 +38,11 @@ TransportContextV1::TransportContextV1(
 	const TransportOptions& optsInit
 ) : m_conn(connInit), m_topts(optsInit) {}
 
-std::optional<HTTP::Request> TransportContextV1::nextRequest() {
+bool TransportContextV1::awaitNext() {
+
+	if (this->m_next != nullptr) {
+		throw Lambda::Error("awaitNext() cannot receive more requests until the previous one is processed");
+	}
 
 	auto headerEnded = this->m_readbuff.end();
 	while (this->m_conn.active() && headerEnded == this->m_readbuff.end()) {
@@ -55,7 +59,7 @@ std::optional<HTTP::Request> TransportContextV1::nextRequest() {
 	}
 
 	if (!this->m_readbuff.size() || headerEnded == this->m_readbuff.end()) {
-		return std::nullopt;
+		return false;
 	}
 
 	auto headerFields = Strings::split(std::string(this->m_readbuff.begin(), headerEnded), "\r\n");
@@ -184,7 +188,22 @@ std::optional<HTTP::Request> TransportContextV1::nextRequest() {
 		this->m_readbuff.erase(this->m_readbuff.begin(), this->m_readbuff.begin() + bodySize);
 	}
 
-	return next;
+	this->m_next = new HTTP::Request(std::move(next));
+	return true;
+}
+
+HTTP::Request TransportContextV1::nextRequest() {
+
+	if (this->m_next == nullptr) {
+		throw Lambda::Error("nextRequest() canceled: no requests pending");
+	}
+
+	const auto tempNext = std::move(*this->m_next);
+
+	delete this->m_next;
+	this->m_next = nullptr;
+
+	return tempNext;
 }
 
 void TransportContextV1::respond(const Response& response) {

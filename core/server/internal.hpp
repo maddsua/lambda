@@ -2,12 +2,15 @@
 #define __LIB_MADDSUA_LAMBDA_CORE_SERVER_INTERNAL__
 
 #include "./server.hpp"
+#include "../http/transport.hpp"
 #include "../network/tcp/connection.hpp"
 
 #include <string>
 #include <map>
 
 namespace Lambda::Server {
+
+	void connectionHandler(Lambda::Network::TCP::Connection&& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback);
 
 	namespace Handlers {
 		void serverlessHandler(IncomingConnection& connctx, const ServeOptions& config, const ServerlessCallback& handlerCallback);

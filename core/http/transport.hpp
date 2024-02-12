@@ -52,9 +52,11 @@ namespace Lambda::HTTP::Transport {
 		private:
 			Network::TCP::Connection& m_conn;
 			const TransportOptions& m_topts;
+
 			std::vector<uint8_t> m_readbuff;
 			bool m_keepalive = false;
 			ContentEncodings m_compress = ContentEncodings::None;
+			HTTP::Request* m_next = nullptr;
 
 		public:
 			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
@@ -62,11 +64,12 @@ namespace Lambda::HTTP::Transport {
 			TransportContextV1(const TransportContextV1& other) = delete;
 			TransportContextV1& operator=(const TransportContextV1& other) = delete;
 
+			Network::TCP::Connection& tcpconn() const noexcept;
 			const Network::ConnectionInfo& conninfo() const noexcept;
-			Network::TCP::Connection& getconn() noexcept;
 			const ContentEncodings& getEnconding() const noexcept;
 
-			std::optional<HTTP::Request> nextRequest();
+			bool awaitNext();
+			HTTP::Request nextRequest();
 			void respond(const HTTP::Response& response);
 			void reset() noexcept;
 			bool hasPartialData() const noexcept;
