@@ -6,7 +6,7 @@ using namespace Lambda::Network;
 using namespace Lambda::SSE;
 
 Writer::Writer(HTTP::Transport::TransportContextV1& httpCtx)
-	: m_conn(httpCtx.getconn()) {
+	: m_conn(httpCtx.tcpconn()) {
 
 	httpCtx.flags.autocompress = false;
 	httpCtx.flags.forceContentLength = false;
