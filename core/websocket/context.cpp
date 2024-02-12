@@ -22,8 +22,8 @@ static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 //	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t sockRcvTimeout = 100;
 
-WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& httpCtx, const HTTP::Request initRequest)
-	: conn(httpCtx.tcpconn()), topts(httpCtx.options()) {
+WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest)
+	: conn(tctx.tcpconn()), topts(tctx.options()) {
 
 	auto headerUpgrade = Strings::toLowerCase(initRequest.headers.get("Upgrade"));
 	auto headerWsKey = initRequest.headers.get("Sec-WebSocket-Key");
@@ -32,7 +32,7 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& httpCtx, c
 		throw std::runtime_error("Websocket initialization aborted: Invalid connection header");
 	}
 
-	if (httpCtx.hasPartialData()) {
+	if (tctx.hasPartialData()) {
 		throw std::runtime_error("Websocket initialization aborted: Connection has unprocessed data");
 	}
 
@@ -46,8 +46,8 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& httpCtx, c
 		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHash) }
 	});
 
-	httpCtx.respond(handshakeReponse);
-	httpCtx.reset();
+	tctx.respond(handshakeReponse);
+	tctx.reset();
 
 	this->conn.flags.closeOnTimeout = false;
 	this->conn.setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);

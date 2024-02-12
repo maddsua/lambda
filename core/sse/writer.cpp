@@ -5,10 +5,10 @@ using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::SSE;
 
-Writer::Writer(HTTP::Transport::TransportContext& httpCtx, const HTTP::Request initRequest) : m_conn(httpCtx.tcpconn()) {
+Writer::Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest) : m_conn(tctx.tcpconn()) {
 
-	httpCtx.flags.autocompress = false;
-	httpCtx.flags.forceContentLength = false;
+	tctx.flags.autocompress = false;
+	tctx.flags.forceContentLength = false;
 
 	const auto originHeader = initRequest.headers.get("origin");
 
@@ -23,7 +23,7 @@ Writer::Writer(HTTP::Transport::TransportContext& httpCtx, const HTTP::Request i
 		upgradeResponse.headers.set("Access-Control-Allow-Origin", originHeader);
 	}
 
-	httpCtx.respond(upgradeResponse);
+	tctx.respond(upgradeResponse);
 }
 
 void Writer::push(const EventMessage& event) {
