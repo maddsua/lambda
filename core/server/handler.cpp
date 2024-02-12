@@ -93,8 +93,8 @@ void Server::connectionHandler(
 
 				if (config.loglevel.requests) {
 					syncout.error({
-						'[' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ']',
-						requestID,
+						'[' + requestID + ']',
+						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
 						"crashed:",
 						message
 					});
@@ -131,8 +131,8 @@ void Server::connectionHandler(
 
 			if (config.loglevel.requests) {
 				syncout.log({
-					'[' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ']',
-					requestID,
+					'[' + requestID + ']',
+					'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
 					next.method.toString(),
 					next.url.pathname,
 					"-->",
