@@ -10,7 +10,6 @@ namespace Lambda {
 
 	class LambdaInstance {
 		private:
-
 			Network::TCP::ListenSocket listener;
 			ServerConfig config;
 			RequestCallback httpHandler;

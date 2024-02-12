@@ -85,8 +85,9 @@ void Server::connectionHandler(
 
 			if (config.loglevel.requests) {
 				syncout.log({
+					'[' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ']',
 					"[Serverless]",
-					(config.loglevel.transportEvents ? contextID + '-' : conninfo.remoteAddr.hostname + ' ') + requestID,
+					requestID,
 					next.method.toString(),
 					next.url.pathname,
 					"-->",
@@ -121,18 +122,12 @@ void Server::connectionHandler(
 	} catch(...) {
 		transportError = std::runtime_error("Unknown exception");
 	}
-	
+
 	if (transportError.has_value() && (config.loglevel.transportEvents || config.loglevel.requests)) {
-
-		auto transportDisplayID = contextID;
-		if (!config.loglevel.transportEvents) {
-			transportDisplayID += '(' + conninfo.remoteAddr.hostname + 
-				':' + std::to_string(conninfo.remoteAddr.port) + ')';
-		}
-
 		syncout.error({
 			"[Transport]",
-			transportDisplayID,
+			contextID,
+			'(' + conninfo.remoteAddr.hostname + ')',
 			"terminated:",
 			transportError.value().what()
 		});
@@ -141,7 +136,8 @@ void Server::connectionHandler(
 		syncout.log({
 			"[Transport]",
 			contextID,
-			"closed ok"
+			'(' + conninfo.remoteAddr.hostname + ')',
+			"disconnected"
 		});
 	}
 }
