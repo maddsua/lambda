@@ -10,6 +10,10 @@
 
 namespace Lambda::Server {
 
+	enum struct HandlerMode {
+		HTTP, WS, SSE
+	};
+
 	void connectionHandler(Lambda::Network::TCP::Connection&& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback);
 
 	namespace Pages {
