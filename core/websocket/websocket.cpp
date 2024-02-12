@@ -91,12 +91,6 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 	closeMessageBuff.insert(closeMessageBuff.end(), closeReasonBuff.begin(), closeReasonBuff.end());	
 
 	this->transport.writeRaw(closeMessageBuff);
-
-	if (this->m_reader.valid()) {
-		try { this->m_reader.get(); }
-			catch (...) {}
-	}
-
 	this->transport.close();
 }
 
