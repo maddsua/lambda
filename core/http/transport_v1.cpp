@@ -1,6 +1,7 @@
 #include "./transport.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../compression/compression.hpp"
+#include "../network/network.hpp"
 
 #include <set>
 #include <algorithm>
@@ -8,6 +9,7 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
+using namespace Lambda::Network;
 
 static const std::string patternEndHeader = "\r\n\r\n";
 
@@ -186,7 +188,7 @@ bool TransportContextV1::awaitNext() {
 	
 			auto temp = this->m_conn.read(bodyRemaining);
 			if (temp.size() != bodyRemaining) {
-				throw ProtocolError("Incomplete request body");
+				throw NetworkError("Incomplete request body");
 			}
 
 			this->m_readbuff.insert(this->m_readbuff.end(), temp.begin(), temp.end());
