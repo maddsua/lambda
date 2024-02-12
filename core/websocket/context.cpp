@@ -1,6 +1,7 @@
 #include "./websocket.hpp"
 #include "./transport.hpp"
 #include "../http/transport.hpp"
+#include "../server/server_impl.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../crypto/crypto.hpp"
 #include "../encoding/encoding.hpp"
@@ -13,6 +14,7 @@ using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 using namespace Lambda::Websocket;
 using namespace Lambda::Websocket::Transport;
+using namespace Lambda::Server::Connections;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -31,11 +33,11 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 	auto headerWsKey = initRequest.headers.get("Sec-WebSocket-Key");
 
 	if (headerUpgrade != "websocket" || !headerWsKey.size()) {
-		throw ProtocolError("Websocket initialization aborted: Invalid connection header", 400);
+		throw UpgradeError("Websocket initialization aborted: Invalid connection header", 400);
 	}
 
 	if (tctx.hasPartialData()) {
-		throw ProtocolError("Websocket initialization aborted: Connection has unprocessed data", 400);
+		throw UpgradeError("Websocket initialization aborted: Connection has unprocessed data", 400);
 	}
 
 	auto combinedKey = headerWsKey + wsMagicString;
