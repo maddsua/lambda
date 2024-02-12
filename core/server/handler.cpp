@@ -32,7 +32,7 @@ void Server::connectionHandler(
 		});
 	};
 
-	const auto handleProtocolError = [&](const ProtocolError& error) {
+	const auto handleProtocolError = [&](const ProtocolError& error) -> void {
 
 		if (!error.respondStatus.has_value() || !transport.ok()) return;
 
