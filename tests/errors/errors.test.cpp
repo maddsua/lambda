@@ -6,7 +6,7 @@
 int main(int argc, char const *argv[]) {
 
 	for (size_t i = 0; i < 25; i++) {
-		auto errorMessage = Lambda::OS_Error(i).toString();
+		auto errorMessage = Lambda::OS_Error(i).message();
 		if (!errorMessage.size()) throw std::runtime_error("empty error message");
 
 		for (auto c : errorMessage) {
