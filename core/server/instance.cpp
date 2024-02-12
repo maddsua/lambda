@@ -9,7 +9,6 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
-using namespace Lambda::Server::Handlers;
 
 LambdaInstance::LambdaInstance(ServerlessCallback handlerCallback, ServerConfig init) :
 	listener({ init.service.fastPortReuse, init.service.port, init.service.connectionTimeouts }),

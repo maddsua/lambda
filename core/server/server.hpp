@@ -57,8 +57,8 @@ namespace Lambda {
 		private:
 
 			Network::TCP::ListenSocket listener;
-			ServerlessCallback httpHandler;
 			ServerConfig config;
+			ServerlessCallback httpHandler;
 
 			std::future<void> watchdogWorker;
 			bool m_terminated = false;

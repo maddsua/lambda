@@ -12,11 +12,6 @@ namespace Lambda::Server {
 
 	void connectionHandler(Lambda::Network::TCP::Connection&& conn, const ServeOptions& config, const ServerlessCallback& handlerCallback);
 
-	namespace Handlers {
-		void serverlessHandler(IncomingConnection& connctx, const ServeOptions& config, const ServerlessCallback& handlerCallback);
-		void streamHandler(IncomingConnection& connctx, const ServeOptions& config, const ConnectionCallback& handlerCallback);
-	};
-
 	namespace Pages {
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type);
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message);
