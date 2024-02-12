@@ -27,7 +27,7 @@ Writer::Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Request init
 
 void Writer::push(const EventMessage& event) {
 
-	if (!this->transport.ok()) {
+	if (!this->transport.isConnected()) {
 		throw Lambda::Error("SSE listener disconnected");
 	}
 
@@ -69,7 +69,7 @@ void Writer::push(const EventMessage& event) {
 }
 
 bool Writer::connected() const noexcept {
-	return this->transport.ok();
+	return this->transport.isConnected();
 }
 
 void Writer::close() {

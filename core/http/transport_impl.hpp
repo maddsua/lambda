@@ -29,7 +29,7 @@ namespace Lambda::HTTP::Transport {
 			const Network::ConnectionInfo& conninfo() const noexcept;
 			const TransportOptions& options() const noexcept;
 			const ContentEncodings& getEnconding() const noexcept;
-			bool ok() const noexcept;
+			bool isConnected() const noexcept;
 
 			bool awaitNext();
 			HTTP::Request nextRequest();

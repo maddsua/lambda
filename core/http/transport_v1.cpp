@@ -300,7 +300,7 @@ const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
 	return this->m_compress;
 }
 
-bool TransportContextV1::ok() const noexcept {
+bool TransportContextV1::isConnected() const noexcept {
 	return this->m_conn.isOpen();
 }
 

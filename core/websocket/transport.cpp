@@ -116,7 +116,7 @@ void WebsocketContext::asyncWorker() {
 	auto lastPingResponse = std::chrono::steady_clock::now();
 	auto pingWindow = std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout);
 
-	while (this->transport.ok() && !this->m_stopped) {
+	while (this->transport.isConnected() && !this->m_stopped) {
 
 		//	send ping or terminate websocket if there is no response
 		if ((lastPing - lastPingResponse) > pingWindow) {

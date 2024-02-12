@@ -39,7 +39,7 @@ void Server::connectionHandler(
 
 	const auto handleProtocolError = [&](const ProtocolError& error) -> void {
 
-		if (!error.respondStatus.has_value() || !transport.ok()) {
+		if (!error.respondStatus.has_value() || !transport.isConnected()) {
 			return;
 		}
 
@@ -80,7 +80,7 @@ void Server::connectionHandler(
 
 	try {
 
-		while (transport.awaitNext()) {
+		while (transport.isConnected() && transport.awaitNext()) {
 
 			const auto next = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();

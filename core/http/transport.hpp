@@ -56,7 +56,7 @@ namespace Lambda::HTTP::Transport {
 			virtual const Network::ConnectionInfo& conninfo() const noexcept = 0;
 			virtual const TransportOptions& options() const noexcept = 0;
 			virtual const ContentEncodings& getEnconding() const noexcept = 0;
-			virtual bool ok() const noexcept = 0;
+			virtual bool isConnected() const noexcept = 0;
 
 			virtual bool awaitNext() = 0;
 			virtual HTTP::Request nextRequest() = 0;
