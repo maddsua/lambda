@@ -23,20 +23,14 @@ namespace Lambda::HTTP::Transport {
 		None, Brotli, Gzip, Deflate,
 	};
 
+	/**
+	 * Protocol error indicated an error within HTTP protocol but it may not be linked to any network errors
+	 * and since that we may want to respond to it with an error page.
+	 * 
+	 * An example protocol error would be a request payload that is too large.
+	*/
 	class ProtocolError : public Lambda::Error {
 		public:
-
-			/**
-			 * Originally this class had a variable to hold required action (drop request or respond with an error),
-			 * but it was replaced with this optional as they provide the same logic and it doesn't really make sence
-			 * to keep them both.
-			 * 
-			 * Side note, as of version 2 this error is only needed to indicate a request that is too large,
-			 * for other errors like malformed headers we can just drop the connection.
-			 * 
-			 * So if you want to check if it's an error that we may want to
-			 * handle with returning an error page  - check this optional for having a value
-			*/
 			const std::optional<HTTP::Status> respondStatus;
 
 			ProtocolError(const std::string& message) : Error(message) {}
