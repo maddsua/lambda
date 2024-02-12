@@ -48,7 +48,7 @@ void Server::connectionHandler(
 				"[Transport]",
 				"Failed to respond to protocol error in",
 				contextID,
-				"(network error)"
+				"(connection dropped)"
 			});
 		}
 	};
@@ -87,22 +87,25 @@ void Server::connectionHandler(
 				upgradeCallbackWS,
 			};
 
-			std::optional<HTTP::Response> functionResponse;
+			typedef std::optional<HTTP::Response> FunctionResponse;
+			FunctionResponse functionResponse;
 
-			const auto handleHandlerException = [&](const char* message) {
+			const auto handleFunctionError = [&](const std::exception& message) -> FunctionResponse {
 
 				if (config.loglevel.requests) {
 					syncout.error({
 						'[' + requestID + ']',
 						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
 						"crashed:",
-						message
+						message.what()
 					});
 				}
 
-				if (handlerMode == HandlerMode::HTTP) {
-					functionResponse = Pages::renderErrorPage(500, message, config.errorResponseType);
+				if (handlerMode != HandlerMode::HTTP) {
+					return std::nullopt;
 				}
+
+				return Pages::renderErrorPage(500, message.what(), config.errorResponseType);
 			};
 
 			try {
@@ -112,10 +115,10 @@ void Server::connectionHandler(
 					functionResponse = std::move(tempResponse.response.value());
 				}
 
-			} catch(const std::exception& e) {
-				handleHandlerException(e.what());
+			} catch(const std::exception& err) {
+				functionResponse = handleFunctionError(err);
 			} catch(...) {
-				handleHandlerException("Unexpected handler exception");
+				functionResponse = handleFunctionError(std::runtime_error("Unexpected handler exception"));
 			}
 
 			if (handlerMode == HandlerMode::HTTP) {
@@ -136,7 +139,7 @@ void Server::connectionHandler(
 					next.method.toString(),
 					next.url.pathname,
 					"-->",
-					functionResponse.value().status.code()
+					functionResponse.has_value() ? functionResponse.value().status.code() : 101
 				});
 			}
 		}
