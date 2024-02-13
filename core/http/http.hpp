@@ -162,6 +162,7 @@ namespace Lambda::HTTP {
 			operator std::string() const noexcept;
 			operator Methods() const noexcept;
 
+			bool operator==(const Method& other) const noexcept;
 			bool operator==(const std::string& other) const noexcept;
 			bool operator==(const char* other) const noexcept;
 
