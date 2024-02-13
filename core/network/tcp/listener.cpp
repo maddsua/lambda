@@ -123,7 +123,7 @@ void ListenSocket::stop() noexcept {
 
 	if (this->hSocket == INVALID_SOCKET) return;
 
-	auto tempHandle = this->hSocket;
+	const auto tempHandle = this->hSocket;
 	this->hSocket = INVALID_SOCKET;
 
 	shutdown(tempHandle, SD_BOTH);
