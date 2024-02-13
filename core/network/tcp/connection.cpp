@@ -1,7 +1,6 @@
 #include "./connection.hpp"
 #include "../sysnetw.hpp"
 
-#include <algorithm>
 #include <set>
 
 using namespace Lambda::Network;
