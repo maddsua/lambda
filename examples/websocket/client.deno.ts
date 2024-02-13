@@ -5,9 +5,9 @@ exampleSocket.onopen = () => {
 	console.log("Connected");
 	exampleSocket.send("Yo hi there!");
 
-	/*setTimeout(() => {
+	setTimeout(() => {
 		exampleSocket.send("Yo hi again!");
-	}, 150);*/
+	}, 250);
 };
 
 exampleSocket.onmessage = (msg) => {
