@@ -16,11 +16,11 @@ void Server::connectionHandler(
 	const RequestCallback& handlerCallback
 ) noexcept {
 
-	const auto contextID = Crypto::ShortID().toString();
-	const auto& conninfo = conn.info();
-
 	auto handlerMode = HandlerMode::HTTP;
 	auto transport = TransportContextV1(conn, config.transport);
+	
+	const auto& contextID = transport.contextID();
+	const auto& conninfo = conn.info();
 
 	const auto handleTransportError = [&](const std::exception& error) -> void {
 
@@ -71,7 +71,7 @@ void Server::connectionHandler(
 		while (transport.isConnected() && handlerMode == HandlerMode::HTTP && transport.awaitNext()) {
 
 			const auto request = transport.nextRequest();
-			const auto requestID = Crypto::ShortID().toString();
+			const auto& requestID = transport.nextID();
 
 			const auto logRequestPrefix = '[' + requestID + "] (" + 
 				(config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')';
@@ -165,7 +165,6 @@ void Server::connectionHandler(
 				}
 
 				auto& response = functionResponse.value();
-				response.headers.set("x-request-id", contextID + '-' + requestID);
 				transport.respond(response);
 
 				if (config.loglevel.requests) {

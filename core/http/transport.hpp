@@ -51,6 +51,9 @@ namespace Lambda::HTTP::Transport {
 			TransportContext& operator=(const TransportContext& other) = delete;
 			TransportContext& operator=(TransportContext&& other) = delete;
 
+			virtual const std::string& contextID() const noexcept = 0;
+			virtual const std::string& nextID() const noexcept = 0;
+
 			virtual Network::TCP::Connection& tcpconn() const noexcept = 0;
 			virtual const Network::ConnectionInfo& conninfo() const noexcept = 0;
 			virtual const TransportOptions& options() const noexcept = 0;

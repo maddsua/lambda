@@ -196,6 +196,7 @@ bool TransportContextV1::awaitNext() {
 	}
 
 	this->m_next = new HTTP::Request(std::move(next));
+	this->m_next_id.update();
 	return true;
 }
 
@@ -280,6 +281,7 @@ void TransportContextV1::respond(const Response& response) {
 
 	responseHeaders.set("date", Date().toUTCString());
 	responseHeaders.set("server", "maddsua/lambda");
+	responseHeaders.set("x-request-id", this->m_id.toString() + '-' + this->m_next_id.toString());
 
 	//	set connection header to acknowledge keep-alive mode
 	const auto responseConnectionHeader = responseHeaders.get("connection");
@@ -330,6 +332,14 @@ void TransportContextV1::respond(const Response& response) {
 	if (this->m_keepalive == KeepAliveStatus::Close) {
 		this->m_conn.end();
 	}
+}
+
+const std::string& TransportContextV1::contextID() const noexcept {
+	return this->m_id.toString();
+}
+
+const std::string& TransportContextV1::nextID() const noexcept {
+	return this->m_next_id.toString();
 }
 
 const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
