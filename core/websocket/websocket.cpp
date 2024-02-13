@@ -59,7 +59,7 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 	auto& tcpconn = this->transport.tcpconn();
 
 	tcpconn.flags.closeOnTimeout = false;
-	tcpconn.flags.throwOnDisconnect = false;
+	//tcpconn.flags.throwOnDisconnect = false;
 	tcpconn.setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
 
 	this->m_reader = std::async(&WebsocketContext::asyncWorker, this);
