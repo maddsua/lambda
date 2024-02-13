@@ -85,6 +85,8 @@ void Server::connectionHandler(
 			const auto next = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
 			std::optional<std::string> requestUpgraded;
+			const std::string logRequestPrefix = '[' + requestID + "] (" +
+				(config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')';
 
 			const auto logConnectionUpgrade = [&](const std::string& protocol) {
 
@@ -93,8 +95,7 @@ void Server::connectionHandler(
 				if (!config.loglevel.requests) return;
 
 				syncout.log({
-					'[' + requestID + ']',
-					'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+					logRequestPrefix,
 					next.method.toString(),
 					next.url.pathname,
 					"-->",
@@ -129,8 +130,7 @@ void Server::connectionHandler(
 
 				if (config.loglevel.requests) {
 					syncout.error({
-						'[' + requestID + ']',
-						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+						logRequestPrefix,
 						"Handler crashed:",
 						error.what()
 					});
@@ -149,8 +149,7 @@ void Server::connectionHandler(
 
 				if (config.loglevel.requests) {
 					syncout.error({
-						'[' + requestID + ']',
-						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+						logRequestPrefix,
 						"Protocol switch aborted:",
 						error.what()
 					});
@@ -185,8 +184,7 @@ void Server::connectionHandler(
 
 				if (config.loglevel.requests) {
 					syncout.log({
-						'[' + requestID + ']',
-						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+						logRequestPrefix,
 						next.method.toString(),
 						next.url.pathname,
 						"-->",
@@ -196,8 +194,7 @@ void Server::connectionHandler(
 
 			} else if (config.loglevel.requests && requestUpgraded.has_value()) {
 				syncout.log({
-					'[' + requestID + ']',
-					'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+					logRequestPrefix,
 					"Closed",
 					requestUpgraded.value(),
 				});
