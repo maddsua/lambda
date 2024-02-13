@@ -23,20 +23,13 @@ namespace Lambda::HTTP::Transport {
 		None, Brotli, Gzip, Deflate,
 	};
 
+	/**
+	 * ProtocolError when request cannot be processed but it's not caused by a newtwork error or a dropped connection.
+	 * 
+	 * It could be a request payload that is too large or a malformed request header.
+	*/
 	class ProtocolError : public Lambda::Error {
 		public:
-
-			/**
-			 * Originally this class had a variable to hold required action (drop request or respond with an error),
-			 * but it was replaced with this optional as they provide the same logic and it doesn't really make sence
-			 * to keep them both.
-			 * 
-			 * Side note, as of version 2 this error is only needed to indicate a request that is too large,
-			 * for other errors like malformed headers we can just drop the connection.
-			 * 
-			 * So if you want to check if it's an error that we may want to
-			 * handle with returning an error page  - check this optional for having a value
-			*/
 			const std::optional<HTTP::Status> respondStatus;
 
 			ProtocolError(const std::string& message) : Error(message) {}
@@ -48,28 +41,33 @@ namespace Lambda::HTTP::Transport {
 		bool autocompress = true;
 	};
 
-	class TransportContextV1 {
-		private:
-			Network::TCP::Connection& m_conn;
-			const TransportOptions& m_topts;
-			std::vector<uint8_t> m_readbuff;
-			bool m_keepalive = false;
-			ContentEncodings m_compress = ContentEncodings::None;
-
+	class TransportContext {
 		public:
-			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
+			TransportContext() = default;
+			TransportContext(TransportContext&& other) = delete;
+			TransportContext(const TransportContext& other) = delete;
+			virtual ~TransportContext() = default;
 
-			TransportContextV1(const TransportContextV1& other) = delete;
-			TransportContextV1& operator=(const TransportContextV1& other) = delete;
+			TransportContext& operator=(const TransportContext& other) = delete;
+			TransportContext& operator=(TransportContext&& other) = delete;
 
-			const Network::ConnectionInfo& conninfo() const noexcept;
-			Network::TCP::Connection& getconn() noexcept;
-			const ContentEncodings& getEnconding() const noexcept;
+			virtual Network::TCP::Connection& tcpconn() const noexcept = 0;
+			virtual const Network::ConnectionInfo& conninfo() const noexcept = 0;
+			virtual const TransportOptions& options() const noexcept = 0;
+			virtual const ContentEncodings& getEnconding() const noexcept = 0;
+			virtual bool isConnected() const noexcept = 0;
 
-			std::optional<HTTP::Request> nextRequest();
-			void respond(const HTTP::Response& response);
-			void reset() noexcept;
-			bool hasPartialData() const noexcept;
+			virtual bool awaitNext() = 0;
+			virtual HTTP::Request nextRequest() = 0;
+			virtual void respond(const HTTP::Response& response) = 0;
+
+			virtual std::vector<uint8_t> readRaw() = 0;
+			virtual std::vector<uint8_t> readRaw(size_t expectedSize) = 0;
+			virtual void writeRaw(const std::vector<uint8_t>& data) = 0;
+
+			virtual void reset() noexcept = 0;
+			virtual bool hasPartialData() const noexcept = 0;
+			virtual void close() = 0;
 
 			TransportFlags flags;
 	};

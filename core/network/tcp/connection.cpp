@@ -8,19 +8,11 @@ using namespace Lambda::Network::TCP;
 
 static const std::initializer_list<int> blockingEndedCodes = {
 	#ifdef _WIN32
-		WSAETIMEDOUT
+		WSAETIMEDOUT, WSAEINTR
 	#else
 		EAGAIN, ETIMEDOUT, EWOULDBLOCK
 	#endif
 };
-
-/*static const std::initializer_list<int> clientDisconnectedCodes = {
-	#ifdef _WIN32
-		WSAECONNRESET
-	#else
-		ECONNRESET
-	#endif
-};*/
 
 Connection::Connection(
 	SockHandle handleInit,
@@ -63,21 +55,21 @@ const ConnectionInfo& Connection::info() const noexcept {
 	return this->m_info;
 }
 
-bool Connection::active() const noexcept {
+bool Connection::isOpen() const noexcept {
 	return this->hSocket != INVALID_SOCKET;
 }
 
 void Connection::write(const std::vector<uint8_t>& data) {
 
 	if (this->hSocket == INVALID_SOCKET)
-		throw NetworkError("Cann't write to a closed connection");
+		throw Lambda::Error("Cann't write to a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->m_writeMutex);
 
 	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
-		throw NetworkError(getOSError().message());
+		throw NetworkError("Network error while writing data");
 }
 
 std::vector<uint8_t> Connection::read() {
@@ -87,7 +79,7 @@ std::vector<uint8_t> Connection::read() {
 std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	if (this->hSocket == INVALID_SOCKET)
-		throw NetworkError("Can't read from a closed connection");
+		throw Lambda::Error("Can't read from a closed connection");
 
 	std::lock_guard<std::mutex> lock(this->m_readMutex);
 
@@ -102,22 +94,19 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	} else if (bytesReceived < 0) {
 
-		auto osError = Lambda::getOSError();
+		const auto osError = GetOSErrorCode();
 
 		//	I could use std::any_of here,
 		//	but that syntax sugar seems out of place here
 		for (const auto code : blockingEndedCodes) {
-			
-			if (osError.code != code) continue;
-
-			if (this->flags.closeOnTimeout) {
-				this->end();
+			if (osError == code) {
+				if (this->flags.closeOnTimeout)
+					this->end();
+				return {};
 			}
-
-			return {};
 		}
 
-		throw NetworkError(getOSError().message());
+		throw NetworkError("Network error while reading data", osError);
 	}
 
 	chunk.resize(bytesReceived);
@@ -140,13 +129,13 @@ void Connection::setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction) {
 
 	if (direction != SetTimeoutsDirection::Receive) {
 		if (setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, timeouValuePtr, sizeof(timeoutValue)))
-			throw NetworkError("failed to set socket TX timeout", getOSError());
+			throw NetworkError("Failed to set socket TX timeout");
 		this->m_info.timeouts.send = valueMs;
 	}
 
 	if (direction != SetTimeoutsDirection::Send) {
 		if (setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, timeouValuePtr, sizeof(timeoutValue)))
-			throw NetworkError("failed to set socket RX timeout", getOSError());
+			throw NetworkError("Failed to set socket RX timeout");
 		this->m_info.timeouts.receive = valueMs;
 	}
 }

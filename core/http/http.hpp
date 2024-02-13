@@ -27,13 +27,13 @@ namespace Lambda::HTTP {
 			KVContainer& operator=(const KVContainer& other) noexcept;
 			KVContainer& operator=(KVContainer&& other) noexcept;
 
-			std::string get(const std::string& key) const;
-			bool has(const std::string& key) const;
+			std::string get(const std::string& key) const noexcept;
+			bool has(const std::string& key) const noexcept;
 			void set(const std::string& key, const std::string& value);
 			void del(const std::string& key);
-			std::vector<std::string> getAll(const std::string& key) const;
+			std::vector<std::string> getAll(const std::string& key) const noexcept;
 			void append(const std::string& key, const std::string& value);
-			std::vector<KVpair> entries() const;
+			std::vector<KVpair> entries() const noexcept;
 			size_t size() const noexcept;
 	};
 
@@ -159,8 +159,12 @@ namespace Lambda::HTTP {
 			Method(const std::string& method);
 			Method(const char* method);
 
-			operator std::string () const noexcept;
-			operator Methods () const noexcept;
+			operator std::string() const noexcept;
+			operator Methods() const noexcept;
+
+			bool operator==(const Method& other) const noexcept;
+			bool operator==(const std::string& other) const noexcept;
+			bool operator==(const char* other) const noexcept;
 
 			std::string toString() const noexcept;
 	};

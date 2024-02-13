@@ -37,7 +37,7 @@ KVContainer& KVContainer::operator=(KVContainer&& other) noexcept {
 	return *this;
 }
 
-bool KVContainer::has(const std::string& key) const {
+bool KVContainer::has(const std::string& key) const noexcept {
 	const auto keyNormalized = Strings::toLowerCase(key);
 	return this->m_data.contains(keyNormalized);
 }
@@ -66,21 +66,21 @@ void KVContainer::append(const std::string& key, const std::string& value) {
 	element->second.push_back(value);
 }
 
-std::string KVContainer::get(const std::string& key) const {
+std::string KVContainer::get(const std::string& key) const noexcept {
 	const auto keyNormalized = Strings::toLowerCase(key);
 	const auto element = this->m_data.find(keyNormalized);
 	if (element == this->m_data.end()) return {};
 	return element->second.size() ? element->second.at(0) : "";
 }
 
-std::vector<std::string> KVContainer::getAll(const std::string& key) const {
+std::vector<std::string> KVContainer::getAll(const std::string& key) const noexcept {
 	const auto keyNormalized = Strings::toLowerCase(key);
 	const auto element = this->m_data.find(keyNormalized);
 	if (element == this->m_data.end()) return {};
 	return element->second;
 }
 
-std::vector<KVpair> KVContainer::entries() const {
+std::vector<KVpair> KVContainer::entries() const noexcept {
 
 	std::vector<KVpair> temp;
 

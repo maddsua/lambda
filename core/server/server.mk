@@ -1,6 +1,6 @@
 
 LIB_CORE_SERVER			=	core/server.a
-LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/connection.o core/server/handlers.o core/server/errorpage.o
+LIB_CORE_SERVER_DEPS	=	core/server/instance.o core/server/handler.o core/server/errorpage.o
 
 # server stuff
 $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
@@ -9,11 +9,8 @@ $(LIB_CORE_SERVER): $(LIB_CORE_SERVER_DEPS)
 core/server/instance.o: core/server/instance.cpp
 	g++ -c $(CFLAGS) core/server/instance.cpp -o core/server/instance.o
 
-core/server/connection.o: core/server/connection.cpp
-	g++ -c $(CFLAGS) core/server/connection.cpp -o core/server/connection.o
-
-core/server/handlers.o: core/server/handlers.cpp
-	g++ -c $(CFLAGS) core/server/handlers.cpp -o core/server/handlers.o
+core/server/handler.o: core/server/handler.cpp
+	g++ -c $(CFLAGS) core/server/handler.cpp -o core/server/handler.o
 
 core/server/errorpage.o: core/server/errorpage.cpp
 	g++ -c $(CFLAGS) core/server/errorpage.cpp -o core/server/errorpage.o

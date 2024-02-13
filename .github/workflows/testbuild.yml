@@ -52,8 +52,6 @@ jobs:
         run: make test.zlib
       - name: brotli test
         run: make test.brotli
-      - name: Error messages test
-        run: make test.errors
       - name: VFS test
         run: make test.vfs
       - name: HTTP/Cookie test
@@ -79,8 +77,6 @@ jobs:
         run: make example.servicepage
       - name: Service crash handling example
         run: make example.handler_crash
-      - name: Extended request handler example
-        run: make example.conn_handler
       - name: Reply with client's user agent example
         run: make example.reply
       - name: Hello world example

@@ -19,10 +19,10 @@ namespace Lambda::SSE {
 
 	class Writer {
 		private:
-			Network::TCP::Connection& m_conn;
+			HTTP::Transport::TransportContext& transport;
 
 		public:
-			Writer(HTTP::Transport::TransportContextV1& httpCtx);
+			Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest);
 			void push(const EventMessage& event);
 			bool connected() const noexcept;
 			void close();

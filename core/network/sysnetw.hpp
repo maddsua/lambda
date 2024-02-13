@@ -16,6 +16,8 @@
 		#include <ws2tcpip.h>
 		#include <stdexcept>
 
+		#define GetOSErrorCode() (static_cast<int32_t>(GetLastError()))
+
 		inline bool wsaWakeUp() {
 
 			static bool wsaInitCalled = false;
@@ -24,7 +26,7 @@
 
 			WSADATA initdata;
 			if (WSAStartup(MAKEWORD(2,2), &initdata) != 0)
-				throw std::runtime_error("WSA initialization failed:" + Lambda::getOSError().message());
+				throw std::runtime_error("WSA initialization failed with code " + GetOSErrorCode());
 
 			return true;
 		}
@@ -42,6 +44,7 @@
 
 		#define closesocket(socketHandle) (close(socketHandle))
 		#define SD_BOTH (SHUT_RDWR)
+		#define GetOSErrorCode() (static_cast<int32_t>(errno))
 
 	#endif
 

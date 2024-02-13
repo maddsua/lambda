@@ -10,6 +10,7 @@ static const std::string wsPingString = "ping/lambda/ws";
 //	these values are used for both pings and actual receive timeouts
 static const time_t wsActTimeout = 5000;
 static const unsigned short wsMaxSkippedAttempts = 3;
+static const size_t wsReadChunk = 256;
 
 static const std::initializer_list<OpCode> supportedWsOpcodes = {
 	OpCode::Binary,
@@ -21,8 +22,13 @@ static const std::initializer_list<OpCode> supportedWsOpcodes = {
 };
 
 void WebsocketContext::sendMessage(const Websocket::Message& msg) {
+
+	if (this->m_stopped) {
+		throw Lambda::Error("Cannot send websocket message: connection was closed");
+	}
+
 	auto writeBuff = serializeMessage(msg);
-	this->conn.write(writeBuff);
+	this->transport.writeRaw(writeBuff);
 }
 
 FrameHeader Transport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
@@ -113,9 +119,9 @@ void WebsocketContext::asyncWorker() {
 
 	auto lastPing = std::chrono::steady_clock::now();
 	auto lastPingResponse = std::chrono::steady_clock::now();
-	auto pingWindow = std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout);
+	const auto pingWindow = std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout);
 
-	while (this->conn.active() && !this->m_stopped) {
+	while (this->transport.isConnected() && !this->m_stopped) {
 
 		//	send ping or terminate websocket if there is no response
 		if ((lastPing - lastPingResponse) > pingWindow) {
@@ -131,13 +137,13 @@ void WebsocketContext::asyncWorker() {
 				wsPingString.size()
 			});
 
-			this->conn.write(pingHeader);
-			this->conn.write(std::vector<uint8_t>(wsPingString.begin(), wsPingString.end()));
+			this->transport.writeRaw(pingHeader);
+			this->transport.writeRaw(std::vector<uint8_t>(wsPingString.begin(), wsPingString.end()));
 
 			lastPing = std::chrono::steady_clock::now();
 		}
 
-		auto nextChunk = this->conn.read();
+		const auto nextChunk = this->transport.readRaw(wsReadChunk);
 		if (!nextChunk.size()) continue;
 
 		downloadBuff.insert(downloadBuff.end(), nextChunk.begin(), nextChunk.end());
@@ -145,7 +151,7 @@ void WebsocketContext::asyncWorker() {
 
 		if (downloadBuff.size() > this->topts.maxRequestSize) {
 			this->close(CloseReason::MessageTooBig);
-			throw std::runtime_error("expected frame size too large");
+			throw std::runtime_error("Expected frame size too large");
 		}
 
 		auto frameHeader = parseFrameHeader(downloadBuff);
@@ -163,7 +169,7 @@ void WebsocketContext::asyncWorker() {
 			throw std::runtime_error("received an invalid opcode (" + std::to_string(opcodeInt) + ")");
 		}
 
-		auto frameSize = frameHeader.size + frameHeader.payloadSize;
+		const auto frameSize = frameHeader.size + frameHeader.payloadSize;
 		auto payloadBuff = std::vector<uint8_t>(downloadBuff.begin() + frameHeader.size, downloadBuff.begin() + frameSize);
 
 		if (frameSize > this->topts.maxRequestSize) {
@@ -174,7 +180,7 @@ void WebsocketContext::asyncWorker() {
 		if (frameHeader.payloadSize + frameHeader.payloadSize < downloadBuff.size()) {
 
 			auto expectedSize = frameHeader.payloadSize - payloadBuff.size();
-			auto payloadChunk = this->conn.read(expectedSize);
+			auto payloadChunk = this->transport.readRaw(expectedSize);
 
 			if (payloadChunk.size() < expectedSize) {
 				this->close(CloseReason::ProtocolError);
@@ -204,7 +210,7 @@ void WebsocketContext::asyncWorker() {
 		}
 
 		//	unmask the payload
-		auto& frameMask = frameHeader.mask.value();
+		const auto& frameMask = frameHeader.mask.value();
 		for (size_t i = 0; i < payloadBuff.size(); i++) {
 			payloadBuff[i] ^= frameMask[i % 4];
 		}
@@ -218,15 +224,15 @@ void WebsocketContext::asyncWorker() {
 
 			case OpCode::Ping: {
 
-				auto pongHeader = serializeFrameHeader({
+				const auto pongHeader = serializeFrameHeader({
 					FrameControlBits::BitFinal,
 					OpCode::Pong,
 					static_cast<size_t>(0),
 					frameHeader.payloadSize
 				});
 
-				this->conn.write(pongHeader);
-				this->conn.write(payloadBuff);
+				this->transport.writeRaw(pongHeader);
+				this->transport.writeRaw(payloadBuff);
 
 			} break;
 
@@ -244,7 +250,7 @@ void WebsocketContext::asyncWorker() {
 
 			default: {
 
-				auto isBinary = frameHeader.opcode == OpCode::Continue ?
+				const auto isBinary = frameHeader.opcode == OpCode::Continue ?
 					multipartCtx.value().binary : 
 					frameHeader.opcode == OpCode::Binary;
 

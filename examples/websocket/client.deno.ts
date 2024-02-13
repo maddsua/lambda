@@ -4,10 +4,15 @@ const exampleSocket = new WebSocket("ws://localhost:8180/");
 exampleSocket.onopen = () => {
 	console.log("Connected");
 	exampleSocket.send("Yo hi there!");
+
+	/*setTimeout(() => {
+		exampleSocket.send("Yo hi again!");
+	}, 150);*/
 };
 
 exampleSocket.onmessage = (msg) => {
 	console.log(msg.data);
+	//exampleSocket.send(`Got it! (${msg.data})`);
 };
 
 exampleSocket.onerror = (err) => {

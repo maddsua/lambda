@@ -5,31 +5,29 @@ using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::SSE;
 
-Writer::Writer(HTTP::Transport::TransportContextV1& httpCtx)
-	: m_conn(httpCtx.getconn()) {
+Writer::Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest) : transport(tctx) {
 
-	httpCtx.flags.autocompress = false;
-	httpCtx.flags.forceContentLength = false;
+	tctx.flags.autocompress = false;
+	tctx.flags.forceContentLength = false;
 
-	const auto hasOrigin = true;	//	to be fixed with transport update
+	const auto originHeader = initRequest.headers.get("origin");
 
 	auto upgradeResponse = HTTP::Response(200, {
 		{ "connection", "keep-alive" },
 		{ "cache-control", "no-cache" },
-		{ "content-type", "text/event-stream; charset=UTF-8" },
-		{ "pragma", "no-cache" },
+		{ "content-type", "text/event-stream; charset=UTF-8" }
 	});
 
-	if (hasOrigin) {
-		upgradeResponse.headers.set("Access-Control-Allow-Origin", "*");
+	if (originHeader.size()) {
+		upgradeResponse.headers.set("Access-Control-Allow-Origin", originHeader);
 	}
 
-	httpCtx.respond(upgradeResponse);
+	tctx.respond(upgradeResponse);
 }
 
 void Writer::push(const EventMessage& event) {
 
-	if (!this->m_conn.active()) {
+	if (!this->transport.isConnected()) {
 		throw Lambda::Error("SSE listener disconnected");
 	}
 
@@ -64,17 +62,25 @@ void Writer::push(const EventMessage& event) {
 	serializedMessage.insert(serializedMessage.end(), lineSeparator.begin(), lineSeparator.end());
 
 	try {
-		this->m_conn.write(serializedMessage);
+		this->transport.writeRaw(serializedMessage);
 	} catch(...) {
-		this->m_conn.end();
+		this->transport.tcpconn().end();
 	}
 }
 
 bool Writer::connected() const noexcept {
-	return this->m_conn.active();
+	return this->transport.isConnected();
 }
 
 void Writer::close() {
-	this->push({ "", "close" });
-	this->m_conn.end();
+
+	if (!this->transport.isConnected()) {
+		return;
+	}
+
+	EventMessage closeEvent;
+	closeEvent.event = "close";
+
+	this->push(closeEvent);
+	this->transport.tcpconn().end();
 }

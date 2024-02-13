@@ -35,7 +35,7 @@ namespace Lambda::Network::TCP {
 			void write(const std::vector<uint8_t>& data);
 			const ConnectionInfo& info() const noexcept;
 			void end() noexcept;
-			bool active() const noexcept;
+			bool isOpen() const noexcept;
 
 			void setTimeouts(uint32_t valueMs, SetTimeoutsDirection direction);
 			void setTimeouts(uint32_t valueMs);

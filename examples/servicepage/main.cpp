@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "../../lambda.hpp"
-#include "../../core/server/internal.hpp"
+#include "../../core/server/server_impl.hpp"
 
 using namespace Lambda;
 using namespace Lambda::JSON;

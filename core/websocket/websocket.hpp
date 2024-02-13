@@ -45,7 +45,7 @@ namespace Lambda::Websocket {
 
 	class WebsocketContext {
 		private:
-			Network::TCP::Connection& conn;
+			HTTP::Transport::TransportContext& transport;
 			const HTTP::Transport::TransportOptions& topts;
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
@@ -55,7 +55,7 @@ namespace Lambda::Websocket {
 
 		public:
 
-			WebsocketContext(Network::TCP::Connection& connRef, const HTTP::Transport::TransportOptions& toptsRef);
+			WebsocketContext(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest);
 			~WebsocketContext();
 
 			bool awaitMessage();

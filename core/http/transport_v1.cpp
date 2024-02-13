@@ -1,6 +1,8 @@
 #include "./transport.hpp"
+#include "./transport_impl.hpp"
 #include "../polyfill/polyfill.hpp"
 #include "../compression/compression.hpp"
+#include "../network/network.hpp"
 
 #include <set>
 #include <algorithm>
@@ -8,8 +10,7 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
-
-static const std::string patternEndHeader = "\r\n\r\n";
+using namespace Lambda::Network;
 
 static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Brotli, "br" },
@@ -21,27 +22,25 @@ static const std::initializer_list<std::string> compressibleTypes = {
 	"text", "html", "json", "xml"
 };
 
-const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
-	return this->m_conn.info();
-}
-
-Network::TCP::Connection& TransportContextV1::getconn() noexcept {
-	return this->m_conn;
-}
-
-const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
-	return this->m_compress;
-}
-
 TransportContextV1::TransportContextV1(
 	Network::TCP::Connection& connInit,
 	const TransportOptions& optsInit
 ) : m_conn(connInit), m_topts(optsInit) {}
 
-std::optional<HTTP::Request> TransportContextV1::nextRequest() {
+bool TransportContextV1::awaitNext() {
 
+	if (this->m_keepalive == KeepAliveStatus::Close) {
+		return this->m_next != nullptr;
+	}
+
+	if (this->m_next != nullptr) {
+		return true;
+	}
+
+	static const std::string patternEndHeader = "\r\n\r\n";
 	auto headerEnded = this->m_readbuff.end();
-	while (this->m_conn.active() && headerEnded == this->m_readbuff.end()) {
+
+	while (this->m_conn.isOpen() && headerEnded == this->m_readbuff.end()) {
 
 		auto newBytes = this->m_conn.read();
 		if (!newBytes.size()) break;
@@ -55,7 +54,7 @@ std::optional<HTTP::Request> TransportContextV1::nextRequest() {
 	}
 
 	if (!this->m_readbuff.size() || headerEnded == this->m_readbuff.end()) {
-		return std::nullopt;
+		return false;
 	}
 
 	auto headerFields = Strings::split(std::string(this->m_readbuff.begin(), headerEnded), "\r\n");
@@ -139,9 +138,21 @@ std::optional<HTTP::Request> TransportContextV1::nextRequest() {
 	}
 
 	if (this->m_topts.reuseConnections) {
-		auto connectionHeader = next.headers.get("connection");
-		if (this->m_keepalive) this->m_keepalive = !Strings::includes(connectionHeader, "close");
-			else this->m_keepalive = Strings::includes(connectionHeader, "keep-alive");
+
+		const auto connectionHeader = next.headers.get("connection");
+
+		switch (this->m_keepalive) {
+
+			case KeepAliveStatus::KeepAlive: {
+				if (Strings::includes(connectionHeader, "close"))
+					this->m_keepalive = KeepAliveStatus::Close;
+			} break;
+			
+			default: {
+				this->m_keepalive = Strings::includes(connectionHeader, "keep-alive") ?
+					KeepAliveStatus::KeepAlive : KeepAliveStatus::Close;
+			} break;
+		}
 	}
 
 	auto acceptEncodingHeader = next.headers.get("accept-encoding");
@@ -174,7 +185,7 @@ std::optional<HTTP::Request> TransportContextV1::nextRequest() {
 	
 			auto temp = this->m_conn.read(bodyRemaining);
 			if (temp.size() != bodyRemaining) {
-				throw ProtocolError("Incomplete request body");
+				throw NetworkError("Incomplete request body");
 			}
 
 			this->m_readbuff.insert(this->m_readbuff.end(), temp.begin(), temp.end());
@@ -184,10 +195,29 @@ std::optional<HTTP::Request> TransportContextV1::nextRequest() {
 		this->m_readbuff.erase(this->m_readbuff.begin(), this->m_readbuff.begin() + bodySize);
 	}
 
-	return next;
+	this->m_next = new HTTP::Request(std::move(next));
+	return true;
+}
+
+HTTP::Request TransportContextV1::nextRequest() {
+
+	if (this->m_next == nullptr) {
+		throw Lambda::Error("nextRequest() canceled: no requests pending. Use awaitNext() to read more requests");
+	}
+
+	const auto tempNext = std::move(*this->m_next);
+
+	delete this->m_next;
+	this->m_next = nullptr;
+
+	return tempNext;
 }
 
 void TransportContextV1::respond(const Response& response) {
+
+	if (this->m_next != nullptr) {
+		throw Lambda::Error("respond() canceled: Before responding to a request one must be read with nextRequest() call first");
+	}
 
 	auto applyEncoding = ContentEncodings::None;
 
@@ -252,24 +282,111 @@ void TransportContextV1::respond(const Response& response) {
 	responseHeaders.set("server", "maddsua/lambda");
 
 	//	set connection header to acknowledge keep-alive mode
-	if (this->m_keepalive && !responseHeaders.has("connection")) {
-		responseHeaders.set("connection", "keep-alive");
+	const auto responseConnectionHeader = responseHeaders.get("connection");
+	if (responseConnectionHeader.size()) {
+		this->m_keepalive = Strings::includes(responseConnectionHeader, "close") ?
+			KeepAliveStatus::Close : KeepAliveStatus::KeepAlive;
+	} else {
+		const auto isKeepAlive = this->m_keepalive == KeepAliveStatus::KeepAlive;
+		responseHeaders.set("connection", isKeepAlive ? "keep-alive" : "close");
 	}
 
-	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
+	std::vector<uint8_t> headerBuff;
+	headerBuff.reserve(2048);
+
+	//	push http version
+	static const std::string httpVersion = "HTTP/1.1";
+	headerBuff.insert(headerBuff.end(), httpVersion.begin(), httpVersion.end());
+	headerBuff.push_back(0x20);
+
+	//	push response status code
+	const auto statusCode = std::to_string(response.status.code());
+	headerBuff.insert(headerBuff.end(), statusCode.begin(), statusCode.end());
+	headerBuff.push_back(0x20);
+
+	//	push response status text
+	const auto& statusText = response.status.text();
+	headerBuff.insert(headerBuff.end(), statusText.begin(), statusText.end());
+
+	static const std::string lineSeparator = "\r\n";
+	headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
+
+	//	serialize headers
+	static const std::string headerSeparator = ": ";
 	for (const auto& header : responseHeaders.entries()) {
-		headerBuff += header.first + ": " + header.second + "\r\n";
+		headerBuff.insert(headerBuff.end(), header.first.begin(), header.first.end());
+		headerBuff.insert(headerBuff.end(), headerSeparator.begin(), headerSeparator.end());
+		headerBuff.insert(headerBuff.end(), header.second.begin(), header.second.end());
+		headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
 	}
-	headerBuff += "\r\n";
 
-	this->m_conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
+	//	add that empty line to indicate header end
+	headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
+
+	this->m_conn.write(headerBuff);
 	if (bodySize) this->m_conn.write(responseBody);
+
+	//	close connection if keepalive mode is not in unknown or active state
+	if (this->m_keepalive == KeepAliveStatus::Close) {
+		this->m_conn.end();
+	}
+}
+
+const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
+	return this->m_conn.info();
+}
+
+const TransportOptions& TransportContextV1::options() const noexcept {
+	return this->m_topts;
+}
+
+Network::TCP::Connection& TransportContextV1::tcpconn() const noexcept {
+	return this->m_conn;
+}
+
+const ContentEncodings& TransportContextV1::getEnconding() const noexcept {
+	return this->m_compress;
+}
+
+bool TransportContextV1::isConnected() const noexcept {
+	return this->m_conn.isOpen();
 }
 
 void TransportContextV1::reset() noexcept {
+
 	this->m_readbuff.clear();
+
+	if (this->m_next != nullptr) {
+		delete this->m_next;
+		this->m_next = nullptr;
+	}
 }
 
 bool TransportContextV1::hasPartialData() const noexcept {
 	return this->m_readbuff.size() > 0;
+}
+
+void TransportContextV1::close() {
+	this->m_conn.end();
+}
+
+void TransportContextV1::writeRaw(const std::vector<uint8_t>& data) {
+	this->m_conn.write(data);
+}
+
+std::vector<uint8_t> TransportContextV1::readRaw() {
+	return this->readRaw(Network::TCP::Connection::ReadChunkSize);
+}
+
+std::vector<uint8_t> TransportContextV1::readRaw(size_t expectedSize) {
+
+	auto bufferHave = std::move(this->m_readbuff);
+	this->m_readbuff = {};
+
+	if (bufferHave.size() < expectedSize) {
+		auto bufferFetched = this->m_conn.read(expectedSize - bufferHave.size());
+		bufferHave.insert(bufferHave.end(), bufferFetched.begin(), bufferFetched.end());
+	}
+
+	return bufferHave;
 }
