@@ -16,11 +16,11 @@ void Server::connectionHandler(
 	const RequestCallback& handlerCallback
 ) noexcept {
 
-	const auto contextID = Crypto::ShortID().toString();
-	const auto& conninfo = conn.info();
-
 	auto handlerMode = HandlerMode::HTTP;
 	auto transport = TransportContextV1(conn, config.transport);
+	
+	const auto& contextID = transport.contextID();
+	const auto& conninfo = conn.info();
 
 	const auto handleTransportError = [&](const std::exception& error) -> void {
 
@@ -50,8 +50,12 @@ void Server::connectionHandler(
 		);
 
 		try {
-			transport.respond(errorResponse);
+
+			//	Request ID is generated here.
+			//	It can't give us any info but let's just keep things consistent
+			transport.respond({ errorResponse, Crypto::ShortID() });
 			transport.close();
+
 		} catch(...) {
 			//	I don't think there's a need to handle any errors here
 		}
@@ -71,7 +75,8 @@ void Server::connectionHandler(
 		while (transport.isConnected() && handlerMode == HandlerMode::HTTP && transport.awaitNext()) {
 
 			const auto next = transport.nextRequest();
-			const auto requestID = Crypto::ShortID().toString();
+			const auto& request = next.request;
+			const auto& requestID = next.id.toString();
 
 			const auto logRequestPrefix = '[' + requestID + "] (" + 
 				(config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')';
@@ -82,8 +87,8 @@ void Server::connectionHandler(
 
 				syncout.log({
 					logRequestPrefix,
-					next.method.toString(),
-					next.url.pathname,
+					request.method.toString(),
+					request.url.pathname,
 					"-->",
 					protocol
 				});
@@ -148,13 +153,13 @@ void Server::connectionHandler(
 			};
 
 			try {
-				functionResponse = handlerCallback(next, requestCTX).response;
-			} catch(const UpgradeError& err) {
+				functionResponse = handlerCallback(request, requestCTX).response;
+			} catch (const UpgradeError& err) {
 				handlerMode = HandlerMode::HTTP;
 				functionResponse = handleUpgradeError(err);
-			} catch(const std::exception& err) {
+			} catch (const std::exception& err) {
 				functionResponse = handleFunctionError(err);
-			} catch(...) {
+			} catch (...) {
 				functionResponse = handleFunctionError(std::runtime_error("Unexpected handler exception"));
 			}
 
@@ -165,14 +170,13 @@ void Server::connectionHandler(
 				}
 
 				auto& response = functionResponse.value();
-				response.headers.set("x-request-id", contextID + '-' + requestID);
-				transport.respond(response);
+				transport.respond({ response, next.id });
 
 				if (config.loglevel.requests) {
 					syncout.log({
 						logRequestPrefix,
-						next.method.toString(),
-						next.url.pathname,
+						request.method.toString(),
+						request.url.pathname,
 						"-->",
 						response.status.code()
 					});
@@ -180,12 +184,12 @@ void Server::connectionHandler(
 			}
 		}
 
-	} catch(const ProtocolError& err) {
+	} catch (const ProtocolError& err) {
 		handleProtocolError(err);
 		return handleTransportError(err);
-	} catch(const std::exception& err) {
+	} catch (const std::exception& err) {
 		return handleTransportError(err);
-	} catch(...) {
+	} catch (...) {
 		return handleTransportError(std::runtime_error("Unknown exception"));
 	}
 

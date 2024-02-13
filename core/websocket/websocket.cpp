@@ -26,15 +26,17 @@ static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 //	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t sockRcvTimeout = 100;
 
-WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest)
+WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, const IncomingRequest& initRequest)
 	: transport(tctx), topts(tctx.options()) {
 
-	if (initRequest.method != "GET") {
+	const auto& request = initRequest.request;
+
+	if (request.method != "GET") {
 		throw UpgradeError("Websocket handshake method invalid", 405);
 	}
 
-	auto headerUpgrade = Strings::toLowerCase(initRequest.headers.get("Upgrade"));
-	auto headerWsKey = initRequest.headers.get("Sec-WebSocket-Key");
+	auto headerUpgrade = Strings::toLowerCase(request.headers.get("Upgrade"));
+	auto headerWsKey = request.headers.get("Sec-WebSocket-Key");
 
 	if (headerUpgrade != "websocket" || !headerWsKey.size()) {
 		throw UpgradeError("Websocket handshake header invalid", 400);
@@ -53,7 +55,7 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHash) }
 	});
 
-	tctx.respond(handshakeReponse);
+	tctx.respond({ handshakeReponse, initRequest.id });
 	tctx.reset();
 
 	this->transport.tcpconn().flags.closeOnTimeout = false;
