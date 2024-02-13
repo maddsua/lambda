@@ -16,7 +16,7 @@ static const std::set<int> blockingEndedCodes = {
 
 static const std::set<int> disconnectedCodes = {
 	#ifdef _WIN32
-		WSAEINTR
+		WSAEINTR, WSAECONNRESET
 	#else
 		ECONNRESET
 	#endif
