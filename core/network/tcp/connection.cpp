@@ -8,7 +8,7 @@ using namespace Lambda::Network::TCP;
 
 static const std::initializer_list<int> blockingEndedCodes = {
 	#ifdef _WIN32
-		WSAETIMEDOUT
+		WSAETIMEDOUT, WSAEINTR
 	#else
 		EAGAIN, ETIMEDOUT, EWOULDBLOCK
 	#endif
@@ -107,14 +107,11 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 		//	I could use std::any_of here,
 		//	but that syntax sugar seems out of place here
 		for (const auto code : blockingEndedCodes) {
-			
-			if (osError.code != code) continue;
-
-			if (this->flags.closeOnTimeout) {
-				this->end();
+			if (osError.code == code) {
+				if (this->flags.closeOnTimeout)
+					this->end();
+				return {};
 			}
-
-			return {};
 		}
 
 		throw NetworkError(getOSError().message());
