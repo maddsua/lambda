@@ -143,18 +143,6 @@ bool TransportContextV1::awaitNext() {
 
 		switch (this->m_keepalive) {
 
-			/*
-			-----
-			This would be a redundant check as you can't
-			get any more requests since the connection was closed
-			-----
-
-			case KeepAliveStatus::Close: {
-				if (Strings::includes(connectionHeader, "keep-alive"))
-					this->m_keepalive = KeepAliveStatus::KeepAlive;
-			} break;
-			*/
-
 			case KeepAliveStatus::KeepAlive: {
 				if (Strings::includes(connectionHeader, "close"))
 					this->m_keepalive = KeepAliveStatus::Close;
@@ -296,9 +284,11 @@ void TransportContextV1::respond(const Response& response) {
 	//	set connection header to acknowledge keep-alive mode
 	const auto responseConnectionHeader = responseHeaders.get("connection");
 	if (responseConnectionHeader.size()) {
-		this->m_keepalive = Strings::includes(responseConnectionHeader, "close") ? KeepAliveStatus::Close : KeepAliveStatus::KeepAlive;
+		this->m_keepalive = Strings::includes(responseConnectionHeader, "close") ?
+			KeepAliveStatus::Close : KeepAliveStatus::KeepAlive;
 	} else {
-		responseHeaders.set("connection", this->m_keepalive == KeepAliveStatus::KeepAlive ? "keep-alive" : "close");
+		const auto isKeepAlive = this->m_keepalive == KeepAliveStatus::KeepAlive;
+		responseHeaders.set("connection", isKeepAlive ? "keep-alive" : "close");
 	}
 
 	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
