@@ -46,7 +46,7 @@ namespace Lambda::HTTP::Transport {
 
 	struct ResponseContext {
 		HTTP::Response response;
-		const Crypto::ShortID id;
+		const Crypto::ShortID& id;
 	};
 
 	struct TransportFlags {
