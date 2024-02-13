@@ -294,9 +294,6 @@ void TransportContextV1::respond(const Response& response) {
 	std::vector<uint8_t> headerBuff;
 	headerBuff.reserve(2048);
 
-	static const std::string lineSeparator = "\r\n";
-	static const std::string headerSeparator = ": ";
-
 	//	push http version
 	static const std::string httpVersion = "HTTP/1.1";
 	headerBuff.insert(headerBuff.end(), httpVersion.begin(), httpVersion.end());
@@ -310,9 +307,12 @@ void TransportContextV1::respond(const Response& response) {
 	//	push response status text
 	const auto& statusText = response.status.text();
 	headerBuff.insert(headerBuff.end(), statusText.begin(), statusText.end());
+
+	static const std::string lineSeparator = "\r\n";
 	headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
 
 	//	serialize headers
+	static const std::string headerSeparator = ": ";
 	for (const auto& header : responseHeaders.entries()) {
 		headerBuff.insert(headerBuff.end(), header.first.begin(), header.first.end());
 		headerBuff.insert(headerBuff.end(), headerSeparator.begin(), headerSeparator.end());
