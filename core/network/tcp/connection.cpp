@@ -121,7 +121,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 				return {};
 			}
 
-			throw NetworkError("Connection abruptly closed be the client");
+			throw NetworkError("Connection abruptly closed by the client");
 		}
 
 		throw NetworkError("Network error while reading data", osError);
