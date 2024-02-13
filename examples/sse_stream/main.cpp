@@ -19,14 +19,14 @@ int main(int argc, char const *argv[]) {
 
 		while (writer.connected()) {
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
-			numberOfMessages++;
 			writer.push({
 				"test message " + std::to_string(numberOfMessages)
 			});
 
+			numberOfMessages++;
 			if (numberOfMessages > 5) break;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
 
 		writer.close();

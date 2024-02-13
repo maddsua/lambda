@@ -74,6 +74,10 @@ bool Writer::connected() const noexcept {
 
 void Writer::close() {
 
+	if (!this->transport.isConnected()) {
+		return;
+	}
+
 	EventMessage closeEvent;
 	closeEvent.event = "close";
 
