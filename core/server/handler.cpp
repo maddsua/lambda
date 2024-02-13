@@ -70,7 +70,7 @@ void Server::connectionHandler(
 
 		while (transport.isConnected() && handlerMode == HandlerMode::HTTP && transport.awaitNext()) {
 
-			const auto next = transport.nextRequest();
+			const auto request = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
 
 			const auto logRequestPrefix = '[' + requestID + "] (" + 
@@ -82,8 +82,8 @@ void Server::connectionHandler(
 
 				syncout.log({
 					logRequestPrefix,
-					next.method.toString(),
-					next.url.pathname,
+					request.method.toString(),
+					request.url.pathname,
 					"-->",
 					protocol
 				});
@@ -92,13 +92,13 @@ void Server::connectionHandler(
 			const std::function<SSE::Writer()> upgradeCallbackSSE = [&]() {
 				handlerMode = HandlerMode::SSE;
 				logConnectionUpgrade("SSE stream");
-				return SSE::Writer(transport, next);
+				return SSE::Writer(transport, request);
 			};
 
 			const std::function<WebsocketContext()> upgradeCallbackWS = [&]() {
 				handlerMode = HandlerMode::WS;
 				logConnectionUpgrade("Websocket");
-				return WebsocketContext(transport, next);
+				return WebsocketContext(transport, request);
 			};
 
 			const RequestContext requestCTX = {
@@ -148,7 +148,7 @@ void Server::connectionHandler(
 			};
 
 			try {
-				functionResponse = handlerCallback(next, requestCTX).response;
+				functionResponse = handlerCallback(request, requestCTX).response;
 			} catch(const UpgradeError& err) {
 				handlerMode = HandlerMode::HTTP;
 				functionResponse = handleUpgradeError(err);
@@ -171,8 +171,8 @@ void Server::connectionHandler(
 				if (config.loglevel.requests) {
 					syncout.log({
 						logRequestPrefix,
-						next.method.toString(),
-						next.url.pathname,
+						request.method.toString(),
+						request.url.pathname,
 						"-->",
 						response.status.code()
 					});
