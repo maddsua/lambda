@@ -80,18 +80,37 @@ void Server::connectionHandler(
 
 	try {
 
-		while (transport.isConnected() && transport.awaitNext()) {
+		while (transport.isConnected() && handlerMode == HandlerMode::HTTP && transport.awaitNext()) {
 
 			const auto next = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
+			std::optional<std::string> requestUpgraded;
+
+			const auto logConnectionUpgrade = [&](const std::string& protocol) {
+
+				requestUpgraded = protocol;
+
+				if (!config.loglevel.requests) return;
+
+				syncout.log({
+					'[' + requestID + ']',
+					'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+					next.method.toString(),
+					next.url.pathname,
+					"-->",
+					protocol
+				});
+			};
 
 			const std::function<SSE::Writer()> upgradeCallbackSSE = [&]() {
 				handlerMode = HandlerMode::SSE;
+				logConnectionUpgrade("SSE stream");
 				return SSE::Writer(transport, next);
 			};
 
 			const std::function<WebsocketContext()> upgradeCallbackWS = [&]() {
 				handlerMode = HandlerMode::WS;
+				logConnectionUpgrade("Websocket");
 				return WebsocketContext(transport, next);
 			};
 
@@ -163,16 +182,24 @@ void Server::connectionHandler(
 				auto& response = functionResponse.value();
 				response.headers.set("x-request-id", contextID + '-' + requestID);
 				transport.respond(response);
-			}
 
-			if (config.loglevel.requests) {
+				if (config.loglevel.requests) {
+					syncout.log({
+						'[' + requestID + ']',
+						'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
+						next.method.toString(),
+						next.url.pathname,
+						"-->",
+						response.status.code()
+					});
+				}
+
+			} else if (config.loglevel.requests && requestUpgraded.has_value()) {
 				syncout.log({
 					'[' + requestID + ']',
 					'(' + (config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')',
-					next.method.toString(),
-					next.url.pathname,
-					"-->",
-					functionResponse.has_value() ? functionResponse.value().status.code() : 101
+					"Closed",
+					requestUpgraded.value(),
 				});
 			}
 		}
