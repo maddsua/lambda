@@ -11,6 +11,7 @@ namespace Lambda::Network::TCP {
 
 	struct ConnectionFlags {
 		bool closeOnTimeout = true;
+		bool throwOnDisconnect = true;
 	};
 
 	class Connection {
