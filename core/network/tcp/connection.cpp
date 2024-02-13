@@ -75,7 +75,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 
 	std::lock_guard<std::mutex> lock(this->m_writeMutex);
 
-	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
+	const auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
 		throw NetworkError("Network error while writing data");
@@ -94,7 +94,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	auto chunk = std::vector<uint8_t>(expectedSize);
 
-	auto bytesReceived = recv(this->hSocket, reinterpret_cast<char*>(chunk.data()), chunk.size(), 0);
+	const auto bytesReceived = recv(this->hSocket, reinterpret_cast<char*>(chunk.data()), chunk.size(), 0);
 
 	if (bytesReceived == 0) {
 
