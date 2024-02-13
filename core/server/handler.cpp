@@ -59,9 +59,8 @@ void Server::connectionHandler(
 	if (config.loglevel.transportEvents) {
 		syncout.log({
 			'[' + contextID + ']',
-			conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
-			"Connected",
-			contextID
+			"Connected by",
+			conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port)
 		});
 	}
 
@@ -72,14 +71,10 @@ void Server::connectionHandler(
 			const auto next = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
 
-			std::optional<std::string> requestUpgraded;
-
 			const auto displayContextID = config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname;
 			const auto logRequestPrefix = '[' + displayContextID + "] " + requestID;
 
 			const auto logConnectionUpgrade = [&](const std::string& protocol) {
-
-				requestUpgraded = protocol;
 
 				if (!config.loglevel.requests) return;
 
@@ -180,13 +175,6 @@ void Server::connectionHandler(
 						response.status.code()
 					});
 				}
-
-			} else if (config.loglevel.requests && requestUpgraded.has_value()) {
-				syncout.log({
-					logRequestPrefix,
-					"Closed",
-					requestUpgraded.value(),
-				});
 			}
 		}
 
@@ -202,8 +190,8 @@ void Server::connectionHandler(
 	if (config.loglevel.transportEvents) {
 		syncout.log({
 			'[' + contextID + ']',
-			'(' + conninfo.remoteAddr.hostname + ')',
-			"disconnected"
+			"Connection closed",
+			'(' + conninfo.remoteAddr.hostname + ')'
 		});
 	}
 }
