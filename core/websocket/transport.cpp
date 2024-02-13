@@ -143,7 +143,7 @@ void WebsocketContext::asyncWorker() {
 			lastPing = std::chrono::steady_clock::now();
 		}
 
-		auto nextChunk = this->transport.readRaw(wsReadChunk);
+		const auto nextChunk = this->transport.readRaw(wsReadChunk);
 		if (!nextChunk.size()) continue;
 
 		downloadBuff.insert(downloadBuff.end(), nextChunk.begin(), nextChunk.end());
@@ -169,7 +169,7 @@ void WebsocketContext::asyncWorker() {
 			throw std::runtime_error("received an invalid opcode (" + std::to_string(opcodeInt) + ")");
 		}
 
-		auto frameSize = frameHeader.size + frameHeader.payloadSize;
+		const auto frameSize = frameHeader.size + frameHeader.payloadSize;
 		auto payloadBuff = std::vector<uint8_t>(downloadBuff.begin() + frameHeader.size, downloadBuff.begin() + frameSize);
 
 		if (frameSize > this->topts.maxRequestSize) {
@@ -210,7 +210,7 @@ void WebsocketContext::asyncWorker() {
 		}
 
 		//	unmask the payload
-		auto& frameMask = frameHeader.mask.value();
+		const auto& frameMask = frameHeader.mask.value();
 		for (size_t i = 0; i < payloadBuff.size(); i++) {
 			payloadBuff[i] ^= frameMask[i % 4];
 		}
@@ -224,7 +224,7 @@ void WebsocketContext::asyncWorker() {
 
 			case OpCode::Ping: {
 
-				auto pongHeader = serializeFrameHeader({
+				const auto pongHeader = serializeFrameHeader({
 					FrameControlBits::BitFinal,
 					OpCode::Pong,
 					static_cast<size_t>(0),
@@ -250,7 +250,7 @@ void WebsocketContext::asyncWorker() {
 
 			default: {
 
-				auto isBinary = frameHeader.opcode == OpCode::Continue ?
+				const auto isBinary = frameHeader.opcode == OpCode::Continue ?
 					multipartCtx.value().binary : 
 					frameHeader.opcode == OpCode::Binary;
 
