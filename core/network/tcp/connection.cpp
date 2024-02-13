@@ -53,7 +53,7 @@ void Connection::end() noexcept {
 
 	//	swapping handle to a temp variable so that
 	//	no race condition can occur further down the chain
-	auto tempHandle = this->hSocket;
+	const auto tempHandle = this->hSocket;
 	this->hSocket = INVALID_SOCKET;
 
 	shutdown(tempHandle, SD_BOTH);
@@ -115,6 +115,8 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 		}
 
 		if (disconnectedCodes.contains(osError)) {
+
+			this->end();
 
 			if (!this->flags.throwOnDisconnect) {
 				return {};
