@@ -29,8 +29,7 @@ void Server::connectionHandler(
 		}
 
 		syncout.error({
-			"[Transport]",
-			contextID,
+			'[' + contextID + ']',
 			'(' + conninfo.remoteAddr.hostname + ')',
 			"terminated:",
 			error.what()
@@ -39,41 +38,29 @@ void Server::connectionHandler(
 
 	const auto handleProtocolError = [&](const ProtocolError& error) -> void {
 
-		if (!error.respondStatus.has_value() || !transport.isConnected()) {
+		if (!(transport.isConnected() && error.respondStatus.has_value())) {
 			return;
 		}
 
+		const auto errorResponse = Pages::renderErrorPage(
+			error.respondStatus.value(),
+			error.message(),
+			config.errorResponseType
+		);
+
 		try {
-
-			const auto errorResponse = Pages::renderErrorPage(
-				error.respondStatus.value(),
-				error.message(),
-				config.errorResponseType
-			);
-
 			transport.respond(errorResponse);
 			transport.close();
-
 		} catch(...) {
-
-			if (!config.loglevel.transportEvents) {
-				return;
-			}
-
-			syncout.error({
-				"[Transport]",
-				"Failed to respond to protocol error in",
-				contextID,
-				"(connection dropped)"
-			});
+			//	I don't think there's a need to handle any errors here
 		}
 	};
 
 	if (config.loglevel.transportEvents) {
 		syncout.log({
-			"[Transport]",
+			'[' + contextID + ']',
 			conninfo.remoteAddr.hostname + ':' + std::to_string(conninfo.remoteAddr.port),
-			"created",
+			"Connected",
 			contextID
 		});
 	}
@@ -84,9 +71,11 @@ void Server::connectionHandler(
 
 			const auto next = transport.nextRequest();
 			const auto requestID = Crypto::ShortID().toString();
+
 			std::optional<std::string> requestUpgraded;
-			const std::string logRequestPrefix = '[' + requestID + "] (" +
-				(config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')';
+
+			const auto displayContextID = config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname;
+			const auto logRequestPrefix = '[' + displayContextID + "] " + requestID;
 
 			const auto logConnectionUpgrade = [&](const std::string& protocol) {
 
@@ -212,8 +201,7 @@ void Server::connectionHandler(
 
 	if (config.loglevel.transportEvents) {
 		syncout.log({
-			"[Transport]",
-			contextID,
+			'[' + contextID + ']',
 			'(' + conninfo.remoteAddr.hostname + ')',
 			"disconnected"
 		});
