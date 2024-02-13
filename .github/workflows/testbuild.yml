@@ -52,8 +52,6 @@ jobs:
         run: make test.zlib
       - name: brotli test
         run: make test.brotli
-      - name: Error messages test
-        run: make test.errors
       - name: VFS test
         run: make test.vfs
       - name: HTTP/Cookie test

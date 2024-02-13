@@ -40,14 +40,13 @@ namespace Lambda::Network {
 
 	class NetworkError : public Lambda::Error {
 		private:
-			OS_Error m_os_error;
+			int32_t m_code;
 
 		public:
-			NetworkError(const std::string& message) : Error(message) {}
-			NetworkError(const std::string& message, const OS_Error& os_error)
-				: Error(message + ": " + os_error.message()), m_os_error(os_error) {}
+			NetworkError(const std::string& message);
+			NetworkError(const std::string& message, int32_t errorCode);
 
-			const OS_Error& osError() const noexcept { return this->m_os_error; }
+			const int32_t osError() const noexcept;
 	};
 
 	#ifdef _WIN32

@@ -14,14 +14,14 @@ ListenSocket::ListenSocket(const ListenConfig& init) : config(init) {
 
 	this->hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (this->hSocket == INVALID_SOCKET) {
-		throw NetworkError("Failed to create listen socket", Lambda::getOSError());
+		throw NetworkError("Failed to create listen socket");
 	}
 
 	//	allow fast port reuse
 	if (init.allowPortReuse) {
 		uint32_t sockoptReuseaddr = 1;
 		if (setsockopt(this->hSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&(sockoptReuseaddr), sizeof(sockoptReuseaddr))) {
-			auto apierror = NetworkError("Failed to enable fast port reuse", Lambda::getOSError());
+			auto apierror = NetworkError("Failed to enable fast port reuse");
 			closesocket(this->hSocket);
 			throw apierror;
 		}
@@ -34,14 +34,14 @@ ListenSocket::ListenSocket(const ListenConfig& init) : config(init) {
 	serverAddr.sin_port = htons(init.port);
 
 	if (bind(this->hSocket, (sockaddr*)&serverAddr, sizeof(serverAddr))) {
-		auto apierror = NetworkError("Failed to bind() socket", Lambda::getOSError());
+		auto apierror = NetworkError("Failed to bind() socket");
 		closesocket(this->hSocket);
 		throw apierror;
 	}
 
 	//	listen for incoming connections
 	if (listen(this->hSocket, SOMAXCONN)) {
-		auto apierror = NetworkError("Socket listen() failed", Lambda::getOSError());
+		auto apierror = NetworkError("Socket listen() failed");
 		closesocket(this->hSocket);
 		throw apierror;
 	}
@@ -81,7 +81,7 @@ std::optional<Connection> ListenSocket::acceptConnection() {
 	//	verify that we have a valid socket
 	if (nextSocket == INVALID_SOCKET) {
 		if (this->hSocket == INVALID_SOCKET) return std::nullopt;
-		throw NetworkError("Socket accept() failed", Lambda::getOSError());
+		throw NetworkError("Socket accept() failed");
 	}
 
 	//	try getting peer host name
