@@ -24,10 +24,9 @@ namespace Lambda::HTTP::Transport {
 	};
 
 	/**
-	 * Protocol error indicated an error within HTTP protocol but it may not be linked to any network errors
-	 * and since that we may want to respond to it with an error page.
+	 * ProtocolError when request cannot be processed but it's not caused by a newtwork error or a dropped connection.
 	 * 
-	 * An example protocol error would be a request payload that is too large or a malformed request header.
+	 * It could be a request payload that is too large or a malformed request header.
 	*/
 	class ProtocolError : public Lambda::Error {
 		public:
