@@ -1,10 +1,11 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_HTTP_TRANSPORT_IMPL__
 #define __LIB_MADDSUA_LAMBDA_CORE_HTTP_TRANSPORT_IMPL__
 
+#include "./http.hpp"
 #include "./transport.hpp"
 
+#include "../crypto/crypto.hpp"
 #include "../network/tcp/connection.hpp"
-#include "./http.hpp"
 #include "../utils/utils.hpp"
 
 #include <vector>
@@ -21,13 +22,17 @@ namespace Lambda::HTTP::Transport {
 			Network::TCP::Connection& m_conn;
 			const TransportOptions& m_topts;
 
+			const Crypto::ShortID m_id;
+
 			std::vector<uint8_t> m_readbuff;
 			KeepAliveStatus m_keepalive = KeepAliveStatus::Unknown;
 			ContentEncodings m_compress = ContentEncodings::None;
-			HTTP::Request* m_next = nullptr;
+			IncomingRequest* m_next = nullptr;
 
 		public:
 			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
+
+			const std::string& contextID() const noexcept;
 
 			Network::TCP::Connection& tcpconn() const noexcept;
 			const Network::ConnectionInfo& conninfo() const noexcept;
@@ -36,8 +41,8 @@ namespace Lambda::HTTP::Transport {
 			bool isConnected() const noexcept;
 
 			bool awaitNext();
-			HTTP::Request nextRequest();
-			void respond(const HTTP::Response& response);
+			IncomingRequest nextRequest();
+			void respond(const ResponseContext& responsectx);
 
 			std::vector<uint8_t> readRaw();
 			std::vector<uint8_t> readRaw(size_t expectedSize);
