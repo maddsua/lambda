@@ -150,12 +150,12 @@ void Server::connectionHandler(
 
 			try {
 				functionResponse = handlerCallback(request, requestCTX).response;
-			} catch(const UpgradeError& err) {
+			} catch (const UpgradeError& err) {
 				handlerMode = HandlerMode::HTTP;
 				functionResponse = handleUpgradeError(err);
-			} catch(const std::exception& err) {
+			} catch (const std::exception& err) {
 				functionResponse = handleFunctionError(err);
-			} catch(...) {
+			} catch (...) {
 				functionResponse = handleFunctionError(std::runtime_error("Unexpected handler exception"));
 			}
 
@@ -180,12 +180,12 @@ void Server::connectionHandler(
 			}
 		}
 
-	} catch(const ProtocolError& err) {
+	} catch (const ProtocolError& err) {
 		handleProtocolError(err);
 		return handleTransportError(err);
-	} catch(const std::exception& err) {
+	} catch (const std::exception& err) {
 		return handleTransportError(err);
-	} catch(...) {
+	} catch (...) {
 		return handleTransportError(std::runtime_error("Unknown exception"));
 	}
 
