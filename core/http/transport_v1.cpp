@@ -12,8 +12,6 @@ using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 using namespace Lambda::Network;
 
-static const std::string patternEndHeader = "\r\n\r\n";
-
 static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Brotli, "br" },
 	{ ContentEncodings::Gzip, "gzip" },
@@ -39,7 +37,9 @@ bool TransportContextV1::awaitNext() {
 		return true;
 	}
 
+	static const std::string patternEndHeader = "\r\n\r\n";
 	auto headerEnded = this->m_readbuff.end();
+
 	while (this->m_conn.isOpen() && headerEnded == this->m_readbuff.end()) {
 
 		auto newBytes = this->m_conn.read();
@@ -291,15 +291,42 @@ void TransportContextV1::respond(const Response& response) {
 		responseHeaders.set("connection", isKeepAlive ? "keep-alive" : "close");
 	}
 
-	std::string headerBuff = "HTTP/1.1 " + std::to_string(response.status.code()) + ' ' + response.status.text() + "\r\n";
-	for (const auto& header : responseHeaders.entries()) {
-		headerBuff += header.first + ": " + header.second + "\r\n";
-	}
-	headerBuff += "\r\n";
+	std::vector<uint8_t> headerBuff;
+	headerBuff.reserve(2048);
 
-	this->m_conn.write(std::vector<uint8_t>(headerBuff.begin(), headerBuff.end()));
+	static const std::string lineSeparator = "\r\n";
+	static const std::string headerSeparator = ": ";
+
+	//	push http version
+	static const std::string httpVersion = "HTTP/1.1";
+	headerBuff.insert(headerBuff.end(), httpVersion.begin(), httpVersion.end());
+	headerBuff.push_back(0x20);
+
+	//	push response status code
+	const auto statusCode = std::to_string(response.status.code());
+	headerBuff.insert(headerBuff.end(), statusCode.begin(), statusCode.end());
+	headerBuff.push_back(0x20);
+
+	//	push response status text
+	const auto& statusText = response.status.text();
+	headerBuff.insert(headerBuff.end(), statusText.begin(), statusText.end());
+	headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
+
+	//	serialize headers
+	for (const auto& header : responseHeaders.entries()) {
+		headerBuff.insert(headerBuff.end(), header.first.begin(), header.first.end());
+		headerBuff.insert(headerBuff.end(), headerSeparator.begin(), headerSeparator.end());
+		headerBuff.insert(headerBuff.end(), header.second.begin(), header.second.end());
+		headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
+	}
+
+	//	add that empty line to indicate header end
+	headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
+
+	this->m_conn.write(headerBuff);
 	if (bodySize) this->m_conn.write(responseBody);
 
+	//	close connection if keepalive mode is not in unknown or active state
 	if (this->m_keepalive == KeepAliveStatus::Close) {
 		this->m_conn.end();
 	}
