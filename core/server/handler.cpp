@@ -50,7 +50,7 @@ void Server::connectionHandler(
 		);
 
 		try {
-			transport.respond(errorResponse);
+			transport.respond({ errorResponse, "fix this shit" });
 			transport.close();
 		} catch(...) {
 			//	I don't think there's a need to handle any errors here
@@ -93,13 +93,13 @@ void Server::connectionHandler(
 			const std::function<SSE::Writer()> upgradeCallbackSSE = [&]() {
 				handlerMode = HandlerMode::SSE;
 				logConnectionUpgrade("SSE stream");
-				return SSE::Writer(transport, request);
+				return SSE::Writer(transport, next);
 			};
 
 			const std::function<WebsocketContext()> upgradeCallbackWS = [&]() {
 				handlerMode = HandlerMode::WS;
 				logConnectionUpgrade("Websocket");
-				return WebsocketContext(transport, request);
+				return WebsocketContext(transport, next);
 			};
 
 			const RequestContext requestCTX = {
@@ -166,7 +166,7 @@ void Server::connectionHandler(
 				}
 
 				auto& response = functionResponse.value();
-				transport.respond(response);
+				transport.respond({ response, next.id });
 
 				if (config.loglevel.requests) {
 					syncout.log({

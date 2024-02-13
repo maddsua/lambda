@@ -55,7 +55,7 @@ namespace Lambda::Websocket {
 
 		public:
 
-			WebsocketContext(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest);
+			WebsocketContext(HTTP::Transport::TransportContext& tctx, const IncomingRequest& initRequest);
 			~WebsocketContext();
 
 			bool awaitMessage();

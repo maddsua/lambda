@@ -4,15 +4,17 @@
 using namespace Lambda;
 using namespace Lambda::Network;
 using namespace Lambda::SSE;
+using namespace Lambda::HTTP;
+using namespace Lambda::HTTP::Transport;
 
-Writer::Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Request initRequest) : transport(tctx) {
+Writer::Writer(HTTP::Transport::TransportContext& tctx, const IncomingRequest& initRequest) : transport(tctx) {
 
 	tctx.flags.autocompress = false;
 	tctx.flags.forceContentLength = false;
 
-	const auto originHeader = initRequest.headers.get("origin");
+	const auto originHeader = initRequest.request.headers.get("origin");
 
-	auto upgradeResponse = HTTP::Response(200, {
+	auto upgradeResponse = Response(200, {
 		{ "connection", "keep-alive" },
 		{ "cache-control", "no-cache" },
 		{ "content-type", "text/event-stream; charset=UTF-8" }
@@ -22,7 +24,7 @@ Writer::Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Request init
 		upgradeResponse.headers.set("Access-Control-Allow-Origin", originHeader);
 	}
 
-	tctx.respond(upgradeResponse);
+	tctx.respond({ upgradeResponse, initRequest.id });
 }
 
 void Writer::push(const EventMessage& event) {

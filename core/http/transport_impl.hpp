@@ -42,7 +42,7 @@ namespace Lambda::HTTP::Transport {
 
 			bool awaitNext();
 			IncomingRequest nextRequest();
-			void respond(const HTTP::Response& response);
+			void respond(const ResponseContext& responsectx);
 
 			std::vector<uint8_t> readRaw();
 			std::vector<uint8_t> readRaw(size_t expectedSize);

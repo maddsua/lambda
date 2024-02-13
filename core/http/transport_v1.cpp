@@ -217,7 +217,7 @@ IncomingRequest TransportContextV1::nextRequest() {
 	return tempNext;
 }
 
-void TransportContextV1::respond(const Response& response) {
+void TransportContextV1::respond(const ResponseContext& responsectx) {
 
 	if (this->m_next != nullptr) {
 		throw Lambda::Error("respond() canceled: Before responding to a request one must be read with nextRequest() call first");
@@ -225,7 +225,7 @@ void TransportContextV1::respond(const Response& response) {
 
 	auto applyEncoding = ContentEncodings::None;
 
-	auto responseHeaders = response.headers;
+	auto responseHeaders = responsectx.response.headers;
 	const auto& contentTypeHeader = responseHeaders.get("content-type");
 
 	if (this->flags.autocompress) {
@@ -251,40 +251,41 @@ void TransportContextV1::respond(const Response& response) {
 		}
 	}
 
-	std::vector<uint8_t> responseBody;
+	std::vector<uint8_t> responseBodyBuffer;
+	const auto& responseBody = responsectx.response.body.buffer();
 
 	switch (applyEncoding) {
 
 		case ContentEncodings::Brotli: {
-			responseBody = Compress::brotliCompressBuffer(response.body.buffer(), Compress::Quality::Noice);
+			responseBodyBuffer = Compress::brotliCompressBuffer(responseBody, Compress::Quality::Noice);
 		} break;
 
 		case ContentEncodings::Gzip: {
-			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+			responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
 		} break;
 
 		case ContentEncodings::Deflate: {
-			responseBody = Compress::zlibCompressBuffer(response.body.buffer(), Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+			responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
 		} break;
 
 		default: {
-			responseBody = std::move(response.body.buffer());
+			responseBodyBuffer = std::move(responseBody);
 		} break;
 	}
 
-	const auto bodySize = responseBody.size();
+	const auto bodyBufferSize = responseBodyBuffer.size();
 
 	if (applyEncoding != ContentEncodings::None) {
 		responseHeaders.set("content-encoding", contentEncodingMap.at(applyEncoding));
 	}
 
 	if (this->flags.forceContentLength) {
-		responseHeaders.set("content-length", std::to_string(bodySize));
+		responseHeaders.set("content-length", std::to_string(bodyBufferSize));
 	}
 
 	responseHeaders.set("date", Date().toUTCString());
 	responseHeaders.set("server", "maddsua/lambda");
-	responseHeaders.set("x-request-id", this->m_id.toString() + '-' + "this->m_next_id.toString()");
+	responseHeaders.set("x-request-id", this->m_id.toString() + '-' + responsectx.id.toString());
 
 	//	set connection header to acknowledge keep-alive mode
 	const auto responseConnectionHeader = responseHeaders.get("connection");
@@ -305,12 +306,13 @@ void TransportContextV1::respond(const Response& response) {
 	headerBuff.push_back(0x20);
 
 	//	push response status code
-	const auto statusCode = std::to_string(response.status.code());
+	const auto& responseStatus = responsectx.response.status;
+	const auto statusCode = std::to_string(responseStatus.code());
 	headerBuff.insert(headerBuff.end(), statusCode.begin(), statusCode.end());
 	headerBuff.push_back(0x20);
 
 	//	push response status text
-	const auto& statusText = response.status.text();
+	const auto& statusText = responseStatus.text();
 	headerBuff.insert(headerBuff.end(), statusText.begin(), statusText.end());
 
 	static const std::string lineSeparator = "\r\n";
@@ -329,7 +331,7 @@ void TransportContextV1::respond(const Response& response) {
 	headerBuff.insert(headerBuff.end(), lineSeparator.begin(), lineSeparator.end());
 
 	this->m_conn.write(headerBuff);
-	if (bodySize) this->m_conn.write(responseBody);
+	if (bodyBufferSize) this->m_conn.write(responseBodyBuffer);
 
 	//	close connection if keepalive mode is not in unknown or active state
 	if (this->m_keepalive == KeepAliveStatus::Close) {

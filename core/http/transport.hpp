@@ -42,6 +42,11 @@ namespace Lambda::HTTP::Transport {
 		const Crypto::ShortID id;
 	};
 
+	struct ResponseContext {
+		HTTP::Response response;
+		const Crypto::ShortID id;
+	};
+
 	struct TransportFlags {
 		bool forceContentLength = true;
 		bool autocompress = true;
@@ -67,7 +72,7 @@ namespace Lambda::HTTP::Transport {
 
 			virtual bool awaitNext() = 0;
 			virtual IncomingRequest nextRequest() = 0;
-			virtual void respond(const HTTP::Response& response) = 0;
+			virtual void respond(const ResponseContext& responsectx) = 0;
 
 			virtual std::vector<uint8_t> readRaw() = 0;
 			virtual std::vector<uint8_t> readRaw(size_t expectedSize) = 0;
