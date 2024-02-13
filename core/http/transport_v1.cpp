@@ -195,12 +195,15 @@ bool TransportContextV1::awaitNext() {
 		this->m_readbuff.erase(this->m_readbuff.begin(), this->m_readbuff.begin() + bodySize);
 	}
 
-	this->m_next = new HTTP::Request(std::move(next));
-	this->m_next_id.update();
+	this->m_next = new IncomingRequest {
+		std::move(next),
+		Crypto::ShortID()
+	};
+
 	return true;
 }
 
-HTTP::Request TransportContextV1::nextRequest() {
+IncomingRequest TransportContextV1::nextRequest() {
 
 	if (this->m_next == nullptr) {
 		throw Lambda::Error("nextRequest() canceled: no requests pending. Use awaitNext() to read more requests");
@@ -281,7 +284,7 @@ void TransportContextV1::respond(const Response& response) {
 
 	responseHeaders.set("date", Date().toUTCString());
 	responseHeaders.set("server", "maddsua/lambda");
-	responseHeaders.set("x-request-id", this->m_id.toString() + '-' + this->m_next_id.toString());
+	responseHeaders.set("x-request-id", this->m_id.toString() + '-' + "this->m_next_id.toString()");
 
 	//	set connection header to acknowledge keep-alive mode
 	const auto responseConnectionHeader = responseHeaders.get("connection");
@@ -336,10 +339,6 @@ void TransportContextV1::respond(const Response& response) {
 
 const std::string& TransportContextV1::contextID() const noexcept {
 	return this->m_id.toString();
-}
-
-const std::string& TransportContextV1::nextID() const noexcept {
-	return this->m_next_id.toString();
 }
 
 const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {

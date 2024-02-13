@@ -1,8 +1,9 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_HTTP_TRANSPORT__
 #define __LIB_MADDSUA_LAMBDA_CORE_HTTP_TRANSPORT__
 
-#include "../network/tcp/connection.hpp"
 #include "./http.hpp"
+#include "../network/tcp/connection.hpp"
+#include "../crypto/crypto.hpp"
 #include "../utils/utils.hpp"
 
 #include <vector>
@@ -36,6 +37,11 @@ namespace Lambda::HTTP::Transport {
 			ProtocolError(const std::string& message, HTTP::Status respondWithStatus) : Error(message), respondStatus(respondWithStatus) {}
 	};
 
+	struct IncomingRequest {
+		const HTTP::Request request;
+		const Crypto::ShortID id;
+	};
+
 	struct TransportFlags {
 		bool forceContentLength = true;
 		bool autocompress = true;
@@ -52,7 +58,6 @@ namespace Lambda::HTTP::Transport {
 			TransportContext& operator=(TransportContext&& other) = delete;
 
 			virtual const std::string& contextID() const noexcept = 0;
-			virtual const std::string& nextID() const noexcept = 0;
 
 			virtual Network::TCP::Connection& tcpconn() const noexcept = 0;
 			virtual const Network::ConnectionInfo& conninfo() const noexcept = 0;
@@ -61,7 +66,7 @@ namespace Lambda::HTTP::Transport {
 			virtual bool isConnected() const noexcept = 0;
 
 			virtual bool awaitNext() = 0;
-			virtual HTTP::Request nextRequest() = 0;
+			virtual IncomingRequest nextRequest() = 0;
 			virtual void respond(const HTTP::Response& response) = 0;
 
 			virtual std::vector<uint8_t> readRaw() = 0;

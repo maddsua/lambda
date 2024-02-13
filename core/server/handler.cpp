@@ -70,8 +70,9 @@ void Server::connectionHandler(
 
 		while (transport.isConnected() && handlerMode == HandlerMode::HTTP && transport.awaitNext()) {
 
-			const auto request = transport.nextRequest();
-			const auto& requestID = transport.nextID();
+			const auto next = transport.nextRequest();
+			const auto& request = next.request;
+			const auto& requestID = next.id.toString();
 
 			const auto logRequestPrefix = '[' + requestID + "] (" + 
 				(config.loglevel.transportEvents ? contextID : conninfo.remoteAddr.hostname) + ')';

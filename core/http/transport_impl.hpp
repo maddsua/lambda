@@ -23,18 +23,16 @@ namespace Lambda::HTTP::Transport {
 			const TransportOptions& m_topts;
 
 			const Crypto::ShortID m_id;
-			Crypto::ShortID m_next_id;
 
 			std::vector<uint8_t> m_readbuff;
 			KeepAliveStatus m_keepalive = KeepAliveStatus::Unknown;
 			ContentEncodings m_compress = ContentEncodings::None;
-			HTTP::Request* m_next = nullptr;
+			IncomingRequest* m_next = nullptr;
 
 		public:
 			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
 
 			const std::string& contextID() const noexcept;
-			const std::string& nextID() const noexcept;
 
 			Network::TCP::Connection& tcpconn() const noexcept;
 			const Network::ConnectionInfo& conninfo() const noexcept;
@@ -43,7 +41,7 @@ namespace Lambda::HTTP::Transport {
 			bool isConnected() const noexcept;
 
 			bool awaitNext();
-			HTTP::Request nextRequest();
+			IncomingRequest nextRequest();
 			void respond(const HTTP::Response& response);
 
 			std::vector<uint8_t> readRaw();
