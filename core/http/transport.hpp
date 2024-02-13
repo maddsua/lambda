@@ -28,6 +28,8 @@ namespace Lambda::HTTP::Transport {
 	 * ProtocolError when request cannot be processed but it's not caused by a newtwork error or a dropped connection.
 	 * 
 	 * It could be a request payload that is too large or a malformed request header.
+	 * 
+	 * Note: to avoid confusion, protocol error should be thrown before pushing a request to the transport queue (or whatever equivalent there is)
 	*/
 	class ProtocolError : public Lambda::Error {
 		public:
