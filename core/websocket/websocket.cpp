@@ -66,6 +66,10 @@ WebsocketContext::WebsocketContext(WebsocketInit init) :
 
 WebsocketContext::~WebsocketContext() {
 
+	if (!this->m_stopped) {
+		this->close(CloseReason::GoingAway);
+	}
+
 	this->m_stopped = true;
 
 	if (this->m_reader.valid()) {
@@ -78,7 +82,7 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	this->m_stopped = true;
 
-	auto closeReasonCode = Bits::netwnormx(static_cast<std::underlying_type_t<CloseReason>>(reason));
+	const auto closeReasonCode = Bits::netwnormx(static_cast<std::underlying_type_t<CloseReason>>(reason));
 
 	auto closeMessageBuff = serializeFrameHeader({
 		FrameControlBits::BitFinal,
