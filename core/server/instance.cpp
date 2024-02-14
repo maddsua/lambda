@@ -52,10 +52,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				}
 			}
 
-			auto prevItr = this->m_connections.before_begin();
-			auto itr = this->m_connections.begin();
-
-			while (itr != this->m_connections.end()) {
+			for (auto itr = this->m_connections.begin(); itr != this->m_connections.end(); itr++) {
 
 				if (!itr->finished) continue;
 
@@ -63,15 +60,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 					itr->worker.join();
 				}
 
-				const auto delItr = prevItr;
-				prevItr = itr;
-				itr++;
-				this->m_connections.erase_after(delItr);
-
-				if (this->m_connections.empty()) {
-					prevItr = this->m_connections.before_begin();
-					itr = this->m_connections.begin();
-				}
+				this->m_connections.erase(itr);
 			}
 		}
 	});
