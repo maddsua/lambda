@@ -23,20 +23,6 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 	this->serviceWorker = std::async([&]() {
 
-		const auto joinWorkers = [&](WorkerContext& node) {
-
-			if (!node.finished) {
-				return false;
-			}
-
-			if (node.worker.joinable()) {
-				node.worker.join();
-			}
-
-			this->m_connections_count--;
-			return true;
-		};
-
 		time_t lastGCEvent = std::time(nullptr);
 
 		while (!this->m_terminated && this->listener.active()) {
@@ -57,8 +43,22 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 			const auto timeDelta = std::time(nullptr) - lastGCEvent;
 			if ((this->m_connections_count > 100 && timeDelta > 1) || timeDelta > 5) {
+
 				lastGCEvent = std::time(nullptr);
-				this->m_connections.remove_if(joinWorkers);
+
+				this->m_connections.remove_if([&](WorkerContext& node) {
+
+					if (!node.finished) {
+						return false;
+					}
+
+					if (node.worker.joinable()) {
+						node.worker.join();
+					}
+
+					this->m_connections_count--;
+					return true;
+				});
 			}
 		}
 
