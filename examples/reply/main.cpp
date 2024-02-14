@@ -12,7 +12,7 @@
 
 using namespace Lambda;
 
-auto requestHandler = [](const Request& req, const Context& context) {
+auto requestHandlerA = [](const Request& req, const Context& context) {
 	const auto uaHeader = req.headers.get("user-agent");
 	const auto uaString = uaHeader.size() ? uaHeader : "Unknown";
 	return Response("Your user-agent is: " + uaString);
@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
 
 	ServerConfig initparams;
 	initparams.loglevel.requests = true;
-	auto server = LambdaInstance(requestHandler, initparams);
+	auto server = LambdaInstance(requestHandlerA, initparams);
 
 	server.awaitFinished();
 
