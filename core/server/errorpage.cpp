@@ -15,29 +15,34 @@ HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& mess
 
 HTTP::Response Pages::renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type) {
 
-	std::string pagecontent;
+	HTTP::Response errorResponse { code };
 
-	if (type == ErrorResponseType::HTML) {
+	switch (type) {
 
-		pagecontent = renderTemplate(Templates::servicePage, {
-			{ "svcpage_statuscode", std::to_string(code.code()) },
-			{ "svcpage_statustext", code.text() },
-			{ "svcpage_message_text", message }
-		});
+		case ErrorResponseType::HTML: {
+			errorResponse.body = renderTemplate(Templates::servicePage, {
+				{ "svcpage_statuscode", std::to_string(code.code()) },
+				{ "svcpage_statustext", code.text() },
+				{ "svcpage_message_text", message }
+			});
+			errorResponse.headers.set("content-type", "text/html");
+		} break;
 
-	} else {
-
-		JSON::Map responseObject = {
-			{ "ok", false },
-			{ "status", "failed" },
-			{ "context", code.text() },
-			{ "what", message }
-		};
-
-		pagecontent = JSON::stringify(responseObject);
+		case ErrorResponseType::JSON: {
+			errorResponse.body = JSON::stringify(JSON::Map({
+				{ "ok", false },
+				{ "status", "failed" },
+				{ "context", code.text() },
+				{ "what", message }
+			}));
+			errorResponse.headers.set("content-type", "application/json");
+		} break;
+		
+		default: {
+			errorResponse.body = "Backend error: " + message + "\r\nmaddsua/lambda\r\n";
+			errorResponse.headers.set("content-type", "text/plain");
+		} break;
 	}
 
-	return Lambda::HTTP::Response(code, {
-		{ "Content-Type", type == ErrorResponseType::HTML ? "text/html" : "application/json" }
-	}, pagecontent);
+	return errorResponse;
 }

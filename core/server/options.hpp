@@ -13,7 +13,7 @@ namespace Lambda {
 	};
 
 	enum struct ErrorResponseType {
-		HTML, JSON
+		Plain, HTML, JSON
 	};
 
 	struct ServeOptions {
