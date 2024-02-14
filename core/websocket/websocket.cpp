@@ -66,7 +66,7 @@ WebsocketContext::WebsocketContext(WebsocketInit init) :
 
 WebsocketContext::~WebsocketContext() {
 
-	if (!this->m_stopped) {
+	if (!this->m_stopped && this->m_transport.isConnected()) {
 		this->close(CloseReason::GoingAway);
 	}
 
