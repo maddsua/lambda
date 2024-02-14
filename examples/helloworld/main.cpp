@@ -15,7 +15,9 @@ auto requestHandler = [](const Request& req, const Context& context) {
 };
 
 int main(int argc, char const *argv[]) {
-	auto server = LambdaInstance(requestHandler, {});
+	ServerConfig opts;
+	opts.transport.reuseConnections = false;
+	auto server = LambdaInstance(requestHandler, opts);
 	server.awaitFinished();
 	return 0;
 }
