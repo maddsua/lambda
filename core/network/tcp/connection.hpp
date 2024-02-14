@@ -26,8 +26,8 @@ namespace Lambda::Network::TCP {
 		protected:
 			SockHandle hSocket;
 			ConnectionInfo m_info;
-			std::mutex m_readMutex;
-			std::mutex m_writeMutex;
+			std::mutex m_read_mtx;
+			std::mutex m_write_mtx;
 
 		public:
 

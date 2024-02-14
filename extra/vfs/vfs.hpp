@@ -39,7 +39,7 @@ namespace Lambda {
 		class Interface {
 			private:
 				std::unordered_map <std::string, StoredValue> m_data;
-				std::mutex m_lock;
+				std::mutex m_mtx;
 				VFSInfo m_info;
 
 			public:

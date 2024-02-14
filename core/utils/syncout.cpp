@@ -79,7 +79,7 @@ void WrapperImpl::log(std::initializer_list<MgsOverload> list) noexcept {
 	if (!temp.has_value()) return;
 
 	auto& value = temp.value();
-	std::lock_guard<std::mutex> lock(this->m_write_lock);
+	std::lock_guard<std::mutex> lock(this->m_write_mtx);
 	fwrite(value.c_str(), sizeof(char), value.size(), stdout);
 }
 
@@ -89,7 +89,7 @@ void WrapperImpl::error(std::initializer_list<MgsOverload> list) noexcept {
 	if (!temp.has_value()) return;
 
 	auto& content = temp.value();
-	std::lock_guard<std::mutex> lock(this->m_write_lock);
+	std::lock_guard<std::mutex> lock(this->m_write_mtx);
 	fwrite(content.c_str(), sizeof(char), content.size(), stderr);
 }
 
@@ -98,7 +98,7 @@ void WrapperImpl::log(MgsOverload item) noexcept {
 	if (!item.valueOpt.has_value()) return;
 
 	auto content = item.valueOpt.value() + '\n';
-	std::lock_guard<std::mutex> lock(this->m_write_lock);
+	std::lock_guard<std::mutex> lock(this->m_write_mtx);
 	fwrite(content.c_str(), sizeof(char), content.size(), stdout);
 }
 
@@ -107,7 +107,7 @@ void WrapperImpl::error(MgsOverload item) noexcept {
 	if (!item.valueOpt.has_value()) return;
 
 	auto content = item.valueOpt.value() + '\n';
-	std::lock_guard<std::mutex> lock(this->m_write_lock);
+	std::lock_guard<std::mutex> lock(this->m_write_mtx);
 	fwrite(content.c_str(), sizeof(char), content.size(), stderr);
 }
 

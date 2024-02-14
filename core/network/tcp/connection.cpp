@@ -72,7 +72,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 	if (this->hSocket == INVALID_SOCKET)
 		throw Lambda::Error("Cann't write to a closed connection");
 
-	std::lock_guard<std::mutex> lock(this->m_writeMutex);
+	std::lock_guard<std::mutex> lock(this->m_write_mtx);
 
 	const auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
@@ -81,7 +81,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 }
 
 std::vector<uint8_t> Connection::read() {
-	return this->read(this->DefaultChunkSize);
+	return this->read(Connection::DefaultChunkSize);
 }
 
 std::vector<uint8_t> Connection::read(size_t expectedSize) {
@@ -89,7 +89,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 	if (this->hSocket == INVALID_SOCKET)
 		throw Lambda::Error("Can't read from a closed connection");
 
-	std::lock_guard<std::mutex> lock(this->m_readMutex);
+	std::lock_guard<std::mutex> lock(this->m_read_mtx);
 
 	auto chunk = std::vector<uint8_t>(expectedSize);
 

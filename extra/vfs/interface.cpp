@@ -20,7 +20,7 @@ const std::optional<VirtualFile> Interface::read(const std::string& path) noexce
 
 	const auto pathNormalized = Strings::toLowerCase(path);
 
-	std::lock_guard<std::mutex> lock(this->m_lock);
+	std::lock_guard<std::mutex> lock(this->m_mtx);
 
 	auto itr = this->m_data.find(pathNormalized);
 	if (itr == this->m_data.end()) return std::nullopt;
@@ -40,7 +40,7 @@ void Interface::write(const std::string& path, const std::vector <uint8_t>& cont
 	const auto pathNormalized = Strings::toLowerCase(path);
 	const auto newSize = path.size() + content.size();
 
-	std::lock_guard<std::mutex> lock(this->m_lock);
+	std::lock_guard<std::mutex> lock(this->m_mtx);
 
 	const auto itr = this->m_data.find(pathNormalized);
 
@@ -69,7 +69,7 @@ void Interface::remove(const std::string& path) noexcept {
 
 	const auto pathNormalized = Strings::toLowerCase(path);
 
-	std::lock_guard<std::mutex> lock(this->m_lock);
+	std::lock_guard<std::mutex> lock(this->m_mtx);
 
 	auto itr = this->m_data.find(pathNormalized);
 	if (itr != this->m_data.end()) {
@@ -86,7 +86,7 @@ void Interface::move(const std::string& oldPath, const std::string& newPath) {
 
 	this->m_info.totalSize += (newPath.size() - oldPath.size());
 	
-	std::lock_guard <std::mutex> lock(this->m_lock);
+	std::lock_guard <std::mutex> lock(this->m_mtx);
 
 	const auto itrOld = this->m_data.find(pathNormalized);
 	if (itrOld == this->m_data.end()) {
@@ -101,7 +101,7 @@ std::vector<VirtualFileInfo> Interface::listAll() noexcept {
 
 	std::vector<VirtualFileInfo> result;
 
-	std::lock_guard<std::mutex> lock(this->m_lock);
+	std::lock_guard<std::mutex> lock(this->m_mtx);
 
 	for (const auto& entry : this->m_data) {
 		result.push_back({
@@ -119,7 +119,7 @@ std::optional<VirtualFileInfo> Interface::fileInfo(const std::string& path) noex
 
 	const auto pathNormalized = Strings::toLowerCase(path);
 
-	std::lock_guard<std::mutex> lock(this->m_lock);
+	std::lock_guard<std::mutex> lock(this->m_mtx);
 
 	auto itr = this->m_data.find(pathNormalized);
 	if (itr == this->m_data.end()) {
@@ -169,7 +169,7 @@ void Interface::loadSnapshot(const std::string& path) {
 				next.modified
 			};
 
-			std::lock_guard<std::mutex> lock(this->m_lock);
+			std::lock_guard<std::mutex> lock(this->m_mtx);
 			this->m_data[pathNormalized] = vfsentry;
 		}
 
@@ -196,7 +196,7 @@ void Interface::saveSnapshot(const std::string& path) {
 
 		writerPromise = std::async(Formats::Tar::exportArchive, path, std::ref(writerQueue));
 
-		std::lock_guard<std::mutex> lock(this->m_lock);
+		std::lock_guard<std::mutex> lock(this->m_mtx);
 
 		for (const auto& entry : this->m_data) {
 

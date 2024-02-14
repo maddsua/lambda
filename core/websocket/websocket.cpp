@@ -107,10 +107,10 @@ bool WebsocketContext::hasMessage() const noexcept {
 Message WebsocketContext::nextMessage() {
 
 	if (!this->m_queue.size()) {
-		throw std::runtime_error("cannot get next item from an empty HttpRequestQueue");
+		throw std::runtime_error("Message queue is empty");
 	}
 
-	std::lock_guard<std::mutex>lock(this->m_read_lock);
+	std::lock_guard<std::mutex>lock(this->m_read_mtx);
 
 	Message temp = this->m_queue.front();
 	this->m_queue.pop();

@@ -13,7 +13,7 @@ SyncQueue& SyncQueue::operator=(SyncQueue&& other) noexcept {
 }
 
 void SyncQueue::push(VirtualFile&& item) {
-	std::lock_guard lock(this->m_queue_lock);
+	std::lock_guard lock(this->m_queue_mtx);
 	this->m_queue.push_back(item);
 }
 
@@ -23,7 +23,7 @@ VirtualFile SyncQueue::next() {
 		throw std::runtime_error("cannot get next item from an empty FSQueue");
 	}
 
-	std::lock_guard lock(this->m_queue_lock);
+	std::lock_guard lock(this->m_queue_mtx);
 
 	VirtualFile temp = this->m_queue.front();
 	this->m_queue.erase(this->m_queue.begin());
@@ -33,7 +33,7 @@ VirtualFile SyncQueue::next() {
 
 bool SyncQueue::await() {
 
-	std::shared_lock lock(this->m_future_lock);
+	std::shared_lock lock(this->m_future_mtx);
 
 	while (!this->m_done && !this->m_queue.size()) {
 
@@ -49,7 +49,7 @@ bool SyncQueue::await() {
 
 bool SyncQueue::awaitEmpty() {
 
-	std::shared_lock lock(this->m_future_lock);
+	std::shared_lock lock(this->m_future_mtx);
 
 	while (!this->m_done && this->m_queue.size()) {
 
@@ -76,6 +76,6 @@ bool SyncQueue::empty() const noexcept {
 }
 
 void SyncQueue::setPromiseExitWatcher(std::future<void>* watch) noexcept {
-	std::unique_lock lock(this->m_future_lock);
+	std::unique_lock lock(this->m_future_mtx);
 	this->m_watch_future = watch;
 }

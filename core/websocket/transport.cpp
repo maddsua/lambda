@@ -254,7 +254,7 @@ void WebsocketContext::asyncWorker() {
 					multipartCtx.value().binary : 
 					frameHeader.opcode == OpCode::Binary;
 
-				std::lock_guard<std::mutex>lock(this->m_read_lock);
+				std::lock_guard<std::mutex>lock(this->m_read_mtx);
 				this->m_queue.push({
 					payloadBuff,
 					isBinary,

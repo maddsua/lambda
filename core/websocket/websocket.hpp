@@ -57,7 +57,7 @@ namespace Lambda::Websocket {
 
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
-			std::mutex m_read_lock;
+			std::mutex m_read_mtx;
 			bool m_stopped = false;
 			void asyncWorker();
 
