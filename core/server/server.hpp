@@ -7,7 +7,7 @@
 
 #include "../network/tcp/listener.hpp"
 
-#include <list>
+#include <forward_list>
 
 namespace Lambda {
 
@@ -19,7 +19,7 @@ namespace Lambda {
 
 			std::future<void> acceptWorker;
 			std::future<void> gcWorker;
-			std::list<WorkerContext> m_connections;
+			std::forward_list<WorkerContext> m_connections;
 			bool m_terminated = false;
 
 			void terminate();

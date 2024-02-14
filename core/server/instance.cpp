@@ -52,18 +52,18 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				}
 			}
 
-			for (auto itr = this->m_connections.begin(); itr != this->m_connections.end();) {
+			this->m_connections.remove_if([](WorkerContext& node) {
 
-				if (!itr->finished) continue;
-
-				if (itr->worker.joinable()) {
-					itr->worker.join();
+				if (!node.finished) {
+					return false;
 				}
 
-				auto delItr = itr;
-				itr++;
-				this->m_connections.erase(delItr);
-			}
+				if (node.worker.joinable()) {
+					node.worker.join();
+				}
+
+				return true;
+			});
 		}
 	});
 
