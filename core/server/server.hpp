@@ -20,18 +20,31 @@ namespace Lambda {
 
 			std::future<void> serviceWorker;
 			std::forward_list<WorkerContext> m_connections;
-			std::atomic<size_t> m_connections_count {0};
+			std::atomic<size_t> m_connections_count = 0;
 			bool m_terminated = false;
 
+			/**
+			 * Internal call that signals all workers to exit
+			*/
 			void terminate();
 
 		public:
 			LambdaInstance(RequestCallback handlerCallback, ServerConfig init);
 			~LambdaInstance();
 
+			/**
+			 * Stop server
+			*/
 			void shutdownn();
+
+			/**
+			 * Block current thread until server exits
+			*/
 			void awaitFinished();
 
+			/**
+			 * Return current instance config
+			*/
 			const ServerConfig& getConfig() const noexcept;
 	};
 };
