@@ -50,7 +50,7 @@ namespace Lambda::Network::TCP {
 			void setTimeouts(uint32_t valueMs);
 
 			static const uint32_t TimeoutMs = 15000;
-			static const uint32_t ReadChunkSize = 2048;
+			static const uint32_t DefaultChunkSize = 2048;
 
 			/**
 			 * Connection configuration flags
