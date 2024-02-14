@@ -68,9 +68,10 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 			}
 		}
 
-		while (!this->m_connections.empty()) {
-			this->m_connections.remove_if(joinWorkers);
-			std::this_thread::sleep_for(1ms);
+		for (auto& conn : this->m_connections) {
+			if (conn.worker.joinable()) {
+				conn.worker.join();
+			}
 		}
 	});
 
