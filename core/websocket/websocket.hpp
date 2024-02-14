@@ -62,7 +62,6 @@ namespace Lambda::Websocket {
 			void asyncWorker();
 
 		public:
-
 			WebsocketContext(WebsocketInit init);
 			~WebsocketContext();
 
