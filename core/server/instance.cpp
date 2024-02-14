@@ -108,10 +108,19 @@ LambdaInstance::~LambdaInstance() {
 	//	send terminate "signals"
 	this->terminate();
 
-	//	wait till service worker exits and suppress all errors
+	//	Wait until service worker exits.
+	//	Copypasted a bit but it's better than adding arguments to awaitFinished()
+	//	just to accound for exception suppression
 	if (this->serviceWorker.valid()) {
-		try { this->awaitFinished(); }
+		try { this->serviceWorker.get(); }
 			catch(...) {}
+	}
+
+	//	Wait until all connection workers exited
+	for (auto& item : this->m_connections) {
+		if (item.worker.joinable()) {
+			item.worker.join();
+		}
 	}
 }
 
