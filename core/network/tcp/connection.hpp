@@ -10,7 +10,16 @@
 namespace Lambda::Network::TCP {
 
 	struct ConnectionFlags {
+		/**
+		 * Close connection when read operation times out
+		*/
 		bool closeOnTimeout = true;
+		/**
+		 * Throw a network error when read operation is terminated by disconnect
+		 * 
+		 * Note: socket will be closed either way
+		*/
+		bool throwOnDisconnect = true;
 	};
 
 	class Connection {
@@ -43,6 +52,9 @@ namespace Lambda::Network::TCP {
 			static const uint32_t TimeoutMs = 15000;
 			static const uint32_t ReadChunkSize = 2048;
 
+			/**
+			 * Connection configuration flags
+			*/
 			ConnectionFlags flags;
 	};
 };

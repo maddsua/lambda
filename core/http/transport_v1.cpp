@@ -143,15 +143,17 @@ bool TransportContextV1::awaitNext() {
 
 		switch (this->m_keepalive) {
 
+			case KeepAliveStatus::Unknown: {
+				this->m_keepalive = (!connectionHeader.size() || Strings::includes(connectionHeader, "keep-alive")) ?
+					KeepAliveStatus::KeepAlive : KeepAliveStatus::Close;
+			} break;
+
 			case KeepAliveStatus::KeepAlive: {
 				if (Strings::includes(connectionHeader, "close"))
 					this->m_keepalive = KeepAliveStatus::Close;
 			} break;
 			
-			default: {
-				this->m_keepalive = Strings::includes(connectionHeader, "keep-alive") ?
-					KeepAliveStatus::KeepAlive : KeepAliveStatus::Close;
-			} break;
+			default: break;
 		}
 	}
 

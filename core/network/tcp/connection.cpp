@@ -1,16 +1,24 @@
 #include "./connection.hpp"
 #include "../sysnetw.hpp"
 
-#include <algorithm>
+#include <set>
 
 using namespace Lambda::Network;
 using namespace Lambda::Network::TCP;
 
-static const std::initializer_list<int> blockingEndedCodes = {
+static const std::set<int> blockingEndedCodes = {
 	#ifdef _WIN32
-		WSAETIMEDOUT, WSAEINTR
+		WSAETIMEDOUT
 	#else
-		EAGAIN, ETIMEDOUT, EWOULDBLOCK
+		ETIMEDOUT, EWOULDBLOCK
+	#endif
+};
+
+static const std::set<int> disconnectedCodes = {
+	#ifdef _WIN32
+		WSAEINTR, WSAECONNRESET
+	#else
+		ECONNRESET
 	#endif
 };
 
@@ -44,7 +52,7 @@ void Connection::end() noexcept {
 
 	//	swapping handle to a temp variable so that
 	//	no race condition can occur further down the chain
-	auto tempHandle = this->hSocket;
+	const auto tempHandle = this->hSocket;
 	this->hSocket = INVALID_SOCKET;
 
 	shutdown(tempHandle, SD_BOTH);
@@ -66,7 +74,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 
 	std::lock_guard<std::mutex> lock(this->m_writeMutex);
 
-	auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
+	const auto bytesSent = send(this->hSocket, (const char*)data.data(), data.size(), 0);
 
 	if (static_cast<size_t>(bytesSent) != data.size())
 		throw NetworkError("Network error while writing data");
@@ -85,7 +93,7 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 	auto chunk = std::vector<uint8_t>(expectedSize);
 
-	auto bytesReceived = recv(this->hSocket, reinterpret_cast<char*>(chunk.data()), chunk.size(), 0);
+	const auto bytesReceived = recv(this->hSocket, reinterpret_cast<char*>(chunk.data()), chunk.size(), 0);
 
 	if (bytesReceived == 0) {
 
@@ -96,14 +104,24 @@ std::vector<uint8_t> Connection::read(size_t expectedSize) {
 
 		const auto osError = GetOSErrorCode();
 
-		//	I could use std::any_of here,
-		//	but that syntax sugar seems out of place here
-		for (const auto code : blockingEndedCodes) {
-			if (osError == code) {
-				if (this->flags.closeOnTimeout)
-					this->end();
+		if (blockingEndedCodes.contains(osError)) {
+
+			if (this->flags.closeOnTimeout) {
+				this->end();
+			}
+
+			return {};
+		}
+
+		if (disconnectedCodes.contains(osError)) {
+
+			this->end();
+
+			if (!this->flags.throwOnDisconnect) {
 				return {};
 			}
+
+			throw NetworkError("Connection abruptly closed by the client");
 		}
 
 		throw NetworkError("Network error while reading data", osError);
