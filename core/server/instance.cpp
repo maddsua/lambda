@@ -55,7 +55,8 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				worker.finished = true;
 			}, std::ref(nextWorker));
 
-			if (this->m_connections_count > 100 || std::time(nullptr) - lastGCEvent > 5) {
+			const auto timeDelta = std::time(nullptr) - lastGCEvent;
+			if ((this->m_connections_count > 100 && timeDelta > 1) || timeDelta > 5) {
 				puts("doing gc job...");
 				lastGCEvent = std::time(nullptr);
 				this->m_connections.remove_if(joinWorkers);
