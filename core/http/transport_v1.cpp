@@ -19,7 +19,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 };
 
 static const std::initializer_list<std::string> compressibleTypes = {
-	"text", "html", "json", "xml"
+	"text", "html", "json", "xml", "javascript"
 };
 
 TransportContextV1::TransportContextV1(
