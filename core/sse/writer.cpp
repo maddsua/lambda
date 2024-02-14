@@ -7,12 +7,13 @@ using namespace Lambda::SSE;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
-Writer::Writer(HTTP::Transport::TransportContext& tctx, const IncomingRequest& initRequest) : transport(tctx) {
+Writer::Writer(WriterInit init) :
+	m_worker(init.workerctx), m_transport(init.transport) {
 
-	tctx.flags.autocompress = false;
-	tctx.flags.forceContentLength = false;
+	this->m_transport.flags.autocompress = false;
+	this->m_transport.flags.forceContentLength = false;
 
-	const auto originHeader = initRequest.request.headers.get("origin");
+	const auto originHeader = init.requestEvent.request.headers.get("origin");
 
 	auto upgradeResponse = Response(200, {
 		{ "connection", "keep-alive" },
@@ -24,12 +25,12 @@ Writer::Writer(HTTP::Transport::TransportContext& tctx, const IncomingRequest& i
 		upgradeResponse.headers.set("Access-Control-Allow-Origin", originHeader);
 	}
 
-	tctx.respond({ upgradeResponse, initRequest.id });
+	this->m_transport.respond({ upgradeResponse, init.requestEvent.id });
 }
 
 void Writer::push(const EventMessage& event) {
 
-	if (!this->transport.isConnected()) {
+	if (!this->m_transport.isConnected()) {
 		throw Lambda::Error("SSE listener disconnected");
 	}
 
@@ -64,19 +65,19 @@ void Writer::push(const EventMessage& event) {
 	serializedMessage.insert(serializedMessage.end(), lineSeparator.begin(), lineSeparator.end());
 
 	try {
-		this->transport.writeRaw(serializedMessage);
+		this->m_transport.writeRaw(serializedMessage);
 	} catch(...) {
-		this->transport.tcpconn().end();
+		this->m_transport.tcpconn().end();
 	}
 }
 
 bool Writer::connected() const noexcept {
-	return this->transport.isConnected();
+	return this->m_transport.isConnected() && !this->m_worker.shutdownFlag;
 }
 
 void Writer::close() {
 
-	if (!this->transport.isConnected()) {
+	if (!this->m_transport.isConnected()) {
 		return;
 	}
 
@@ -84,5 +85,5 @@ void Writer::close() {
 	closeEvent.event = "close";
 
 	this->push(closeEvent);
-	this->transport.tcpconn().end();
+	this->m_transport.tcpconn().end();
 }

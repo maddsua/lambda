@@ -26,6 +26,7 @@ namespace Lambda {
 		uint16_t port = 8180;
 		bool fastPortReuse = false;
 		Network::ConnectionTimeouts connectionTimeouts;
+		uint32_t maxConnections = 0;
 	};
 
 	struct ServerConfig : ServeOptions {

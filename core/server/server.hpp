@@ -3,8 +3,12 @@
 
 #include "./options.hpp"
 #include "./handlers.hpp"
+#include "./worker.hpp"
 
 #include "../network/tcp/listener.hpp"
+
+#include <forward_list>
+#include <atomic>
 
 namespace Lambda {
 
@@ -14,7 +18,9 @@ namespace Lambda {
 			ServerConfig config;
 			RequestCallback httpHandler;
 
-			std::future<void> watchdogWorker;
+			std::future<void> serviceWorker;
+			std::forward_list<WorkerContext> m_connections;
+			std::atomic<size_t> m_connections_count {0};
 			bool m_terminated = false;
 
 			void terminate();

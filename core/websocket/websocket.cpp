@@ -14,7 +14,7 @@ using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 using namespace Lambda::Websocket;
 using namespace Lambda::Websocket::Transport;
-using namespace Lambda::Server::Connections;
+using namespace Lambda::Server::Connection;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -26,10 +26,10 @@ static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 //	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t sockRcvTimeout = 100;
 
-WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, const IncomingRequest& initRequest)
-	: transport(tctx), topts(tctx.options()) {
+WebsocketContext::WebsocketContext(WebsocketInit init) :
+	m_worker(init.workerctx), m_transport(init.transport), m_topts(init.transport.options()) {
 
-	const auto& request = initRequest.request;
+	const auto& request = init.requestEvent.request;
 
 	if (request.method != "GET") {
 		throw UpgradeError("Websocket handshake method invalid", 405);
@@ -42,7 +42,7 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 		throw UpgradeError("Websocket handshake header invalid", 400);
 	}
 
-	if (tctx.hasPartialData()) {
+	if (this->m_transport.hasPartialData()) {
 		throw UpgradeError("Websocket handshake has extra data after headers", 400);
 	}
 
@@ -55,19 +55,20 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHash) }
 	});
 
-	tctx.respond({ handshakeReponse, initRequest.id });
-	tctx.reset();
+	this->m_transport.respond({ handshakeReponse, init.requestEvent.id });
+	this->m_transport.reset();
 
-	auto& tcpconn = this->transport.tcpconn();
-
-	tcpconn.flags.closeOnTimeout = false;
-	//tcpconn.flags.throwOnDisconnect = false;
-	tcpconn.setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
+	this->m_transport.tcpconn().flags.closeOnTimeout = false;
+	this->m_transport.tcpconn().setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
 
 	this->m_reader = std::async(&WebsocketContext::asyncWorker, this);
 }
 
 WebsocketContext::~WebsocketContext() {
+
+	if (!this->m_stopped && this->m_transport.isConnected()) {
+		this->close(CloseReason::GoingAway);
+	}
 
 	this->m_stopped = true;
 
@@ -81,7 +82,7 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	this->m_stopped = true;
 
-	auto closeReasonCode = Bits::netwnormx(static_cast<std::underlying_type_t<CloseReason>>(reason));
+	const auto closeReasonCode = Bits::netwnormx(static_cast<std::underlying_type_t<CloseReason>>(reason));
 
 	auto closeMessageBuff = serializeFrameHeader({
 		FrameControlBits::BitFinal,
@@ -95,8 +96,8 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	closeMessageBuff.insert(closeMessageBuff.end(), closeReasonBuff.begin(), closeReasonBuff.end());	
 
-	this->transport.writeRaw(closeMessageBuff);
-	this->transport.close();
+	this->m_transport.writeRaw(closeMessageBuff);
+	this->m_transport.close();
 }
 
 bool WebsocketContext::hasMessage() const noexcept {
@@ -106,10 +107,10 @@ bool WebsocketContext::hasMessage() const noexcept {
 Message WebsocketContext::nextMessage() {
 
 	if (!this->m_queue.size()) {
-		throw std::runtime_error("cannot get next item from an empty HttpRequestQueue");
+		throw std::runtime_error("Message queue is empty");
 	}
 
-	std::lock_guard<std::mutex>lock(this->m_read_lock);
+	std::lock_guard<std::mutex>lock(this->m_read_mtx);
 
 	Message temp = this->m_queue.front();
 	this->m_queue.pop();
@@ -119,12 +120,12 @@ Message WebsocketContext::nextMessage() {
 
 bool WebsocketContext::awaitMessage() {
 
-	if (!this->m_reader.valid()) {
+	if (!this->m_reader.valid() || this->m_worker.shutdownFlag) {
 		return this->m_queue.size();
 	}
 
 	auto readerDone = false;
-	while (!readerDone && !this->m_queue.size()) {
+	while (!readerDone && !this->m_queue.size() && !this->m_worker.shutdownFlag) {
 		readerDone = this->m_reader.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready;
 	}
 

@@ -12,8 +12,8 @@ namespace Lambda::VFS::Formats {
 	class SyncQueue {
 		private:
 			std::vector<VirtualFile> m_queue;
-			std::mutex m_queue_lock;
-			std::shared_mutex m_future_lock;
+			std::mutex m_queue_mtx;
+			std::shared_mutex m_future_mtx;
 			bool m_done = false;
 			std::future<void>* m_watch_future = nullptr;
 

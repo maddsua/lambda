@@ -19,7 +19,7 @@ static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 };
 
 static const std::initializer_list<std::string> compressibleTypes = {
-	"text", "html", "json", "xml"
+	"text", "html", "json", "xml", "javascript"
 };
 
 TransportContextV1::TransportContextV1(
@@ -300,7 +300,7 @@ void TransportContextV1::respond(const ResponseContext& responsectx) {
 	}
 
 	std::vector<uint8_t> headerBuff;
-	headerBuff.reserve(2048);
+	headerBuff.reserve(TCP::Connection::DefaultChunkSize);
 
 	//	push http version
 	static const std::string httpVersion = "HTTP/1.1";
@@ -388,7 +388,7 @@ void TransportContextV1::writeRaw(const std::vector<uint8_t>& data) {
 }
 
 std::vector<uint8_t> TransportContextV1::readRaw() {
-	return this->readRaw(Network::TCP::Connection::ReadChunkSize);
+	return this->readRaw(Network::TCP::Connection::DefaultChunkSize);
 }
 
 std::vector<uint8_t> TransportContextV1::readRaw(size_t expectedSize) {

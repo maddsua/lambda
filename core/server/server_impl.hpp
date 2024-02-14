@@ -5,6 +5,7 @@
 #include "../network/tcp/connection.hpp"
 
 #include <string>
+#include <thread>
 
 namespace Lambda::Server {
 
@@ -12,14 +13,14 @@ namespace Lambda::Server {
 		HTTP, WS, SSE
 	};
 
-	void connectionHandler(Network::TCP::Connection&& conn, const ServeOptions& config, const RequestCallback& handlerCallback) noexcept;
+	void connectionWorker(WorkerContext& workerctx, const ServeOptions& config, const RequestCallback& handlerCallback) noexcept;
 
 	namespace Pages {
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type);
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message);
 	};
 
-	namespace Connections {
+	namespace Connection {
 
 		/**
 		 * UpgradeError is thrown whenever a transport context fails to create a subprotocol

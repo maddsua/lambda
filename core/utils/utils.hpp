@@ -100,7 +100,7 @@ namespace Lambda {
 		class WrapperImpl {
 			private:
 				std::optional<std::string> serializeEntries(const std::initializer_list<MgsOverload>& list) const noexcept;
-				std::mutex m_write_lock;
+				std::mutex m_write_mtx;
 
 			public:
 				/**

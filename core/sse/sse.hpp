@@ -1,7 +1,7 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_SERVER_SIDE_EVENTS__
 #define __LIB_MADDSUA_LAMBDA_CORE_SERVER_SIDE_EVENTS__
 
-#include "../network/tcp/connection.hpp"
+#include "../server/worker.hpp"
 #include "../http/transport.hpp"
 
 #include <string>
@@ -17,12 +17,19 @@ namespace Lambda::SSE {
 		std::optional<uint32_t> retry;
 	};
 
+	struct WriterInit {
+		const WorkerContext& workerctx;
+		HTTP::Transport::TransportContext& transport;
+		const HTTP::Transport::IncomingRequest& requestEvent;
+	};
+
 	class Writer {
 		private:
-			HTTP::Transport::TransportContext& transport;
+			const WorkerContext& m_worker;
+			HTTP::Transport::TransportContext& m_transport;
 
 		public:
-			Writer(HTTP::Transport::TransportContext& tctx, const HTTP::Transport::IncomingRequest& initRequest);
+			Writer(WriterInit init);
 			void push(const EventMessage& event);
 			bool connected() const noexcept;
 			void close();
