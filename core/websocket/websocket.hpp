@@ -46,7 +46,7 @@ namespace Lambda::Websocket {
 	struct WebsocketInit {
 		const WorkerContext& workerctx;
 		HTTP::Transport::TransportContext& transport;
-		const IncomingRequest& requestEvent;
+		const HTTP::Transport::IncomingRequest& requestEvent;
 	};
 
 	class WebsocketContext {

@@ -11,6 +11,8 @@ using namespace Lambda::Server;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
+using namespace std::chrono_literals;
+
 LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig init) :
 	listener({ init.service.fastPortReuse, init.service.port, init.service.connectionTimeouts }),
 	config(init), httpHandler(handlerCallback) {
@@ -38,6 +40,37 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 		}
 	});
 
+	this->gcWorker = std::async([&]() {
+
+		while (!this->m_terminated || !this->m_connections.empty()) {
+
+			std::this_thread::sleep_for(10ms);
+
+			if (this->m_terminated) {
+				for (auto& worker : this->m_connections) {
+					worker.shutdownFlag = true;
+				}
+			}
+
+			auto prevItr = this->m_connections.before_begin();
+			auto itr = this->m_connections.begin();
+
+			while (itr != this->m_connections.end()) {
+
+				if (!itr->finished) continue;
+
+				if (itr->worker.joinable()) {
+					itr->worker.join();
+				}
+
+				const auto delItr = prevItr;
+				prevItr = itr;
+				this->m_connections.erase_after(delItr);
+			}
+		}
+
+	});
+
 	if (config.loglevel.startMessage) {
 		syncout.log("[Service] Started at http://localhost:" + std::to_string(this->config.service.port) + '/');
 	}
@@ -57,6 +90,8 @@ void LambdaInstance::terminate() {
 void LambdaInstance::awaitFinished() {
 	if (this->acceptWorker.valid())
 		this->acceptWorker.get();
+	if (this->gcWorker.valid())
+		this->gcWorker.get();
 }
 
 LambdaInstance::~LambdaInstance() {

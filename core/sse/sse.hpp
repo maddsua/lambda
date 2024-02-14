@@ -20,7 +20,7 @@ namespace Lambda::SSE {
 	struct WriterInit {
 		const WorkerContext& workerctx;
 		HTTP::Transport::TransportContext& transport;
-		const IncomingRequest& requestEvent;
+		const HTTP::Transport::IncomingRequest& requestEvent;
 	};
 
 	class Writer {

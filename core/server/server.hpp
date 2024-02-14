@@ -18,6 +18,7 @@ namespace Lambda {
 			RequestCallback httpHandler;
 
 			std::future<void> acceptWorker;
+			std::future<void> gcWorker;
 			std::forward_list<WorkerContext> m_connections;
 			bool m_terminated = false;
 
