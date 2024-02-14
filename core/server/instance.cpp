@@ -23,26 +23,6 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 	this->serviceWorker = std::async([&]() {
 
-		while (!this->m_terminated && this->listener.active()) {
-
-			auto nextConn = this->listener.acceptConnection();
-			if (!nextConn.has_value()) break;
-
-			this->m_connections.push_front({
-				std::move(nextConn.value())
-			});
-			this->m_connections_count++;
-
-			auto& nextWorker = this->m_connections.front();
-			nextWorker.worker = std::thread([&](WorkerContext& worker) {
-				connectionWorker(worker, this->config, this->httpHandler);
-				worker.finished = true;
-			}, std::ref(nextWorker));
-		}
-	});
-
-	this->gcWorker = std::async([&]() {
-
 		const auto joinWorkers = [&](WorkerContext& node) {
 
 			if (!node.finished) {
@@ -59,9 +39,21 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 		time_t lastGCEvent = std::time(nullptr);
 
-		while (!this->m_terminated) {
+		while (!this->m_terminated && this->listener.active()) {
 
-			std::this_thread::sleep_for(1ms);
+			auto nextConn = this->listener.acceptConnection();
+			if (!nextConn.has_value()) break;
+
+			this->m_connections.push_front({
+				std::move(nextConn.value())
+			});
+			this->m_connections_count++;
+
+			auto& nextWorker = this->m_connections.front();
+			nextWorker.worker = std::thread([&](WorkerContext& worker) {
+				connectionWorker(worker, this->config, this->httpHandler);
+				worker.finished = true;
+			}, std::ref(nextWorker));
 
 			if (this->m_connections_count > 100 || std::time(nullptr) - lastGCEvent > 2) {
 				puts("doing gc job...");
@@ -101,8 +93,6 @@ void LambdaInstance::terminate() {
 void LambdaInstance::awaitFinished() {
 	if (this->serviceWorker.valid())
 		this->serviceWorker.get();
-	if (this->gcWorker.valid())
-		this->gcWorker.get();
 }
 
 LambdaInstance::~LambdaInstance() {
