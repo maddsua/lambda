@@ -68,9 +68,9 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 			}
 		}
 
-		for (auto& conn : this->m_connections) {
-			if (conn.worker.joinable()) {
-				conn.worker.join();
+		for (auto& item : this->m_connections) {
+			if (item.worker.joinable()) {
+				item.worker.join();
 			}
 		}
 	});
