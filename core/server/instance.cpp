@@ -67,9 +67,13 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				prevItr = itr;
 				itr++;
 				this->m_connections.erase_after(delItr);
+
+				if (this->m_connections.empty()) {
+					prevItr = this->m_connections.before_begin();
+					itr = this->m_connections.begin();
+				}
 			}
 		}
-
 	});
 
 	if (config.loglevel.startMessage) {
