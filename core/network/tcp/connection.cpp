@@ -81,7 +81,7 @@ void Connection::write(const std::vector<uint8_t>& data) {
 }
 
 std::vector<uint8_t> Connection::read() {
-	return this->read(this->ReadChunkSize);
+	return this->read(this->DefaultChunkSize);
 }
 
 std::vector<uint8_t> Connection::read(size_t expectedSize) {
