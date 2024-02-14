@@ -19,6 +19,6 @@ exampleSocket.onerror = (err) => {
 	console.error((err as ErrorEvent).message);
 };
 
-exampleSocket.onclose = () => {
-	console.log('Disconnected');
+exampleSocket.onclose = (ev) => {
+	console.log('Disconnected', ev.code);
 };
