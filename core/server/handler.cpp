@@ -10,7 +10,7 @@ using namespace Lambda::Server::Connection;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
-void Server::connectionHandler(
+void Server::connectionWorker(
 	WorkerContext& workerctx,
 	const ServeOptions& config,
 	const RequestCallback& handlerCallback

@@ -13,7 +13,7 @@ namespace Lambda::Server {
 		HTTP, WS, SSE
 	};
 
-	void connectionHandler(WorkerContext& workerctx, const ServeOptions& config, const RequestCallback& handlerCallback) noexcept;
+	void connectionWorker(WorkerContext& workerctx, const ServeOptions& config, const RequestCallback& handlerCallback) noexcept;
 
 	namespace Pages {
 		HTTP::Response renderErrorPage(HTTP::Status code, const std::string& message, ErrorResponseType type);

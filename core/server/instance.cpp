@@ -34,7 +34,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 			auto& nextWorker = this->m_connections.front();
 			nextWorker.worker = std::thread([&](WorkerContext& worker) {
-				connectionHandler(worker, this->config, this->httpHandler);
+				connectionWorker(worker, this->config, this->httpHandler);
 				worker.finished = true;
 			}, std::ref(nextWorker));
 		}
