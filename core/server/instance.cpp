@@ -23,20 +23,17 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 	this->serviceWorker = std::async([&]() {
 
-		const auto workersGCJob = [&]() -> void {
-			this->m_connections.remove_if([&](WorkerContext& node) {
+		const auto workerJoinFilter = [&](WorkerContext& node) -> bool {
+			if (!node.finished) {
+				return false;
+			}
 
-				if (!node.finished) {
-					return false;
-				}
+			if (node.worker.joinable()) {
+				node.worker.join();
+			}
 
-				if (node.worker.joinable()) {
-					node.worker.join();
-				}
-
-				this->m_connections_count--;
-				return true;
-			});
+			this->m_connections_count--;
+			return true;
 		};
 
 		const auto& svcmaxconn = this->config.service.maxConnections;
@@ -47,8 +44,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 			if (svcmaxconn && (this->m_connections_count > svcmaxconn)) {
 				nextConn.value().end();
-				workersGCJob();
-				std::this_thread::sleep_for(1ms);
+				this->m_connections.remove_if(workerJoinFilter);
 				continue;
 			}
 
@@ -63,7 +59,9 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				worker.finished = true;
 			}, std::ref(nextWorker));
 
-			workersGCJob();
+			if (!svcmaxconn || this->m_connections_count > svcmaxconn) {
+				this->m_connections.remove_if(workerJoinFilter);
+			}
 		}
 
 		if (this->m_terminated) {
