@@ -6,12 +6,12 @@
 using namespace Lambda;
 using namespace Lambda::Websocket;
 using namespace Lambda::Server;
-using namespace Lambda::Server::Connections;
+using namespace Lambda::Server::Connection;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
 void Server::connectionHandler(
-	Lambda::Network::TCP::Connection&& conn,
+	Network::TCP::Connection& conn,
 	const ServeOptions& config,
 	const RequestCallback& handlerCallback
 ) noexcept {

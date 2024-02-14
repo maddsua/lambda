@@ -14,7 +14,7 @@ using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 using namespace Lambda::Websocket;
 using namespace Lambda::Websocket::Transport;
-using namespace Lambda::Server::Connections;
+using namespace Lambda::Server::Connection;
 
 static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 

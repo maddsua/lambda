@@ -6,7 +6,15 @@
 
 #include "../network/tcp/listener.hpp"
 
+#include <forward_list>
+
 namespace Lambda {
+
+	struct WorkerContext {
+		Network::TCP::Connection conn;
+		std::thread worker;
+		bool finished = false;
+	};
 
 	class LambdaInstance {
 		private:
@@ -15,6 +23,7 @@ namespace Lambda {
 			RequestCallback httpHandler;
 
 			std::future<void> watchdogWorker;
+			std::forward_list<WorkerContext> m_connections;
 			bool m_terminated = false;
 
 			void terminate();

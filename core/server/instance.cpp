@@ -7,6 +7,7 @@
 #include <thread>
 
 using namespace Lambda;
+using namespace Lambda::Server;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
@@ -25,11 +26,15 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 			auto nextConn = this->listener.acceptConnection();
 			if (!nextConn.has_value()) break;
 
-			std::thread(Server::connectionHandler,
-				std::move(nextConn.value()),
-				std::ref(this->config),
-				std::ref(this->httpHandler)
-			).detach();
+			this->m_connections.push_front({
+				std::move(nextConn.value())
+			});
+
+			auto& nextWorker = this->m_connections.front();
+			nextWorker.worker = std::thread([&](WorkerContext& worker) {
+				connectionHandler(worker.conn, this->config, this->httpHandler);
+				worker.finished = true;
+			}, std::ref(nextWorker));
 		}
 	});
 
