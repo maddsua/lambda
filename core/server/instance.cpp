@@ -19,7 +19,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 		syncout.log("[Service] Warning: fast port reuse enabled");
 	}
 
-	this->workerLauncher = std::async([&]() {
+	this->acceptWorker = std::async([&]() {
 
 		while (!this->m_terminated && this->listener.active()) {
 
@@ -55,8 +55,8 @@ void LambdaInstance::terminate() {
 }
 
 void LambdaInstance::awaitFinished() {
-	if (this->workerLauncher.valid())
-		this->workerLauncher.get();
+	if (this->acceptWorker.valid())
+		this->acceptWorker.get();
 }
 
 LambdaInstance::~LambdaInstance() {

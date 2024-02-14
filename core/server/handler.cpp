@@ -11,16 +11,16 @@ using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
 void Server::connectionHandler(
-	WorkerContext& worker,
+	WorkerContext& workerctx,
 	const ServeOptions& config,
 	const RequestCallback& handlerCallback
 ) noexcept {
 
 	auto handlerMode = HandlerMode::HTTP;
-	auto transport = TransportContextV1(worker.conn, config.transport);
+	auto transport = TransportContextV1(workerctx.conn, config.transport);
 	
 	const auto& contextID = transport.contextID();
-	const auto& conninfo = worker.conn.info();
+	const auto& conninfo = workerctx.conn.info();
 
 	const auto handleTransportError = [&](const std::exception& error) -> void {
 
@@ -73,7 +73,7 @@ void Server::connectionHandler(
 	try {
 
 		while (
-			!worker.finished &&
+			!workerctx.finished &&
 			transport.isConnected() &&
 			handlerMode == HandlerMode::HTTP &&
 			transport.awaitNext()
@@ -108,7 +108,7 @@ void Server::connectionHandler(
 			const std::function<WebsocketContext()> upgradeCallbackWS = [&]() {
 				handlerMode = HandlerMode::WS;
 				logConnectionUpgrade("Websocket");
-				return WebsocketContext(transport, next);
+				return WebsocketContext({ workerctx, transport, next });
 			};
 
 			const RequestContext requestCTX = {

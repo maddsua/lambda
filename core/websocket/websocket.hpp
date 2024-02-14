@@ -1,8 +1,8 @@
 #ifndef __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKETS__
 #define __LIB_MADDSUA_LAMBDA_CORE_WEBSOCKETS__
 
-#include "../network/tcp/connection.hpp"
 #include "../http/transport.hpp"
+#include "../server/worker.hpp"
 
 #include <cstdint>
 #include <string>
@@ -43,10 +43,18 @@ namespace Lambda::Websocket {
 		TLSHandshakeFailed = 1015
 	};
 
+	struct WebsocketInit {
+		const WorkerContext& workerctx;
+		HTTP::Transport::TransportContext& transport;
+		const IncomingRequest& requestEvent;
+	};
+
 	class WebsocketContext {
 		private:
-			HTTP::Transport::TransportContext& transport;
-			const HTTP::Transport::TransportOptions& topts;
+			const WorkerContext& m_worker;
+			HTTP::Transport::TransportContext& m_transport;
+			const HTTP::Transport::TransportOptions& m_topts;
+
 			std::future<void> m_reader;
 			std::queue<Websocket::Message> m_queue;
 			std::mutex m_read_lock;
@@ -55,7 +63,7 @@ namespace Lambda::Websocket {
 
 		public:
 
-			WebsocketContext(HTTP::Transport::TransportContext& tctx, const HTTP::Transport::IncomingRequest& initRequest);
+			WebsocketContext(WebsocketInit init);
 			~WebsocketContext();
 
 			bool awaitMessage();

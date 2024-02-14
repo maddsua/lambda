@@ -26,10 +26,10 @@ static const std::string wsMagicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 //	It works, so fuck that, I'm not even selling this code to anyone. Yet. Remove when you do, the future Daniel.
 static const time_t sockRcvTimeout = 100;
 
-WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, const IncomingRequest& initRequest)
-	: transport(tctx), topts(tctx.options()) {
+WebsocketContext::WebsocketContext(WebsocketInit init) :
+	m_worker(init.workerctx), m_transport(init.transport), m_topts(init.transport.options()) {
 
-	const auto& request = initRequest.request;
+	const auto& request = init.requestEvent.request;
 
 	if (request.method != "GET") {
 		throw UpgradeError("Websocket handshake method invalid", 405);
@@ -42,7 +42,7 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 		throw UpgradeError("Websocket handshake header invalid", 400);
 	}
 
-	if (tctx.hasPartialData()) {
+	if (this->m_transport.hasPartialData()) {
 		throw UpgradeError("Websocket handshake has extra data after headers", 400);
 	}
 
@@ -55,11 +55,11 @@ WebsocketContext::WebsocketContext(HTTP::Transport::TransportContext& tctx, cons
 		{ "Sec-WebSocket-Accept", Encoding::toBase64(keyHash) }
 	});
 
-	tctx.respond({ handshakeReponse, initRequest.id });
-	tctx.reset();
+	this->m_transport.respond({ handshakeReponse, init.requestEvent.id });
+	this->m_transport.reset();
 
-	this->transport.tcpconn().flags.closeOnTimeout = false;
-	this->transport.tcpconn().setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
+	this->m_transport.tcpconn().flags.closeOnTimeout = false;
+	this->m_transport.tcpconn().setTimeouts(sockRcvTimeout, Network::SetTimeoutsDirection::Receive);
 
 	this->m_reader = std::async(&WebsocketContext::asyncWorker, this);
 }
@@ -92,8 +92,8 @@ void WebsocketContext::close(Websocket::CloseReason reason) {
 
 	closeMessageBuff.insert(closeMessageBuff.end(), closeReasonBuff.begin(), closeReasonBuff.end());	
 
-	this->transport.writeRaw(closeMessageBuff);
-	this->transport.close();
+	this->m_transport.writeRaw(closeMessageBuff);
+	this->m_transport.close();
 }
 
 bool WebsocketContext::hasMessage() const noexcept {
@@ -116,12 +116,12 @@ Message WebsocketContext::nextMessage() {
 
 bool WebsocketContext::awaitMessage() {
 
-	if (!this->m_reader.valid()) {
+	if (!this->m_reader.valid() || this->m_worker.finished) {
 		return this->m_queue.size();
 	}
 
 	auto readerDone = false;
-	while (!readerDone && !this->m_queue.size()) {
+	while (!readerDone && !this->m_queue.size() && !this->m_worker.finished) {
 		readerDone = this->m_reader.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready;
 	}
 

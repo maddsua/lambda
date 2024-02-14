@@ -3,6 +3,7 @@
 
 #include "./options.hpp"
 #include "./handlers.hpp"
+#include "./worker.hpp"
 
 #include "../network/tcp/listener.hpp"
 
@@ -10,19 +11,13 @@
 
 namespace Lambda {
 
-	struct WorkerContext {
-		Network::TCP::Connection conn;
-		std::thread worker;
-		bool finished = false;
-	};
-
 	class LambdaInstance {
 		private:
 			Network::TCP::ListenSocket listener;
 			ServerConfig config;
 			RequestCallback httpHandler;
 
-			std::future<void> workerLauncher;
+			std::future<void> acceptWorker;
 			std::forward_list<WorkerContext> m_connections;
 			bool m_terminated = false;
 

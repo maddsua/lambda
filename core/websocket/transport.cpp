@@ -28,7 +28,7 @@ void WebsocketContext::sendMessage(const Websocket::Message& msg) {
 	}
 
 	auto writeBuff = serializeMessage(msg);
-	this->transport.writeRaw(writeBuff);
+	this->m_transport.writeRaw(writeBuff);
 }
 
 FrameHeader Transport::parseFrameHeader(const std::vector<uint8_t>& buffer) {
@@ -121,7 +121,7 @@ void WebsocketContext::asyncWorker() {
 	auto lastPingResponse = std::chrono::steady_clock::now();
 	const auto pingWindow = std::chrono::milliseconds(wsMaxSkippedAttempts * wsActTimeout);
 
-	while (this->transport.isConnected() && !this->m_stopped) {
+	while (!this->m_worker.finished && !this->m_stopped && this->m_transport.isConnected()) {
 
 		//	send ping or terminate websocket if there is no response
 		if ((lastPing - lastPingResponse) > pingWindow) {
@@ -137,19 +137,19 @@ void WebsocketContext::asyncWorker() {
 				wsPingString.size()
 			});
 
-			this->transport.writeRaw(pingHeader);
-			this->transport.writeRaw(std::vector<uint8_t>(wsPingString.begin(), wsPingString.end()));
+			this->m_transport.writeRaw(pingHeader);
+			this->m_transport.writeRaw(std::vector<uint8_t>(wsPingString.begin(), wsPingString.end()));
 
 			lastPing = std::chrono::steady_clock::now();
 		}
 
-		const auto nextChunk = this->transport.readRaw(wsReadChunk);
+		const auto nextChunk = this->m_transport.readRaw(wsReadChunk);
 		if (!nextChunk.size()) continue;
 
 		downloadBuff.insert(downloadBuff.end(), nextChunk.begin(), nextChunk.end());
 		if (downloadBuff.size() < FrameHeader::min_size) continue;
 
-		if (downloadBuff.size() > this->topts.maxRequestSize) {
+		if (downloadBuff.size() > this->m_topts.maxRequestSize) {
 			this->close(CloseReason::MessageTooBig);
 			throw std::runtime_error("Expected frame size too large");
 		}
@@ -172,7 +172,7 @@ void WebsocketContext::asyncWorker() {
 		const auto frameSize = frameHeader.size + frameHeader.payloadSize;
 		auto payloadBuff = std::vector<uint8_t>(downloadBuff.begin() + frameHeader.size, downloadBuff.begin() + frameSize);
 
-		if (frameSize > this->topts.maxRequestSize) {
+		if (frameSize > this->m_topts.maxRequestSize) {
 			this->close(CloseReason::MessageTooBig);
 			throw std::runtime_error("frame size too large");
 		}
@@ -180,7 +180,7 @@ void WebsocketContext::asyncWorker() {
 		if (frameHeader.payloadSize + frameHeader.payloadSize < downloadBuff.size()) {
 
 			auto expectedSize = frameHeader.payloadSize - payloadBuff.size();
-			auto payloadChunk = this->transport.readRaw(expectedSize);
+			auto payloadChunk = this->m_transport.readRaw(expectedSize);
 
 			if (payloadChunk.size() < expectedSize) {
 				this->close(CloseReason::ProtocolError);
@@ -231,8 +231,8 @@ void WebsocketContext::asyncWorker() {
 					frameHeader.payloadSize
 				});
 
-				this->transport.writeRaw(pongHeader);
-				this->transport.writeRaw(payloadBuff);
+				this->m_transport.writeRaw(pongHeader);
+				this->m_transport.writeRaw(payloadBuff);
 
 			} break;
 
