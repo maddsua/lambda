@@ -11,16 +11,16 @@ using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
 
 void Server::connectionHandler(
-	Network::TCP::Connection& conn,
+	WorkerContext& worker,
 	const ServeOptions& config,
 	const RequestCallback& handlerCallback
 ) noexcept {
 
 	auto handlerMode = HandlerMode::HTTP;
-	auto transport = TransportContextV1(conn, config.transport);
+	auto transport = TransportContextV1(worker.conn, config.transport);
 	
 	const auto& contextID = transport.contextID();
-	const auto& conninfo = conn.info();
+	const auto& conninfo = worker.conn.info();
 
 	const auto handleTransportError = [&](const std::exception& error) -> void {
 
@@ -72,7 +72,12 @@ void Server::connectionHandler(
 
 	try {
 
-		while (transport.isConnected() && handlerMode == HandlerMode::HTTP && transport.awaitNext()) {
+		while (
+			!worker.finished &&
+			transport.isConnected() &&
+			handlerMode == HandlerMode::HTTP &&
+			transport.awaitNext()
+		) {
 
 			const auto next = transport.nextRequest();
 			const auto& request = next.request;

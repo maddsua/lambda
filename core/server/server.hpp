@@ -22,7 +22,7 @@ namespace Lambda {
 			ServerConfig config;
 			RequestCallback httpHandler;
 
-			std::future<void> watchdogWorker;
+			std::future<void> workerLauncher;
 			std::forward_list<WorkerContext> m_connections;
 			bool m_terminated = false;
 
