@@ -54,7 +54,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				}
 			}
 
-			for (auto itr = this->m_connections.begin(); itr != this->m_connections.end(); itr++) {
+			for (auto itr = this->m_connections.begin(); itr != this->m_connections.end();) {
 
 				if (!itr->finished) continue;
 
@@ -62,7 +62,9 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 					itr->worker.join();
 				}
 
-				this->m_connections.erase(itr);
+				auto delItr = itr;
+				itr++;
+				this->m_connections.erase(delItr);
 			}
 		}
 	});
