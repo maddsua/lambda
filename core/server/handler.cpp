@@ -102,7 +102,7 @@ void Server::connectionHandler(
 			const std::function<SSE::Writer()> upgradeCallbackSSE = [&]() {
 				handlerMode = HandlerMode::SSE;
 				logConnectionUpgrade("SSE stream");
-				return SSE::Writer(transport, next);
+				return SSE::Writer({ workerctx, transport, next });
 			};
 
 			const std::function<WebsocketContext()> upgradeCallbackWS = [&]() {
