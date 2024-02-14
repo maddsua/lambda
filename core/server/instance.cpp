@@ -65,6 +65,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 				const auto delItr = prevItr;
 				prevItr = itr;
+				itr++;
 				this->m_connections.erase_after(delItr);
 			}
 		}
