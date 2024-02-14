@@ -21,7 +21,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 		syncout.log("[Service] Warning: fast port reuse enabled");
 	}
 
-	this->acceptWorker = std::async([&]() {
+	this->serviceWorker = std::async([&]() {
 
 		while (!this->m_terminated && this->listener.active()) {
 
@@ -31,6 +31,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 			this->m_connections.push_front({
 				std::move(nextConn.value())
 			});
+			this->m_connections_count++;
 
 			auto& nextWorker = this->m_connections.front();
 			nextWorker.worker = std::thread([&](WorkerContext& worker) {
@@ -42,28 +43,42 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 	this->gcWorker = std::async([&]() {
 
-		while (!this->m_terminated || !this->m_connections.empty()) {
+		const auto joinWorkers = [&](WorkerContext& node) {
 
-			std::this_thread::sleep_for(10ms);
-
-			if (this->m_terminated) {
-				for (auto& worker : this->m_connections) {
-					worker.shutdownFlag = true;
-				}
+			if (!node.finished) {
+				return false;
 			}
 
-			this->m_connections.remove_if([](WorkerContext& node) {
+			if (node.worker.joinable()) {
+				node.worker.join();
+			}
 
-				if (!node.finished) {
-					return false;
-				}
+			this->m_connections_count--;
+			return true;
+		};
 
-				if (node.worker.joinable()) {
-					node.worker.join();
-				}
+		time_t lastGCEvent = std::time(nullptr);
 
-				return true;
-			});
+		while (!this->m_terminated) {
+
+			std::this_thread::sleep_for(1ms);
+
+			if (this->m_connections_count > 100 || std::time(nullptr) - lastGCEvent > 2) {
+				puts("doing gc job...");
+				lastGCEvent = std::time(nullptr);
+				this->m_connections.remove_if(joinWorkers);
+			}
+		}
+
+		if (this->m_terminated) {
+			for (auto& worker : this->m_connections) {
+				worker.shutdownFlag = true;
+			}
+		}
+
+		while (!this->m_connections.empty()) {
+			this->m_connections.remove_if(joinWorkers);
+			std::this_thread::sleep_for(1ms);
 		}
 	});
 
@@ -84,8 +99,8 @@ void LambdaInstance::terminate() {
 }
 
 void LambdaInstance::awaitFinished() {
-	if (this->acceptWorker.valid())
-		this->acceptWorker.get();
+	if (this->serviceWorker.valid())
+		this->serviceWorker.get();
 	if (this->gcWorker.valid())
 		this->gcWorker.get();
 }
