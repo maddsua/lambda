@@ -23,8 +23,6 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 	this->serviceWorker = std::async([&]() {
 
-		auto& svcmaxconn = this->config.service.maxConnections;
-
 		const auto workersGCJob = [&]() -> void {
 			this->m_connections.remove_if([&](WorkerContext& node) {
 
@@ -41,6 +39,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 			});
 		};
 
+		const auto& svcmaxconn = this->config.service.maxConnections;
 		while (!this->m_terminated && this->listener.active()) {
 
 			auto nextConn = this->listener.acceptConnection();
