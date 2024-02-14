@@ -28,7 +28,6 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 			auto nextConn = this->listener.acceptConnection();
 			if (!nextConn.has_value()) break;
 
-			std::lock_guard<std::mutex> lock(this->m_workerLock);
 			this->m_connections.push_front({
 				std::move(nextConn.value())
 			});
@@ -46,7 +45,6 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 		while (!this->m_terminated || !this->m_connections.empty()) {
 
 			std::this_thread::sleep_for(10ms);
-			std::lock_guard<std::mutex> lock(this->m_workerLock);
 
 			if (this->m_terminated) {
 				for (auto& worker : this->m_connections) {

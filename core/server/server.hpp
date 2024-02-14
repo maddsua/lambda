@@ -8,7 +8,6 @@
 #include "../network/tcp/listener.hpp"
 
 #include <list>
-#include <mutex>
 
 namespace Lambda {
 
@@ -21,7 +20,6 @@ namespace Lambda {
 			std::future<void> acceptWorker;
 			std::future<void> gcWorker;
 			std::list<WorkerContext> m_connections;
-			std::mutex m_workerLock;
 			bool m_terminated = false;
 
 			void terminate();
