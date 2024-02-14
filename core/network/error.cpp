@@ -6,12 +6,12 @@ using namespace Lambda::Network;
 
 NetworkError::NetworkError(const std::string& message) : Error(message) {
 	this->m_code = GetOSErrorCode();
-	this->m_text += " (os error " + std::to_string(this->m_code) + ')';
+	if (this->m_code) this->m_text += " (os error " + std::to_string(this->m_code) + ')';
 }
 
 NetworkError::NetworkError(const std::string& message, int32_t errorCode) : Error(message) {
 	this->m_code = errorCode;
-	this->m_text += " (os error " + std::to_string(errorCode) + ')';
+	if (this->m_code) this->m_text += " (os error " + std::to_string(this->m_code) + ')';
 }
 
 const int32_t NetworkError::osError() const noexcept {
