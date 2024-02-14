@@ -72,7 +72,7 @@ void Writer::push(const EventMessage& event) {
 }
 
 bool Writer::connected() const noexcept {
-	return this->m_transport.isConnected() && !this->m_worker.finished;
+	return this->m_transport.isConnected() && !this->m_worker.shutdownFlag;
 }
 
 void Writer::close() {

@@ -73,7 +73,7 @@ void Server::connectionHandler(
 	try {
 
 		while (
-			!workerctx.finished &&
+			!workerctx.shutdownFlag &&
 			transport.isConnected() &&
 			handlerMode == HandlerMode::HTTP &&
 			transport.awaitNext()

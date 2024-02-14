@@ -10,6 +10,7 @@ namespace Lambda {
 	struct WorkerContext {
 		Network::TCP::Connection conn;
 		std::thread worker;
+		bool shutdownFlag = false;
 		bool finished = false;
 	};
 };

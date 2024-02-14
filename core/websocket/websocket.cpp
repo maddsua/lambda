@@ -116,12 +116,12 @@ Message WebsocketContext::nextMessage() {
 
 bool WebsocketContext::awaitMessage() {
 
-	if (!this->m_reader.valid() || this->m_worker.finished) {
+	if (!this->m_reader.valid() || this->m_worker.shutdownFlag) {
 		return this->m_queue.size();
 	}
 
 	auto readerDone = false;
-	while (!readerDone && !this->m_queue.size() && !this->m_worker.finished) {
+	while (!readerDone && !this->m_queue.size() && !this->m_worker.shutdownFlag) {
 		readerDone = this->m_reader.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready;
 	}
 
