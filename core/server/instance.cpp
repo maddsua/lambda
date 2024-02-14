@@ -23,19 +23,9 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 	this->serviceWorker = std::async([&]() {
 
-		auto lastGCEvent = std::time(nullptr);
 		auto& svcmaxconn = this->config.service.maxConnections;
 
 		const auto workersGCJob = [&]() -> void {
-
-			const auto timeDelta = std::time(nullptr) - lastGCEvent;
-
-			if (timeDelta < 5 && !(this->m_connections_count > 100 && timeDelta > 1)) {
-				return;
-			}
-
-			lastGCEvent = std::time(nullptr);
-
 			this->m_connections.remove_if([&](WorkerContext& node) {
 
 				if (!node.finished) {
@@ -53,14 +43,15 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 		while (!this->m_terminated && this->listener.active()) {
 
+			auto nextConn = this->listener.acceptConnection();
+			if (!nextConn.has_value()) break;
+
 			if (svcmaxconn && (this->m_connections_count > svcmaxconn)) {
+				nextConn.value().end();
 				workersGCJob();
 				std::this_thread::sleep_for(1ms);
 				continue;
 			}
-
-			auto nextConn = this->listener.acceptConnection();
-			if (!nextConn.has_value()) break;
 
 			this->m_connections.push_front({
 				std::move(nextConn.value())
