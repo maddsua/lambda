@@ -59,6 +59,11 @@ jobs:
       - name: HTTP/Headers test
         run: make test.headers
 
+# Instance restart test doesn't really show anything unless the instance gets some requests first,
+# and setting that up is not on my list right now
+#      - name: Instance restart test
+#        run: make test.instance_restart
+
   build_examples:
     needs: build_lib
     runs-on: ubuntu-latest

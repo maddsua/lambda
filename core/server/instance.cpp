@@ -63,18 +63,6 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				this->m_connections.remove_if(workerJoinFilter);
 			}
 		}
-
-		//	Request all workers to exit
-		for (auto& worker : this->m_connections) {
-			worker.shutdownFlag = true;
-		}
-
-		//	Wait untill all workers done
-		for (auto& item : this->m_connections) {
-			if (item.worker.joinable()) {
-				item.worker.join();
-			}
-		}
 	});
 
 	if (config.loglevel.startMessage) {
@@ -88,18 +76,52 @@ void LambdaInstance::shutdownn() {
 }
 
 void LambdaInstance::terminate() {
+
+	//	reqeust service worker to exit
 	this->m_terminated = true;
+	
+	//	close listen socket
 	this->listener.stop();
-	this->awaitFinished();
+
+	//	Request all connection workers to exit
+	for (auto& worker : this->m_connections) {
+		worker.shutdownFlag = true;
+	}
 }
 
 void LambdaInstance::awaitFinished() {
+
+	//	wait until service worker exits
 	if (this->serviceWorker.valid())
 		this->serviceWorker.get();
+
+	//	Wait until all connection workers done
+	for (auto& item : this->m_connections) {
+		if (item.worker.joinable()) {
+			item.worker.join();
+		}
+	}
 }
 
 LambdaInstance::~LambdaInstance() {
+
+	//	send terminate "signals"
 	this->terminate();
+
+	//	Wait until service worker exits.
+	//	Copypasted a bit but it's better than adding arguments to awaitFinished()
+	//	just to accound for exception suppression
+	if (this->serviceWorker.valid()) {
+		try { this->serviceWorker.get(); }
+			catch(...) {}
+	}
+
+	//	Wait until all connection workers exited
+	for (auto& item : this->m_connections) {
+		if (item.worker.joinable()) {
+			item.worker.join();
+		}
+	}
 }
 
 const ServerConfig& LambdaInstance::getConfig() const noexcept {
