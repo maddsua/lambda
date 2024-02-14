@@ -64,12 +64,12 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 			}
 		}
 
-		if (this->m_terminated) {
-			for (auto& worker : this->m_connections) {
-				worker.shutdownFlag = true;
-			}
+		//	Request all workers to exit
+		for (auto& worker : this->m_connections) {
+			worker.shutdownFlag = true;
 		}
 
+		//	Wait untill all workers done
 		for (auto& item : this->m_connections) {
 			if (item.worker.joinable()) {
 				item.worker.join();
