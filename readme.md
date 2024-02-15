@@ -62,10 +62,10 @@ int main(int argc, char const *argv[]) {
 
 <img src="docs/bench-v1-vs-v2.webp" style="max-width: 720px" />
 
-I was able to push it all the way up to 25k rps but it's not stablet at all at that rate.
-Removing the task join list would help smoth that graph, but it's not what you wan't for memory safety.
-Although, if you are not planning to destroy a lambda instance (if you only create it once in program lifetime),
-you may want to disable the task join list.
+I was able to push it all the way up to 25k rps but it's not stable at all at that rate.
+
+Removing the task join list would help smooth that graph, but it's not what you wan't for memory safety.
+Although, if you are not planning to destroy a lambda instance (if you only create it once in program lifetime), you may want to disable the task join list.
 
 **A latency comparison between v1 and v2** (50 rps, 10s)
 
