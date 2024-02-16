@@ -430,9 +430,9 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for write", path, std::error_code(5L, std::generic_category()));
 	}
 
-	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
 
 	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+		bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
 		auto writer = DeflatableWriter(outfile, isGzipped ? TarCompression::Gzip : TarCompression::None);
 	#else
 		auto writer = PlainFSWriter(outfile);
@@ -476,9 +476,9 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
-	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
 
 	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+		bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
 		auto reader = InflatableReader(infile, isGzipped ? TarCompression::Gzip : TarCompression::None);
 	#else
 		auto reader = PlainFSReader(infile);
