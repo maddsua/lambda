@@ -1,11 +1,12 @@
-include buildopts.mk
+# lambda main makefile
 
-LIBNAME					=	lambda
-CFLAGS					=	-Wall -Werror -std=c++20
-LIB_DEPS				=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
-LAMBDA_LIBSTATIC		=	$(LIBNAME).a
-LAMBDA_LIBSHARED		=	$(LIBNAME)$(DLLEXT)
-BUILD_TARGET			=	$(target)
+LIBNAME						=	lambda
+CFLAGS						=	-Wall -Werror -std=c++20
+LIB_DEPS					=	$(LIB_CORE_DEPS) $(LIB_EXTRA_DEPS)
+LAMBDA_LIBSTATIC			=	$(LIBNAME).a
+LAMBDA_LIBSHARED			=	$(LIBNAME)$(DLLEXT)
+BUILD_TARGET				=	$(target)
+BUILD_ENABLE_COMPRESSION	=	$(if $(filter $(compression),disabled),false,true)
 
 ifeq ($(BUILD_TARGET),prod)
 	CFLAGS				+=	-s
@@ -13,7 +14,7 @@ else
 	CFLAGS				+=	-g
 endif
 
-ifeq ($(BUILDOPTS_ENABLE_COMPRESSION),prod)
+ifeq ($(BUILD_ENABLE_COMPRESSION),true)
 	EXTERNAL_LIBS		+=	-lz -lbrotlicommon -lbrotlidec -lbrotlienc
 endif
 
