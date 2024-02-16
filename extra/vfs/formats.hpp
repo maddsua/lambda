@@ -2,6 +2,7 @@
 #define __LIB_MADDSUA_LAMBDA_EXTRA_VFS_FORMATS__
 
 #include "./vfs.hpp"
+#include "../../buildopts.hpp"
 
 #include <vector>
 #include <array>
@@ -34,13 +35,15 @@ namespace Lambda::VFS::Formats {
 
 	namespace Tar {
 
-		enum struct Compression {
-			None, Gzip
-		};
-
-		static const std::array<std::string, 3> Extensions {
-			".tar", ".tar.gz", ".tgz"
-		};
+		#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+			static const std::array<std::string, 3> Extensions {
+				".tar", ".tar.gz", ".tgz"
+			};
+		#else
+			static const std::array<std::string, 1> Extensions {
+				".tar"
+			};
+		#endif
 
 		void exportArchive(const std::string& path, SyncQueue& queue);
 		void importArchive(const std::string& path, SyncQueue& queue);

@@ -58,11 +58,15 @@ struct TarBasicHeader {
 	time_t modified = 0;
 };
 
+enum struct TarCompression {
+	None, Gzip
+};
+
 class InflatableReader {
 	private:
 		std::ifstream& m_readstream;
 		std::vector <uint8_t> m_buff;
-		Tar::Compression m_compression;
+		TarCompression m_compression;
 
 		Compress::GzipStreamDecompressor* m_gz_strm = nullptr;
 
@@ -90,9 +94,9 @@ class InflatableReader {
 		}
 
 	public:
-		InflatableReader(std::ifstream& readStream, Tar::Compression usedCompression)
+		InflatableReader(std::ifstream& readStream, TarCompression usedCompression)
 		: m_readstream(readStream), m_compression(usedCompression) {
-			if (usedCompression == Tar::Compression::Gzip) {
+			if (usedCompression == TarCompression::Gzip) {
 				this->m_gz_strm = new Compress::GzipStreamDecompressor();
 			}
 		}
@@ -106,7 +110,7 @@ class InflatableReader {
 
 			switch (this->m_compression) {
 
-				case Tar::Compression::Gzip: {
+				case TarCompression::Gzip: {
 
 					this->m_decompressToContain(expectedSize);
 					const auto outSize = std::min(expectedSize, this->m_buff.size());
@@ -141,7 +145,7 @@ class InflatableReader {
 
 			switch (this->m_compression) {
 
-				case Tar::Compression::Gzip: {
+				case TarCompression::Gzip: {
 
 					this->m_decompressToContain(skipSize);
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
@@ -158,7 +162,7 @@ class InflatableReader {
 		}
 
 		bool isEof() const noexcept {
-			const auto isCompressed = this->m_compression == Tar::Compression::None;
+			const auto isCompressed = this->m_compression == TarCompression::None;
 			const auto isFsEof = this->m_readstream.eof();
 			return isCompressed ? isFsEof : isFsEof && !this->m_buff.size();
 		}
@@ -167,15 +171,15 @@ class InflatableReader {
 class DeflatableWriter {
 	private:
 		std::ofstream& m_readstream;
-		Tar::Compression m_compression;
+		TarCompression m_compression;
 
 		Compress::GzipStreamCompressor* m_gz_strm = nullptr;
 
 	public:
-		DeflatableWriter(std::ofstream& readStream, Tar::Compression usedCompression)
+		DeflatableWriter(std::ofstream& readStream, TarCompression usedCompression)
 		: m_readstream(readStream), m_compression(usedCompression) {
 
-			if (usedCompression == Tar::Compression::Gzip) {
+			if (usedCompression == TarCompression::Gzip) {
 				this->m_gz_strm = new Compress::GzipStreamCompressor(Compress::Quality::Noice);
 			}
 		}
@@ -194,7 +198,7 @@ class DeflatableWriter {
 
 			switch (this->m_compression) {
 
-				case Tar::Compression::Gzip: {
+				case TarCompression::Gzip: {
 
 					if (!this->m_gz_strm) {
 						throw std::runtime_error("InflatableReader::m_gz_decompressor is null");
@@ -221,7 +225,7 @@ class DeflatableWriter {
 
 			switch (this->m_compression) {
 
-				case Tar::Compression::Gzip: {
+				case TarCompression::Gzip: {
 
 					if (!this->m_gz_strm) {
 						throw std::runtime_error("DeflatableWriter::m_gz_strm is null");
@@ -361,7 +365,7 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 	}
 
 	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
-	auto writer = DeflatableWriter(outfile, isGzipped ? Tar::Compression::Gzip : Tar::Compression::None);
+	auto writer = DeflatableWriter(outfile, isGzipped ? TarCompression::Gzip : TarCompression::None);
 
 	while (queue.await()) {
 
@@ -402,7 +406,7 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 	}
 
 	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
-	auto reader = InflatableReader(infile, isGzipped ? Tar::Compression::Gzip : Tar::Compression::None);
+	auto reader = InflatableReader(infile, isGzipped ? TarCompression::Gzip : TarCompression::None);
 
 	std::optional<std::string> nextLongLink;
 
