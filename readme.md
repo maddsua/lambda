@@ -87,8 +87,8 @@ but don't expect it to work with MSVC without doing a shaman dance first.
 
 ### Dependencies
 
-- brotli
-- zlib
+- brotli (v1.1.0)
+- zlib (v1.2.13)
 
 That's it. Just make sure they both installed and you're golden.
 
