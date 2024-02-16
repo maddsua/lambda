@@ -87,10 +87,16 @@ but don't expect it to work with MSVC without doing a shaman dance first.
 
 ### Dependencies
 
+#### Compression
+
+Libraries:
+
 - brotli (v1.1.0)
 - zlib (v1.2.13)
 
-That's it. Just make sure they both installed and you're golden.
+If you don't need or can't link them, both can be disabled by commenting out the  
+`#define LAMBDA_BUILDOPTS_ENABLE_COMPRESSION` in [buildopts.hpp](buildopts.hpp),  
+and adding the `compression=disabled` make argument.
 
 ### Linking
 

@@ -1,26 +1,21 @@
 #include "./formats.hpp"
 #include "../../core/polyfill/polyfill.hpp"
-#include "../../core/compression/compression.hpp"
+#include "../../buildopts.hpp"
+
+#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+	#include "../../core/compression/compression.hpp"
+#endif
 
 #include <cassert>
+#include <array>
 #include <cstring>
 #include <fstream>
 #include <filesystem>
-#include <array>
 
 using namespace Lambda;
 using namespace Lambda::VFS;
 using namespace Lambda::VFS::Formats;
 using namespace Lambda::VFS::Formats::Tar;
-using namespace Lambda::Compress;
-
-const std::initializer_list<std::string> Tar::supportedExtensions {
-	".tar", ".tar.gz", ".tgz"
-};
-
-enum struct ArchiveCompression {
-	None, Gzip
-};
 
 struct TarPosixHeader {
 	char name[100];
@@ -63,40 +58,53 @@ struct TarBasicHeader {
 	time_t modified = 0;
 };
 
+#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+
+enum struct TarCompression {
+	None, Gzip
+};
+
 class InflatableReader {
 	private:
 		std::ifstream& m_readstream;
 		std::vector <uint8_t> m_buff;
-		std::optional<GzipStreamDecompressor> m_gz_decompressor;
-		ArchiveCompression m_compression;
+		TarCompression m_compression;
+
+		Compress::GzipStreamDecompressor* m_gz_strm = nullptr;
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
 		/**
 		 * Read end decompress enough data to contain expectedSize
 		*/
-		void m_bufferToContain(size_t expectedSize) {
+		void m_decompressToContain(size_t expectedSize) {
 
-			if (this->m_buff.size() >= expectedSize || this->m_readstream.eof()) {
-				return;
+			if (!this->m_gz_strm) {
+				throw std::runtime_error("InflatableReader::m_gz_strm is null");
 			}
 
-			auto& decompressor = this->m_gz_decompressor.value();
+			if (this->m_buff.size() >= expectedSize || this->m_readstream.eof() || this->m_gz_strm->isDone()) {
+				return;
+			}
 
 			std::vector<uint8_t> tempBuff(expectedSize);
 			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
 			tempBuff.resize(this->m_readstream.gcount());
 
-			auto nextDecompressed = decompressor.nextChunk(tempBuff);
+			auto nextDecompressed = this->m_gz_strm->nextChunk(tempBuff);
 			this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.end());
 		}
 
 	public:
-		InflatableReader(std::ifstream& readStream, ArchiveCompression usedCompression)
-			: m_readstream(readStream), m_compression(usedCompression) {
-
-			if (usedCompression == ArchiveCompression::Gzip) {
-				m_gz_decompressor = GzipStreamDecompressor();
+		InflatableReader(std::ifstream& readStream, TarCompression usedCompression)
+		: m_readstream(readStream), m_compression(usedCompression) {
+			if (usedCompression == TarCompression::Gzip) {
+				this->m_gz_strm = new Compress::GzipStreamDecompressor();
+			}
+		}
+		~InflatableReader() {
+			if (this->m_gz_strm) {
+				delete this->m_gz_strm;
 			}
 		}
 
@@ -104,9 +112,9 @@ class InflatableReader {
 
 			switch (this->m_compression) {
 
-				case ArchiveCompression::Gzip: {
+				case TarCompression::Gzip: {
 
-					this->m_bufferToContain(expectedSize);
+					this->m_decompressToContain(expectedSize);
 					const auto outSize = std::min(expectedSize, this->m_buff.size());
 
 					const auto result = std::vector<uint8_t>(this->m_buff.begin(), this->m_buff.begin() + outSize);
@@ -139,9 +147,9 @@ class InflatableReader {
 
 			switch (this->m_compression) {
 
-				case ArchiveCompression::Gzip: {
+				case TarCompression::Gzip: {
 
-					this->m_bufferToContain(skipSize);
+					this->m_decompressToContain(skipSize);
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
 
 				} break;
@@ -156,7 +164,7 @@ class InflatableReader {
 		}
 
 		bool isEof() const noexcept {
-			const auto isCompressed = this->m_compression == ArchiveCompression::None;
+			const auto isCompressed = this->m_compression == TarCompression::None;
 			const auto isFsEof = this->m_readstream.eof();
 			return isCompressed ? isFsEof : isFsEof && !this->m_buff.size();
 		}
@@ -165,15 +173,21 @@ class InflatableReader {
 class DeflatableWriter {
 	private:
 		std::ofstream& m_readstream;
-		std::optional<GzipStreamCompressor> m_gz_compressor;
-		ArchiveCompression m_compression;
+		TarCompression m_compression;
+
+		Compress::GzipStreamCompressor* m_gz_strm = nullptr;
 
 	public:
-		DeflatableWriter(std::ofstream& readStream, ArchiveCompression usedCompression)
-			: m_readstream(readStream), m_compression(usedCompression) {
+		DeflatableWriter(std::ofstream& readStream, TarCompression usedCompression)
+		: m_readstream(readStream), m_compression(usedCompression) {
 
-			if (usedCompression == ArchiveCompression::Gzip) {
-				m_gz_compressor = GzipStreamCompressor(Quality::Noice);
+			if (usedCompression == TarCompression::Gzip) {
+				this->m_gz_strm = new Compress::GzipStreamCompressor(Compress::Quality::Noice);
+			}
+		}
+		~DeflatableWriter() {
+			if (this->m_gz_strm) {
+				delete this->m_gz_strm;
 			}
 		}
 
@@ -186,10 +200,13 @@ class DeflatableWriter {
 
 			switch (this->m_compression) {
 
-				case ArchiveCompression::Gzip: {
+				case TarCompression::Gzip: {
 
-					auto& compressor = this->m_gz_compressor.value();
-					auto compressedChunk = compressor.nextChunk(data);
+					if (!this->m_gz_strm) {
+						throw std::runtime_error("InflatableReader::m_gz_decompressor is null");
+					}
+
+					auto compressedChunk = this->m_gz_strm->nextChunk(data);
 					this->m_readstream.write(reinterpret_cast<char*>(compressedChunk.data()), compressedChunk.size());
 
 				} break;
@@ -210,14 +227,17 @@ class DeflatableWriter {
 
 			switch (this->m_compression) {
 
-				case ArchiveCompression::Gzip: {
+				case TarCompression::Gzip: {
 
-					auto& compressor = this->m_gz_compressor.value();
-					auto compressedChunk = compressor.nextChunk(trailingEmptyBlock, GzipStreamCompressor::StreamFlush::Finish);
+					if (!this->m_gz_strm) {
+						throw std::runtime_error("DeflatableWriter::m_gz_strm is null");
+					}
+
+					auto compressedChunk = this->m_gz_strm->nextChunk(trailingEmptyBlock, Compress::GzipStreamCompressor::StreamFlush::Finish);
 					this->m_readstream.write(reinterpret_cast<char*>(compressedChunk.data()), compressedChunk.size());
 
 				} break;
-				
+
 				default: {
 
 					this->m_readstream.write(reinterpret_cast<char*>(trailingEmptyBlock.data()), trailingEmptyBlock.size());
@@ -228,6 +248,70 @@ class DeflatableWriter {
 			this->m_readstream.flush();
 		}
 };
+
+#else
+
+class PlainFSReader {
+	private:
+		std::ifstream& m_readstream;
+
+	public:
+		PlainFSReader(std::ifstream& readStream) : m_readstream(readStream) {}
+
+		std::vector<uint8_t> readChunk(size_t expectedSize) {
+
+			if (this->m_readstream.eof()) {
+				return {};
+			}
+
+			std::vector<uint8_t> tempBuff(expectedSize);
+			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+
+			const auto bytesRead = this->m_readstream.gcount();
+			return std::vector<uint8_t>(tempBuff.begin(), tempBuff.begin() + bytesRead);
+		}
+
+		std::string readTextChunk(size_t expectedSize) {
+			const auto temp = this->readChunk(expectedSize);
+			return std::string(temp.begin(), temp.end());
+		}
+
+		void skipNext(size_t skipSize) {
+			if (this->m_readstream.eof()) return;
+			this->m_readstream.seekg(skipSize, std::ios::cur);
+		}
+
+		bool isEof() const noexcept {
+			return this->m_readstream.eof();
+		}
+};
+
+class PlainFSWriter {
+	private:
+		std::ofstream& m_readstream;
+
+	public:
+		PlainFSWriter(std::ofstream& readStream) : m_readstream(readStream) {}
+
+		void writeChunk(std::vector<uint8_t> data) {
+
+			const auto paddingSize = getPaddingSize(data.size());
+			if (paddingSize) {
+				data.resize(data.size() + paddingSize, 0);
+			}
+
+			this->m_readstream.write(reinterpret_cast<char*>(data.data()), data.size());
+			this->m_readstream.flush();
+		}
+
+		void endStream() {
+			auto trailingEmptyBlock = std::vector<uint8_t>(2 * tarBlockSize, 0);
+			this->m_readstream.write(reinterpret_cast<char*>(trailingEmptyBlock.data()), trailingEmptyBlock.size());
+			this->m_readstream.flush();
+		}
+};
+
+#endif
 
 std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 
@@ -346,8 +430,13 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for write", path, std::error_code(5L, std::generic_category()));
 	}
 
-	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
-	auto writer = DeflatableWriter(outfile, isGzipped ? ArchiveCompression::Gzip : ArchiveCompression::None);
+
+	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+		bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
+		auto writer = DeflatableWriter(outfile, isGzipped ? TarCompression::Gzip : TarCompression::None);
+	#else
+		auto writer = PlainFSWriter(outfile);
+	#endif
 
 	while (queue.await()) {
 
@@ -387,8 +476,13 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 		throw std::filesystem::filesystem_error("Could not open file for read", path, std::error_code(5L, std::generic_category()));
 	}
 
-	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
-	auto reader = InflatableReader(infile, isGzipped ? ArchiveCompression::Gzip : ArchiveCompression::None);
+
+	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+		bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
+		auto reader = InflatableReader(infile, isGzipped ? TarCompression::Gzip : TarCompression::None);
+	#else
+		auto reader = PlainFSReader(infile);
+	#endif
 
 	std::optional<std::string> nextLongLink;
 

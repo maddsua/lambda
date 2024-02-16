@@ -1,8 +1,12 @@
 #include "./transport.hpp"
 #include "./transport_impl.hpp"
 #include "../polyfill/polyfill.hpp"
-#include "../compression/compression.hpp"
 #include "../network/network.hpp"
+#include "../../buildopts.hpp"
+
+#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+	#include "../compression/compression.hpp"
+#endif
 
 #include <set>
 #include <algorithm>
@@ -226,54 +230,60 @@ void TransportContextV1::respond(const ResponseContext& responsectx) {
 	}
 
 	auto applyEncoding = ContentEncodings::None;
-
 	auto responseHeaders = responsectx.response.headers;
-	const auto& contentTypeHeader = responseHeaders.get("content-type");
 
-	if (this->flags.autocompress) {
+	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
 
-		if (contentTypeHeader.size()) {
+		const auto& contentTypeHeader = responseHeaders.get("content-type");
 
-			auto contentTypeNormalized = Strings::toLowerCase(contentTypeHeader);
+		if (this->flags.autocompress) {
 
-			//	when content type is provided, check if it's a text format,
-			//	so that we won't be trying to compress jpegs and stuff
-			for (const auto& item : compressibleTypes) {
-				if (Strings::includes(contentTypeNormalized, item)) {
-					applyEncoding = this->m_compress;
-					break;
+			if (contentTypeHeader.size()) {
+
+				auto contentTypeNormalized = Strings::toLowerCase(contentTypeHeader);
+
+				//	when content type is provided, check if it's a text format,
+				//	so that we won't be trying to compress jpegs and stuff
+				for (const auto& item : compressibleTypes) {
+					if (Strings::includes(contentTypeNormalized, item)) {
+						applyEncoding = this->m_compress;
+						break;
+					}
 				}
+
+			} else {
+				//	set content type in case it's not provided in response
+				//	by default, it's assumed to be a html page. works fine with just text too
+				responseHeaders.set("content-type", "text/html; charset=utf-8");
+				applyEncoding = this->m_compress;
 			}
-
-		} else {
-			//	set content type in case it's not provided in response
-			//	by default, it's assumed to be a html page. works fine with just text too
-			responseHeaders.set("content-type", "text/html; charset=utf-8");
-			applyEncoding = this->m_compress;
 		}
-	}
 
-	std::vector<uint8_t> responseBodyBuffer;
-	const auto& responseBody = responsectx.response.body.buffer();
+		std::vector<uint8_t> responseBodyBuffer;
+		const auto& responseBody = responsectx.response.body.buffer();
 
-	switch (applyEncoding) {
+		switch (applyEncoding) {
 
-		case ContentEncodings::Brotli: {
-			responseBodyBuffer = Compress::brotliCompressBuffer(responseBody, Compress::Quality::Noice);
-		} break;
+			case ContentEncodings::Brotli: {
+				responseBodyBuffer = Compress::brotliCompressBuffer(responseBody, Compress::Quality::Noice);
+			} break;
 
-		case ContentEncodings::Gzip: {
-			responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
-		} break;
+			case ContentEncodings::Gzip: {
+				responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+			} break;
 
-		case ContentEncodings::Deflate: {
-			responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
-		} break;
+			case ContentEncodings::Deflate: {
+				responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+			} break;
 
-		default: {
-			responseBodyBuffer = std::move(responseBody);
-		} break;
-	}
+			default: {
+				responseBodyBuffer = std::move(responseBody);
+			} break;
+		}
+
+	#else
+		const auto& responseBodyBuffer = responsectx.response.body.buffer();
+	#endif
 
 	const auto bodyBufferSize = responseBodyBuffer.size();
 

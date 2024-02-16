@@ -136,7 +136,8 @@ std::optional<VirtualFileInfo> Interface::fileInfo(const std::string& path) noex
 	return info;
 }
 
-bool isSupportedFileExtension(const std::string& filepath, const std::initializer_list<std::string>& extensions) {
+template <std::size_t N>
+bool isSupportedFileExtension(const std::string& filepath, const std::array<std::string, N>& extensions) {
 
 	const auto pathNormalized = Strings::toLowerCase(filepath);
 	const auto pathExtension = std::filesystem::path(pathNormalized).extension();
@@ -154,7 +155,7 @@ void Interface::loadSnapshot(const std::string& path) {
 	std::future<void> readerPromise;
 	readerQueue.setPromiseExitWatcher(&readerPromise);
 
-	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
+	if (isSupportedFileExtension(path, Formats::Tar::Extensions)) {
 
 		readerPromise = std::async(Formats::Tar::importArchive, path, std::ref(readerQueue));
 
@@ -192,7 +193,7 @@ void Interface::saveSnapshot(const std::string& path) {
 	std::future<void> writerPromise;
 	writerQueue.setPromiseExitWatcher(&writerPromise);
 
-	if (isSupportedFileExtension(path, Formats::Tar::supportedExtensions)) {
+	if (isSupportedFileExtension(path, Formats::Tar::Extensions)) {
 
 		writerPromise = std::async(Formats::Tar::exportArchive, path, std::ref(writerQueue));
 

@@ -1,16 +1,15 @@
 
 /*
-	An http and websocket C++ library
-	Or at least, it apperas to be
-	2023 maddsua, https://github.com/maddsua
+	An http and websocket C++ framework
 
-	Congrats! This is the entry point. You're good to go!
+	https://github.com/maddsua/lambda
 */
 
 #ifndef __LIB_MADDSUA_LAMBDA__
 #define __LIB_MADDSUA_LAMBDA__
 
 	#include "./version.hpp"
+	#include "./buildopts.hpp"
 
 	//	include core "modules"
 	#include "./core/http/http.hpp"
@@ -20,8 +19,11 @@
 	#include "./core/html/html.hpp"
 	#include "./core/encoding/encoding.hpp"
 	#include "./core/crypto/crypto.hpp"
-	#include "./core/compression/compression.hpp"
 	#include "./core/utils/utils.hpp"
+
+	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+		#include "./core/compression/compression.hpp"
+	#endif
 
 	//	include extra "modules"
 	#include "./extra/kvstorage/kvstorage.hpp"
