@@ -87,7 +87,7 @@ but don't expect it to work with MSVC without doing a shaman dance first.
 
 ### Dependencies
 
-### Compression
+#### Compression
 
 Libraries:
 
