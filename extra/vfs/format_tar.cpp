@@ -58,6 +58,8 @@ struct TarBasicHeader {
 	time_t modified = 0;
 };
 
+#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+
 enum struct TarCompression {
 	None, Gzip
 };
@@ -247,6 +249,70 @@ class DeflatableWriter {
 		}
 };
 
+#else
+
+class PlainFSReader {
+	private:
+		std::ifstream& m_readstream;
+
+	public:
+		PlainFSReader(std::ifstream& readStream) : m_readstream(readStream) {}
+
+		std::vector<uint8_t> readChunk(size_t expectedSize) {
+
+			if (this->m_readstream.eof()) {
+				return {};
+			}
+
+			std::vector<uint8_t> tempBuff(expectedSize);
+			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
+
+			const auto bytesRead = this->m_readstream.gcount();
+			return std::vector<uint8_t>(tempBuff.begin(), tempBuff.begin() + bytesRead);
+		}
+
+		std::string readTextChunk(size_t expectedSize) {
+			const auto temp = this->readChunk(expectedSize);
+			return std::string(temp.begin(), temp.end());
+		}
+
+		void skipNext(size_t skipSize) {
+			if (this->m_readstream.eof()) return;
+			this->m_readstream.seekg(skipSize, std::ios::cur);
+		}
+
+		bool isEof() const noexcept {
+			return this->m_readstream.eof();
+		}
+};
+
+class PlainFSWriter {
+	private:
+		std::ofstream& m_readstream;
+
+	public:
+		PlainFSWriter(std::ofstream& readStream) : m_readstream(readStream) {}
+
+		void writeChunk(std::vector<uint8_t> data) {
+
+			const auto paddingSize = getPaddingSize(data.size());
+			if (paddingSize) {
+				data.resize(data.size() + paddingSize, 0);
+			}
+
+			this->m_readstream.write(reinterpret_cast<char*>(data.data()), data.size());
+			this->m_readstream.flush();
+		}
+
+		void endStream() {
+			auto trailingEmptyBlock = std::vector<uint8_t>(2 * tarBlockSize, 0);
+			this->m_readstream.write(reinterpret_cast<char*>(trailingEmptyBlock.data()), trailingEmptyBlock.size());
+			this->m_readstream.flush();
+		}
+};
+
+#endif
+
 std::vector<uint8_t> serializeHeader(const TarBasicHeader& header) {
 
 	const auto encodeTarInt = [](char* dest, int16_t destSize, size_t value) {
@@ -365,7 +431,12 @@ void Tar::exportArchive(const std::string& path, SyncQueue& queue) {
 	}
 
 	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
-	auto writer = DeflatableWriter(outfile, isGzipped ? TarCompression::Gzip : TarCompression::None);
+
+	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+		auto writer = DeflatableWriter(outfile, isGzipped ? TarCompression::Gzip : TarCompression::None);
+	#else
+		auto writer = PlainFSWriter(outfile);
+	#endif
 
 	while (queue.await()) {
 
@@ -406,7 +477,12 @@ void Tar::importArchive(const std::string& path, SyncQueue& queue) {
 	}
 
 	bool isGzipped = Strings::toLowerCase(static_cast<const std::string>(path)).ends_with("gz");
-	auto reader = InflatableReader(infile, isGzipped ? TarCompression::Gzip : TarCompression::None);
+
+	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+		auto reader = InflatableReader(infile, isGzipped ? TarCompression::Gzip : TarCompression::None);
+	#else
+		auto reader = PlainFSReader(infile);
+	#endif
 
 	std::optional<std::string> nextLongLink;
 
