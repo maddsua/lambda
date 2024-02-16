@@ -1,8 +1,12 @@
 #include "./transport.hpp"
 #include "./transport_impl.hpp"
 #include "../polyfill/polyfill.hpp"
-#include "../compression/compression.hpp"
 #include "../network/network.hpp"
+#include "../../buildopts.hpp"
+
+#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+	#include "../compression/compression.hpp"
+#endif
 
 #include <set>
 #include <algorithm>
@@ -253,27 +257,33 @@ void TransportContextV1::respond(const ResponseContext& responsectx) {
 		}
 	}
 
-	std::vector<uint8_t> responseBodyBuffer;
-	const auto& responseBody = responsectx.response.body.buffer();
+	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
 
-	switch (applyEncoding) {
+		std::vector<uint8_t> responseBodyBuffer;
+		const auto& responseBody = responsectx.response.body.buffer();
 
-		case ContentEncodings::Brotli: {
-			responseBodyBuffer = Compress::brotliCompressBuffer(responseBody, Compress::Quality::Noice);
-		} break;
+		switch (applyEncoding) {
 
-		case ContentEncodings::Gzip: {
-			responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
-		} break;
+			case ContentEncodings::Brotli: {
+				responseBodyBuffer = Compress::brotliCompressBuffer(responseBody, Compress::Quality::Noice);
+			} break;
 
-		case ContentEncodings::Deflate: {
-			responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
-		} break;
+			case ContentEncodings::Gzip: {
+				responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Gzip);
+			} break;
 
-		default: {
-			responseBodyBuffer = std::move(responseBody);
-		} break;
-	}
+			case ContentEncodings::Deflate: {
+				responseBodyBuffer = Compress::zlibCompressBuffer(responseBody, Compress::Quality::Noice, Compress::ZlibSetHeader::Defalte);
+			} break;
+
+			default: {
+				responseBodyBuffer = std::move(responseBody);
+			} break;
+		}
+
+	#else
+		const auto& responseBodyBuffer = responsectx.response.body.buffer();
+	#endif
 
 	const auto bodyBufferSize = responseBodyBuffer.size();
 
