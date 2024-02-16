@@ -4,6 +4,7 @@
 #include "./vfs.hpp"
 
 #include <vector>
+#include <array>
 #include <future>
 #include <shared_mutex>
 
@@ -33,7 +34,13 @@ namespace Lambda::VFS::Formats {
 
 	namespace Tar {
 
-		extern const std::initializer_list<std::string> supportedExtensions;
+		enum struct Compression {
+			None, Gzip
+		};
+
+		static const std::array<std::string, 3> Extensions {
+			".tar", ".tar.gz", ".tgz"
+		};
 
 		void exportArchive(const std::string& path, SyncQueue& queue);
 		void importArchive(const std::string& path, SyncQueue& queue);
