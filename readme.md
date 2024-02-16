@@ -94,7 +94,9 @@ Libraries:
 - brotli (v1.1.0)
 - zlib (v1.2.13)
 
-If you don't need or can't link them, both can be disabled by commenting out the `#define LAMBDA_BUILDOPTS_ENABLE_COMPRESSION` in [buildopts.hpp](buildopts.hpp) and adding the `compression=disabled` make argument.
+If you don't need or can't link them, both can be disabled by commenting out the  
+`#define LAMBDA_BUILDOPTS_ENABLE_COMPRESSION` in [buildopts.hpp](buildopts.hpp),  
+and adding the `compression=disabled` make argument.
 
 ### Linking
 
