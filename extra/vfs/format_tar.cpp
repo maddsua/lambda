@@ -72,35 +72,41 @@ class InflatableReader {
 		std::vector <uint8_t> m_buff;
 		ArchiveCompression m_compression;
 
-		std::optional<Compress::GzipStreamDecompressor> m_gz_decompressor;
+		Compress::GzipStreamDecompressor* m_gz_strm = nullptr;
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
 		/**
 		 * Read end decompress enough data to contain expectedSize
 		*/
-		void m_bufferToContain(size_t expectedSize) {
+		void m_decompressToContain(size_t expectedSize) {
 
-			if (this->m_buff.size() >= expectedSize || this->m_readstream.eof()) {
-				return;
+			if (!this->m_gz_strm) {
+				throw std::runtime_error("InflatableReader::m_gz_strm is null");
 			}
 
-			auto& decompressor = this->m_gz_decompressor.value();
+			if (this->m_buff.size() >= expectedSize || this->m_readstream.eof() || this->m_gz_strm->isDone()) {
+				return;
+			}
 
 			std::vector<uint8_t> tempBuff(expectedSize);
 			this->m_readstream.read(reinterpret_cast<char*>(tempBuff.data()), tempBuff.size());
 			tempBuff.resize(this->m_readstream.gcount());
 
-			auto nextDecompressed = decompressor.nextChunk(tempBuff);
+			auto nextDecompressed = this->m_gz_strm->nextChunk(tempBuff);
 			this->m_buff.insert(this->m_buff.end(), nextDecompressed.begin(), nextDecompressed.end());
 		}
 
 	public:
 		InflatableReader(std::ifstream& readStream, ArchiveCompression usedCompression)
-			: m_readstream(readStream), m_compression(usedCompression) {
-
+		: m_readstream(readStream), m_compression(usedCompression) {
 			if (usedCompression == ArchiveCompression::Gzip) {
-				m_gz_decompressor = Compress::GzipStreamDecompressor();
+				this->m_gz_strm = new Compress::GzipStreamDecompressor();
+			}
+		}
+		~InflatableReader() {
+			if (this->m_gz_strm) {
+				delete this->m_gz_strm;
 			}
 		}
 
@@ -110,7 +116,7 @@ class InflatableReader {
 
 				case ArchiveCompression::Gzip: {
 
-					this->m_bufferToContain(expectedSize);
+					this->m_decompressToContain(expectedSize);
 					const auto outSize = std::min(expectedSize, this->m_buff.size());
 
 					const auto result = std::vector<uint8_t>(this->m_buff.begin(), this->m_buff.begin() + outSize);
@@ -145,7 +151,7 @@ class InflatableReader {
 
 				case ArchiveCompression::Gzip: {
 
-					this->m_bufferToContain(skipSize);
+					this->m_decompressToContain(skipSize);
 					this->m_buff.erase(this->m_buff.begin(), this->m_buff.begin() + skipSize);
 
 				} break;
@@ -169,15 +175,21 @@ class InflatableReader {
 class DeflatableWriter {
 	private:
 		std::ofstream& m_readstream;
-		std::optional<Compress::GzipStreamCompressor> m_gz_compressor;
 		ArchiveCompression m_compression;
+
+		Compress::GzipStreamCompressor* m_gz_strm = nullptr;
 
 	public:
 		DeflatableWriter(std::ofstream& readStream, ArchiveCompression usedCompression)
-			: m_readstream(readStream), m_compression(usedCompression) {
+		: m_readstream(readStream), m_compression(usedCompression) {
 
 			if (usedCompression == ArchiveCompression::Gzip) {
-				m_gz_compressor = Compress::GzipStreamCompressor(Compress::Quality::Noice);
+				this->m_gz_strm = new Compress::GzipStreamCompressor(Compress::Quality::Noice);
+			}
+		}
+		~DeflatableWriter() {
+			if (this->m_gz_strm) {
+				delete this->m_gz_strm;
 			}
 		}
 
@@ -192,8 +204,11 @@ class DeflatableWriter {
 
 				case ArchiveCompression::Gzip: {
 
-					auto& compressor = this->m_gz_compressor.value();
-					auto compressedChunk = compressor.nextChunk(data);
+					if (!this->m_gz_strm) {
+						throw std::runtime_error("InflatableReader::m_gz_decompressor is null");
+					}
+
+					auto compressedChunk = this->m_gz_strm->nextChunk(data);
 					this->m_readstream.write(reinterpret_cast<char*>(compressedChunk.data()), compressedChunk.size());
 
 				} break;
@@ -216,8 +231,11 @@ class DeflatableWriter {
 
 				case ArchiveCompression::Gzip: {
 
-					auto& compressor = this->m_gz_compressor.value();
-					auto compressedChunk = compressor.nextChunk(trailingEmptyBlock, Compress::GzipStreamCompressor::StreamFlush::Finish);
+					if (!this->m_gz_strm) {
+						throw std::runtime_error("DeflatableWriter::m_gz_strm is null");
+					}
+
+					auto compressedChunk = this->m_gz_strm->nextChunk(trailingEmptyBlock, Compress::GzipStreamCompressor::StreamFlush::Finish);
 					this->m_readstream.write(reinterpret_cast<char*>(compressedChunk.data()), compressedChunk.size());
 
 				} break;
