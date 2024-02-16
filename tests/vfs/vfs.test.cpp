@@ -16,9 +16,13 @@ const std::vector<std::pair<std::string, std::string>> dataset = {
 int main(int argc, char const *argv[]) {
 
 	const std::initializer_list<std::string> formats = {
+
 		"temp.test.tar",
-		"temp.test.tar.gz",
-		"temp.test.tgz",
+
+		#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+			"temp.test.tar.gz",
+			"temp.test.tgz",
+		#endif
 	};
 
 	for (const auto& tarfileloc : formats) {
