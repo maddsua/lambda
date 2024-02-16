@@ -4,7 +4,9 @@
 
 	/**
 	 * You can comment this line if you don't any compression libs to be used.
-	 * This disables both zlib and brotli
+	 * This disables both zlib and brotli.
+	 * 
+	 * Don't forget to add "compression=disabled" make argument to disable linking with them.
 	*/
 	#define LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
 
