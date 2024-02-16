@@ -22,15 +22,22 @@ Refer to readme to learn about the features, and to examples, to, well, see them
 ## v1.0 (Jul 13, 2023)
 
 Features and fixes:
-- Added Support of basic web APIs
-- Added Brotli and gzip http compression
 - Solved a ton of random crashes
 - Ditched super unsafe parts of code
 - Fixed multiple memory leaks
 - Added Websocket server basic functionality
-- Added fetch client (just like in javascript)
 
 And probably some more things I can't remember.
+
+
+## v0.7 (Jan 6, 2023)
+
+Features list:
+- HTTP/1.1 (yeah, this part is not very exciting)
+- Isolated request handlers (this is cooler 😎)
+- br. gzpi and deflate Content-Encoding support
+- Basic Fetch API
+- Very basic filesystem functions
 
 
 ## v0.5 (Mar 8, 2023)
