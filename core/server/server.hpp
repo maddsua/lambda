@@ -12,6 +12,9 @@
 
 namespace Lambda {
 
+	/**
+	 * Lambda server class (this is what you want)
+	*/
 	class LambdaInstance {
 		private:
 			Network::TCP::ListenSocket listener;

@@ -14,11 +14,21 @@ using namespace Lambda::HTTP::Transport;
 using namespace std::chrono_literals;
 
 LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig init) :
-	listener({ init.service.fastPortReuse, init.service.port, init.service.connectionTimeouts }),
-	config(init), httpHandler(handlerCallback) {
+	listener({
+		init.service.fastPortReuse,
+		init.service.port,
+		init.service.connectionTimeouts 
+	}),
+	config(init),
+	httpHandler(handlerCallback)
+{
 
-	if (this->config.service.fastPortReuse) {
+	if (init.service.fastPortReuse) {
 		syncout.log("[Service] Warning: fast port reuse enabled");
+	}
+
+	if (init.service.maxConnections < ServiceOptions::minConnections) {
+		throw Lambda::Error("ServiceOptions::maxConnections value is lower than allowed by minConnections");
 	}
 
 	this->serviceWorker = std::async([&]() {
@@ -37,6 +47,8 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 		};
 
 		const auto& svcmaxconn = this->config.service.maxConnections;
+		const auto gcThreshold = svcmaxconn * 0.75;
+
 		while (!this->m_terminated && this->listener.active()) {
 
 			auto nextConn = this->listener.acceptConnection();
@@ -59,7 +71,7 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 				worker.finished = true;
 			}, std::ref(nextWorker));
 
-			if (!svcmaxconn || this->m_connections_count > svcmaxconn) {
+			if (!svcmaxconn || this->m_connections_count > gcThreshold) {
 				this->m_connections.remove_if(workerJoinFilter);
 			}
 		}
