@@ -10,7 +10,8 @@
 #ifndef __LIB_MADDSUA_LAMBDA__
 #define __LIB_MADDSUA_LAMBDA__
 
-	#include "./version.hpp"
+	#define LAMBDA_PRODUCT			"maddsua/lambda"
+	#define LAMBDA_VERSION			"2.0.0"
 
 	//	include core "modules"
 	#include "./core/http/http.hpp"
