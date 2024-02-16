@@ -1,6 +1,10 @@
 #include "./formats.hpp"
 #include "../../core/polyfill/polyfill.hpp"
-#include "../../core/compression/compression.hpp"
+#include "../../buildopts.hpp"
+
+#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+	#include "../../core/compression/compression.hpp"
+#endif
 
 #include <cassert>
 #include <cstring>
@@ -12,7 +16,6 @@ using namespace Lambda;
 using namespace Lambda::VFS;
 using namespace Lambda::VFS::Formats;
 using namespace Lambda::VFS::Formats::Tar;
-using namespace Lambda::Compress;
 
 const std::initializer_list<std::string> Tar::supportedExtensions {
 	".tar", ".tar.gz", ".tgz"
@@ -67,8 +70,9 @@ class InflatableReader {
 	private:
 		std::ifstream& m_readstream;
 		std::vector <uint8_t> m_buff;
-		std::optional<GzipStreamDecompressor> m_gz_decompressor;
 		ArchiveCompression m_compression;
+
+		std::optional<Compress::GzipStreamDecompressor> m_gz_decompressor;
 
 		static const size_t bufferSize = 2 * 1024 * 1024;
 
@@ -96,7 +100,7 @@ class InflatableReader {
 			: m_readstream(readStream), m_compression(usedCompression) {
 
 			if (usedCompression == ArchiveCompression::Gzip) {
-				m_gz_decompressor = GzipStreamDecompressor();
+				m_gz_decompressor = Compress::GzipStreamDecompressor();
 			}
 		}
 
@@ -165,7 +169,7 @@ class InflatableReader {
 class DeflatableWriter {
 	private:
 		std::ofstream& m_readstream;
-		std::optional<GzipStreamCompressor> m_gz_compressor;
+		std::optional<Compress::GzipStreamCompressor> m_gz_compressor;
 		ArchiveCompression m_compression;
 
 	public:
@@ -173,7 +177,7 @@ class DeflatableWriter {
 			: m_readstream(readStream), m_compression(usedCompression) {
 
 			if (usedCompression == ArchiveCompression::Gzip) {
-				m_gz_compressor = GzipStreamCompressor(Quality::Noice);
+				m_gz_compressor = Compress::GzipStreamCompressor(Compress::Quality::Noice);
 			}
 		}
 
@@ -213,7 +217,7 @@ class DeflatableWriter {
 				case ArchiveCompression::Gzip: {
 
 					auto& compressor = this->m_gz_compressor.value();
-					auto compressedChunk = compressor.nextChunk(trailingEmptyBlock, GzipStreamCompressor::StreamFlush::Finish);
+					auto compressedChunk = compressor.nextChunk(trailingEmptyBlock, Compress::GzipStreamCompressor::StreamFlush::Finish);
 					this->m_readstream.write(reinterpret_cast<char*>(compressedChunk.data()), compressedChunk.size());
 
 				} break;
