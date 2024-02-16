@@ -230,34 +230,34 @@ void TransportContextV1::respond(const ResponseContext& responsectx) {
 	}
 
 	auto applyEncoding = ContentEncodings::None;
-
 	auto responseHeaders = responsectx.response.headers;
-	const auto& contentTypeHeader = responseHeaders.get("content-type");
-
-	if (this->flags.autocompress) {
-
-		if (contentTypeHeader.size()) {
-
-			auto contentTypeNormalized = Strings::toLowerCase(contentTypeHeader);
-
-			//	when content type is provided, check if it's a text format,
-			//	so that we won't be trying to compress jpegs and stuff
-			for (const auto& item : compressibleTypes) {
-				if (Strings::includes(contentTypeNormalized, item)) {
-					applyEncoding = this->m_compress;
-					break;
-				}
-			}
-
-		} else {
-			//	set content type in case it's not provided in response
-			//	by default, it's assumed to be a html page. works fine with just text too
-			responseHeaders.set("content-type", "text/html; charset=utf-8");
-			applyEncoding = this->m_compress;
-		}
-	}
 
 	#ifdef LAMBDA_BUILDOPTS_ENABLE_COMPRESSION
+
+		const auto& contentTypeHeader = responseHeaders.get("content-type");
+
+		if (this->flags.autocompress) {
+
+			if (contentTypeHeader.size()) {
+
+				auto contentTypeNormalized = Strings::toLowerCase(contentTypeHeader);
+
+				//	when content type is provided, check if it's a text format,
+				//	so that we won't be trying to compress jpegs and stuff
+				for (const auto& item : compressibleTypes) {
+					if (Strings::includes(contentTypeNormalized, item)) {
+						applyEncoding = this->m_compress;
+						break;
+					}
+				}
+
+			} else {
+				//	set content type in case it's not provided in response
+				//	by default, it's assumed to be a html page. works fine with just text too
+				responseHeaders.set("content-type", "text/html; charset=utf-8");
+				applyEncoding = this->m_compress;
+			}
+		}
 
 		std::vector<uint8_t> responseBodyBuffer;
 		const auto& responseBody = responsectx.response.body.buffer();
