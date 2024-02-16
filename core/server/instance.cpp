@@ -33,46 +33,63 @@ LambdaInstance::LambdaInstance(RequestCallback handlerCallback, ServerConfig ini
 
 	this->serviceWorker = std::async([&]() {
 
-		const auto workerJoinFilter = [&](WorkerContext& node) -> bool {
-			if (!node.finished) {
-				return false;
+		if (this->config.service.useThreadList) {
+
+			const auto workerJoinFilter = [&](WorkerContext& node) -> bool {
+				if (!node.finished) {
+					return false;
+				}
+
+				if (node.worker.joinable()) {
+					node.worker.join();
+				}
+
+				this->m_connections_count--;
+				return true;
+			};
+
+			const auto& svcmaxconn = this->config.service.maxConnections;
+			const auto gcThreshold = svcmaxconn * 0.75;
+
+			while (!this->m_terminated && this->listener.active()) {
+
+				auto nextConn = this->listener.acceptConnection();
+				if (!nextConn.has_value()) break;
+
+				if (svcmaxconn && (this->m_connections_count > svcmaxconn)) {
+					nextConn.value().end();
+					this->m_connections.remove_if(workerJoinFilter);
+					continue;
+				}
+
+				this->m_connections.push_front({
+					std::move(nextConn.value())
+				});
+				this->m_connections_count++;
+
+				auto& nextWorker = this->m_connections.front();
+				nextWorker.worker = std::thread([&](WorkerContext& worker) {
+					connectionWorker(worker, this->config, this->httpHandler);
+					worker.finished = true;
+				}, std::ref(nextWorker));
+
+				if (!svcmaxconn || this->m_connections_count > gcThreshold) {
+					this->m_connections.remove_if(workerJoinFilter);
+				}
 			}
 
-			if (node.worker.joinable()) {
-				node.worker.join();
-			}
+		} else {
 
-			this->m_connections_count--;
-			return true;
-		};
+			while (!this->m_terminated && this->listener.active()) {
 
-		const auto& svcmaxconn = this->config.service.maxConnections;
-		const auto gcThreshold = svcmaxconn * 0.75;
+				auto nextConn = this->listener.acceptConnection();
+				if (!nextConn.has_value()) break;
 
-		while (!this->m_terminated && this->listener.active()) {
-
-			auto nextConn = this->listener.acceptConnection();
-			if (!nextConn.has_value()) break;
-
-			if (svcmaxconn && (this->m_connections_count > svcmaxconn)) {
-				nextConn.value().end();
-				this->m_connections.remove_if(workerJoinFilter);
-				continue;
-			}
-
-			this->m_connections.push_front({
-				std::move(nextConn.value())
-			});
-			this->m_connections_count++;
-
-			auto& nextWorker = this->m_connections.front();
-			nextWorker.worker = std::thread([&](WorkerContext& worker) {
-				connectionWorker(worker, this->config, this->httpHandler);
-				worker.finished = true;
-			}, std::ref(nextWorker));
-
-			if (!svcmaxconn || this->m_connections_count > gcThreshold) {
-				this->m_connections.remove_if(workerJoinFilter);
+				std::thread([&](WorkerContext&& worker) {
+					connectionWorker(worker, this->config, this->httpHandler);
+				}, WorkerContext {
+					std::move(nextConn.value())
+				}).detach();
 			}
 		}
 	});
@@ -96,8 +113,10 @@ void LambdaInstance::terminate() {
 	this->listener.stop();
 
 	//	Request all connection workers to exit
-	for (auto& worker : this->m_connections) {
-		worker.shutdownFlag = true;
+	if (this->config.service.useThreadList) {
+		for (auto& worker : this->m_connections) {
+			worker.shutdownFlag = true;
+		}
 	}
 }
 
@@ -108,9 +127,11 @@ void LambdaInstance::awaitFinished() {
 		this->serviceWorker.get();
 
 	//	Wait until all connection workers done
-	for (auto& item : this->m_connections) {
-		if (item.worker.joinable()) {
-			item.worker.join();
+	if (this->config.service.useThreadList) {
+		for (auto& item : this->m_connections) {
+			if (item.worker.joinable()) {
+				item.worker.join();
+			}
 		}
 	}
 }
@@ -129,9 +150,11 @@ LambdaInstance::~LambdaInstance() {
 	}
 
 	//	Wait until all connection workers exited
-	for (auto& item : this->m_connections) {
-		if (item.worker.joinable()) {
-			item.worker.join();
+	if (this->config.service.useThreadList) {
+		for (auto& item : this->m_connections) {
+			if (item.worker.joinable()) {
+				item.worker.join();
+			}
 		}
 	}
 }

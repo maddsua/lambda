@@ -82,10 +82,25 @@ namespace Lambda {
 		 * 0 = unlimited, but with the current joinlist implementation
 		 * can cause slowdowns when a lot of connections are created at the same time
 		 * 
-		 * Note that 50 is a minimal allowed value
+		 * Note that 50 is a minimal allowed value and this option doesn't work at all
+		 * if "useThreadList" is not enabled, and by default it is not.
 		*/
 		uint32_t maxConnections = 500;
 		static const uint32_t minConnections = 50;
+
+		/**
+		 * Controls whether thread join list is in use.
+		 * It's totally useless if you are not planning to destroy an instance,
+		 * but can safe your ass from getting invalid references if you do.
+		 * 
+		 * In other words, if you only create one lambda instance per program
+		 * and keep it until program exits - you don't need this.
+		 * 
+		 * The reason this option exists at all is that enabling it
+		 * will tank the performance and in most projects you don't
+		 * even need it in the first place.
+		*/
+		bool useThreadList = false;
 	};
 
 	struct ServerConfig : ServeOptions {

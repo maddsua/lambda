@@ -8,7 +8,6 @@
 #include "../network/tcp/listener.hpp"
 
 #include <forward_list>
-#include <atomic>
 
 namespace Lambda {
 
@@ -22,9 +21,10 @@ namespace Lambda {
 			RequestCallback httpHandler;
 
 			std::future<void> serviceWorker;
-			std::forward_list<WorkerContext> m_connections;
-			std::atomic<size_t> m_connections_count = 0;
 			bool m_terminated = false;
+
+			std::forward_list<WorkerContext> m_connections;
+			size_t m_connections_count = 0;
 
 			/**
 			 * Internal call that signals all workers to exit
