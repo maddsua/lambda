@@ -15,14 +15,14 @@ int main(int argc, char const *argv[]) {
 
 		//	check if user visited before by a cookie
 		auto cookies = req.getCookies();
-		bool isFirstFisit = !cookies.has("userid");
+		bool isFirstVisit = !cookies.has("userid");
 
 		//	create response json
 		JSON::Map testMap = {
 			{"date", Date().toUTCString()},
 			{"user", username.size() ? username : "anonymous"},
 			{"useragent", req.headers.get("user-agent")},
-			{"first_visit", isFirstFisit}
+			{"first_visit", isFirstVisit}
 		};
 
 		auto response = HTTP::Response(200, {
@@ -31,7 +31,7 @@ int main(int argc, char const *argv[]) {
 		}, stringify(Property(testMap)));
 
 		//	set a user id cookie to check for on next request
-		if (isFirstFisit) {
+		if (isFirstVisit) {
 			auto newCookies = HTTP::Cookies();
 			newCookies.set("userid", "test_user_0");
 			newCookies.set("x_lambda", "control", {
