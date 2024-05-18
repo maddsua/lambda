@@ -115,13 +115,8 @@ Go see [some examples or smthng](/examples)
 
 ## A few quick notes before you start blasting
 
-### OS support
-
-- Any modern linux
-- Windows 7+ (might actually work on 7, let me know if it does)
-
 ### Compiler version
 
-Use GCC 10 or never. The project uses a few of the c++20 features, and it might not compile with GCC's older versions.
+Use GCC 10 or never. The project uses a few of the c++20 features, and it might not compile with older versions.
 
 Other compilers are not \*officially\* supported, but there aren't any super-GCC-specific tricks employed in this project, so theoretically with some tweaking it should compile anywhere.
