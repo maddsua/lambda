@@ -126,7 +126,9 @@ std::vector<uint8_t> Compress::brotliDecompressBuffer(const std::vector<uint8_t>
 
 				case BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT: {
 
-					if (eob) std::runtime_error("Incomplete brotli stream");
+					if (eob) {
+						throw std::runtime_error("Incomplete brotli stream");
+					}
 
 					next_in = input.data() + cursor_in;
 					eob = (cursor_in + br.chunk) >= input.size();
@@ -153,7 +155,10 @@ std::vector<uint8_t> Compress::brotliDecompressBuffer(const std::vector<uint8_t>
 					available_in = 0;
 					available_out = 0;
 
-					if (cursor_in < input.size()) std::runtime_error("Unused data after brotli stream");
+					if (cursor_in < input.size()) {
+						throw std::runtime_error("Unused data after brotli stream");
+					}
+
 					return decompressed;
 
 				} break;
