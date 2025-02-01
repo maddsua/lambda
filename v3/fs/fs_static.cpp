@@ -68,8 +68,6 @@ std::optional<StaticFile> StaticReader::open(const std::string& filepath) {
 		.modified = std::filesystem::last_write_time(resolved).time_since_epoch().count(),
 	};
 
-	auto ass = StaticFile(new StaticReader(""), info);
-
 	return StaticFile(this, info);
 }
 
