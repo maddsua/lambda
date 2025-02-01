@@ -9,6 +9,8 @@
 
 namespace Lambda {
 
+	const std::string& get_file_mimetype(const std::string& filename);
+
 	struct StaticFileInfo {
 		std::string resolved_path;
 		size_t size;
