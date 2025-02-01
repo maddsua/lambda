@@ -5,6 +5,8 @@
 #include <optional>
 #include <vector>
 
+#include "../http/http.hpp"
+
 namespace Lambda {
 
 	struct StaticFileInfo {
@@ -35,13 +37,10 @@ namespace Lambda {
 
 		public:
 			StaticServer(const std::string& rootDir);
+			~StaticServer();
 
-			HTTP::Response serve(const HTTP::Request& request) const noexcept;
-			HTTP::Response serve(const std::string& pathname) const noexcept;
-
-			std::string flattenPathName(std::string urlpath) const noexcept;
-			std::optional<std::string> resolvePath(const std::string& pathname) const noexcept;
-	};	
+			void serve(Request& req, ResponseWriter& wrt);
+	};
 };
 
 #endif
