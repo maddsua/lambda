@@ -2,8 +2,8 @@
 #include "./connection.hpp"
 #include "../sysnetw.hpp"
 
-using namespace Lambda::Network;
-using namespace Lambda::Network::TCP;
+using namespace Lambda::Net;
+using namespace Lambda::Net::TCP;
 
 ListenSocket::ListenSocket(const ListenConfig& init) : config(init) {
 

@@ -10,23 +10,23 @@ namespace Lambda {
 
 	class Date {
 		private:
-			time_t epoch;
-			tm timestruct;
+			time_t m_unix;
+			tm m_tms;
 		
 		public:
 			Date() noexcept;
 			Date(time_t epoch) noexcept;
 
-			std::string getDate() const noexcept;
-			int getDay() const noexcept;
-			int getYear() const noexcept;
-			int getHours() const noexcept;
-			int getMinutes() const noexcept;
-			int getMonth() const noexcept;
-			int getSeconds() const noexcept;
-			time_t getTime() const noexcept;
-			std::string toUTCString() const noexcept;
-			std::string toHRTString() const noexcept;
+			std::string date() const noexcept;
+			int get_date() const noexcept;
+			int year() const noexcept;
+			int hour() const noexcept;
+			int minute() const noexcept;
+			int month() const noexcept;
+			int second() const noexcept;
+			time_t epoch() const noexcept;
+			std::string to_utc_string() const noexcept;
+			std::string to_calendar_string() const noexcept;
 	};
 
 	namespace Content {

@@ -1,4 +1,4 @@
-#include "./polyfill.hpp"
+#include "./server.hpp"
 
 #include <chrono>
 #include <ctime>
@@ -19,20 +19,10 @@ Date::Date(time_t epoch) noexcept {
 	gmtime_r(&epoch, &this->m_tms);
 }
 
-time_t Date::epoch() const noexcept {
-	return this->m_unix;
-}
-
 std::string Date::to_utc_string() const noexcept {
 	char timebuff[64];
 	strftime(timebuff, sizeof(timebuff), "%a, %d %b %Y %H:%M:%S GMT", &this->m_tms);
 	return timebuff;
-}
-
-std::string Date::to_calendar_string() const noexcept {
-	char timebuff[32];
-	strftime(timebuff, sizeof(timebuff), "%d %b %Y %H:%M:%S", &this->m_tms);
-	return std::string(timebuff);
 }
 
 std::string Date::date() const noexcept {
@@ -41,26 +31,8 @@ std::string Date::date() const noexcept {
 	return timebuff;
 }
 
-int Date::second() const noexcept {
-	return this->m_tms.tm_sec;
-}
-
-int Date::month() const noexcept {
-	return this->m_tms.tm_mon;
-}
-
-int Date::minute() const noexcept {
-	return this->m_tms.tm_min;
-}
-
-int Date::hour() const noexcept {
-	return this->m_tms.tm_hour;
-}
-
-int Date::year() const noexcept {
-	return this->m_tms.tm_year;
-}
-
-int Date::get_date() const noexcept {
-	return this->m_tms.tm_mday;
+std::string Date::to_log_string() const noexcept {
+	char timebuff[64];
+	strftime(timebuff, sizeof(timebuff), "%H:%M:%S %d/%m/%Y", &this->m_tms);
+	return timebuff;
 }

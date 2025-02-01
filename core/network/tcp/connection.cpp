@@ -3,8 +3,8 @@
 
 #include <set>
 
-using namespace Lambda::Network;
-using namespace Lambda::Network::TCP;
+using namespace Lambda::Net;
+using namespace Lambda::Net::TCP;
 
 static const std::set<int> blockingEndedCodes = {
 	#ifdef _WIN32

@@ -14,7 +14,7 @@
 using namespace Lambda;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;
-using namespace Lambda::Network;
+using namespace Lambda::Net;
 
 static const std::map<ContentEncodings, std::string> contentEncodingMap = {
 	{ ContentEncodings::Brotli, "br" },
@@ -27,7 +27,7 @@ static const std::initializer_list<std::string> compressibleTypes = {
 };
 
 TransportContextV1::TransportContextV1(
-	Network::TCP::Connection& connInit,
+	Net::TCP::Connection& connInit,
 	const TransportOptions& optsInit
 ) : m_conn(connInit), m_topts(optsInit) {}
 
@@ -295,7 +295,7 @@ void TransportContextV1::respond(const ResponseContext& responsectx) {
 		responseHeaders.set("content-length", std::to_string(bodyBufferSize));
 	}
 
-	responseHeaders.set("date", Date().toUTCString());
+	responseHeaders.set("date", Date().to_utc_string());
 	responseHeaders.set("server", "maddsua/lambda");
 	responseHeaders.set("x-request-id", this->m_id.toString() + '-' + responsectx.id.toString());
 
@@ -355,7 +355,7 @@ const std::string& TransportContextV1::contextID() const noexcept {
 	return this->m_id.toString();
 }
 
-const Network::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
+const Net::ConnectionInfo& TransportContextV1::conninfo() const noexcept {
 	return this->m_conn.info();
 }
 
@@ -363,7 +363,7 @@ const TransportOptions& TransportContextV1::options() const noexcept {
 	return this->m_topts;
 }
 
-Network::TCP::Connection& TransportContextV1::tcpconn() const noexcept {
+Net::TCP::Connection& TransportContextV1::tcpconn() const noexcept {
 	return this->m_conn;
 }
 
@@ -398,7 +398,7 @@ void TransportContextV1::writeRaw(const std::vector<uint8_t>& data) {
 }
 
 std::vector<uint8_t> TransportContextV1::readRaw() {
-	return this->readRaw(Network::TCP::Connection::DefaultChunkSize);
+	return this->readRaw(Net::TCP::Connection::DefaultChunkSize);
 }
 
 std::vector<uint8_t> TransportContextV1::readRaw(size_t expectedSize) {

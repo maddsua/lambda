@@ -7,8 +7,8 @@ using namespace Lambda;
 
 int main(int argc, char const *argv[]) {
 
-	Network::TCP::ListenConfig listenInitOpts;
-	auto listener = Network::TCP::ListenSocket(listenInitOpts);
+	Net::TCP::ListenConfig listenInitOpts;
+	auto listener = Net::TCP::ListenSocket(listenInitOpts);
 
 	std::cout << "Started server at http://localhost:" + std::to_string(listener.getConfig().port) + "/\n";
 

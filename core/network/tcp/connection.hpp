@@ -7,7 +7,7 @@
 #include <string>
 #include <mutex>
 
-namespace Lambda::Network::TCP {
+namespace Lambda::Net::TCP {
 
 	struct ConnectionFlags {
 		/**

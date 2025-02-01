@@ -66,8 +66,8 @@ namespace Lambda::HTTP::Transport {
 
 			virtual const std::string& contextID() const noexcept = 0;
 
-			virtual Network::TCP::Connection& tcpconn() const noexcept = 0;
-			virtual const Network::ConnectionInfo& conninfo() const noexcept = 0;
+			virtual Net::TCP::Connection& tcpconn() const noexcept = 0;
+			virtual const Net::ConnectionInfo& conninfo() const noexcept = 0;
 			virtual const TransportOptions& options() const noexcept = 0;
 			virtual const ContentEncodings& getEnconding() const noexcept = 0;
 			virtual bool isConnected() const noexcept = 0;

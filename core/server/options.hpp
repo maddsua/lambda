@@ -75,7 +75,7 @@ namespace Lambda {
 		/**
 		 * Set default connection timeout
 		*/
-		Network::ConnectionTimeouts connectionTimeouts;
+		Net::ConnectionTimeouts connectionTimeouts;
 		/**
 		 * Max number of simultaneous connections
 		 * 

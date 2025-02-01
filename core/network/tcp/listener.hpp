@@ -6,7 +6,7 @@
 
 #include <optional>
 
-namespace Lambda::Network::TCP {
+namespace Lambda::Net::TCP {
 
 	struct ListenConfig {
 		bool allowPortReuse = false;

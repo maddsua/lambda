@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <string>
 
-namespace Lambda::Network {
+namespace Lambda::Net {
 
 	enum struct ConnectionTransport {
 		TCP, UDP

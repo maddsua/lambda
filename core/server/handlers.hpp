@@ -13,7 +13,7 @@ namespace Lambda {
 	struct RequestContext {
 		const std::string& contextID;
 		const std::string& requestID;
-		const Network::ConnectionInfo& conninfo;
+		const Net::ConnectionInfo& conninfo;
 
 		const std::function<SSE::Writer()>& startEventStream;
 		const std::function<Websocket::WebsocketContext()>& upgrateToWebsocket;

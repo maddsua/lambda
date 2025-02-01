@@ -2,7 +2,7 @@
 #include "../polyfill/polyfill.hpp"
 
 using namespace Lambda;
-using namespace Lambda::Network;
+using namespace Lambda::Net;
 using namespace Lambda::SSE;
 using namespace Lambda::HTTP;
 using namespace Lambda::HTTP::Transport;

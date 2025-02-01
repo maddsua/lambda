@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
 
 		//	create response json
 		JSON::Map testMap = {
-			{"date", Date().toUTCString()},
+			{"date", Date().to_utc_string()},
 			{"user", username.size() ? username : "anonymous"},
 			{"useragent", req.headers.get("user-agent")},
 			{"first_visit", isFirstVisit}

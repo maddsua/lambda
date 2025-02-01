@@ -19,7 +19,7 @@ namespace Lambda::HTTP::Transport {
 
 	class TransportContextV1 : public TransportContext {
 		private:
-			Network::TCP::Connection& m_conn;
+			Net::TCP::Connection& m_conn;
 			const TransportOptions& m_topts;
 
 			const Crypto::ShortID m_id;
@@ -30,12 +30,12 @@ namespace Lambda::HTTP::Transport {
 			IncomingRequest* m_next = nullptr;
 
 		public:
-			TransportContextV1(Network::TCP::Connection& connInit, const TransportOptions& optsInit);
+			TransportContextV1(Net::TCP::Connection& connInit, const TransportOptions& optsInit);
 
 			const std::string& contextID() const noexcept;
 
-			Network::TCP::Connection& tcpconn() const noexcept;
-			const Network::ConnectionInfo& conninfo() const noexcept;
+			Net::TCP::Connection& tcpconn() const noexcept;
+			const Net::ConnectionInfo& conninfo() const noexcept;
 			const TransportOptions& options() const noexcept;
 			const ContentEncodings& getEnconding() const noexcept;
 			bool isConnected() const noexcept;

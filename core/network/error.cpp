@@ -2,7 +2,7 @@
 #include "./sysnetw.hpp"
 
 using namespace Lambda;
-using namespace Lambda::Network;
+using namespace Lambda::Net;
 
 NetworkError::NetworkError(const std::string& message) : Error(message) {
 	this->m_code = GetOSErrorCode();

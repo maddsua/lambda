@@ -20,6 +20,7 @@ static const std::map <int, std::string> statusCodeTable = {
 	{ 206, "Partial Content" },
 	{ 207, "Multi-Status" },
 	{ 226, "IM Used" },
+
 	{ 300, "Multiple Choices" },
 	{ 301, "Moved Permanently" },
 	{ 302, "Found" },
@@ -28,6 +29,7 @@ static const std::map <int, std::string> statusCodeTable = {
 	{ 305, "Use Proxy" },
 	{ 307, "Temporary Redirect" },
 	{ 308, "Permanent Redirect" },
+
 	{ 400, "Bad Request" },
 	{ 401, "Unauthorized" },
 	{ 402, "Payment Required" },
@@ -55,6 +57,7 @@ static const std::map <int, std::string> statusCodeTable = {
 	{ 429, "Too Many Requests" },
 	{ 431, "Request Header Fields Too Large" },
 	{ 451, "Unavailable For Legal Reasons" },
+	
 	{ 500, "Internal Server Error" },
 	{ 501, "Not Implemented" },
 	{ 502, "Bad Gateway" },

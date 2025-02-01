@@ -27,3 +27,6 @@ lambda_sfi.hpp
 *.gz
 *.tgz
 *.so
+
+# artifacts
+**/.artifacts
