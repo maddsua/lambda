@@ -1,12 +1,16 @@
+LIBNAME						=	lambda
 PROD_FLAGS					=	$(if $(filter $(target),prod),-s,-g)
-CFLAGS						=	-Wall -Werror -std=c++23 $(PROD_FLAGS)
-CLEAN_COMMAND				=	rm .artifacts/*.o .artifacts/*.a .artifacts/*.so
+CFLAGS						=	-Wall -Werror -std=c++23 -fPIC $(PROD_FLAGS)
+LAMBDA_LIBSTATIC			=	dist/$(LIBNAME).a
+LAMBDA_LIBSHARED			=	dist/$(LIBNAME).so
 
 .PHONY: all all-before all-after action-custom
-all: all-before all-after
+all: all-before libshared libstatic all-after
 
 clean: action-custom
-	$(CLEAN_COMMAND)
+	mkdir -p .artifacts
+	mkdir -p dist
+	rm .artifacts/* dist/*
 
 
 #############################################
@@ -14,7 +18,7 @@ clean: action-custom
 #############################################
 
 LIB_LAMBDA_NET_OBJS		=	.artifacts/net_tcp_listen.o .artifacts/net_tcp_conn.o
-.lib-artfs-net: $(LIB_LAMBDA_NET_OBJS)
+.lib-objs-net: $(LIB_LAMBDA_NET_OBJS)
 test-net_tcp: .artifacts/test-net_tcp
 	.artifacts/test-net_tcp
 .artifacts/test-net_tcp: .artifacts/test-net_tcp.o $(LIB_LAMBDA_NET_OBJS)
@@ -32,7 +36,7 @@ test-net_tcp: .artifacts/test-net_tcp
 #############################################
 
 LIB_LAMBDA_HTTP_OBJS	=	.artifacts/http_values.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o
-.lib-artfs-http: $(LIB_LAMBDA_HTTP_OBJS)
+.lib-objs-http: $(LIB_LAMBDA_HTTP_OBJS)
 test-http_url: .artifacts/test-http_url
 	.artifacts/test-http_url
 .artifacts/test-http_url: .artifacts/test-http_url.o $(LIB_LAMBDA_HTTP_OBJS)
@@ -54,7 +58,7 @@ test-http_url: .artifacts/test-http_url
 #############################################
 
 LIB_LAMBDA_SRV_OBJS		=	.artifacts/server.o .artifacts/server_pipeline_h1.o .artifacts/server_pipeline_h1_rx.o  .artifacts/server_pipeline_h1_tx.o  .artifacts/server_date.o
-.lib-artfs-srv: $(LIB_LAMBDA_SRV_OBJS)
+.lib-objs-srv: $(LIB_LAMBDA_SRV_OBJS)
 test-server: .artifacts/test-server
 	.artifacts/test-server
 .artifacts/test-server: .artifacts/test-server.o $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_NET_OBJS)
@@ -71,3 +75,18 @@ test-server: .artifacts/test-server
 	g++ -c $(CFLAGS) server/pipeline_h1_tx.cpp -o .artifacts/server_pipeline_h1_tx.o
 .artifacts/server_date.o: server/date.cpp
 	g++ -c $(CFLAGS) server/date.cpp -o .artifacts/server_date.o
+
+
+#############################################
+#				LIBRARY BUILD				#
+#############################################
+
+# shared lib build
+libshared: $(LAMBDA_LIBSHARED)
+$(LAMBDA_LIBSHARED): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS)
+	g++ $(CFLAGS) $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) -shared -o $(LAMBDA_LIBSHARED)
+
+# static lib build
+libstatic: $(LAMBDA_LIBSTATIC)
+$(LAMBDA_LIBSTATIC): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS)
+	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS)
