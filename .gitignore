@@ -30,3 +30,4 @@ lambda_sfi.hpp
 
 # artifacts
 **/.artifacts
+**/dist
