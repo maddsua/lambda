@@ -2,11 +2,13 @@
 
 #include <unordered_map>
 
+using namespace Lambda;
+
 static const std::unordered_map<std::string, std::string> mimetype_map;
 
 static const std::string fallback_type = "application/octet-stream";
 
-const std::string& Lambda::get_file_mimetype(const std::string& filename) {
+const std::string& Fs::infer_mimetype(const std::string& filename) {
 
 	auto dot_pos = std::string::npos;
 	for (int idx = filename.size() - 1; idx >= 0; idx--) {
