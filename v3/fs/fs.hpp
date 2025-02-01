@@ -10,10 +10,9 @@
 namespace Lambda {
 
 	struct StaticFileInfo {
-		std::string name;
+		std::string resolved_path;
 		size_t size;
 		time_t modified;
-		time_t created;
 	};
 
 	class StaticFile : public StaticFileInfo {
@@ -21,27 +20,44 @@ namespace Lambda {
 			FsReader* m_reader_ptr = nullptr;
 
 		public:
-			StaticFile(FsReader* reader_ptr) : m_reader_ptr(reader_ptr) {}
+			StaticFile(FsReader* reader_ptr, StaticFile info);
 
 			std::string mime_type() const noexcept;
-			std::vector<uint8_t> data();
-			std::vector<uint8_t> data(size_t begin, size_t end);
+			std::vector<uint8_t> content();
+			std::vector<uint8_t> content(size_t begin, size_t end);
 	};
 
 	class FsReader {
+		protected:
+			virtual std::vector<uint8_t> content(const StaticFileInfo& reader_file) = 0;
+			virtual std::vector<uint8_t> content(const StaticFileInfo& reader_file, size_t begin, size_t end) = 0;
+
 		public:
 			virtual std::optional<StaticFile> open(const std::string& filename) = 0;
-			virtual std::vector<uint8_t> read(const std::string& filename) = 0;
+
+		friend class StaticFile;
+	};
+
+	class StaticReader : private FsReader {
+		private:
+			std::string m_root;
+
+			std::vector<uint8_t> content(const StaticFileInfo& reader_file);
+			std::vector<uint8_t> content(const StaticFileInfo& reader_file, size_t begin, size_t end);
+
+		public:
+			StaticReader(const std::string& root_dir);
+
+			std::optional<StaticFile> open(const std::string& filename);
 	};
 
 	class StaticServer {
 		private:
-			std::string m_root;
 			//	todo: use unique pointer
 			FsReader* m_reader_ptr = nullptr;
 
 		public:
-			StaticServer(const std::string& rootDir);
+			StaticServer(const std::string& root_dir);
 			~StaticServer();
 
 			void serve(Request& req, ResponseWriter& wrt);
