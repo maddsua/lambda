@@ -28,27 +28,24 @@ namespace Lambda {
 	};
 
 	class FsReader {
-		protected:
-			virtual std::vector<uint8_t> content(const StaticFileInfo& reader_file) = 0;
-			virtual std::vector<uint8_t> content(const StaticFileInfo& reader_file, size_t begin, size_t end) = 0;
-
 		public:
 			virtual std::optional<StaticFile> open(const std::string& filename) = 0;
+			virtual std::vector<uint8_t> content(const StaticFileInfo& reader_file) = 0;
+			virtual std::vector<uint8_t> content(const StaticFileInfo& reader_file, size_t begin, size_t end) = 0;
 
 		friend class StaticFile;
 	};
 
-	class StaticReader : private FsReader {
+	class StaticReader : public FsReader {
 		private:
 			std::string m_root;
-
-			std::vector<uint8_t> content(const StaticFileInfo& reader_file);
-			std::vector<uint8_t> content(const StaticFileInfo& reader_file, size_t begin, size_t end);
 
 		public:
 			StaticReader(const std::string& root_dir);
 
 			std::optional<StaticFile> open(const std::string& filename);
+			std::vector<uint8_t> content(const StaticFileInfo& reader_file);
+			std::vector<uint8_t> content(const StaticFileInfo& reader_file, size_t begin, size_t end);
 	};
 
 	class StaticServer {
