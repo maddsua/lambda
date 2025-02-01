@@ -10,6 +10,7 @@
 namespace Lambda {
 
 	struct StaticFileInfo {
+		std::string name;
 		size_t size;
 		time_t modified;
 		time_t created;
@@ -17,9 +18,11 @@ namespace Lambda {
 
 	class StaticFile : public StaticFileInfo {
 		private:
-			//	todo: ptr to tar reader or fs stream
+			FsReader* m_reader_ptr = nullptr;
 
 		public:
+			StaticFile(FsReader* reader_ptr) : m_reader_ptr(reader_ptr) {}
+
 			std::string mime_type() const noexcept;
 			std::vector<uint8_t> data();
 			std::vector<uint8_t> data(size_t begin, size_t end);
@@ -28,11 +31,13 @@ namespace Lambda {
 	class FsReader {
 		public:
 			virtual std::optional<StaticFile> open(const std::string& filename) = 0;
+			virtual std::vector<uint8_t> read(const std::string& filename) = 0;
 	};
 
 	class StaticServer {
 		private:
 			std::string m_root;
+			//	todo: use unique pointer
 			FsReader* m_reader_ptr = nullptr;
 
 		public:
