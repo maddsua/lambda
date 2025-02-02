@@ -113,8 +113,6 @@ std::string URL::to_string() const noexcept {
 
 		if (this->scheme.size()) {
 			url.append(this->scheme);
-		} else {
-			url.append("http");
 		}
 
 		url.append("://");
@@ -134,8 +132,6 @@ std::string URL::to_string() const noexcept {
 
 	if (this->path.size()) {
 		url.append(this->path);
-	} else {
-		url.push_back('/');
 	}
 
 	if (this->search.size()) {
@@ -148,8 +144,16 @@ std::string URL::to_string() const noexcept {
 
 std::string URL::href() const {
 
+	if (!this->scheme.size()) {
+		throw std::runtime_error("URL: Cannot create href: Scheme missing");
+	}
+
 	if (!this->host.size()) {
 		throw std::runtime_error("URL: Cannot create href from a relative URL");
+	}
+
+	if (!this->path.size()) {
+		throw std::runtime_error("URL: Cannot create href: Path missing");
 	}
 
 	return this->to_string();

@@ -33,12 +33,8 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		} return;
 	}
 
-	//	try directory index file redirect
-	if (req.url.path.ends_with('/')) {
-		req.url.path.append("index.html");
-	}
-
-	auto handle_404 = [&]() {
+	auto file_hit = this->m_reader->open(req.url.path);
+	if (!file_hit) {
 		
 		auto notfound_msg = "path '" + req.url.path + "' not found";
 		
@@ -52,41 +48,20 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		if (req.method != Method::HEAD) {
 			wrt.write(notfound_msg);
 		}
-	};
-
-	//	todo: fix
-	auto file_hit = this->m_reader->open(req.url.path);
-	if (!file_hit) {
-		handle_404();
+		
 		return;
 	}
 
-	//	more directory redirects
-	switch (file_hit->type()) {
-		
-		case ServedFile::Type::Directory: {
+	if (file_hit->type() == ServedFile::Type::Directory) {
 
-			if (!req.url.path.ends_with('/')) {
-				req.url.path.push_back('/');
-			}
+		if (!req.url.path.ends_with('/')) {
+			req.url.path.push_back('/');
+		}
+		req.url.path.append("index.html");
 
-			req.url.path.append("index.html");
-
-			//	todo: return redirect instead
-
-			file_hit = this->m_reader->open(req.url.path);
-			if (!file_hit || file_hit->type() != ServedFile::Type::File) {
-				handle_404();
-				return;
-			}
-
-		} break;
-
-		case ServedFile::Type::File: break;
-
-		default: {
-			handle_404();
-		} return;
+		wrt.header().set("location", req.url.to_string());	
+		wrt.write_header(Status::Found);
+		return;
 	}
 
 	wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name()));
