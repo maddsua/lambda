@@ -2,7 +2,7 @@
 
 using namespace Lambda::Encoding;
 
-bool Base64::validate(const std::string& data) {
+bool Base64::valid(const std::string& data) {
 
 	for (const auto rune : data) {
 		if (!isalnum(rune) && rune != '+' && rune != '/' && rune != '=') {

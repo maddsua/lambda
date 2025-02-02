@@ -10,6 +10,7 @@ namespace Lambda::HTTP {
 
 	CookieValues parse_cookie(const std::string& header);
 
+	std::optional<BasicAuth> parse_basic_auth(const std::string& header);
 };
 
 #endif

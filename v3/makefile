@@ -51,7 +51,7 @@ test-net_tcp: .artifacts/test-net_tcp
 #			SECTION: http interface			#
 #############################################
 
-LIB_OBJS_HTTP_OBJS		=	.artifacts/http_values.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o .artifacts/http_cookie.o .artifacts/http_date.o
+LIB_OBJS_HTTP_OBJS		=	.artifacts/http_values.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o .artifacts/http_cookie.o .artifacts/http_date.o .artifacts/http_basic_auth.o
 .lib-objs-http: $(LIB_OBJS_HTTP_OBJS)
 test-http_url: .artifacts/test-http_url
 	.artifacts/test-http_url
@@ -71,6 +71,8 @@ test-http_url: .artifacts/test-http_url
 	g++ -c $(CFLAGS) http/cookie.cpp -o .artifacts/http_cookie.o
 .artifacts/http_date.o: http/date.cpp
 	g++ -c $(CFLAGS) http/date.cpp -o .artifacts/http_date.o
+.artifacts/http_basic_auth.o: http/basic_auth.cpp
+	g++ -c $(CFLAGS) http/basic_auth.cpp -o .artifacts/http_basic_auth.o
 
 
 #############################################
@@ -81,8 +83,8 @@ LIB_OBJS_SRV_OBJS		=	.artifacts/server.o .artifacts/server_pipeline_h1.o .artifa
 .lib-objs-srv: $(LIB_OBJS_SRV_OBJS)
 test-server: .artifacts/test-server
 	.artifacts/test-server
-.artifacts/test-server: .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS)
-	g++ $(CFLAGS) .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) -o .artifacts/test-server
+.artifacts/test-server: .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS)
+	g++ $(CFLAGS) .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) -o .artifacts/test-server
 .artifacts/test-server.o: server/test_server.cpp
 	g++ -c $(CFLAGS) server/test_server.cpp -o .artifacts/test-server.o
 .artifacts/server.o: server/server.cpp
@@ -103,8 +105,8 @@ LIB_OBJS_FS_OBJS		=	.artifacts/fs_handler.o .artifacts/fs_static.o .artifacts/fs
 .lib-objs-fs: $(LIB_OBJS_FS_OBJS)
 test-fs: .artifacts/test-fs
 	.artifacts/test-fs
-.artifacts/test-fs: .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS)
-	g++ $(CFLAGS) .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) -o .artifacts/test-fs
+.artifacts/test-fs: .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS)
+	g++ $(CFLAGS) .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) -o .artifacts/test-fs
 .artifacts/test-fs.o: fs/test_fs.cpp
 	g++ -c $(CFLAGS) fs/test_fs.cpp -o .artifacts/test-fs.o
 .artifacts/fs_handler.o: fs/fs_handler.cpp
