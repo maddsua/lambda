@@ -12,8 +12,7 @@ std::string trim_file_path(std::string filepath) {
 		filepath.erase(0, 1);
 	}
 
-	//	todo: resolve shit
-	return filepath;
+	return std::filesystem::path(filepath).lexically_normal().string();
 }
 
 struct FsDirectoryFile : public ServedFile {
