@@ -110,3 +110,14 @@ $(LAMBDA_LIBSHARED): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA
 libstatic: $(LAMBDA_LIBSTATIC)
 $(LAMBDA_LIBSTATIC): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_FS_OBJS)
 	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_FS_OBJS)
+
+
+#############################################
+#					UTILS					#
+#############################################
+
+bin-page_gen: .artifacts/bin-page_gen
+.artifacts/bin-page_gen: utils/page_gen/gen.cpp
+	g++ -std=c++23 -s utils/page_gen/gen.cpp -o .artifacts/bin-page_gen
+gen-service_page: .artifacts/bin-page_gen
+	cat utils/page_gen/templates/service_page.html | .artifacts/bin-page_gen
