@@ -8,14 +8,13 @@ using namespace Lambda;
 
 std::string trim_file_path(std::string filepath);
 
-FsStaticFile::FsStaticFile(const std::string& name, size_t time, time_t modified) {
-	this->name = name;
-	this->size = size;
-	this->modified = modified;
+FsStaticFile::FsStaticFile(const std::string& i_name, size_t i_size, time_t i_modified) {
+	this->name = i_name;
+	this->size = i_size;
+	this->modified = i_modified;
 }
 
 std::vector<uint8_t> FsStaticFile::content() {
-
 
 	auto file = std::fstream(this->name, std::ios::in | std::ios::binary);
 	if (!file.is_open()) {
@@ -44,7 +43,6 @@ std::vector<uint8_t> FsStaticFile::content(size_t begin, size_t end) {
 	file.seekg(begin);
 
 	std::vector<uint8_t> data(end - begin);
-	//	todo: replace with proper iterators
 	file.read((char*)data.data(), data.size());
 
 	if (data.size() != static_cast<size_t>(file.gcount())) {
@@ -82,6 +80,7 @@ std::unique_ptr<FsServeFile> FsStaticReader::open(const std::string& filename) {
 	return std::unique_ptr<FsServeFile>(new FsStaticFile(
 		resolved,
 		std::filesystem::file_size(resolved),
+		//	todo: fix broken epoch
 		std::filesystem::last_write_time(resolved).time_since_epoch() / std::chrono::nanoseconds(1)
 	));
 }

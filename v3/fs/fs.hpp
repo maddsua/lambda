@@ -13,8 +13,8 @@ namespace Lambda {
 	//	todo: add directory/file detection
 	struct FsServeFile {
 		std::string name;
-		size_t size;
-		time_t modified;
+		size_t size = 0;
+		time_t modified = 0;
 
 		virtual std::vector<uint8_t> content() = 0;
 		virtual std::vector<uint8_t> content(size_t begin, size_t end) = 0;
@@ -26,7 +26,7 @@ namespace Lambda {
 	};
 
 	struct FsStaticFile : public FsServeFile {
-		FsStaticFile(const std::string& name, size_t time, time_t modified);
+		FsStaticFile(const std::string& i_name, size_t i_size, time_t i_modified);
 
 		std::vector<uint8_t> content();
 		std::vector<uint8_t> content(size_t begin, size_t end);
