@@ -9,6 +9,8 @@ using namespace Lambda;
 int main() {
 
 	auto fss = FileServer(new FsDirectoryServe("utils/testassets/static"));
+	fss.debug = true;
+
 	auto server = Lambda::Server(fss.handler(), { .debug = true });
 	
 	printf("Service files at: http://localhost:%i/\n", server.options.port);

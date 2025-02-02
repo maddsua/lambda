@@ -50,6 +50,7 @@ namespace Lambda {
 
 		public:
 			bool html_error_pages = true;
+			bool debug = false;
 
 			FileServer(FileServerReader* reader);
 
