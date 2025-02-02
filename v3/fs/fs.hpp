@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include <memory>
+#include <fstream>
 
 #include "../http/http.hpp"
 
@@ -12,6 +13,9 @@ namespace Lambda {
 
 	//	todo: add directory/file detection
 	struct FsServeFile {
+		FsServeFile(std::string name, size_t size, time_t modified)
+			: name(name), size(size), modified(modified) {}
+
 		std::string name;
 		size_t size = 0;
 		time_t modified = 0;
@@ -26,10 +30,15 @@ namespace Lambda {
 	};
 
 	struct FsStaticFile : public FsServeFile {
-		FsStaticFile(const std::string& i_name, size_t i_size, time_t i_modified);
+		private:
+			std::fstream m_stream;
+		
+		public:
+			FsStaticFile(std::fstream&& stream, const std::string& name, size_t size, time_t modified)
+				: FsServeFile (name, size, modified), m_stream(std::move(stream)) {};
 
-		std::vector<uint8_t> content();
-		std::vector<uint8_t> content(size_t begin, size_t end);
+			std::vector<uint8_t> content();
+			std::vector<uint8_t> content(size_t begin, size_t end);
 	};
 
 	class FsStaticReader : public FsServeReader {

@@ -8,48 +8,38 @@ using namespace Lambda;
 
 std::string trim_file_path(std::string filepath);
 
-FsStaticFile::FsStaticFile(const std::string& i_name, size_t i_size, time_t i_modified) {
-	this->name = i_name;
-	this->size = i_size;
-	this->modified = i_modified;
-}
-
 std::vector<uint8_t> FsStaticFile::content() {
-
-	auto file = std::fstream(this->name, std::ios::in | std::ios::binary);
-	if (!file.is_open()) {
-		return {};
-	}
-
-	return std::vector<uint8_t>(std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
+	return this->content(0, this->size);
 }
 
 std::vector<uint8_t> FsStaticFile::content(size_t begin, size_t end) {
 
-	if (begin <= 0 || end < begin || !this->name.size()) {
+	if (!this->m_stream.is_open()) {
 		return {};
 	}
 
-	auto file = std::fstream(this->name, std::ios::in | std::ios::binary | std::ios::ate);
-	if (!file.is_open()) {
+	if (begin < 0 || begin >= end) {
+		begin = 0;
+	}
+
+	if (end > this->size || end < begin) {
+		end = this->size;
+	}
+
+	if (end - begin < 1) {
 		return {};
 	}
 
-	size_t file_size = file.tellg();
-	if (end >= file_size) {
-		return {};
+	auto buff = std::vector<uint8_t>(end - begin);
+
+	this->m_stream.seekg(begin);
+	this->m_stream.read((char*)buff.data(), buff.size());
+
+	if (buff.size() > static_cast<size_t>(this->m_stream.gcount())) {
+		buff.resize(this->m_stream.gcount());
 	}
 
-	file.seekg(begin);
-
-	std::vector<uint8_t> data(end - begin);
-	file.read((char*)data.data(), data.size());
-
-	if (data.size() != static_cast<size_t>(file.gcount())) {
-		data.resize(file.gcount());
-	}
-
-	return data;
+	return buff;
 }
 
 FsStaticReader::FsStaticReader(const std::string& root_dir) {
@@ -76,12 +66,21 @@ std::unique_ptr<FsServeFile> FsStaticReader::open(const std::string& filename) {
 		return nullptr;
 	}
 
-	//	this bullshit doesn't work apparantely
+	auto file_size = std::filesystem::file_size(resolved);
+
+	auto file_stream = std::fstream(resolved, std::ios::in | std::ios::binary);
+	if (!file_stream.is_open()) {
+		return {};
+	}
+
+	//	todo: fix broken epoch
+	auto file_modified = std::filesystem::last_write_time(resolved).time_since_epoch() / std::chrono::nanoseconds(1);
+
 	return std::unique_ptr<FsServeFile>(new FsStaticFile(
+		std::move(file_stream),
 		resolved,
-		std::filesystem::file_size(resolved),
-		//	todo: fix broken epoch
-		std::filesystem::last_write_time(resolved).time_since_epoch() / std::chrono::nanoseconds(1)
+		file_size,
+		file_modified
 	));
 }
 

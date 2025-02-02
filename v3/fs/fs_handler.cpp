@@ -24,7 +24,6 @@ StaticServer::StaticServer(const std::string& root) {
 }
 
 //	todo: return noice error pages
-//	todo: fix file dates
 
 void StaticServer::handle(Request& req, ResponseWriter& wrt) {
 
@@ -69,21 +68,16 @@ void StaticServer::handle(Request& req, ResponseWriter& wrt) {
 		return;
 	}
 
-	auto content = file_hit->content();
-
 	wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name));
 	wrt.header().set("last-modified", Date(file_hit->modified).to_utc_string());
+	wrt.header().set("content-length", std::to_string(file_hit->size));
+	wrt.write_header(Status::OK);
 
 	if (req.method == Method::HEAD || !file_hit->size) {
-		wrt.header().set("content-length", std::to_string(file_hit->size));
-		wrt.write_header(Status::OK);
 		return;
 	}
 
-	wrt.header().set("content-length", std::to_string(content.size()));
-	wrt.write_header(Status::OK);
-
-	wrt.write(content);
+	wrt.write(file_hit->content());
 }
 
 HandlerFn StaticServer::handler() noexcept {
