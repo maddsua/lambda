@@ -54,7 +54,7 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 	//	flatten request path (remove segments like "./", "/../")
 	auto flattened = flatten_path(req.url.path);
 	if (flattened != req.url.path) {
-		wrt.header().set("location", req.url.to_string());	
+		wrt.header().set("location", flattened);	
 		wrt.write_header(Status::PermanentRedirect);
 		return;
 	}
@@ -104,6 +104,8 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 	if (req.method == Method::HEAD || !file_hit->size()) {
 		return;
 	}
+
+	//	todo: support chunked reads
 
 	wrt.write(file_hit->content());
 }
