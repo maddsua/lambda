@@ -10,15 +10,6 @@ void log_access(const Request& req, Status status);
 //	generated fn
 std::string render_404_page(const std::string& requeted_url);
 
-FileServer::FileServer(FileServerReader* reader) {
-
-	if (!reader) {
-		std::logic_error("FileServerReader reader is null");
-	}
-
-	this->m_reader = std::unique_ptr<FileServerReader>(reader);
-}
-
 void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 
 	switch (req.method) {
@@ -68,7 +59,7 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		fs_file_path.append("index.html");
 	}
 
-	auto file_hit = this->m_reader->open(fs_file_path);
+	auto file_hit = this->m_reader.open(fs_file_path);
 	if (!file_hit) {
 
 		auto response_body = this->html_error_pages ? render_404_page(req.url.path) : ("path '" + req.url.path + "' not found");

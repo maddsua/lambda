@@ -45,14 +45,14 @@ namespace Lambda {
 
 	class FileServer {
 		private:
-			std::unique_ptr<FileServerReader> m_reader;
+			FileServerReader& m_reader;
 			void handle_request(Request& req, ResponseWriter& wrt);
 
 		public:
 			bool html_error_pages = true;
 			bool debug = false;
 
-			FileServer(FileServerReader* reader);
+			FileServer(FileServerReader& reader) : m_reader(reader) {}
 
 			//	todo: fix lifetime
 			HandlerFn handler() noexcept;
