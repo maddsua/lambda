@@ -15,7 +15,6 @@ FileServer::FileServer(FileServerReader* reader) {
 }
 
 //	todo: return noice error pages
-//	todo: handle both silent and client redirects
 
 void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 
@@ -32,6 +31,11 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		default: {
 			wrt.write_header(Status::MethodNotAllowed);
 		} return;
+	}
+
+	//	apply directory redirect
+	if (req.url.path.ends_with('/')) {
+		req.url.path.append("index.html");
 	}
 
 	auto file_hit = this->m_reader->open(req.url.path);
@@ -58,7 +62,6 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		if (!req.url.path.ends_with('/')) {
 			req.url.path.push_back('/');
 		}
-		req.url.path.append("index.html");
 
 		wrt.header().set("location", req.url.to_string());	
 		wrt.write_header(Status::Found);
