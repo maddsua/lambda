@@ -13,16 +13,21 @@ namespace Lambda {
 
 	//	todo: add caching/etag support
 	//	todo: return file type from reader
-	struct ServedFile {
-		ServedFile(std::string name, size_t size, time_t modified)
-			: name(name), size(size), modified(modified) {}
+	class ServedFile {
+		public:
 
-		std::string name;
-		size_t size = 0;
-		time_t modified = 0;
+			enum struct Type {
+				File,
+				Directory
+			};
 
-		virtual std::vector<uint8_t> content() = 0;
-		virtual std::vector<uint8_t> content(size_t begin, size_t end) = 0;
+			virtual std::string name() const = 0;
+			virtual Type type() const noexcept = 0;
+			virtual time_t modified() = 0;
+			virtual size_t size() = 0;
+
+			virtual std::vector<uint8_t> content() = 0;
+			virtual std::vector<uint8_t> content(size_t begin, size_t end) = 0;
 	};
 
 	class FileServerReader {

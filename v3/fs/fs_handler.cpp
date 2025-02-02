@@ -38,11 +38,8 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		req.url.path.append("index.html");
 	}
 
-	auto file_hit = this->m_reader->open(req.url.path);
-
-	//	return 404 if not found
-	if (!file_hit) {
-
+	auto handle_404 = [&]() {
+		
 		auto notfound_msg = "path '" + req.url.path + "' not found";
 		
 		if (req.method != Method::HEAD) {
@@ -55,16 +52,49 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		if (req.method != Method::HEAD) {
 			wrt.write(notfound_msg);
 		}
+	};
 
+	//	todo: fix
+	auto file_hit = this->m_reader->open(req.url.path);
+	if (!file_hit) {
+		handle_404();
 		return;
 	}
 
-	wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name));
-	wrt.header().set("last-modified", Date(file_hit->modified).to_utc_string());
-	wrt.header().set("content-length", std::to_string(file_hit->size));
+	//	more directory redirects
+	switch (file_hit->type()) {
+		
+		case ServedFile::Type::Directory: {
+
+			if (!req.url.path.ends_with('/')) {
+				req.url.path.push_back('/');
+			}
+
+			req.url.path.append("index.html");
+
+			//	todo: return redirect instead
+
+			file_hit = this->m_reader->open(req.url.path);
+			if (!file_hit || file_hit->type() != ServedFile::Type::File) {
+				handle_404();
+				return;
+			}
+
+		} break;
+
+		case ServedFile::Type::File: break;
+
+		default: {
+			handle_404();
+		} return;
+	}
+
+	wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name()));
+	wrt.header().set("last-modified", Date(file_hit->modified()).to_utc_string());
+	wrt.header().set("content-length", std::to_string(file_hit->size()));
 	wrt.write_header(Status::OK);
 
-	if (req.method == Method::HEAD || !file_hit->size) {
+	if (req.method == Method::HEAD || !file_hit->size()) {
 		return;
 	}
 
