@@ -5,6 +5,8 @@
 
 using namespace Lambda;
 
+std::string render_404_page(const std::string& requeted_url);
+
 std::string flatten_path(const std::string& path) {
 
 	auto normalized = std::filesystem::path(path).lexically_normal();
@@ -67,18 +69,18 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 
 	auto file_hit = this->m_reader->open(fs_file_path);
 	if (!file_hit) {
-		
-		auto notfound_msg = "path '" + req.url.path + "' not found";
-		
+
+		auto response_body = this->html_error_pages ? render_404_page(req.url.path) : ("path '" + req.url.path + "' not found");
+
 		if (req.method != Method::HEAD) {
-			wrt.header().set("content-type", "text/plain");
-			wrt.header().set("content-length", std::to_string(notfound_msg.size()));
+			wrt.header().set("content-type", this->html_error_pages ? "text/html" : "text/plain");
+			wrt.header().set("content-length", std::to_string(response_body.size()));
 		}
 
 		wrt.write_header(Status::NotFound);
 
 		if (req.method != Method::HEAD) {
-			wrt.write(notfound_msg);
+			wrt.write(response_body);
 		}
 		
 		return;
@@ -95,6 +97,8 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		wrt.write_header(Status::Found);
 		return;
 	}
+
+	//	todo: add caching/etag support
 
 	wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name()));
 	wrt.header().set("last-modified", Date(file_hit->modified()).to_utc_string());
@@ -114,4 +118,10 @@ HandlerFn FileServer::handler() noexcept {
 	return [&](Request& req, ResponseWriter& wrt) -> void {
 		this->handle_request(req, wrt);
 	};
+}
+
+std::string render_404_page(const std::string& requeted_url) {
+	return (
+		"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>404 | Not found</title><style> * { box-sizing: border-box; margin: 0; padding: 0; } body { display: flex; flex-direction: column; height: 100vh; align-items: center; justify-content: center; font-family: sans-serif; color: black; background-color: white; } @media (prefers-color-scheme: dark) { body { color: whitesmoke; background-color: #171717; } } .message { display: flex; flex-direction: row; gap: 1.25rem; align-items: center; justify-content: flex-start; flex-shrink: 0; } .status-code { font-weight: 400; font-size: 6rem; } .content { display: flex; flex-direction: column; gap: 0.625rem; align-items: flex-start; justify-content: flex-start; flex-shrink: 0; max-width: 20rem; } .message-title { font-weight: 400; font-size: 2.25rem; } .message-content { font-weight: 400; font-size: 1rem; } </style></head><body><div class=\"message\"><div class=\"status-code\">404</div><div class=\"content\"><div class=\"message-title\">Not found</div><div class=\"message-content\">The requested URL '" + requeted_url + "' doesn't point to any valid resources</div></div></div></body></html>"
+	);
 }
