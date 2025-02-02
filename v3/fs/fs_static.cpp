@@ -6,82 +6,92 @@
 
 using namespace Lambda;
 
-std::string trim_file_path(const std::string& filepath) {
-	//	todo: resolve shit
+std::string trim_file_path(std::string filepath);
+
+FsStaticFile::FsStaticFile(const std::string& name, size_t time, time_t modified) {
+	this->name = name;
+	this->size = size;
+	this->modified = modified;
 }
 
-struct FsStaticFile : public FsServeFile {
+std::vector<uint8_t> FsStaticFile::content() {
 
-	std::string mime_type() const noexcept {
-		return Fs::infer_mimetype(this->name);
+
+	auto file = std::fstream(this->name, std::ios::in | std::ios::binary);
+	if (!file.is_open()) {
+		return {};
 	}
 
-	std::vector<uint8_t> content() {
+	return std::vector<uint8_t>(std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
+}
 
-		auto file = std::fstream(this->name, std::ios::in | std::ios::binary);
-		if (!file.is_open()) {
-			return {};
-		}
+std::vector<uint8_t> FsStaticFile::content(size_t begin, size_t end) {
 
-		return std::vector<uint8_t>(std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
+	if (begin <= 0 || end < begin || !this->name.size()) {
+		return {};
 	}
 
-	std::vector<uint8_t> content(size_t begin, size_t end) {
-	
-		if (begin <= 0 || end < begin || !this->name.size()) {
-			return {};
-		}
-
-		auto file = std::fstream(this->name, std::ios::in | std::ios::binary | std::ios::ate);
-		if (!file.is_open()) {
-			return {};
-		}
-
-		auto file_size = file.tellg();
-		if (end >= file_size) {
-			return {};
-		}
-
-		file.seekg(begin);
-
-		std::vector<uint8_t> data(end - begin);
-		//	todo: replace with proper iterators
-		file.read((char*)data.data(), data.size());
-
-		if (data.size() != file.gcount()) {
-			data.resize(file.gcount());
-		}
-
-		return data;
-	}
-};
-
-class FsStaticReader : public FsServeReader {
-	private:
-		std::string m_root;
-
-	public:
-
-	FsStaticReader(const std::string& root_dir) {
-		this->m_root = root_dir;
+	auto file = std::fstream(this->name, std::ios::in | std::ios::binary | std::ios::ate);
+	if (!file.is_open()) {
+		return {};
 	}
 
-	std::optional<FsStaticFile> open(const std::string& filename) {
-
-		auto resolved = trim_file_path(filename);
-		if (resolved.size()) {
-			return std::nullopt;
-		}
-
-		if (!std::filesystem::exists(resolved)) {
-			return std::nullopt;
-		}
-
-		FsStaticFile file;
-		file.name = resolved;
-		file.size = std::filesystem::file_size(resolved);
-		file.modified = std::filesystem::last_write_time(resolved).time_since_epoch().count();
-
-		return file;
+	size_t file_size = file.tellg();
+	if (end >= file_size) {
+		return {};
 	}
-};
+
+	file.seekg(begin);
+
+	std::vector<uint8_t> data(end - begin);
+	//	todo: replace with proper iterators
+	file.read((char*)data.data(), data.size());
+
+	if (data.size() != static_cast<size_t>(file.gcount())) {
+		data.resize(file.gcount());
+	}
+
+	return data;
+}
+
+FsStaticReader::FsStaticReader(const std::string& root_dir) {
+
+	this->m_root = root_dir;
+
+	//	todo: also flip slashes on windows
+
+	if (!this->m_root.ends_with('/')) {
+		this->m_root.push_back('/');
+	}
+}
+
+std::unique_ptr<FsServeFile> FsStaticReader::open(const std::string& filename) {
+
+	auto resolved = this->m_root + trim_file_path(filename);
+	if (!resolved.size()) {
+		return nullptr;
+	}
+
+	if (!std::filesystem::exists(resolved)) {
+		return nullptr;
+	} else if (!std::filesystem::is_regular_file(resolved)) {
+		return nullptr;
+	}
+
+	//	this bullshit doesn't work apparantely
+	return std::unique_ptr<FsServeFile>(new FsStaticFile(
+		resolved,
+		std::filesystem::file_size(resolved),
+		std::filesystem::last_write_time(resolved).time_since_epoch() / std::chrono::nanoseconds(1)
+	));
+}
+
+std::string trim_file_path(std::string filepath) {
+
+	if (filepath.starts_with('/')) {
+		filepath.erase(0, 1);
+	}
+
+	//	todo: resolve shit
+	return filepath;
+}

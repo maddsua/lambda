@@ -124,6 +124,8 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 
 	auto write_data = [&](const HTTP::Buffer& data) -> size_t {
 
+		//	todo: handle over-content-length writes
+
 		size_t bytes_written = 0;
 
 		if (!header_written) {

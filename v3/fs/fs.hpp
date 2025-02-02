@@ -4,36 +4,52 @@
 #include <string>
 #include <optional>
 #include <vector>
+#include <memory>
 
 #include "../http/http.hpp"
 
 namespace Lambda {
 
+	//	todo: add directory/file detection
 	struct FsServeFile {
 		std::string name;
 		size_t size;
 		time_t modified;
 
-		virtual std::string mime_type() const noexcept = 0;
 		virtual std::vector<uint8_t> content() = 0;
 		virtual std::vector<uint8_t> content(size_t begin, size_t end) = 0;
 	};
 
 	class FsServeReader {
 		public:
-			virtual std::optional<FsServeFile> open(const std::string& filename) = 0;	
+			virtual std::unique_ptr<FsServeFile> open(const std::string& filename) = 0;	
+	};
+
+	struct FsStaticFile : public FsServeFile {
+		FsStaticFile(const std::string& name, size_t time, time_t modified);
+
+		std::vector<uint8_t> content();
+		std::vector<uint8_t> content(size_t begin, size_t end);
+	};
+
+	class FsStaticReader : public FsServeReader {
+		private:
+			std::string m_root;
+
+		public:
+			FsStaticReader(const std::string& root_dir);
+			std::unique_ptr<FsServeFile> open(const std::string& filename);
 	};
 
 	class StaticServer {
 		private:
-			//	todo: use unique pointer
-			FsServeFile* m_reader_ptr = nullptr;
+			std::unique_ptr<FsServeReader> m_reader_ptr;
 
 		public:
-			StaticServer(const std::string& root_dir);
-			~StaticServer();
+			StaticServer(const std::string& root);
 
-			void serve(Request& req, ResponseWriter& wrt);
+			void handle(Request& req, ResponseWriter& wrt);
+			HandlerFn handler() noexcept;
 	};
 
 	namespace Fs {

@@ -4,34 +4,8 @@
 
 using namespace Lambda;
 
-static const std::unordered_map<std::string, std::string> mimetype_map;
-
-static const std::string fallback_type = "application/octet-stream";
-
-const std::string& Fs::infer_mimetype(const std::string& filename) {
-
-	auto dot_pos = std::string::npos;
-	for (int idx = filename.size() - 1; idx >= 0; idx--) {
-		if (filename[idx] == '.') {
-			dot_pos = idx;
-			break;
-		}
-	}
-
-	if (dot_pos == std::string::npos || dot_pos >= filename.size() - 1) {
-		return fallback_type;
-	}
-
-	auto entry = mimetype_map.find(filename.substr(dot_pos + 1));
-	if (entry == mimetype_map.end()) {
-		return fallback_type;
-	}
-
-	return entry->second;
-}
-
 //	kindly borrowed from https://github.com/micnic/mime.json
-static const std::unordered_map<std::string, std::string> mimetype_map = {
+const std::unordered_map<std::string, std::string> mimetype_map = {
 	{ "htm", "text/html" },
 	{ "html", "text/html" },
 	{ "txt", "text/plain" },
@@ -1207,3 +1181,27 @@ static const std::unordered_map<std::string, std::string> mimetype_map = {
 	{ "zirz", "application/vnd.zul" },
 	{ "zmm", "application/vnd.handheld-entertainment+xml" }
 };
+
+const std::string fallback_type = "application/octet-stream";
+
+const std::string& Fs::infer_mimetype(const std::string& filename) {
+
+	auto dot_pos = std::string::npos;
+	for (int idx = filename.size() - 1; idx >= 0; idx--) {
+		if (filename[idx] == '.') {
+			dot_pos = idx;
+			break;
+		}
+	}
+
+	if (dot_pos == std::string::npos || dot_pos >= filename.size() - 1) {
+		return fallback_type;
+	}
+
+	auto entry = mimetype_map.find(filename.substr(dot_pos + 1));
+	if (entry == mimetype_map.end()) {
+		return fallback_type;
+	}
+
+	return entry->second;
+}

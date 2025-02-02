@@ -78,6 +78,26 @@ test-server: .artifacts/test-server
 
 
 #############################################
+#			SECTION: File server			#
+#############################################
+
+LIB_LAMBDA_FS_OBJS		=	.artifacts/fs_handler.o .artifacts/fs_static.o .artifacts/fs_mimetypes.o
+.lib-objs-fs: $(LIB_LAMBDA_FS_OBJS)
+test-fs: .artifacts/test-fs
+	.artifacts/test-fs
+.artifacts/test-fs: .artifacts/test-fs.o $(LIB_LAMBDA_FS_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_NET_OBJS)
+	g++ $(CFLAGS) .artifacts/test-fs.o $(LIB_LAMBDA_FS_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_NET_OBJS) -o .artifacts/test-fs
+.artifacts/test-fs.o: fs/test_fs.cpp
+	g++ -c $(CFLAGS) fs/test_fs.cpp -o .artifacts/test-fs.o
+.artifacts/fs_handler.o: fs/fs_handler.cpp
+	g++ -c $(CFLAGS) fs/fs_handler.cpp -o .artifacts/fs_handler.o
+.artifacts/fs_static.o: fs/fs_static.cpp
+	g++ -c $(CFLAGS) fs/fs_static.cpp -o .artifacts/fs_static.o
+.artifacts/fs_mimetypes.o: fs/mimetypes.cpp
+	g++ -c $(CFLAGS) fs/mimetypes.cpp -o .artifacts/fs_mimetypes.o
+
+
+#############################################
 #				LIBRARY BUILD				#
 #############################################
 
