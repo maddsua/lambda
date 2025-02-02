@@ -12,6 +12,7 @@
 namespace Lambda {
 
 	//	todo: add caching/etag support
+	//	todo: return file type from reader
 	struct FsServeFile {
 		FsServeFile(std::string name, size_t size, time_t modified)
 			: name(name), size(size), modified(modified) {}
