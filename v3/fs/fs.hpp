@@ -12,8 +12,6 @@
 
 namespace Lambda {
 
-	//	todo: add caching/etag support
-	//	todo: return file type from reader
 	class ServedFile {
 		public:
 
@@ -51,6 +49,8 @@ namespace Lambda {
 			void handle_request(Request& req, ResponseWriter& wrt);
 
 		public:
+			bool html_error_pages = true;
+
 			FileServer(FileServerReader* reader);
 
 			//	todo: fix lifetime
