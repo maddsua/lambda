@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>404 | Not found</title>
+		<style>
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				display: flex;
+				flex-direction: column;
+				height: 100vh;
+				align-items: center;
+				justify-content: center;
+				font-family: sans-serif;
+				color: black;
+				background-color: white;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				body {
+					color: whitesmoke;
+					background-color: #171717;
+				}
+			}
+
+			.message {
+				display: flex;
+				flex-direction: row;
+				gap: 1.25rem;
+				align-items: center;
+				justify-content: flex-start;
+				flex-shrink: 0;
+			}
+			.status-code {
+				font-weight: 400;
+				font-size: 6rem;
+			}
+			.content {
+				display: flex;
+				flex-direction: column;
+				gap: 0.625rem;
+				align-items: flex-start;
+				justify-content: flex-start;
+				flex-shrink: 0;
+				max-width: 20rem;
+			}
+			.message-title {
+				font-weight: 400;
+				font-size: 2.25rem;
+			}
+			.message-content {
+				font-weight: 400;
+				font-size: 1rem;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div class="message">
+		<div class="status-code">404</div>
+		<div class="content">
+			<div class="message-title">Not found</div>
+			<div class="message-content">The requested URL '{{ requeted_url }}' doesn't point to any valid resources</div>
+		</div>
+		</div>  
+	</body>
+</html>

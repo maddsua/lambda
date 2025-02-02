@@ -18,7 +18,7 @@ std::vector<uint8_t> readBinaryFileSync(const std::string& filepath) {
 	return std::vector<uint8_t>(std::istreambuf_iterator<char>(readablefile), {});
 }
 
-std::string StaticServer::flattenPathName(std::string urlpath) const noexcept {
+std::string FileServer::flattenPathName(std::string urlpath) const noexcept {
 
 	auto segmentPos = std::string::npos;
 	while ((segmentPos = urlpath.find("\\")) != std::string::npos)	{
@@ -53,7 +53,7 @@ std::string StaticServer::flattenPathName(std::string urlpath) const noexcept {
 	return urlpath;
 }
 
-StaticServer::StaticServer(const std::string& rootDir) {
+FileServer::FileServer(const std::string& rootDir) {
 
 	this->m_root = rootDir;
 
@@ -70,7 +70,7 @@ StaticServer::StaticServer(const std::string& rootDir) {
 	}
 }
 
-std::optional<std::string> StaticServer::resolvePath(const std::string& pathname) const noexcept {
+std::optional<std::string> FileServer::resolvePath(const std::string& pathname) const noexcept {
 
 	auto basePath = this->m_root + (pathname.starts_with('/') ? pathname : ('/' + pathname));
 
@@ -109,11 +109,11 @@ std::optional<std::string> StaticServer::resolvePath(const std::string& pathname
 	return std::nullopt;
 }
 
-HTTP::Response StaticServer::serve(const HTTP::Request& request) const noexcept {
+HTTP::Response FileServer::serve(const HTTP::Request& request) const noexcept {
 	return serve(request.url.pathname);
 }
 
-HTTP::Response StaticServer::serve(const std::string& pathname) const noexcept {
+HTTP::Response FileServer::serve(const std::string& pathname) const noexcept {
 
 	auto normalizedPathname = flattenPathName(pathname);
 	auto resolvedFile = this->resolvePath(normalizedPathname);

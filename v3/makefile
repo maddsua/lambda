@@ -78,15 +78,46 @@ test-server: .artifacts/test-server
 
 
 #############################################
+#			SECTION: File server			#
+#############################################
+
+LIB_LAMBDA_FS_OBJS		=	.artifacts/fs_handler.o .artifacts/fs_static.o .artifacts/fs_mimetypes.o
+.lib-objs-fs: $(LIB_LAMBDA_FS_OBJS)
+test-fs: .artifacts/test-fs
+	.artifacts/test-fs
+.artifacts/test-fs: .artifacts/test-fs.o $(LIB_LAMBDA_FS_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_NET_OBJS)
+	g++ $(CFLAGS) .artifacts/test-fs.o $(LIB_LAMBDA_FS_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_NET_OBJS) -o .artifacts/test-fs
+.artifacts/test-fs.o: fs/test_fs.cpp
+	g++ -c $(CFLAGS) fs/test_fs.cpp -o .artifacts/test-fs.o
+.artifacts/fs_handler.o: fs/fs_handler.cpp
+	g++ -c $(CFLAGS) fs/fs_handler.cpp -o .artifacts/fs_handler.o
+.artifacts/fs_static.o: fs/fs_static.cpp
+	g++ -c $(CFLAGS) fs/fs_static.cpp -o .artifacts/fs_static.o
+.artifacts/fs_mimetypes.o: fs/mimetypes.cpp
+	g++ -c $(CFLAGS) fs/mimetypes.cpp -o .artifacts/fs_mimetypes.o
+
+
+#############################################
 #				LIBRARY BUILD				#
 #############################################
 
 # shared lib build
 libshared: $(LAMBDA_LIBSHARED)
-$(LAMBDA_LIBSHARED): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS)
-	g++ $(CFLAGS) $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) -shared -o $(LAMBDA_LIBSHARED)
+$(LAMBDA_LIBSHARED): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_FS_OBJS)
+	g++ $(CFLAGS) $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_FS_OBJS) -shared -o $(LAMBDA_LIBSHARED)
 
 # static lib build
 libstatic: $(LAMBDA_LIBSTATIC)
-$(LAMBDA_LIBSTATIC): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS)
-	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS)
+$(LAMBDA_LIBSTATIC): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_FS_OBJS)
+	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA_SRV_OBJS) $(LIB_LAMBDA_FS_OBJS)
+
+
+#############################################
+#					UTILS					#
+#############################################
+
+bin-page_gen: .artifacts/bin-page_gen
+.artifacts/bin-page_gen: utils/page_gen/gen.cpp
+	g++ -std=c++23 -s utils/page_gen/gen.cpp -o .artifacts/bin-page_gen
+gen-page_404: .artifacts/bin-page_gen
+	cat utils/page_gen/templates/page_404.html | .artifacts/bin-page_gen > .artifacts/generated-page_404.cpp
