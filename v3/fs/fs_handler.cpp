@@ -15,6 +15,7 @@ FileServer::FileServer(FileServerReader* reader) {
 }
 
 //	todo: return noice error pages
+//	todo: handle both silent and client redirects
 
 void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 
