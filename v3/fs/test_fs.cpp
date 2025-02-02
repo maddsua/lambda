@@ -14,7 +14,7 @@ int main() {
 
 	auto server = Lambda::Server(fss.handler(), { .debug = true });
 
-	printf("Service files at: http://localhost:%i/\n", server.options.port);
+	printf("Serves files at: http://localhost:%i/\n", server.options.port);
 
 	server.Serve();
 
