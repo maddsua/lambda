@@ -197,7 +197,7 @@ std::string generate_source(const PageTemplte& page_tempate) {
 	result.append("//\tGenerated function renderer:\n");
 	result.append("\n#include <string>\n\n");
 	result.append("std::string render(" + function_args + ") {\n");
-	result.append("\treturn " + template_body + ";\n}");
+	result.append("\treturn (\n\t\t" + template_body + "\n\t);\n}");
 
 	return result;
 }

@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>{{ title }}</title>
+		<title>404 | Not found</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -48,7 +48,7 @@
 				align-items: flex-start;
 				justify-content: flex-start;
 				flex-shrink: 0;
-				max-width: 22.5rem;
+				max-width: 20rem;
 			}
 			.message-title {
 				font-weight: 400;
@@ -56,17 +56,17 @@
 			}
 			.message-content {
 				font-weight: 400;
-				font-size: 1.125rem;
+				font-size: 1rem;
 			}
 
 		</style>
 	</head>
 	<body>
 		<div class="message">
-		<div class="status-code">{{ status }}</div>
+		<div class="status-code">404</div>
 		<div class="content">
-			<div class="message-title">{{ status_text }}</div>
-			<div class="message-content">{{ message }}</div>
+			<div class="message-title">Not found</div>
+			<div class="message-content">The requested URL '{{ requeted_url }}' doesn't point to any valid resources</div>
 		</div>
 		</div>  
 	</body>

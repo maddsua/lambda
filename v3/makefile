@@ -119,5 +119,5 @@ $(LAMBDA_LIBSTATIC): $(LIB_LAMBDA_NET_OBJS) $(LIB_LAMBDA_HTTP_OBJS) $(LIB_LAMBDA
 bin-page_gen: .artifacts/bin-page_gen
 .artifacts/bin-page_gen: utils/page_gen/gen.cpp
 	g++ -std=c++23 -s utils/page_gen/gen.cpp -o .artifacts/bin-page_gen
-gen-service_page: .artifacts/bin-page_gen
-	cat utils/page_gen/templates/service_page.html | .artifacts/bin-page_gen
+gen-page_404: .artifacts/bin-page_gen
+	cat utils/page_gen/templates/page_404.html | .artifacts/bin-page_gen > .artifacts/generated-page_404.cpp
