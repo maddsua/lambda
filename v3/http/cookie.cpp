@@ -1,8 +1,54 @@
 #include "./http.hpp"
-
-#include <stdexcept>
+#include "./http_private.hpp"
 
 using namespace Lambda;
+
+CookieValues HTTP::parse_cookie(const std::string& header) {
+
+	HTTP::Values values;
+
+	auto parse_pair = [&](size_t begin, size_t end) {
+
+		auto split_token = std::string::npos;
+		for (size_t idx = begin; idx < end; idx++) {
+			if (header[idx] == '=') {
+				split_token = idx;
+				break;
+			}
+		}
+
+		if (split_token == std::string::npos) {
+			return;
+		}
+
+		auto value_begin = split_token + 1;
+		if (end - value_begin < 1) {
+			return;
+		}
+
+		values.append(header.substr(begin, split_token - begin), header.substr(value_begin, end - value_begin));
+	};
+
+	size_t pair_begin = 0;
+	auto seek_end = header.size() - 1; 
+
+	for (size_t idx = 1; idx < header.size(); idx++) {
+		
+		//	get last value
+		if (idx == seek_end) {
+			parse_pair(pair_begin, header.size());
+			break;
+		}
+
+		//	split pairs
+		if (header[idx - 1] == ';' && header[idx] == ' ') {
+			parse_pair(pair_begin, idx - 1);
+			pair_begin = idx + 1;
+		}
+	}
+
+	return values;
+}
 
 std::string Cookie::to_string() const {
 

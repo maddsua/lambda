@@ -72,13 +72,13 @@ static const std::map<Status, std::string> table_status = {
 };
 
 
-size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& headers) {
+size_t Impl::write_head(Net::TcpConnection& conn, int status, const Headers& headers) {
 
 	static const char http_version_prefix[] = "HTTP/1.1 ";
 	static const char line_break[] = "\r\n";
 	static const char header_kv_token[] = ": ";
 
-	auto status_entry = table_status.find(status);
+	auto status_entry = table_status.find(static_cast<Status>(status));
 	if (status_entry == table_status.end()) {
 		throw std::logic_error("Writer: Unexpected status code");
 	}
@@ -119,7 +119,7 @@ void Impl::write_request_error(Net::TcpConnection& conn, Status status, std::str
 	response_headers.set("content-length", std::to_string(message.size()));
 	Impl::set_response_meta(response_headers);
 
-	Impl::write_head(conn, status, response_headers);
+	Impl::write_head(conn, static_cast<std::underlying_type_t<Status>>(status), response_headers);
 	conn.write(HTTP::Buffer(message.begin(), message.end()));
 }
 

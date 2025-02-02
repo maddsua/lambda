@@ -236,6 +236,7 @@ std::expected<Request, Impl::RequestError> Impl::read_request_head(Net::TcpConne
 
 			next.url.host = next.headers.get("host");
 			next.url.scheme = "http";
+			next.cookies = HTTP::parse_cookie(next.headers.get("cookie"));
 
 			//	todo: parse basic auth header
 

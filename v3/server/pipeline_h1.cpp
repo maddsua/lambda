@@ -104,7 +104,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 	Headers response_headers;
 	response_headers.set("connection", stream.http_keep_alive ? "keep-alive" : "close");
 
-	auto write_header = [&](Status status, const HTTP::Values& header) -> size_t {
+	auto write_header = [&](uint16_t status, const HTTP::Values& header) -> size_t {
 
 		if (header_written) {
 			throw std::runtime_error("Response header has been already written");
@@ -145,7 +145,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 				response_headers.set("content-type", "application/octet-stream");
 			}
 
-			bytes_written = Impl::write_head(conn, Status::OK, response_headers);
+			bytes_written = Impl::write_head(conn, static_cast<std::underlying_type_t<Status>>(Status::OK), response_headers);
 		}
 
 		bytes_written += conn.write(data);
@@ -163,6 +163,6 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 	if (!header_written && conn.is_open()) {
 		response_headers.set("content-length", std::to_string(0));
 		Impl::set_response_meta(response_headers);
-		Impl::write_head(conn, Status::NoContent, response_headers);
+		Impl::write_head(conn, static_cast<std::underlying_type_t<Status>>(Status::OK), response_headers);
 	}
 }

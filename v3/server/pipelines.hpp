@@ -4,6 +4,7 @@
 #include <expected>
 
 #include "./server.hpp"
+#include "../http/http_private.hpp"
 
 namespace Lambda::Pipelines {
 
@@ -39,7 +40,7 @@ namespace Lambda::Pipelines {
 			HTTP::Buffer read_raw_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size);
 			std::optional<size_t> content_length(const Headers& headers);
 
-			size_t write_head(Net::TcpConnection& conn, Status status, const Headers& headers);
+			size_t write_head(Net::TcpConnection& conn, int status, const Headers& headers);
 			void write_request_error(Net::TcpConnection& conn, Status status, std::string message);
 			void set_response_meta(Headers& headers);
 			void discard_unread_body(Net::TcpConnection& conn, StreamState& stream);

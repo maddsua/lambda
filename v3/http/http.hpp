@@ -10,6 +10,7 @@
 #include <ctime>
 
 #include "../net/net.hpp"
+#include "./http_utils.hpp"
 
 namespace Lambda {
 
@@ -92,42 +93,6 @@ namespace Lambda {
 		LoopDetected					= 508,
 		NotExtended						= 510,
 		NetworkAuthenticationRequired	= 511
-	};
-
-	namespace HTTP {
-
-		typedef std::vector<std::string> MultiValue;
-		typedef std::vector<std::pair<std::string, std::string>> Entries;
-
-		class Values {
-			protected:
-				std::map<std::string, MultiValue> m_entries;
-				std::string m_format_key(const std::string& key) const noexcept;
-
-			public:
-				Values() = default;
-				Values(const Values& other);
-				Values(Values&& other);
-
-				Values& operator=(const Values& other) noexcept;
-				Values& operator=(Values&& other) noexcept;
-
-				bool has(const std::string& key) const noexcept;
-				std::string get(const std::string& key) const noexcept;
-				MultiValue get_all(const std::string& key) const noexcept;
-				void set(const std::string& key, const std::string& value) noexcept;
-				void append(const std::string& key, const std::string& value) noexcept;
-				void del(const std::string& key) noexcept;
-				Entries entries() const noexcept;
-				size_t size() const noexcept;
-		};
-
-		typedef std::vector<uint8_t> Buffer;
-		typedef std::function<size_t(Status status, const Values& header)> HeaderWriterCallback;
-		typedef std::function<size_t(const Buffer& data)> WriterCallback;
-
-		const size_t LengthUnknown = -1;
-		typedef std::function<Buffer(size_t size)> ReaderCallback;
 	};
 
 	class URLSearchParams : public HTTP::Values {
@@ -230,7 +195,6 @@ namespace Lambda {
 
 			//	todo: add form data
 			//	todo: add json
-			//	todo: check content types
 	};
 
 	typedef HTTP::Values Headers;
@@ -288,7 +252,7 @@ namespace Lambda {
 			}
 
 			size_t write_header(Status status) {
-				return this->m_header_writer(status, this->m_headers);
+				return this->m_header_writer(static_cast<std::underlying_type_t<Status>>(status), this->m_headers);
 			}
 
 			size_t write(const HTTP::Buffer& data) {
