@@ -46,7 +46,11 @@ FsStaticReader::FsStaticReader(const std::string& root_dir) {
 
 	this->m_root = root_dir;
 
-	//	todo: also flip slashes on windows
+	for (auto& rune : this->m_root) {
+		if (rune == '\\') {
+			rune = '/';
+		}		
+	}
 
 	if (!this->m_root.ends_with('/')) {
 		this->m_root.push_back('/');
@@ -66,21 +70,20 @@ std::unique_ptr<FsServeFile> FsStaticReader::open(const std::string& filename) {
 		return nullptr;
 	}
 
-	auto file_size = std::filesystem::file_size(resolved);
-
 	auto file_stream = std::fstream(resolved, std::ios::in | std::ios::binary);
 	if (!file_stream.is_open()) {
 		return {};
 	}
 
-	//	todo: fix broken epoch
-	auto file_modified = std::filesystem::last_write_time(resolved).time_since_epoch() / std::chrono::nanoseconds(1);
-
 	return std::unique_ptr<FsServeFile>(new FsStaticFile(
 		std::move(file_stream),
 		resolved,
-		file_size,
-		file_modified
+		std::filesystem::file_size(resolved),
+		std::chrono::duration_cast<std::chrono::seconds>(
+			std::filesystem::file_time_type::clock::to_sys(
+				std::filesystem::last_write_time(resolved)
+			).time_since_epoch()
+		).count()
 	));
 }
 
