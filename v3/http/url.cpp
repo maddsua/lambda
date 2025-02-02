@@ -139,22 +139,45 @@ std::string URL::to_string() const noexcept {
 		url.append(this->search.to_string());
 	}
 
+	if (this->fragment.size()) {
+
+		if (!this->fragment.starts_with('#')) {
+			url.push_back('#');
+		}
+
+		url.append(this->fragment);
+	}
+
 	return url;
 }
 
 std::string URL::href() const {
 
+	std::string url;
+
 	if (!this->scheme.size()) {
 		throw std::runtime_error("URL: Cannot create href: Scheme missing");
 	}
+
+	url.append(this->scheme);
 
 	if (!this->host.size()) {
 		throw std::runtime_error("URL: Cannot create href from a relative URL");
 	}
 
+	url.append("://");
+	url.append(this->host);
+
 	if (!this->path.size()) {
 		throw std::runtime_error("URL: Cannot create href: Path missing");
 	}
 
-	return this->to_string();
+	url.append(this->path);
+
+	if (this->search.size()) {
+		url.push_back('?');
+		url.append(this->search.to_string());
+	}
+
+	return url;
 }

@@ -235,6 +235,14 @@ std::expected<Request, Impl::RequestError> Impl::read_request_head(Net::TcpConne
 			read_buff.erase(read_buff.begin(), read_buff.begin() + line_end + 2);
 
 			next.url.host = next.headers.get("host");
+			if (!next.url.host.size()) {
+				next.url.host = "localhost";
+			}
+
+			if (!next.url.path.size()) {
+				next.url.path = "/";
+			}
+
 			next.url.scheme = "http";
 			next.cookies = HTTP::parse_cookie(next.headers.get("cookie"));
 

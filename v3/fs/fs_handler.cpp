@@ -98,7 +98,7 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 			req.url.path.push_back('/');
 		}
 
-		wrt.header().set("location", req.url.to_string());	
+		wrt.header().set("location", req.url.href());
 		wrt.write_header(Status::Found);
 
 		if (this->debug) {
