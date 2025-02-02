@@ -19,19 +19,6 @@ TcpConnection::TcpConnection(SockHandle sock_handle, const RemoteAddress& remote
 	this->m_id = gen_conn_id(this->m_sock, this->m_remote_addr.port);
 }
 
-TcpConnection::TcpConnection(SockHandle sock_handle, const RemoteAddress& remote, ConnectionTimeouts timeouts) {
-
-	if (sock_handle == LAMBDA_INVALID_SOCKET) {
-		throw Net::Error("TcpConnection: Invalid socket handle");
-	}
-
-	this->m_sock = sock_handle;
-	this->m_remote_addr = remote;
-	this->m_id = gen_conn_id(this->m_sock, this->m_remote_addr.port);
-	
-	this->set_timeouts(timeouts);
-}
-
 TcpConnection::TcpConnection(TcpConnection&& other) noexcept {
 	
 	//	transfer socket ownership
@@ -128,29 +115,34 @@ void TcpConnection::set_timeouts(ConnectionTimeouts timeouts) {
 		throw Net::Error("TcpConnection: Set timeouts: TX value invalid");
 	}
 
-	#ifdef _WIN32
-		const auto timeout_val_read = timeouts.read;
-		const auto timeout_val_write = timeouts.write;
-	#else
-		timeval timeout_val_read = {
-			.tv_sec = timeouts.read / 1000,
-			.tv_usec = 0
-		};
-		timeval timeout_val_write = {
-			.tv_sec = timeouts.write / 1000,
-			.tv_usec = 0
-		};
-	#endif
+	auto cast_timeout_value = [](uint32_t value_ms) {
+		#ifndef _WIN32
+			timeval value = {
+				.tv_sec = value_ms / 1000,
+				.tv_usec = 0
+			};
+			return value;
+		#else
+			return value_ms;
+		#endif
+	};
 
-	if (setsockopt(this->m_sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout_val_read), sizeof(timeout_val_read))) {
-		throw Net::Error("TcpConnection: Error setting read timeout", lambda_os_errno());
+	//	only update modified values
+	if (timeouts.read != this->m_timeouts.read) {
+		auto value = cast_timeout_value(timeouts.read);
+		if (setsockopt(this->m_sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&value), sizeof(value))) {
+			throw Net::Error("TcpConnection: Error setting read timeout", lambda_os_errno());
+		}
+		this->m_timeouts.read = timeouts.read;
 	}
 
-	if (setsockopt(this->m_sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&timeout_val_write), sizeof(timeout_val_write))) {
-		throw Net::Error("TcpConnection: Error setting write timeout", lambda_os_errno());
+	if (timeouts.write != this->m_timeouts.write) {
+		auto value = cast_timeout_value(timeouts.write);
+		if (setsockopt(this->m_sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&value), sizeof(value))) {
+			throw Net::Error("TcpConnection: Error setting write timeout", lambda_os_errno());
+		}
+		this->m_timeouts.write = timeouts.write;
 	}
-
-	this->m_timeouts = timeouts;
 }
 
 void TcpConnection::close() noexcept {

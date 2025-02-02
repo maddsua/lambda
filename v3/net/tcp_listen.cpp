@@ -97,12 +97,7 @@ TcpConnection TcpListener::next() {
 		.transport = Transport::TCP
 	};
 
-	//	todo: take from server
-	if (!this->options.connection_timeouts.has_value()) {
-		return TcpConnection(next_sock, remote_addr);
-	}
-
-	return TcpConnection(next_sock, remote_addr, this->options.connection_timeouts.value());
+	return TcpConnection(next_sock, remote_addr);
 }
 
 bool TcpListener::is_listening() const noexcept {

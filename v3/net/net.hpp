@@ -54,7 +54,6 @@ namespace Lambda::Net {
 	struct ListenOptions {
 		uint16_t port = 80;
 		bool fast_port_reuse = true;
-		std::optional<ConnectionTimeouts> connection_timeouts;
 	};
 
 	enum struct Transport {
@@ -77,7 +76,6 @@ namespace Lambda::Net {
 		
 		public:
 			TcpConnection(SockHandle sock, const RemoteAddress& remote);
-			TcpConnection(SockHandle sock, const RemoteAddress& remote, ConnectionTimeouts timeouts);
 			TcpConnection(TcpConnection&& other) noexcept;
 			TcpConnection(const TcpConnection& other) = delete;
 			~TcpConnection();

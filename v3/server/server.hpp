@@ -29,7 +29,7 @@ namespace Lambda {
 
 		public:
 
-			uint32_t DefaultIoTimeout = 15000;
+			static const uint32_t DefaultIoTimeout = 15000;
 
 			Server(HandlerFn handler) : m_handler(handler) {}
 			Server(HandlerFn handler, ServeOptions options) : m_handler(handler), options(options) {}

@@ -21,7 +21,6 @@ void Server::Serve() {
 
 	//	create tcp listener
 	this->m_tcp.options.port = this->options.port;
-	this->m_tcp.options.connection_timeouts = { .read = Server::DefaultIoTimeout, .write = Server::DefaultIoTimeout };
 	this->m_tcp.bind_and_listen();
 
 	//	start connection loop
