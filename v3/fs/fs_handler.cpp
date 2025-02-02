@@ -5,10 +5,28 @@
 
 using namespace Lambda;
 
+std::string flatten_path(const std::string& path) {
+
+	auto normalized = std::filesystem::path(path).lexically_normal();
+	if (normalized.preferred_separator == '/') {
+		return normalized.string();
+	}
+
+	auto normalized_string = normalized.string();
+
+	for (auto& rune : normalized_string) {
+		if (rune == normalized.preferred_separator) {
+			rune = '/';
+		}
+	}
+
+	return normalized_string;
+}
+
 FileServer::FileServer(FileServerReader* reader) {
 
 	if (!reader) {
-		std::runtime_error("FileServerReader reader is null");
+		std::logic_error("FileServerReader reader is null");
 	}
 
 	this->m_reader = std::unique_ptr<FileServerReader>(reader);
@@ -33,12 +51,21 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		} return;
 	}
 
-	//	apply directory redirect
-	if (req.url.path.ends_with('/')) {
-		req.url.path.append("index.html");
+	//	flatten request path (remove segments like "./", "/../")
+	auto flattened = flatten_path(req.url.path);
+	if (flattened != req.url.path) {
+		wrt.header().set("location", req.url.to_string());	
+		wrt.write_header(Status::PermanentRedirect);
+		return;
 	}
 
-	auto file_hit = this->m_reader->open(req.url.path);
+	//	apply directory redirect
+	auto fs_file_path = req.url.path;
+	if (fs_file_path.ends_with('/')) {
+		fs_file_path.append("index.html");
+	}
+
+	auto file_hit = this->m_reader->open(fs_file_path);
 	if (!file_hit) {
 		
 		auto notfound_msg = "path '" + req.url.path + "' not found";
@@ -57,6 +84,7 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		return;
 	}
 
+	//	return redirect for directories
 	if (file_hit->type() == ServedFile::Type::Directory) {
 
 		if (!req.url.path.ends_with('/')) {

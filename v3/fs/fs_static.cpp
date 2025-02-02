@@ -6,15 +6,6 @@
 
 using namespace Lambda;
 
-std::string trim_file_path(std::string filepath) {
-
-	if (filepath.starts_with('/')) {
-		filepath.erase(0, 1);
-	}
-
-	return std::filesystem::path(filepath).lexically_normal().string();
-}
-
 struct FsDirectoryFile : public ServedFile {
 	private:
 		std::unique_ptr<std::fstream> m_stream;
@@ -109,35 +100,30 @@ struct FsDirectoryFile : public ServedFile {
 
 FsDirectoryServe::FsDirectoryServe(const std::string& root_dir) {
 
-	this->m_root = root_dir;
-
-	for (auto& rune : this->m_root) {
-		if (rune == '\\') {
-			rune = '/';
-		}		
-	}
-
-	if (!this->m_root.ends_with('/')) {
-		this->m_root.push_back('/');
+	this->m_root = std::filesystem::path(root_dir);
+	if (this->m_root.empty()) {
+		this->m_root = std::filesystem::path("./");
 	}
 
 	//	first of all check if destination exists
 	if (!std::filesystem::exists(this->m_root)) {
-		throw std::runtime_error("FsDirectoryServe root path '" + this->m_root + "' doesn't exist");
+		throw std::runtime_error("FsDirectoryServe root path '" + this->m_root.string() + "' doesn't exist");
 	}
 
 	//	check if we got a directory or a file there
 	if (!std::filesystem::is_directory(this->m_root)) {
-		throw std::runtime_error("FsDirectoryServe root path '" + this->m_root + "' cannot be served");
+		throw std::runtime_error("FsDirectoryServe root path '" + this->m_root.string() + "' cannot be served");
 	}
 }
 
 std::unique_ptr<ServedFile> FsDirectoryServe::open(const std::string& filename) {
 
-	auto resolved = this->m_root + trim_file_path(filename);
-	if (!resolved.size()) {
+	auto normalized = std::filesystem::path(filename).lexically_normal();
+	if (normalized.empty()) {
 		return nullptr;
 	}
+
+	auto resolved = std::filesystem::path(this->m_root.string() + normalized.string()).lexically_normal().string();
 
 	if (std::filesystem::is_regular_file(resolved)) {
 		return std::unique_ptr<ServedFile>(new FsDirectoryFile(

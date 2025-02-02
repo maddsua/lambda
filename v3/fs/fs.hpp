@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <filesystem>
 
 #include "../http/http.hpp"
 
@@ -37,7 +38,7 @@ namespace Lambda {
 
 	class FsDirectoryServe : public FileServerReader {
 		private:
-			std::string m_root;
+			std::filesystem::path m_root;
 
 		public:
 			FsDirectoryServe(const std::string& root_dir);
