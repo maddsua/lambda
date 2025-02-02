@@ -58,48 +58,6 @@ namespace Lambda {
 				return this->m_parent->options;
 			}
 	};
-
-	class Date {
-		private:
-			time_t m_unix;
-			tm m_tms;
-		
-		public:
-			Date() noexcept;
-			Date(time_t epoch) noexcept;
-
-			std::string date() const noexcept;
-			std::string to_utc_string() const noexcept;
-			std::string to_log_string() const noexcept;
-
-			int second() const noexcept {
-				return this->m_tms.tm_sec;
-			}
-
-			int month() const noexcept {
-				return this->m_tms.tm_mon;
-			}
-
-			int minute() const noexcept {
-				return this->m_tms.tm_min;
-			}
-
-			int hour() const noexcept {
-				return this->m_tms.tm_hour;
-			}
-
-			int year() const noexcept {
-				return this->m_tms.tm_year;
-			}
-
-			int day() const noexcept {
-				return this->m_tms.tm_mday;
-			}
-
-			time_t epoch() const noexcept {
-				return this->m_unix;
-			}
-	};
 };
 
 #endif

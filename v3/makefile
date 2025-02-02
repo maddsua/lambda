@@ -35,7 +35,7 @@ test-net_tcp: .artifacts/test-net_tcp
 #			SECTION: http interface			#
 #############################################
 
-LIB_LAMBDA_HTTP_OBJS	=	.artifacts/http_values.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o
+LIB_LAMBDA_HTTP_OBJS	=	.artifacts/http_values.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o .artifacts/http_cookie.o .artifacts/http_date.o
 .lib-objs-http: $(LIB_LAMBDA_HTTP_OBJS)
 test-http_url: .artifacts/test-http_url
 	.artifacts/test-http_url
@@ -51,13 +51,17 @@ test-http_url: .artifacts/test-http_url
 	g++ -c $(CFLAGS) http/url_search_params.cpp -o .artifacts/http_url_search_params.o
 .artifacts/http_url.o: http/url.cpp
 	g++ -c $(CFLAGS) http/url.cpp -o .artifacts/http_url.o
+.artifacts/http_cookie.o: http/cookie.cpp
+	g++ -c $(CFLAGS) http/cookie.cpp -o .artifacts/http_cookie.o
+.artifacts/http_date.o: http/date.cpp
+	g++ -c $(CFLAGS) http/date.cpp -o .artifacts/http_date.o
 
 
 #############################################
 #				SECTION: server				#
 #############################################
 
-LIB_LAMBDA_SRV_OBJS		=	.artifacts/server.o .artifacts/server_pipeline_h1.o .artifacts/server_pipeline_h1_rx.o  .artifacts/server_pipeline_h1_tx.o  .artifacts/server_date.o
+LIB_LAMBDA_SRV_OBJS		=	.artifacts/server.o .artifacts/server_pipeline_h1.o .artifacts/server_pipeline_h1_rx.o  .artifacts/server_pipeline_h1_tx.o
 .lib-objs-srv: $(LIB_LAMBDA_SRV_OBJS)
 test-server: .artifacts/test-server
 	.artifacts/test-server
@@ -73,8 +77,6 @@ test-server: .artifacts/test-server
 	g++ -c $(CFLAGS) server/pipeline_h1_rx.cpp -o .artifacts/server_pipeline_h1_rx.o
 .artifacts/server_pipeline_h1_tx.o: server/pipeline_h1_tx.cpp
 	g++ -c $(CFLAGS) server/pipeline_h1_tx.cpp -o .artifacts/server_pipeline_h1_tx.o
-.artifacts/server_date.o: server/date.cpp
-	g++ -c $(CFLAGS) server/date.cpp -o .artifacts/server_date.o
 
 
 #############################################

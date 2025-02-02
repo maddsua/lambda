@@ -160,6 +160,48 @@ namespace Lambda {
 	std::string encode_uri_component(const std::string& input);
 	std::string decode_uri_component(const std::string& input);
 
+	class Date {
+		private:
+			time_t m_unix;
+			tm m_tms;
+		
+		public:
+			Date() noexcept;
+			Date(time_t epoch) noexcept;
+
+			std::string date() const noexcept;
+			std::string to_utc_string() const noexcept;
+			std::string to_log_string() const noexcept;
+
+			int second() const noexcept {
+				return this->m_tms.tm_sec;
+			}
+
+			int month() const noexcept {
+				return this->m_tms.tm_mon;
+			}
+
+			int minute() const noexcept {
+				return this->m_tms.tm_min;
+			}
+
+			int hour() const noexcept {
+				return this->m_tms.tm_hour;
+			}
+
+			int year() const noexcept {
+				return this->m_tms.tm_year;
+			}
+
+			int day() const noexcept {
+				return this->m_tms.tm_mday;
+			}
+
+			time_t epoch() const noexcept {
+				return this->m_unix;
+			}
+	};
+
 	class RequestBody {
 		private:
 			HTTP::ReaderCallback m_reader;
@@ -192,6 +234,30 @@ namespace Lambda {
 	};
 
 	typedef HTTP::Values Headers;
+	typedef HTTP::Values CookieValues;
+
+	enum struct SameSite {
+		Default,
+		Lax,
+		Strict,
+		None
+	};
+
+	struct Cookie {
+		std::string name;
+		std::string value;
+
+		std::string domain;
+		std::string path;
+		std::optional<time_t> expires;
+		std::optional<int64_t> max_age;
+
+		bool secure = false;
+		bool http_only = false;
+		SameSite same_site = SameSite::Default;
+
+		std::string to_string() const;
+	};
 
 	struct Request {
 		Net::RemoteAddress remote_addr;
@@ -199,7 +265,7 @@ namespace Lambda {
 		URL url;
 		Headers headers;
 		RequestBody body;
-		//	todo: add cookies
+		CookieValues cookies;
 	};
 
 	class ResponseWriter {
@@ -231,6 +297,10 @@ namespace Lambda {
 
 			size_t write(const std::string& text) {
 				return this->m_writer(HTTP::Buffer(text.begin(), text.end()));
+			}
+
+			void set_cookie(const Cookie& cookie) {
+				this->m_headers.append("Set-Cookie", cookie.to_string());
 			}
 	};
 
