@@ -9,12 +9,12 @@
 
 namespace Lambda {
 
-	class StaticServer {
+	class FileServer {
 		private:
 			std::string m_root;
 
 		public:
-			StaticServer(const std::string& rootDir);
+			FileServer(const std::string& rootDir);
 
 			HTTP::Response serve(const HTTP::Request& request) const noexcept;
 			HTTP::Response serve(const std::string& pathname) const noexcept;

@@ -5,27 +5,18 @@
 
 using namespace Lambda;
 
-StaticServer::StaticServer(const std::string& root) {
+FileServer::FileServer(FileServerReader* reader) {
 
-	//	first of all check if destination exists
-	if (!std::filesystem::exists(root)) {
-		throw std::runtime_error("StaticServer root path '" + root + "' doesn't exist");
+	if (!reader) {
+		std::runtime_error("FileServerReader reader is null");
 	}
 
-	//	check if we got a directory or a file there
-	if (std::filesystem::is_directory(root)) {
-		this->m_reader_ptr = std::unique_ptr<Lambda::FsServeReader>(new FsStaticReader(root));
-		return;
-	}
-
-	//	todo: add tar support
-
-	throw std::runtime_error("StaticServer root path '" + root + "' cannot be served");
+	this->m_reader = std::unique_ptr<FileServerReader>(reader);
 }
 
 //	todo: return noice error pages
 
-void StaticServer::handle(Request& req, ResponseWriter& wrt) {
+void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 
 	switch (req.method) {
 
@@ -47,7 +38,7 @@ void StaticServer::handle(Request& req, ResponseWriter& wrt) {
 		req.url.path.append("index.html");
 	}
 
-	auto file_hit = this->m_reader_ptr->open(req.url.path);
+	auto file_hit = this->m_reader->open(req.url.path);
 
 	//	return 404 if not found
 	if (!file_hit) {
@@ -80,8 +71,8 @@ void StaticServer::handle(Request& req, ResponseWriter& wrt) {
 	wrt.write(file_hit->content());
 }
 
-HandlerFn StaticServer::handler() noexcept {
+HandlerFn FileServer::handler() noexcept {
 	return [&](Request& req, ResponseWriter& wrt) -> void {
-		this->handle(req, wrt);
+		this->handle_request(req, wrt);
 	};
 }
