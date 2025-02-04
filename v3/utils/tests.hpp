@@ -27,6 +27,8 @@
 				return status;
 			}
 		}
+
+		printf("--> Test OK\n");
 			
 		return 0;
 	}

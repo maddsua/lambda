@@ -21,7 +21,6 @@ namespace Lambda {
 		class Values {
 			protected:
 				std::map<std::string, MultiValue> m_entries;
-				std::string m_format_key(const std::string& key) const noexcept;
 
 			public:
 				Values() = default;

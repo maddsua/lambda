@@ -55,8 +55,8 @@ LIB_OBJS_HTTP_OBJS		=	.artifacts/http_values.o .artifacts/http_method.o .artifac
 .lib-objs-http: $(LIB_OBJS_HTTP_OBJS)
 test-http_url: .artifacts/test-http_url
 	.artifacts/test-http_url
-.artifacts/test-http_url: .artifacts/test-http_url.o $(LIB_OBJS_HTTP_OBJS)
-	g++ $(CFLAGS) .artifacts/test-http_url.o $(LIB_OBJS_HTTP_OBJS) -o .artifacts/test-http_url
+.artifacts/test-http_url: .artifacts/test-http_url.o $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_BASE64_OBJS)
+	g++ $(CFLAGS) .artifacts/test-http_url.o $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_BASE64_OBJS) -o .artifacts/test-http_url
 .artifacts/test-http_url.o: http/test_url.cpp
 	g++ -c $(CFLAGS) http/test_url.cpp -o .artifacts/test-http_url.o
 .artifacts/http_values.o: http/values.cpp

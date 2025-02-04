@@ -22,35 +22,9 @@ Values& Values::operator=(Values&& other) noexcept {
 	return *this;
 }
 
-std::string Values::m_format_key(const std::string& key) const noexcept {
-
-	//	forward pass
-	size_t trim_from = 0;
-	while (trim_from < key.size() && std::isspace(key[trim_from])) {
-		trim_from++;
-	}
-
-	//	backward pass
-	size_t trim_to = key.size() - 1;
-	while (trim_to > 0 && std::isspace(key[trim_to])) {
-		trim_to--;
-	}
-
-	auto form_key = key.substr(trim_from, trim_to - (trim_from - 1));
-
-	//	reset to lower case
-	for (auto& rune : form_key) {
-		if (rune >= 'A' && rune <= 'Z') {
-			rune += 0x20;
-		}
-	}
-
-	return form_key;
-}
-
 bool Values::has(const std::string& key) const noexcept {
 
-	auto normalized_key = this->m_format_key(key);
+	auto normalized_key = HTTP::reset_case(key);
 	if (normalized_key == "") {
 		return false;
 	}
@@ -60,7 +34,7 @@ bool Values::has(const std::string& key) const noexcept {
 
 std::string Values::get(const std::string& key) const noexcept {
 
-	auto normalized_key = this->m_format_key(key);
+	auto normalized_key = HTTP::reset_case(key);
 	if (normalized_key == "") {
 		return "";
 	}
@@ -80,7 +54,7 @@ std::string Values::get(const std::string& key) const noexcept {
 
 MultiValue Values::get_all(const std::string& key) const noexcept {
 
-	auto normalized_key = this->m_format_key(key);
+	auto normalized_key = HTTP::reset_case(key);
 	if (normalized_key == "") {
 		return {};
 	}
@@ -99,7 +73,7 @@ MultiValue Values::get_all(const std::string& key) const noexcept {
 
 void Values::set(const std::string& key, const std::string& value) noexcept {
 
-	auto normalized_key = this->m_format_key(key);
+	auto normalized_key = HTTP::reset_case(key);
 	if (normalized_key == "") {
 		return;
 	}
@@ -109,7 +83,7 @@ void Values::set(const std::string& key, const std::string& value) noexcept {
 
 void Values::append(const std::string& key, const std::string& value) noexcept {
 
-	auto normalized_key = this->m_format_key(key);
+	auto normalized_key = HTTP::reset_case(key);
 	if (normalized_key == "") {
 		return;
 	}
@@ -125,7 +99,7 @@ void Values::append(const std::string& key, const std::string& value) noexcept {
 
 void Values::del(const std::string& key) noexcept {
 
-	auto normalized_key = this->m_format_key(key);
+	auto normalized_key = HTTP::reset_case(key);
 	if (normalized_key == "") {
 		return;
 	}
@@ -150,13 +124,32 @@ size_t Values::size() const noexcept {
 	return this->m_entries.size();
 }
 
-std::string HTTP::reset_case(std::string value) {
-	
-	for (auto& rune : value) {
+std::string HTTP::reset_case(std::string token) {
+
+	//	find token beginning
+	size_t trim_begin = 0;
+	while (trim_begin < token.size() && std::isspace(token[trim_begin])) {
+		trim_begin++;
+	}
+
+	//	find token end
+	size_t value_end = token.size() - 1;
+	size_t trim_end = value_end;
+	while (trim_end > 0 && std::isspace(token[trim_end])) {
+		trim_end--;
+	}
+
+	//	trim spaces
+	if (trim_begin > 0 || trim_begin < value_end) {
+		token = token.substr(trim_begin, trim_end - (trim_begin - 1));
+	}
+
+	//	reset to lowercase
+	for (auto& rune : token) {
 		if (rune >= 'A' && rune <= 'Z') {
 			rune += 0x20;
 		}
 	}
 	
-	return value;
+	return token;
 }
