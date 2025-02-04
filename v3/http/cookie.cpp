@@ -1,5 +1,5 @@
 #include "./http.hpp"
-#include "./http_private.hpp"
+#include "./http_utils.hpp"
 
 using namespace Lambda;
 

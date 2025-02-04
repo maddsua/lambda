@@ -5,6 +5,150 @@
 using namespace Lambda;
 using namespace Lambda::Pipelines::H1;
 
+bool is_connection_upgrade(const Headers& headers);
+bool is_data_stream(const Headers& headers);
+
+struct RequestState {
+	Impl::RequestHead req;
+	bool can_have_body = false;
+	bool has_content_type = false;
+	bool header_written = false;
+	std::optional<size_t> content_length;
+	Headers response_headers;
+};
+
+class ResponseWriterImpl : public ResponseWriter {
+	private:
+		Net::TcpConnection& m_conn;
+		Impl::StreamState& m_stream;
+		RequestState& m_state;
+
+	public:
+		ResponseWriterImpl(Net::TcpConnection& conn, Impl::StreamState& stream, RequestState& state)
+			: m_conn(conn), m_stream(stream), m_state(state) {}
+
+		bool writable() const noexcept {
+			return this->m_conn.is_open();
+		}
+
+		Headers& header() noexcept {
+			return this->m_state.response_headers;
+		}
+
+		size_t write_header() {
+			return this->write_header(Status::OK);
+		}
+
+		size_t write_header(Status status) {
+
+			if (this->m_state.header_written) {
+				throw std::runtime_error("Response header has been already written");
+			}
+
+			this->m_state.header_written = true;
+
+			//	enable raw io for connections that were upgraded (eg to websockets)
+			if (is_connection_upgrade(this->m_state.response_headers)) {
+				this->m_stream.http_keep_alive = false;
+				this->m_stream.http_body_pending = 0;
+				this->m_stream.raw_io = true;
+			}
+
+			//	override keep-alive for streaming connections such as sse
+			if (is_data_stream(this->m_state.response_headers)) {
+				this->m_stream.http_keep_alive = false;
+			}
+
+			//	mark response end with responses with no body and no body indications
+			if (!this->m_state.response_headers.has("content-type") && !this->m_state.response_headers.has("content-length")) {
+				this->m_state.response_headers.set("content-length", std::to_string(0));
+			}
+
+			return Impl::write_head(this->m_conn, status, this->m_state.response_headers);
+		}
+
+		size_t write(const HTTP::Buffer& data) {
+
+			//	todo: handle over-content-length writes
+
+			size_t bytes_written = 0;
+
+			if (!this->m_state.header_written) {
+
+				//	force content type on untyped data
+				if (!this->m_state.response_headers.has("content-type")) {
+					this->m_state.response_headers.set("content-type", "application/octet-stream");
+				}
+
+				bytes_written = this->write_header(Status::OK);
+				this->m_state.header_written = true;
+			}
+
+			bytes_written += this->m_conn.write(data);
+
+			return bytes_written;
+		}
+
+		size_t write(const std::string& text) {
+			return this->write(HTTP::Buffer(text.begin(), text.end()));
+		}
+
+		void set_cookie(const Cookie& cookie) {
+			this->m_state.response_headers.append("Set-Cookie", cookie.to_string());
+		}
+};
+
+class RequestBodyImpl : public BodyReader {
+	private:
+		Net::TcpConnection& m_conn;
+		Impl::StreamState& m_stream;
+
+	public:
+		RequestBodyImpl(Net::TcpConnection& conn, Impl::StreamState& stream)
+			: m_conn(conn), m_stream(stream) {}
+
+		bool is_readable() const noexcept {
+			return this->m_conn.is_open();
+		}
+
+		HTTP::Buffer read(size_t chunk_size) {
+
+			if (!this->is_readable()) {
+				return {};
+			}
+
+			//	patch chunk size
+			if (chunk_size == HTTP::LengthUnknown || chunk_size <= 0) {
+				chunk_size = Impl::body_chunk_size;
+			}
+
+			//	stream reads (stuff like websockets)
+			if (this->m_stream.raw_io) {
+				return Impl::read_raw_body(this->m_conn, this->m_stream.read_buff, chunk_size);
+			}
+
+			//	return early if body is empty or consoomed
+			if (this->m_stream.http_body_pending <= 0) {
+				return {};
+			}
+
+			//	return body from streams
+			auto chunk = Impl::read_request_body(this->m_conn, this->m_stream.read_buff, chunk_size, this->m_stream.http_body_pending);
+			this->m_stream.http_body_pending -= chunk.size();
+
+			return chunk;
+		}
+
+		HTTP::Buffer read_all() {
+			return this->read(HTTP::LengthUnknown);
+		}
+
+		std::string text() {
+			auto buffer = this->read_all();
+			return std::string(buffer.begin(), buffer.end());
+		}
+};
+
 void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServerContext ctx) {
 
 	//	todo: fix stream not disconnecting on idle
@@ -12,6 +156,8 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 		.read = Server::DefaultIoTimeout,
 		.write = Server::DefaultIoTimeout
 	});
+
+	//	todo: fix broken pipe exit on client disconnect during write
 
 	Impl::StreamState stream;
 
@@ -44,7 +190,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 
 	auto expected_req = Impl::read_request_head(conn, stream.read_buff, ctx);
 	if (!expected_req.has_value()) {
-		
+
 		if (!conn.is_open()) {
 			return;
 		}
@@ -54,115 +200,59 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 			return;
 		}
 
-		return Impl::write_request_error(conn, error.status, error.message);
+		return Impl::terminate_with_error(conn, error.status, error.message);
 	}
 
-	auto req = std::move(expected_req.value());
+	RequestState state {
+		.req = std::move(expected_req.value()),
+		.can_have_body = HTTP::method_can_have_body(state.req.method),
+		.has_content_type = state.req.headers.has("content-type"),
+		.header_written = false,
+		.content_length = state.can_have_body ? Impl::content_length(state.req.headers) : std::nullopt,
+	};
 
-	auto can_have_body = Impl::method_can_have_body(req.method);
-	auto has_content_type = req.headers.has("content-type");
-	auto content_length = can_have_body ? Impl::content_length(req.headers) : std::nullopt;
-	stream.http_body_pending = content_length.has_value() ? content_length.value() : 0;
+	stream.http_body_pending = state.content_length.has_value() ? state.content_length.value() : 0;
 
 	//	drop mutation requests with no content body
-	if (can_have_body && has_content_type && !content_length.has_value()) {
-		return Impl::write_request_error(conn, Status::LengthRequired, "Content-Length header required for methods POST, PUT, PATCH...");
+	if (state.can_have_body && state.has_content_type && !state.content_length.has_value()) {
+		return Impl::terminate_with_error(conn, Status::LengthRequired, "Content-Length header required for methods POST, PUT, PATCH...");
 	}
 
 	//	get keepalive from client
-	auto client_keep_alive = req.headers.get("connection");
-	if (client_keep_alive.contains("close")) {
+	auto client_connection_header = state.req.headers.get("connection");
+	if (client_connection_header.contains("close")) {
 		stream.http_keep_alive = false;
 	}
 
-	bool header_written = false;
+	state.response_headers.set("connection", stream.http_keep_alive ? "keep-alive" : "close");
 
-	auto body_reader = [&](size_t chunk_size) -> HTTP::Buffer {
+	//	prepare handler arguments
+	auto request_body_reader = RequestBodyImpl(conn, stream);
+	auto response_writer = ResponseWriterImpl(conn, stream, state);
 
-		//	patch chunk size
-		if (chunk_size == HTTP::LengthUnknown || chunk_size <= 0) {
-			chunk_size = Impl::body_chunk_size;
-		}
-
-		//	stream reads (stuff like websockets)
-		if (stream.raw_io) {
-			return Impl::read_raw_body(conn, stream.read_buff, chunk_size);
-		}
-
-		//	return early if body is empty or consoomed
-		if (stream.http_body_pending <= 0) {
-			return {};
-		}
-
-		//	return body from streams
-		auto chunk = Impl::read_request_body(conn, stream.read_buff, chunk_size, stream.http_body_pending);
-		stream.http_body_pending -= chunk.size();
-
-		return chunk;
-	};
-
-	Headers response_headers;
-	response_headers.set("connection", stream.http_keep_alive ? "keep-alive" : "close");
-
-	auto write_header = [&](uint16_t status, const HTTP::Values& header) -> size_t {
-
-		if (header_written) {
-			throw std::runtime_error("Response header has been already written");
-		}
-
-		header_written = true;
-
-		Impl::set_response_meta(response_headers);
-
-		//	mark response end with responses with no body and no body indications
-		if (!response_headers.has("content-type") || !response_headers.has("content-length")) {
-			response_headers.set("content-length", std::to_string(0));
-		}
-
-		if (Impl::is_connection_upgrade(response_headers)) {
-			stream.http_keep_alive = false;
-			stream.http_body_pending = 0;
-			stream.raw_io = true;
-		}
-
-		return Impl::write_head(conn, status, response_headers);
-	};
-
-	auto write_data = [&](const HTTP::Buffer& data) -> size_t {
-
-		//	todo: handle over-content-length writes
-
-		size_t bytes_written = 0;
-
-		if (!header_written) {
-
-			header_written = true;
-
-			Impl::set_response_meta(response_headers);
-
-			//	force content type on untyped data
-			if (!response_headers.has("content-type")) {
-				response_headers.set("content-type", "application/octet-stream");
-			}
-
-			bytes_written = Impl::write_head(conn, static_cast<std::underlying_type_t<Status>>(Status::OK), response_headers);
-		}
-
-		bytes_written += conn.write(data);
-
-		return bytes_written;
+	auto request = Request {
+		.remote_addr = conn.remote_addr(),
+		.method = state.req.method,
+		.url = state.req.url,
+		.headers = state.req.headers,
+		.cookies = HTTP::parse_cookie(state.req.headers.get("cookie")),
+		.body = request_body_reader,
 	};
 
 	//	invoke provided handler fn
-	auto writer = ResponseWriter(response_headers, write_header, write_data);
-	req.body = RequestBody(body_reader);
-	
-	handler(req, writer);
+	handler(request, response_writer);
 
 	//	terminate empty responses
-	if (!header_written && conn.is_open()) {
-		response_headers.set("content-length", std::to_string(0));
-		Impl::set_response_meta(response_headers);
-		Impl::write_head(conn, static_cast<std::underlying_type_t<Status>>(Status::OK), response_headers);
+	if (!state.header_written && conn.is_open()) {
+		state.response_headers.set("content-length", std::to_string(0));
+		Impl::write_head(conn, Status::OK, state.response_headers);
 	}
+}
+
+bool is_connection_upgrade(const Headers& headers) {
+	return HTTP::reset_case(headers.get("connection")).contains("upgrade");
+}
+
+bool is_data_stream(const Headers& headers) {
+	return HTTP::reset_case(headers.get("content-type")).contains("event-stream");
 }

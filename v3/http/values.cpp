@@ -1,5 +1,7 @@
 #include "./http.hpp"
+#include "./http_utils.hpp"
 
+using namespace Lambda;
 using namespace Lambda::HTTP;
 
 Values::Values(const Values& other) {
@@ -146,4 +148,15 @@ Entries Values::entries() const noexcept {
 
 size_t Values::size() const noexcept {
 	return this->m_entries.size();
+}
+
+std::string HTTP::reset_case(std::string value) {
+	
+	for (auto& rune : value) {
+		if (rune >= 'A' && rune <= 'Z') {
+			rune += 0x20;
+		}
+	}
+	
+	return value;
 }

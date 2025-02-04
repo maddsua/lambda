@@ -10,19 +10,51 @@
 #include <ctime>
 
 #include "../net/net.hpp"
-#include "./http_utils.hpp"
 
 namespace Lambda {
+
+	namespace HTTP {
+
+		typedef std::vector<std::string> MultiValue;
+		typedef std::vector<std::pair<std::string, std::string>> Entries;
+
+		class Values {
+			protected:
+				std::map<std::string, MultiValue> m_entries;
+				std::string m_format_key(const std::string& key) const noexcept;
+
+			public:
+				Values() = default;
+				Values(const Values& other);
+				Values(Values&& other);
+
+				Values& operator=(const Values& other) noexcept;
+				Values& operator=(Values&& other) noexcept;
+
+				bool has(const std::string& key) const noexcept;
+				std::string get(const std::string& key) const noexcept;
+				MultiValue get_all(const std::string& key) const noexcept;
+				void set(const std::string& key, const std::string& value) noexcept;
+				void append(const std::string& key, const std::string& value) noexcept;
+				void del(const std::string& key) noexcept;
+				Entries entries() const noexcept;
+				size_t size() const noexcept;
+		};
+
+		typedef std::vector<uint8_t> Buffer;
+
+		const size_t LengthUnknown = -1;
+	};
 
 	enum struct Method : int {
 		GET,
 		POST,
 		PUT,
+		PATCH,
 		DEL,
 		HEAD,
 		OPTIONS,
 		TRACE,
-		PATCH,
 		CONNECT
 	};
 
@@ -167,34 +199,19 @@ namespace Lambda {
 			}
 	};
 
-	class RequestBody {
-		private:
-			HTTP::ReaderCallback m_reader;
-
+	class BodyReader {
 		public:
-			RequestBody() = default;
-			RequestBody(HTTP::ReaderCallback reader) : m_reader(reader) {};
+			BodyReader() = default;
+			BodyReader(const BodyReader& other) = delete;
 
-			HTTP::Buffer read(size_t chunk_size) {
+			virtual bool is_readable() const noexcept = 0;
 
-				if (!this->m_reader) {
-					return {};
-				}
+			virtual HTTP::Buffer read(size_t chunk_size) = 0;
+			virtual HTTP::Buffer read_all() = 0;
+			virtual std::string text() = 0;
 
-				return this->m_reader(chunk_size);
-			}
-
-			HTTP::Buffer read_all() {
-				return this->read(HTTP::LengthUnknown);
-			}
-
-			std::string text() {
-				auto buffer = this->read_all();
-				return std::string(buffer.begin(), buffer.end());
-			}
-
-			//	todo: add form data
-			//	todo: add json
+		//	todo: add form data
+		//	todo: add json
 	};
 
 	typedef HTTP::Values Headers;
@@ -226,49 +243,49 @@ namespace Lambda {
 	struct Request {
 		Net::RemoteAddress remote_addr;
 		Method method;
-		URL url;
-		Headers headers;
-		RequestBody body;
+		URL& url;
+		Headers& headers;
 		CookieValues cookies;
+		BodyReader& body;
 	};
 
 	class ResponseWriter {
-		private:
-			Headers& m_headers;
-			HTTP::HeaderWriterCallback m_header_writer;
-			HTTP::WriterCallback m_writer;
-
 		public:
-			ResponseWriter(Headers& headers, HTTP::HeaderWriterCallback header_writer, HTTP::WriterCallback writer)
-				: m_headers(headers), m_header_writer(header_writer), m_writer(writer) {};
+			ResponseWriter() = default;
 			ResponseWriter(const ResponseWriter& other) = delete;
 
-			Headers& header() noexcept {
-				return this->m_headers;
-			}
-
-			size_t write_header() {
-				return this->write_header(Status::OK);
-			}
-
-			size_t write_header(Status status) {
-				return this->m_header_writer(static_cast<std::underlying_type_t<Status>>(status), this->m_headers);
-			}
-
-			size_t write(const HTTP::Buffer& data) {
-				return this->m_writer(data);
-			}
-
-			size_t write(const std::string& text) {
-				return this->m_writer(HTTP::Buffer(text.begin(), text.end()));
-			}
-
-			void set_cookie(const Cookie& cookie) {
-				this->m_headers.append("Set-Cookie", cookie.to_string());
-			}
+			virtual bool writable() const noexcept = 0;
+			virtual Headers& header() noexcept = 0;
+			virtual size_t write_header() = 0;
+			virtual size_t write_header(Status status) = 0;
+			virtual size_t write(const HTTP::Buffer& data) = 0;
+			virtual size_t write(const std::string& text) = 0;
+			virtual void set_cookie(const Cookie& cookie) = 0;
 	};
 
 	typedef std::function<void(Request& req, ResponseWriter& wrt)> HandlerFn;
+
+	struct SSEevent {
+		std::optional<std::string> event;
+		std::string data;
+		std::optional<std::string> id;
+		std::optional<uint32_t> retry;
+
+		HTTP::Buffer to_buffer() const;
+	};
+
+	class SSEWriter {
+		private:
+			ResponseWriter& m_writer;
+			bool m_ok;
+		public:
+			SSEWriter(ResponseWriter& writer);
+			~SSEWriter();
+
+			size_t write(const SSEevent& msg);
+			bool writable() const noexcept;
+			size_t close();
+	};
 };
 
 #endif

@@ -2,14 +2,15 @@
 #include <thread>
 
 #include "./server.hpp"
+#include "../http/http_utils.hpp"
 
 using namespace Lambda;
 
 void handler_fn(Request& req, ResponseWriter& wrt) {
 
-	printf("--> [%s] %i %s (%s)\n",
+	printf("--> [%s] %s %s (%s)\n",
 		req.url.host.c_str(),
-		static_cast<std::underlying_type_t<Method>>(req.method),
+		HTTP::method_to_string(req.method).c_str(),
 		req.url.to_string().c_str(),
 		req.body.text().c_str());
 
@@ -24,6 +25,18 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 		wrt.header().set("content-type", "text/plain");
 		wrt.header().set("content-length", std::to_string(message.size()));
 		wrt.write(message);
+		return;
+	}
+
+	if (req.url.path == "/events") {
+
+		auto sse = SSEWriter(wrt);
+
+		for (size_t idx = 0; idx < 4; idx++) {
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			sse.write({ .event = "update", .data = "idx=" + std::to_string(idx), });
+		}
+
 		return;
 	}
 

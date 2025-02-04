@@ -6,18 +6,6 @@
 using namespace Lambda;
 using namespace Lambda::Pipelines::H1;
 
-static const std::map<std::string, Method> table_method = {
-	{ "GET", Method::GET },
-	{ "POST", Method::POST },
-	{ "PUT", Method::PUT },
-	{ "DELETE", Method::DEL },
-	{ "HEAD", Method::HEAD },
-	{ "OPTIONS", Method::OPTIONS },
-	{ "TRACE", Method::TRACE },
-	{ "PATCH", Method::PATCH },
-	{ "CONNECT", Method::CONNECT },
-};
-
 size_t next_space(HTTP::Buffer& data, size_t begin, size_t end) {
 
 	for (size_t idx = begin; idx < end; idx++) {
@@ -51,7 +39,6 @@ size_t next_line(HTTP::Buffer& data, size_t begin, size_t end) {
 	return Impl::nullidx;
 }
 
-
 void parse_request_url(URL& url, HTTP::Buffer& data, size_t begin, size_t end) {
 
 	//	find page anchor, if exists (it really should not)
@@ -77,10 +64,11 @@ void parse_request_url(URL& url, HTTP::Buffer& data, size_t begin, size_t end) {
 }
 
 bool is_valid_http_version(HTTP::Buffer& data, size_t begin, size_t end) {
+	//	todo: validate
 	return true;
 }
 
-std::optional<std::runtime_error> parse_request_line(Request& req, HTTP::Buffer& data, size_t begin, size_t end) {
+std::optional<std::runtime_error> parse_request_line(Impl::RequestHead& req, HTTP::Buffer& data, size_t begin, size_t end) {
 
 	// skip possible whitespaces
 	begin = next_token(data, begin, end);
@@ -94,12 +82,7 @@ std::optional<std::runtime_error> parse_request_line(Request& req, HTTP::Buffer&
 		return std::runtime_error("Request line invalid: no defined method");
 	}
 
-	auto methodEntry = table_method.find(std::string(data.begin() + begin, data.begin() + tokenEnd));
-	if (methodEntry == table_method.end()) {
-		return std::runtime_error("invalid request method");
-	}
-
-	req.method = methodEntry->second;
+	req.method = HTTP::string_to_method(std::string(data.begin() + begin, data.begin() + tokenEnd));
 
 	//	skip to url
 	begin = next_token(data, tokenEnd, end);
@@ -164,7 +147,22 @@ void parse_header(Headers& headers, HTTP::Buffer& data, size_t begin, size_t end
 	headers.append(key, std::string(data.begin() + begin, data.begin() + end));
 }
 
-std::expected<Request, Impl::RequestError> Impl::read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServerContext ctx) {
+void merge_url_components(URL& url, const Headers& headers) {
+
+	url.scheme = "http";
+	url.user = HTTP::parse_basic_auth(headers.get("authorization"));
+
+	url.host = headers.get("host");
+	if (!url.host.size()) {
+		url.host = "localhost";
+	}
+
+	if (!url.path.size()) {
+		url.path = "/";
+	}
+}
+
+std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServerContext ctx) {
 
 	auto opts = ctx.options();
 
@@ -173,9 +171,7 @@ std::expected<Request, Impl::RequestError> Impl::read_request_head(Net::TcpConne
 
 	bool request_line_parsed = false;
 
-	Request next {
-		.remote_addr = conn.remote_addr(),
-	};
+	RequestHead next;
 
 	while (!ctx.done()) {
 
@@ -231,34 +227,16 @@ std::expected<Request, Impl::RequestError> Impl::read_request_head(Net::TcpConne
 		}
 
 		if (line_end - line_begin <= 2) {
-
 			read_buff.erase(read_buff.begin(), read_buff.begin() + line_end + 2);
-
-			next.url.scheme = "http";
-			next.url.user = HTTP::parse_basic_auth(next.headers.get("authorization"));
-
-			next.url.host = next.headers.get("host");
-			if (!next.url.host.size()) {
-				next.url.host = "localhost";
-			}
-
-			if (!next.url.path.size()) {
-				next.url.path = "/";
-			}
-
-			next.cookies = HTTP::parse_cookie(next.headers.get("cookie"));
-
 			break;
 		}
 
 		parse_header(next.headers, read_buff, line_begin, line_end);
 	}
 
-	return next;
-}
+	merge_url_components(next.url, next.headers);
 
-bool Impl::method_can_have_body(Method method) {
-	return method == Method::POST || method == Method::PUT || method == Method::PATCH || method == Method::CONNECT;
+	return next;
 }
 
 std::optional<size_t> Impl::content_length(const Headers& headers) {
@@ -324,18 +302,4 @@ void Impl::discard_unread_body(Net::TcpConnection& conn, StreamState& stream) {
 	if (stream.http_body_pending > 0) {
 		stream.http_body_pending -= conn.read(stream.http_body_pending).size();
 	}
-}
-
-bool Impl::is_connection_upgrade(const Headers& headers) {
-
-	auto normalize_value = [](std::string value) -> std::string {
-		for (auto& rune : value) {
-			if (rune >= 'A' && rune <= 'Z') {
-				rune += 0x20;
-			}
-		}
-		return value;
-	};
-
-	return normalize_value(headers.get("connection")).contains("upgrade");
 }

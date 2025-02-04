@@ -72,7 +72,7 @@ static const std::map<Status, std::string> table_status = {
 };
 
 
-size_t Impl::write_head(Net::TcpConnection& conn, int status, const Headers& headers) {
+size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& headers) {
 
 	static const char http_version_prefix[] = "HTTP/1.1 ";
 	static const char line_break[] = "\r\n";
@@ -83,53 +83,60 @@ size_t Impl::write_head(Net::TcpConnection& conn, int status, const Headers& hea
 		throw std::logic_error("Writer: Unexpected status code");
 	}
 
-	auto status_code = std::to_string(static_cast<std::underlying_type_t<Status>>(status));
+	auto write_response_line = [&](Status status) -> size_t {
 
-	HTTP::Buffer response_line;
-	response_line.insert(response_line.end(), http_version_prefix, static_end(http_version_prefix));
-	response_line.insert(response_line.end(), status_code.begin(), status_code.end());
-	response_line.push_back(' ');
-	response_line.insert(response_line.end(), status_entry->second.begin(), status_entry->second.end());
-	response_line.insert(response_line.end(), line_break, static_end(line_break));
+		auto status_code = std::to_string(static_cast<std::underlying_type_t<Status>>(status));
 
-	auto bytes_written = conn.write(HTTP::Buffer(response_line.begin(), response_line.end()));
+		HTTP::Buffer buff;
+		buff.insert(buff.end(), http_version_prefix, static_end(http_version_prefix));
+		buff.insert(buff.end(), status_code.begin(), status_code.end());
+		buff.push_back(' ');
+		buff.insert(buff.end(), status_entry->second.begin(), status_entry->second.end());
+		buff.insert(buff.end(), line_break, static_end(line_break));
+
+		return conn.write(HTTP::Buffer(buff.begin(), buff.end()));	
+	};
+
+	auto write_header = [&](const std::string& name, const std::string& value) {
+		
+		HTTP::Buffer buff;
+		buff.insert(buff.end(), name.begin(), name.end());
+		buff.insert(buff.end(), header_kv_token, static_end(header_kv_token));
+		buff.insert(buff.end(), value.begin(), value.end());
+		buff.insert(buff.end(), line_break, static_end(line_break));
+
+		return conn.write(HTTP::Buffer(buff.begin(), buff.end()));
+	};
+
+	auto bytes_written = write_response_line(status);
 
 	for (const auto& entry : headers.entries()) {
-		
-		HTTP::Buffer next;
-		next.insert(next.end(), entry.first.begin(), entry.first.end());
-		next.insert(next.end(), header_kv_token, static_end(header_kv_token));
-		next.insert(next.end(), entry.second.begin(), entry.second.end());
-		next.insert(next.end(), line_break, static_end(line_break));
-
-		bytes_written += conn.write(HTTP::Buffer(next.begin(), next.end()));
+		bytes_written += write_header(entry.first, entry.second);
 	}
-	
+
+	if (!headers.has("date")) {
+		bytes_written += write_header("date", Date().to_utc_string());
+	}
+
+	if (!headers.has("server")) {
+		bytes_written += write_header("server", "maddsua/l3");
+	}
+
 	bytes_written += conn.write(HTTP::Buffer(line_break, static_end(line_break)));
 
 	return bytes_written;
 }
 
-void Impl::write_request_error(Net::TcpConnection& conn, Status status, std::string message) {
+void Impl::terminate_with_error(Net::TcpConnection& conn, Status status, std::string message) {
 
 	Headers response_headers;
 	
 	response_headers.set("connection", "close");
 	response_headers.set("content-type", "text/plain");
 	response_headers.set("content-length", std::to_string(message.size()));
-	Impl::set_response_meta(response_headers);
 
-	Impl::write_head(conn, static_cast<std::underlying_type_t<Status>>(status), response_headers);
+	Impl::write_head(conn, status, response_headers);
 	conn.write(HTTP::Buffer(message.begin(), message.end()));
-}
 
-void Impl::set_response_meta(Headers& headers) {
-
-	if (!headers.has("date")) {
-		headers.set("date", Date().to_utc_string());
-	}
-
-	if (!headers.has("server")) {
-		headers.set("server", "maddsua/l3");
-	}
+	conn.close();
 }

@@ -51,7 +51,7 @@ test-net_tcp: .artifacts/test-net_tcp
 #			SECTION: http interface			#
 #############################################
 
-LIB_OBJS_HTTP_OBJS		=	.artifacts/http_values.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o .artifacts/http_cookie.o .artifacts/http_date.o .artifacts/http_basic_auth.o
+LIB_OBJS_HTTP_OBJS		=	.artifacts/http_values.o .artifacts/http_method.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o .artifacts/http_cookie.o .artifacts/http_date.o .artifacts/http_basic_auth.o .artifacts/http_sse.o
 .lib-objs-http: $(LIB_OBJS_HTTP_OBJS)
 test-http_url: .artifacts/test-http_url
 	.artifacts/test-http_url
@@ -61,6 +61,8 @@ test-http_url: .artifacts/test-http_url
 	g++ -c $(CFLAGS) http/test_url.cpp -o .artifacts/test-http_url.o
 .artifacts/http_values.o: http/values.cpp
 	g++ -c $(CFLAGS) http/values.cpp -o .artifacts/http_values.o
+.artifacts/http_method.o: http/method.cpp
+	g++ -c $(CFLAGS) http/method.cpp -o .artifacts/http_method.o
 .artifacts/http_url_encode.o: http/url_encode.cpp
 	g++ -c $(CFLAGS) http/url_encode.cpp -o .artifacts/http_url_encode.o
 .artifacts/http_url_search_params.o: http/url_search_params.cpp
@@ -73,6 +75,8 @@ test-http_url: .artifacts/test-http_url
 	g++ -c $(CFLAGS) http/date.cpp -o .artifacts/http_date.o
 .artifacts/http_basic_auth.o: http/basic_auth.cpp
 	g++ -c $(CFLAGS) http/basic_auth.cpp -o .artifacts/http_basic_auth.o
+.artifacts/http_sse.o: http/sse.cpp
+	g++ -c $(CFLAGS) http/sse.cpp -o .artifacts/http_sse.o
 
 
 #############################################

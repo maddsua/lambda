@@ -4,7 +4,7 @@
 #include <expected>
 
 #include "./server.hpp"
-#include "../http/http_private.hpp"
+#include "../http/http_utils.hpp"
 
 namespace Lambda::Pipelines {
 
@@ -32,20 +32,22 @@ namespace Lambda::Pipelines {
 				bool raw_io = false;
 			};
 
+			struct RequestHead {
+				Method method;
+				URL url;
+				Headers headers;
+			};
+
 			void serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServerContext ctx);
 
-			std::expected<Request, RequestError> read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServerContext ctx);
-			bool method_can_have_body(Method method);
+			std::expected<RequestHead, RequestError> read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServerContext ctx);
 			HTTP::Buffer read_request_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size, size_t bytes_remain);
 			HTTP::Buffer read_raw_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size);
 			std::optional<size_t> content_length(const Headers& headers);
 
-			size_t write_head(Net::TcpConnection& conn, int status, const Headers& headers);
-			void write_request_error(Net::TcpConnection& conn, Status status, std::string message);
-			void set_response_meta(Headers& headers);
+			size_t write_head(Net::TcpConnection& conn, Status status, const Headers& headers);
+			void terminate_with_error(Net::TcpConnection& conn, Status status, std::string message);
 			void discard_unread_body(Net::TcpConnection& conn, StreamState& stream);
-
-			bool is_connection_upgrade(const Headers& headers);
 		};
 	};
 

@@ -1,4 +1,5 @@
 #include "./fs.hpp"
+#include "../http/http_utils.hpp"
 
 #include <filesystem>
 
@@ -144,26 +145,10 @@ std::string flatten_path(const std::string& path) {
 }
 
 void log_access(const Request& req, Status status) {
-
-	auto unwrap_method = [](Method method) {
-		switch (method) {
-			case Method::GET: return "GET";
-			case Method::POST: return "POST";
-			case Method::PATCH: return "PATCH";
-			case Method::PUT: return "PUT";
-			case Method::DEL: return "DEL";
-			case Method::OPTIONS: return "OPTIONS";
-			case Method::HEAD: return "HEAD";
-			case Method::TRACE: return "CONNECT";
-			case Method::CONNECT: return "CONNECT";
-			default: return "NULL";
-		}
-	};
-
 	fprintf(stdout, "%s DEBUG Lambda::Fileserver %s %s %s -> %i\n",
 		Date().to_log_string().c_str(),
 		req.remote_addr.hostname.c_str(),
-		unwrap_method(req.method),
+		HTTP::method_to_string(req.method).c_str(),
 		req.url.path.c_str(),
 		static_cast<std::underlying_type_t<Status>>(status)
 	);
