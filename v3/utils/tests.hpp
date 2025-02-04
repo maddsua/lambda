@@ -11,8 +11,9 @@
 		
 		try {
 			callback();
+			printf("--> Test '%s': OK\n", id);
 		} catch(const std::exception& e) {
-			fprintf(stderr, "[%s] Test FAIL: %s\n", id, e.what());
+			fprintf(stderr, " --X Test '%s': FAILED: \n\t%s\n", id, e.what());
 			return 1;
 		}
 
@@ -28,7 +29,7 @@
 			}
 		}
 
-		printf("--> Test OK\n");
+		printf("--> Tests completed\n");
 			
 		return 0;
 	}
@@ -39,7 +40,7 @@
 			return;
 		}
 
-		throw std::logic_error("Field mismatch: [" + std::string(field) + "] Expected: '" + expected + "'; Returned: '" + value + "'");
+		throw std::logic_error("Field mismatch: [" + std::string(field) + "]\n\t\tExpected: '" + expected + "'\n\t\tReturned: '" + value + "'");
 	}
 
 #endif

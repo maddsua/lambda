@@ -1187,7 +1187,7 @@ const std::string fallback_type = "application/octet-stream";
 const std::string& Fs::infer_mimetype(const std::string& filename) {
 
 	auto dot_pos = std::string::npos;
-	for (int idx = filename.size() - 1; idx >= 0; idx--) {
+	for (int64_t idx = filename.size() - 1; idx >= 0; idx--) {
 		if (filename[idx] == '.') {
 			dot_pos = idx;
 			break;

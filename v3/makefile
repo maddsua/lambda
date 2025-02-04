@@ -122,18 +122,34 @@ test-fs: .artifacts/test-fs
 
 
 #############################################
+#				SECTION: JSON				#
+#############################################
+
+LIB_OBJS_JSON_OBJS		=	.artifacts/json_stringify.o .artifacts/json_parse.o
+.lib-objs-json: $(LIB_OBJS_JSON_OBJS)
+test-json: .artifacts/test-json
+	.artifacts/test-json
+.artifacts/test-json: .artifacts/test-json.o $(LIB_OBJS_JSON_OBJS)
+	g++ $(CFLAGS) .artifacts/test-json.o $(LIB_OBJS_JSON_OBJS) -o .artifacts/test-json
+.artifacts/test-json.o: json/test_json.cpp
+	g++ -c $(CFLAGS) json/test_json.cpp -o .artifacts/test-json.o
+.artifacts/json_stringify.o: json/stringify.cpp
+	g++ -c $(CFLAGS) json/stringify.cpp -o .artifacts/json_stringify.o
+.artifacts/json_parse.o: json/parse.cpp
+	g++ -c $(CFLAGS) json/parse.cpp -o .artifacts/json_parse.o
+
+
+#############################################
 #				LIBRARY BUILD				#
 #############################################
 
-# shared lib build
+LIB_FULL_OBJS = $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_JSON_OBJS)
 libshared: $(LAMBDA_LIBSHARED)
-$(LAMBDA_LIBSHARED): $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_BASE64_OBJS)
-	g++ $(CFLAGS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_BASE64_OBJS) -shared -o $(LAMBDA_LIBSHARED)
-
-# static lib build
+$(LAMBDA_LIBSHARED): $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) $(LIB_FULL_OBJS) -shared -o $(LAMBDA_LIBSHARED)
 libstatic: $(LAMBDA_LIBSTATIC)
-$(LAMBDA_LIBSTATIC): $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_BASE64_OBJS)
-	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_BASE64_OBJS)
+$(LAMBDA_LIBSTATIC): $(LIB_FULL_OBJS)
+	ar rvs $(LAMBDA_LIBSTATIC) $(LIB_FULL_OBJS)
 
 
 #############################################
