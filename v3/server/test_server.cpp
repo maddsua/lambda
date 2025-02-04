@@ -49,7 +49,7 @@ int main() {
 	
 	printf("Listening at: http://localhost:%i/\n", server.options.port);
 
-	server.Serve();
+	server.serve();
 
 	return 0;
 }

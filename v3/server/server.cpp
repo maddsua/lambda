@@ -6,7 +6,7 @@
 
 using namespace Lambda;
 
-void Server::Serve() {
+void Server::serve() {
 
 	if (this->m_active) {
 		throw std::runtime_error("Lambda::Serve: Already running");
@@ -48,7 +48,7 @@ void Server::Serve() {
 	this->m_loop.get();
 }
 
-void Server::Shutdown() {
+void Server::shutdown() {
 
 	if (!this->m_active) {
 		return;
@@ -67,5 +67,5 @@ void Server::Shutdown() {
 
 
 Server::~Server() {
-	this->Shutdown();
+	this->shutdown();
 }

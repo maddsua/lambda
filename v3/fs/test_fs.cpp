@@ -16,7 +16,7 @@ int main() {
 
 	printf("Serves files at: http://localhost:%i/\n", server.options.port);
 
-	server.Serve();
+	server.serve();
 
 	return 0;
 }

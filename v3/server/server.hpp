@@ -38,8 +38,8 @@ namespace Lambda {
 
 			ServeOptions options;
 
-			void Serve();
-			void Shutdown();
+			void serve();
+			void shutdown();
 
 			friend class ServerContext;
 	};
