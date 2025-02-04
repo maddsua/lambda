@@ -149,7 +149,7 @@ class RequestBodyImpl : public BodyReader {
 		}
 };
 
-void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServerContext ctx) {
+void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServeContext ctx) {
 
 	//	todo: fix stream not disconnecting on idle
 	conn.set_timeouts({
@@ -161,7 +161,7 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 
 	Impl::StreamState stream;
 
-	if (ctx.options().debug) {
+	if (ctx.opts.debug) {
 		fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Create stream\n",
 			Date().to_log_string().c_str(), conn.remote_addr().hostname.c_str(), conn.id());
 	}
@@ -174,19 +174,19 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 		}
 
 	} catch(const std::exception& e) {
-		if (ctx.options().debug) {
+		if (ctx.opts.debug) {
 			fprintf(stderr, "%s ERROR Lambda::Serve::H1 { remote_addr='%s', conn=%i }: H1 transport exception: %s\n",
 				Date().to_log_string().c_str(), conn.remote_addr().hostname.c_str(), conn.id(), e.what());
 		}
 	}
 
-	if (ctx.options().debug) {
+	if (ctx.opts.debug) {
 		fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Stream done\n",
 			Date().to_log_string().c_str(), conn.remote_addr().hostname.c_str(), conn.id());
 	}
 }
 
-void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServerContext ctx) {
+void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServeContext ctx) {
 
 	auto expected_req = Impl::read_request_head(conn, stream.read_buff, ctx);
 	if (!expected_req.has_value()) {

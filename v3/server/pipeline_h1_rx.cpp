@@ -162,12 +162,11 @@ void merge_url_components(URL& url, const Headers& headers) {
 	}
 }
 
-std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServerContext ctx) {
-
-	auto opts = ctx.options();
+std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServeContext ctx) {
 
 	size_t reader_seek = 0;
 	size_t chunker_seek = nullidx;
+	size_t total_read = 0;
 
 	bool request_line_parsed = false;
 
@@ -187,9 +186,9 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net
 				});
 			}
 
-			if (read_buff.size() > opts.max_header_size) {
+			if (total_read > ctx.opts.max_header_size) {
 				return std::unexpected<Impl::RequestError>({
-					"your headers are a bit too big",
+					"request header section is too big",
 					Status::RequestHeaderFieldsTooLarge,
 				});
 			}
@@ -203,6 +202,7 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net
 				});
 			}
 
+			total_read += next_chunk.size();
 			chunker_seek = read_buff.size() - 1;
 			read_buff.insert(read_buff.end(), next_chunk.begin(), next_chunk.end());
 

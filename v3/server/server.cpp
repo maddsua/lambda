@@ -17,7 +17,7 @@ void Server::serve() {
 	}
 
 	this->m_active = true;
-	this->m_exit = false;
+	*this->m_exit = false;
 
 	//	create tcp listener
 	this->m_tcp.options.port = this->options.port;
@@ -31,8 +31,9 @@ void Server::serve() {
 			try {
 
 				auto next = this->m_tcp.next();
-				//	todo: do refernce counting for the context
-				std::thread(Pipelines::H1::serve_conn, std::move(next), this->m_handler, ServerContext(this)).detach();
+				auto ctx = ServeContext(this->options, this->m_exit);
+
+				std::thread(Pipelines::H1::serve_conn, std::move(next), this->m_handler, ctx).detach();
 
 			} catch(const std::exception& e) {
 
@@ -54,7 +55,7 @@ void Server::shutdown() {
 		return;
 	}
 
-	this->m_exit = false;
+	*this->m_exit = true;
 
 	this->m_tcp.shutdown();
 	
@@ -68,4 +69,5 @@ void Server::shutdown() {
 
 Server::~Server() {
 	this->shutdown();
+	*this->m_exit = true;
 }

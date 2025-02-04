@@ -3,6 +3,7 @@
 
 #include <future>
 #include <functional>
+#include <memory>
 
 #include "../net/net.hpp"
 #include "../http/http.hpp"
@@ -17,7 +18,7 @@ namespace Lambda {
 		//	todo: add binding opts and stuff
 	};
 
-	class ServerContext;
+	class ServeContext;
 
 	class Server {
 		protected:
@@ -25,7 +26,7 @@ namespace Lambda {
 			Net::TcpListener m_tcp;
 			std::future<void> m_loop;
 			bool m_active = false;
-			bool m_exit = false;
+			std::shared_ptr<bool> m_exit = std::make_shared<bool>(false);
 
 		public:
 
@@ -41,21 +42,20 @@ namespace Lambda {
 			void serve();
 			void shutdown();
 
-			friend class ServerContext;
+			friend class ServeContext;
 	};
 
-	class ServerContext {
+	class ServeContext {
 		private:
-			const Server* m_parent;
+			std::shared_ptr<bool> m_done;
 		public:
-			ServerContext(const Server* parent) : m_parent(parent) {}
+			ServeContext(const ServeOptions& opts, std::shared_ptr<bool> done)
+				: m_done(done), opts(opts) {}
+
+			const ServeOptions opts;
 
 			bool done() const noexcept {
-				return this->m_parent->m_exit;
-			}
-
-			ServeOptions options() const noexcept {
-				return this->m_parent->options;
+				return *this->m_done;
 			}
 	};
 };

@@ -10,7 +10,7 @@ namespace Lambda::Pipelines {
 
 	namespace H1 {
 
-		void serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServerContext ctx);
+		void serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServeContext ctx);
 
 		namespace Impl {
 
@@ -38,9 +38,9 @@ namespace Lambda::Pipelines {
 				Headers headers;
 			};
 
-			void serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServerContext ctx);
+			void serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServeContext ctx);
 
-			std::expected<RequestHead, RequestError> read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServerContext ctx);
+			std::expected<RequestHead, RequestError> read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServeContext ctx);
 			HTTP::Buffer read_request_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size, size_t bytes_remain);
 			HTTP::Buffer read_raw_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size);
 			std::optional<size_t> content_length(const Headers& headers);
