@@ -264,13 +264,18 @@ namespace Lambda {
 
 	typedef std::function<void(Request& req, ResponseWriter& wrt)> HandlerFn;
 
+	class SSEWriter;
+
 	struct SSEevent {
+		friend class SSEWriter;
+
 		std::optional<std::string> event;
 		std::string data;
 		std::optional<std::string> id;
 		std::optional<uint32_t> retry;
 
-		HTTP::Buffer to_buffer() const;
+		private:
+			HTTP::Buffer to_buffer() const;
 	};
 
 	class SSEWriter {

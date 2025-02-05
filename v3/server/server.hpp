@@ -41,8 +41,6 @@ namespace Lambda {
 
 			void serve();
 			void shutdown();
-
-			friend class ServeContext;
 	};
 
 	class ServeContext {
