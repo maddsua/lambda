@@ -6,7 +6,7 @@ using namespace Lambda;
 using namespace Lambda::Pipelines::H1;
 
 bool is_connection_upgrade(const Headers& headers);
-bool is_data_stream(const Headers& headers);
+bool is_streaming_response(const Headers& headers);
 
 struct RequestState {
 	Impl::RequestHead req;
@@ -52,10 +52,12 @@ class ResponseWriterImpl : public ResponseWriter {
 				this->m_stream.http_keep_alive = false;
 				this->m_stream.http_body_pending = 0;
 				this->m_stream.raw_io = true;
+				//	set raw read timeout to a small value
+				this->m_conn.set_timeouts({ .read = Impl::raw_io_read_timeout, .write = this->m_conn.timeouts().write });
 			}
 
 			//	override keep-alive for streaming connections such as sse
-			if (is_data_stream(this->m_state.response_headers)) {
+			if (is_streaming_response(this->m_state.response_headers)) {
 				this->m_stream.http_keep_alive = false;
 			}
 
@@ -253,6 +255,6 @@ bool is_connection_upgrade(const Headers& headers) {
 	return HTTP::reset_case(headers.get("connection")).contains("upgrade");
 }
 
-bool is_data_stream(const Headers& headers) {
+bool is_streaming_response(const Headers& headers) {
 	return HTTP::reset_case(headers.get("content-type")).contains("event-stream");
 }

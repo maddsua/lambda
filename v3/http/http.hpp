@@ -239,6 +239,7 @@ namespace Lambda {
 		std::string to_string() const;
 	};
 
+	//	todo: add serve context to request
 	struct Request {
 		Net::RemoteAddress remote_addr;
 		Method method;
@@ -267,15 +268,10 @@ namespace Lambda {
 	class SSEWriter;
 
 	struct SSEevent {
-		friend class SSEWriter;
-
 		std::optional<std::string> event;
 		std::string data;
 		std::optional<std::string> id;
 		std::optional<uint32_t> retry;
-
-		private:
-			HTTP::Buffer to_buffer() const;
 	};
 
 	class SSEWriter {
@@ -287,7 +283,7 @@ namespace Lambda {
 			~SSEWriter();
 
 			size_t write(const SSEevent& msg);
-			bool writable() const noexcept;
+			bool is_writable() const noexcept;
 			size_t close();
 	};
 };

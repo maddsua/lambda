@@ -16,6 +16,7 @@ namespace Lambda::Pipelines {
 
 			const size_t header_chunk_size = 2048;
 			const size_t body_chunk_size = 128 * 1024;
+			const time_t raw_io_read_timeout = 100;
 
 			const size_t nullidx = -1;
 
