@@ -39,7 +39,7 @@ SSEWriter::SSEWriter(ResponseWriter& writer) : m_writer(writer) {
 
 	writer.header().set("connection", "keep-alive");
 	writer.header().set("cache-control", "no-cache");
-	writer.header().set("content-type", "text/event-stream; charset=UTF-8");
+	writer.header().set("content-type", "text/event-stream");
 
 	writer.write_header(Status::OK);
 }
