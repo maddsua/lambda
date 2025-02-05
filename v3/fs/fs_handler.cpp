@@ -1,11 +1,14 @@
 #include "./fs.hpp"
 #include "../http/http_utils.hpp"
+#include "../base64/base64.hpp"
 
 #include <filesystem>
+#include <cstring>
 
 using namespace Lambda;
 
 std::string flatten_path(const std::string& path);
+std::string hash_content(const HTTP::Buffer& data);
 void log_access(const Request& req, Status status);
 
 //	generated fn
@@ -100,11 +103,29 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 		return;
 	}
 
-	//	todo: add caching/etag support
+	wrt.header().set("cache-control", "max-age=604800, must-revalidate");
 
+	auto last_modified = Date(file_hit->modified()).to_utc_string();
+	if (req.headers.get("if-modified-since") == last_modified) {
+		wrt.write_header(Status::NotModified);
+		return;
+	}
+
+	wrt.header().set("last-modified", last_modified);
+
+	auto content = file_hit->content();
+	auto etag = hash_content(content);
+
+
+	if (req.headers.get("if-none-match") == etag) {
+		wrt.write_header(Status::NotModified);
+		return;
+	}
+
+	wrt.header().set("etag", etag);
 	wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name()));
-	wrt.header().set("last-modified", Date(file_hit->modified()).to_utc_string());
 	wrt.header().set("content-length", std::to_string(file_hit->size()));
+
 	wrt.write_header(Status::OK);
 
 	if (this->debug) {
@@ -116,8 +137,9 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 	}
 
 	//	todo: support chunked reads
+	//	https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
 
-	wrt.write(file_hit->content());
+	wrt.write(content);
 }
 
 HandlerFn FileServer::handler() noexcept {
@@ -142,6 +164,15 @@ std::string flatten_path(const std::string& path) {
 	}
 
 	return normalized_string;
+}
+
+std::string hash_content(const HTTP::Buffer& data) {
+
+	auto std_hash = std::hash<std::string>{}(std::string(data.begin(), data.end()));
+	auto hash_buff = HTTP::Buffer(sizeof(std_hash));
+	std::memcpy(hash_buff.data(), &std_hash, sizeof(std_hash));
+
+	return Encoding::Base64::encode(hash_buff);
 }
 
 void log_access(const Request& req, Status status) {
