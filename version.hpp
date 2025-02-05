@@ -1,8 +1,11 @@
+//	The zero dependency app serve
+//	2023-2025, madsua
+//	https://github.com/maddsua/lambda
 
 #ifndef __LIB_MADDSUA_LAMBDA_VERSION__
 #define __LIB_MADDSUA_LAMBDA_VERSION__
 
-#define LAMBDA_PRODUCT			"maddsua/lambda"
-#define LAMBDA_VERSION			"2.0.0"
+	#define VERSION	"3.x.x"
+	#define LAMBDA_SERVER_HEADER "maddsua/l3"
 
 #endif
