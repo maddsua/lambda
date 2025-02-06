@@ -47,7 +47,6 @@ namespace Lambda::Pipelines {
 			std::optional<size_t> content_length(const Headers& headers);
 
 			size_t write_head(Net::TcpConnection& conn, Status status, const Headers& headers);
-			void terminate_with_error(Net::TcpConnection& conn, Status status, std::string message);
 			void discard_unread_body(Net::TcpConnection& conn, StreamState& stream);
 		};
 	};

@@ -1,5 +1,4 @@
 #include "./pipelines.hpp"
-#include "../version.hpp"
 
 #include <cstdint>
 #include <map>
@@ -115,33 +114,7 @@ size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& 
 		bytes_written += write_header(entry.first, entry.second);
 	}
 
-	if (!headers.has("date")) {
-		bytes_written += write_header("date", Date().to_utc_string());
-	}
-
-	if (!headers.has("server")) {
-		bytes_written += write_header("server", LAMBDA_SERVER_HEADER);
-	}
-
-	if (!headers.has("cache-control")) {
-		bytes_written += write_header("cache-control", "no-cache");
-	}
-
 	bytes_written += conn.write(HTTP::Buffer(line_break, static_end(line_break)));
 
 	return bytes_written;
-}
-
-void Impl::terminate_with_error(Net::TcpConnection& conn, Status status, std::string message) {
-
-	Headers response_headers;
-	
-	response_headers.set("connection", "close");
-	response_headers.set("content-type", "text/plain");
-	response_headers.set("content-length", std::to_string(message.size()));
-
-	Impl::write_head(conn, status, response_headers);
-	conn.write(HTTP::Buffer(message.begin(), message.end()));
-
-	conn.close();
 }

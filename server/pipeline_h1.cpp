@@ -1,4 +1,5 @@
 #include "./pipelines.hpp"
+#include "../version.hpp"
 
 #include <cstdint>
 
@@ -7,6 +8,8 @@ using namespace Lambda::Pipelines::H1;
 
 bool is_connection_upgrade(const Headers& headers);
 bool is_streaming_response(const Headers& headers);
+
+void terminate_with_error(Net::TcpConnection& conn, Status status, std::string message);
 
 struct DeferredResponse {
 	Headers headers;
@@ -91,9 +94,25 @@ class ResponseWriterImpl : public ResponseWriter {
 				this->m_stream.http_keep_alive = false;
 			}
 
-			auto content_length = this->m_headers.get("content-length");
+			//	set some utility headers
+			if (!this->m_headers.has("connection")) {
+				this->m_headers.set("connection", this->m_stream.http_keep_alive ? "keep-alive" : "close");
+			}
+
+			if (!this->m_headers.has("date")) {
+				this->m_headers.set("date", Date().to_utc_string());
+			}
+
+			if (!this->m_headers.has("server")) {
+				this->m_headers.set("server", LAMBDA_SERVER_HEADER);
+			}
+
+			if (!this->m_headers.has("cache-control")) {
+				this->m_headers.set("cache-control", "no-cache");
+			}
 
 			//	defer response if no content length is provided
+			auto content_length = this->m_headers.get("content-length");
 			if (content_length.empty()) {
 
 				this->m_deferred = DeferredResponse {
@@ -263,7 +282,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 			return;
 		}
 
-		return Impl::terminate_with_error(conn, error.status, error.message);
+		return terminate_with_error(conn, error.status, error.message);
 	}
 
 	auto req = std::move(expected_req.value());
@@ -275,7 +294,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 
 	//	drop mutation requests with no content body
 	if (can_have_body && has_content_type && !content_length.has_value()) {
-		return Impl::terminate_with_error(conn, Status::LengthRequired, "Content-Length header required for methods POST, PUT, PATCH...");
+		return terminate_with_error(conn, Status::LengthRequired, "Content-Length header required for methods POST, PUT, PATCH...");
 	}
 
 	//	get keepalive from client
@@ -286,8 +305,6 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 
 	auto request_body_reader = RequestBodyImpl(conn, stream);
 	auto response_writer = ResponseWriterImpl(conn, stream);
-
-	response_writer.header().set("connection", stream.http_keep_alive ? "keep-alive" : "close");
 
 	auto request = Request {
 		.remote_addr = conn.remote_addr(),
@@ -307,4 +324,18 @@ bool is_connection_upgrade(const Headers& headers) {
 
 bool is_streaming_response(const Headers& headers) {
 	return HTTP::reset_case(headers.get("content-type")).contains("event-stream");
+}
+
+void terminate_with_error(Net::TcpConnection& conn, Status status, std::string message) {
+
+	Headers response_headers;
+	
+	response_headers.set("connection", "close");
+	response_headers.set("content-type", "text/plain");
+	response_headers.set("content-length", std::to_string(message.size()));
+
+	Impl::write_head(conn, status, response_headers);
+	conn.write(HTTP::Buffer(message.begin(), message.end()));
+
+	conn.close();
 }
