@@ -194,7 +194,7 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net
 			}
 
 			auto next_chunk = conn.read(header_chunk_size);
-			if (!next_chunk.size()) {
+			if (next_chunk.empty()) {
 				return std::unexpected<Impl::RequestError>({
 					"request timed out or client disconnected",
 					Status::RequestTimeout,
@@ -242,7 +242,7 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net
 std::optional<size_t> Impl::content_length(const Headers& headers) {
 
 	auto content_length = headers.get("content-length");
-	if (!content_length.size()) {
+	if (content_length.empty()) {
 		return std::nullopt;
 	}
 
@@ -302,4 +302,47 @@ void Impl::discard_unread_body(Net::TcpConnection& conn, StreamState& stream) {
 	if (stream.http_body_pending > 0) {
 		stream.http_body_pending -= conn.read(stream.http_body_pending).size();
 	}
+}
+
+
+
+bool Impl::RequestBodyReader::is_readable() const noexcept {
+	return this->m_conn.is_open();
+}
+
+HTTP::Buffer Impl::RequestBodyReader::read(size_t chunk_size) {
+
+	if (!this->is_readable()) {
+		return {};
+	}
+
+	//	patch chunk size
+	if (chunk_size == HTTP::LengthUnknown || chunk_size <= 0) {
+		chunk_size = Impl::body_chunk_size;
+	}
+
+	//	stream reads (stuff like websockets)
+	if (this->m_stream.raw_io) {
+		return Impl::read_raw_body(this->m_conn, this->m_stream.read_buff, chunk_size);
+	}
+
+	//	return early if body is empty or consoomed
+	if (this->m_stream.http_body_pending <= 0) {
+		return {};
+	}
+
+	//	return body from streams
+	auto chunk = Impl::read_request_body(this->m_conn, this->m_stream.read_buff, chunk_size, this->m_stream.http_body_pending);
+	this->m_stream.http_body_pending -= chunk.size();
+
+	return chunk;
+}
+
+HTTP::Buffer Impl::RequestBodyReader::read_all() {
+	return this->read(HTTP::LengthUnknown);
+}
+
+std::string Impl::RequestBodyReader::text() {
+	auto buffer = this->read_all();
+	return std::string(buffer.begin(), buffer.end());
 }

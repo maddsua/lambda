@@ -222,7 +222,7 @@ Property parse_object(const std::string& data, size_t begin, size_t end) {
 
 			auto rune = data[idx];
 
-			if (!key.size() && rune == '"' && !(idx > begin && data[idx - 1] == '\\')) {
+			if (key.empty() && rune == '"' && !(idx > begin && data[idx - 1] == '\\')) {
 
 				if (key_begin == std::string::npos) {
 					key_begin = idx + 1;
@@ -244,7 +244,7 @@ Property parse_object(const std::string& data, size_t begin, size_t end) {
 			}
 		}
 		
-		if (!key.size() || value_begin == std::string::npos || end - value_begin <= 0) {
+		if (key.empty() || value_begin == std::string::npos || end - value_begin <= 0) {
 			return;
 		}
 

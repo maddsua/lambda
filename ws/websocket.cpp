@@ -254,7 +254,7 @@ std::optional<Frame> Websocket::next() {
 		}
 
 		auto chunk = this->m_reader.read(read_chunk_size);
-		if (!chunk.size()) {
+		if (chunk.empty()) {
 			return std::nullopt;
 		}
 
