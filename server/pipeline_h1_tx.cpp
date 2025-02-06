@@ -1,4 +1,5 @@
 #include "./pipelines.hpp"
+#include "../version.hpp"
 
 #include <cstdint>
 #include <map>
@@ -71,7 +72,6 @@ static const std::map<Status, std::string> table_status = {
 	{ Status::NetworkAuthenticationRequired, "Network Authentication Required" }
 };
 
-
 size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& headers) {
 
 	static const char http_version_prefix[] = "HTTP/1.1 ";
@@ -117,4 +117,155 @@ size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& 
 	bytes_written += conn.write(HTTP::Buffer(line_break, static_end(line_break)));
 
 	return bytes_written;
+}
+
+Impl::ResponseWriter::~ResponseWriter() {
+
+	if (!this->m_conn.is_open()) {
+		return;
+	}
+
+	if (!this->m_header_written) {
+		this->m_headers.set("content-length", std::to_string(0));
+		Impl::write_head(this->m_conn, Status::OK, this->m_headers);
+		return;
+	}
+
+	if (this->m_deferred.has_value()) {
+
+		auto& deferred = this->m_deferred.value();
+		
+		//	set content length to terminate response
+		deferred.headers.set("content-length", std::to_string(deferred.body.size()));
+
+		Impl::write_head(this->m_conn, deferred.status, deferred.headers);			
+		this->m_conn.write(deferred.body);
+	}
+}
+
+bool Impl::ResponseWriter::writable() const noexcept {
+	return this->m_conn.is_open();
+}
+
+Headers& Impl::ResponseWriter::header() noexcept {
+	return this->m_headers;
+}
+
+size_t Impl::ResponseWriter::write_header() {
+	return this->write_header(Status::OK);
+}
+
+size_t Impl::ResponseWriter::write_header(Status status) {
+
+	if (this->m_header_written) {
+		throw std::runtime_error("Response header has been already written");
+	}
+
+	this->m_header_written = true;
+
+	//	enable raw io for connections that were upgraded (eg to websockets)
+	auto connection_upgraded = HTTP::reset_case(this->m_headers.get("connection")).contains("upgrade");
+	if (connection_upgraded) {
+		
+		this->m_headers.del("content-length");
+
+		this->m_stream.http_keep_alive = false;
+		this->m_stream.http_body_pending = 0;
+		this->m_stream.raw_io = true;
+
+		//	set raw read timeout to a small value
+		this->m_conn.set_timeouts({ .read = Impl::raw_io_read_timeout, .write = this->m_conn.timeouts().write });
+	}
+
+	//	override keep-alive for streaming connections such as sse
+	auto is_streaming = HTTP::reset_case(this->m_headers.get("content-type")).contains("event-stream");
+	if (is_streaming) {
+		this->m_headers.del("content-length");
+		this->m_stream.http_keep_alive = false;
+	}
+
+	//	set some utility headers
+	if (!this->m_headers.has("connection")) {
+		this->m_headers.set("connection", this->m_stream.http_keep_alive ? "keep-alive" : "close");
+	}
+
+	if (!this->m_headers.has("date")) {
+		this->m_headers.set("date", Date().to_utc_string());
+	}
+
+	if (!this->m_headers.has("server")) {
+		this->m_headers.set("server", LAMBDA_SERVER_HEADER);
+	}
+
+	if (!this->m_headers.has("cache-control")) {
+		this->m_headers.set("cache-control", "no-cache");
+	}
+
+	//	defer response if no content length is provided
+	auto content_length = this->m_headers.get("content-length");
+	if (content_length.empty() && !is_streaming) {
+
+		this->m_deferred = Impl::DeferredResponse {
+			.headers = std::move(this->m_headers),
+			.status = status,
+		};
+
+		this->m_headers = {};
+
+		return 0;
+
+	} else if (!content_length.empty()) {
+		this->m_announced = std::stoul(content_length);
+	}
+
+	return Impl::write_head(this->m_conn, status, this->m_headers);
+}
+
+size_t Impl::ResponseWriter::write(const HTTP::Buffer& data) {
+
+	if (!this->m_header_written) {
+		this->write_header(Status::OK);
+	}
+
+	if (this->m_deferred.has_value()) {
+		auto& deferred = this->m_deferred.value();
+		deferred.body.insert(deferred.body.end(), data.begin(), data.end());
+		return data.size();
+	}
+
+	if (this->m_announced) {
+
+		//	ensure we aren't writing over the specificed content-length
+		auto announced = this->m_announced.value();
+		if (this->m_body_written >= announced) {
+			return 0;
+		}
+
+		//	todo: write to debug when response is truncated
+
+		//	write truncated response
+		auto can_write = announced - this->m_body_written;
+		if (data.size() > can_write) {
+			auto chunk = HTTP::Buffer(data.begin(), data.begin() + can_write);
+			auto bytes_written = this->m_conn.write(chunk);
+			this->m_body_written += bytes_written;
+			return bytes_written;
+		}
+	}
+
+	auto bytes_written = this->m_conn.write(data);
+	this->m_body_written += bytes_written;
+	return bytes_written;
+}
+
+size_t Impl::ResponseWriter::write(const std::string& text) {
+	return this->write(HTTP::Buffer(text.begin(), text.end()));
+}
+
+void Impl::ResponseWriter::set_cookie(const Cookie& cookie) {
+	this->header().append("Set-Cookie", cookie.to_string());
+}
+
+bool Impl::ResponseWriter::is_deferred() const noexcept {
+	return this->m_deferred.has_value();
 }

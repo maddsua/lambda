@@ -39,6 +39,12 @@ namespace Lambda::Pipelines {
 				Headers headers;
 			};
 
+			struct DeferredResponse {
+				Headers headers;
+				Status status;
+				HTTP::Buffer body;
+			};
+
 			void serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServeContext ctx);
 
 			std::expected<RequestHead, RequestError> read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServeContext ctx);
@@ -48,6 +54,51 @@ namespace Lambda::Pipelines {
 
 			size_t write_head(Net::TcpConnection& conn, Status status, const Headers& headers);
 			void discard_unread_body(Net::TcpConnection& conn, StreamState& stream);
+
+			class ResponseWriter : public Lambda::ResponseWriter {
+				private:
+					Net::TcpConnection& m_conn;
+					Impl::StreamState& m_stream;
+					Headers m_headers;
+					bool m_header_written = false;
+					size_t m_body_written = 0;
+					std::optional<Impl::DeferredResponse> m_deferred;
+					std::optional<size_t> m_announced;
+
+				public:
+					ResponseWriter(Net::TcpConnection& conn, StreamState& stream)
+						: m_conn(conn), m_stream(stream) {}
+
+					~ResponseWriter();
+
+					bool writable() const noexcept;
+
+					Headers& header() noexcept;
+
+					size_t write_header();
+					size_t write_header(Status status);
+
+					size_t write(const HTTP::Buffer& data);
+					size_t write(const std::string& text);
+					void set_cookie(const Cookie& cookie);
+					bool is_deferred() const noexcept;
+			};
+
+			class RequestBodyReader : public Lambda::BodyReader {
+				private:
+					Net::TcpConnection& m_conn;
+					Impl::StreamState& m_stream;
+
+				public:
+					RequestBodyReader(Net::TcpConnection& conn, StreamState& stream)
+						: m_conn(conn), m_stream(stream) {}
+
+					bool is_readable() const noexcept;
+
+					HTTP::Buffer read(size_t chunk_size);
+					HTTP::Buffer read_all();
+					std::string text();
+			};
 		};
 	};
 

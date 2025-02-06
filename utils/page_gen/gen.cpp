@@ -42,7 +42,7 @@ std::string read_template_stream(std::istream& stream) {
 		}
 
 		//	trim leading spaces
-		if (!content.size() && is_space(rune)) {
+		if (content.empty() && is_space(rune)) {
 			continue;
 		}
 
@@ -64,7 +64,7 @@ std::string read_template_stream(std::istream& stream) {
 		content.push_back(rune);
 	}
 
-	if (!content.size()) {
+	if (content.empty()) {
 		throw std::runtime_error("Empty template content");
 	}
 	

@@ -6,7 +6,7 @@ using namespace Lambda;
 
 std::optional<BasicAuth> HTTP::parse_basic_auth(const std::string& header) {
 
-	if (!header.size()) {
+	if (header.empty()) {
 		return std::nullopt;
 	}
 

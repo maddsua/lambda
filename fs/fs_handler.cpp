@@ -70,7 +70,6 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 
 		if (req.method != Method::HEAD) {
 			wrt.header().set("content-type", this->html_error_pages ? "text/html" : "text/plain");
-			wrt.header().set("content-length", std::to_string(response_body.size()));
 		}
 
 		wrt.write_header(Status::NotFound);
@@ -138,6 +137,7 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 
 	//	todo: support chunked reads
 	//	https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
+	//	todo: return large files in chunks by default
 
 	wrt.write(content);
 }
