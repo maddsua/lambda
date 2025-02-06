@@ -14,7 +14,7 @@ void log_access(const Request& req, Status status);
 //	generated fn
 std::string render_404_page(const std::string& requeted_url);
 
-void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
+void FileServer::handle(Request& req, ResponseWriter& wrt) {
 
 	switch (req.method) {
 
@@ -142,9 +142,10 @@ void FileServer::handle_request(Request& req, ResponseWriter& wrt) {
 	wrt.write(content);
 }
 
-HandlerFn FileServer::handler() noexcept {
+HandlerFn FileServer::handler_fn() {
+	//	todo: fix lifetime
 	return [&](Request& req, ResponseWriter& wrt) -> void {
-		this->handle_request(req, wrt);
+		this->handle(req, wrt);
 	};
 }
 

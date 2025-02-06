@@ -46,7 +46,6 @@ namespace Lambda {
 	class FileServer {
 		private:
 			FileServerReader& m_reader;
-			void handle_request(Request& req, ResponseWriter& wrt);
 
 		public:
 			bool html_error_pages = true;
@@ -54,8 +53,8 @@ namespace Lambda {
 
 			FileServer(FileServerReader& reader) : m_reader(reader) {}
 
-			//	todo: fix lifetime
-			HandlerFn handler() noexcept;
+			void handle(Request& req, ResponseWriter& wrt);
+			HandlerFn handler_fn();
 	};
 
 	namespace Fs {

@@ -12,7 +12,7 @@ int main() {
 	auto fss = FileServer(fs_reader);
 	fss.debug = true;
 
-	auto server = Lambda::Server(fss.handler(), { .debug = true });
+	auto server = Lambda::Server(fss.handler_fn(), { .debug = true });
 
 	printf("Serves files at: http://localhost:%i/\n", server.options.port);
 
