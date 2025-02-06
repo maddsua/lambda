@@ -69,8 +69,28 @@ URL parse_request_url(HTTP::Buffer& data, size_t begin, size_t end) {
 }
 
 bool is_valid_http_version(HTTP::Buffer& data, size_t begin, size_t end) {
-	//	todo: validate
-	return true;
+
+	auto prefix_end = std::string::npos;
+	for (size_t idx = begin; idx < end; idx++) {
+		if (data[idx] == '/') {
+			prefix_end = idx;
+			break;
+		}
+	}
+
+	if (prefix_end == std::string::npos) {
+		return false;
+	}
+
+	auto version_start = prefix_end + 1;
+	if (version_start >= end) {
+		return false;
+	}
+
+	auto prefix = HTTP::reset_case(std::string(data.begin() + begin, data.begin() + prefix_end));
+	auto version = std::string(data.begin() + version_start, data.begin() + end);
+
+	return prefix == "http" && (version == "1.0" || version == "1.1");
 }
 
 std::expected<Impl::RequestHead, std::string> parse_request_line(Impl::RequestHead& req, HTTP::Buffer& data, size_t begin, size_t end) {
@@ -119,7 +139,7 @@ std::expected<Impl::RequestHead, std::string> parse_request_line(Impl::RequestHe
 	}
 
 	if (!is_valid_http_version(data, begin, tokenEnd)) {
-		return std::unexpected("Unsupported/invalid http version");
+		return std::unexpected("Unsupported http version");
 	}
 
 	return Impl::RequestHead {
