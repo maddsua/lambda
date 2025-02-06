@@ -192,3 +192,15 @@ bin-page_gen: .artifacts/bin-page_gen
 	g++ -std=c++23 -s utils/page_gen/gen.cpp -o .artifacts/bin-page_gen
 gen-page_404: .artifacts/bin-page_gen
 	cat utils/page_gen/templates/page_404.html | .artifacts/bin-page_gen > .artifacts/generated-page_404.cpp
+
+
+#############################################
+#				Examples					#
+#############################################
+
+example-helloworld: .artifacts/example-helloworld
+	.artifacts/example-helloworld
+.artifacts/example-helloworld: .artifacts/example-helloworld.o $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) .artifacts/example-helloworld.o $(LIB_FULL_OBJS) -o .artifacts/example-helloworld
+.artifacts/example-helloworld.o: examples/helloworld.cpp
+	g++ -c $(CFLAGS) examples/helloworld.cpp -o .artifacts/example-helloworld.o
