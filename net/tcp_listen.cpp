@@ -20,8 +20,8 @@ void TcpListener::bind_and_listen() {
 
 	//	allow fast port reuse
 	if (this->options.fast_port_reuse) {
-		static const uint32_t opt_set_val = 1;
-		if (setsockopt(this->m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&(opt_set_val), sizeof(opt_set_val))) {
+		const uint32_t opt_reuse = 1;
+		if (setsockopt(this->m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&(opt_reuse), sizeof(opt_reuse))) {
 			const auto error = Net::Error("TcpListener: Failed to set fast port reuse", lambda_os_errno());
 			lambda_close_sock(this->m_sock);
 			throw error;

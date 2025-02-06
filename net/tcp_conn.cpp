@@ -1,6 +1,9 @@
 #include "./net.hpp"
 #include "./net_os.hpp"
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
 using namespace Lambda::Net;
 
 uint32_t gen_conn_id(SockHandle sock, uint16_t port) {
@@ -86,7 +89,7 @@ size_t TcpConnection::write(const std::vector<uint8_t>& data) {
 		throw Net::Error("TcpConnection: Write on a closed socket");
 	}
 
-	auto bytes_sent = send(this->m_sock, (const char*)data.data(), data.size(), 0);
+	auto bytes_sent = send(this->m_sock, (const char*)data.data(), data.size(), MSG_NOSIGNAL);
 	if (static_cast<size_t>(bytes_sent) == data.size()) {
 		return bytes_sent;
 	}
