@@ -31,6 +31,7 @@ namespace Lambda::Pipelines {
 				size_t http_body_pending = 0;
 				bool http_keep_alive = true;
 				bool raw_io = false;
+				bool stream_response = false;
 			};
 
 			struct RequestHead {

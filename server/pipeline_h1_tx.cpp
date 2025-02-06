@@ -163,9 +163,8 @@ size_t Impl::ResponseWriter::write_header(Status status) {
 
 	this->m_header_written = true;
 
-	//	enable raw io for connections that were upgraded (eg to websockets)
-	auto connection_upgraded = HTTP::reset_case(this->m_headers.get("connection")).contains("upgrade");
-	if (connection_upgraded) {
+	//	flag upgraded connections (eg to websockets)
+	if (HTTP::reset_case(this->m_headers.get("connection")).contains("upgrade")) {
 		
 		this->m_headers.del("content-length");
 
@@ -177,11 +176,11 @@ size_t Impl::ResponseWriter::write_header(Status status) {
 		this->m_conn.set_timeouts({ .read = Impl::raw_io_read_timeout, .write = this->m_conn.timeouts().write });
 	}
 
-	//	override keep-alive for streaming connections such as sse
-	auto is_streaming = HTTP::reset_case(this->m_headers.get("content-type")).contains("event-stream");
-	if (is_streaming) {
+	//	flag streaming responses such as sse
+	if (HTTP::reset_case(this->m_headers.get("content-type")).contains("event-stream")) {
 		this->m_headers.del("content-length");
 		this->m_stream.http_keep_alive = false;
+		this->m_stream.stream_response = true;
 	}
 
 	//	set some utility headers
@@ -202,8 +201,9 @@ size_t Impl::ResponseWriter::write_header(Status status) {
 	}
 
 	//	defer response if no content length is provided
+	auto body_deferrable = !(this->m_stream.stream_response || this->m_stream.raw_io);
 	auto content_length = this->m_headers.get("content-length");
-	if (content_length.empty() && !is_streaming) {
+	if (body_deferrable && content_length.empty()) {
 
 		this->m_deferred = Impl::DeferredResponse {
 			.headers = std::move(this->m_headers),
