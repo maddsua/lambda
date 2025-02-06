@@ -8,7 +8,6 @@ using namespace Lambda::Pipelines::H1;
 
 void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServeContext ctx) {
 
-	//	todo: fix stream not disconnecting on idle
 	conn.set_timeouts({
 		.read = Server::DefaultIoTimeout,
 		.write = Server::DefaultIoTimeout
@@ -55,6 +54,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 
 		const auto error = expected_req.error();
 		if (error.discard) {
+			conn.close();
 			return;
 		}
 
