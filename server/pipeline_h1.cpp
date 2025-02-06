@@ -8,31 +8,56 @@ using namespace Lambda::Pipelines::H1;
 bool is_connection_upgrade(const Headers& headers);
 bool is_streaming_response(const Headers& headers);
 
-struct RequestState {
-	Impl::RequestHead req;
-	bool can_have_body = false;
-	bool has_content_type = false;
-	bool header_written = false;
-	std::optional<size_t> content_length;
-	Headers response_headers;
+struct DeferredResponse {
+	Headers headers;
+	Status status;
+	HTTP::Buffer body;
 };
 
 class ResponseWriterImpl : public ResponseWriter {
 	private:
 		Net::TcpConnection& m_conn;
 		Impl::StreamState& m_stream;
-		RequestState& m_state;
+		Headers m_headers;
+		bool m_header_written = false;
+		size_t m_body_written = 0;
+		std::optional<DeferredResponse> m_deferred;
+		std::optional<size_t> m_announced;
 
 	public:
-		ResponseWriterImpl(Net::TcpConnection& conn, Impl::StreamState& stream, RequestState& state)
-			: m_conn(conn), m_stream(stream), m_state(state) {}
+		ResponseWriterImpl(Net::TcpConnection& conn, Impl::StreamState& stream)
+			: m_conn(conn), m_stream(stream) {}
+
+		~ResponseWriterImpl() {
+
+			if (!this->m_conn.is_open()) {
+				return;
+			}
+
+			if (!this->m_header_written) {
+				this->m_headers.set("content-length", std::to_string(0));
+				Impl::write_head(this->m_conn, Status::OK, this->m_headers);
+				return;
+			}
+
+			if (this->m_deferred.has_value()) {
+
+				auto& deferred = this->m_deferred.value();
+				
+				//	set content length to terminate response
+				deferred.headers.set("content-length", std::to_string(deferred.body.size()));
+
+				Impl::write_head(this->m_conn, deferred.status, deferred.headers);			
+				this->m_conn.write(deferred.body);
+			}
+		}
 
 		bool writable() const noexcept {
 			return this->m_conn.is_open();
 		}
 
 		Headers& header() noexcept {
-			return this->m_state.response_headers;
+			return this->m_headers;
 		}
 
 		size_t write_header() {
@@ -41,14 +66,14 @@ class ResponseWriterImpl : public ResponseWriter {
 
 		size_t write_header(Status status) {
 
-			if (this->m_state.header_written) {
+			if (this->m_header_written) {
 				throw std::runtime_error("Response header has been already written");
 			}
 
-			this->m_state.header_written = true;
+			this->m_header_written = true;
 
 			//	enable raw io for connections that were upgraded (eg to websockets)
-			if (is_connection_upgrade(this->m_state.response_headers)) {
+			if (is_connection_upgrade(this->m_headers)) {
 				this->m_stream.http_keep_alive = false;
 				this->m_stream.http_body_pending = 0;
 				this->m_stream.raw_io = true;
@@ -57,38 +82,49 @@ class ResponseWriterImpl : public ResponseWriter {
 			}
 
 			//	override keep-alive for streaming connections such as sse
-			if (is_streaming_response(this->m_state.response_headers)) {
+			if (is_streaming_response(this->m_headers)) {
 				this->m_stream.http_keep_alive = false;
 			}
 
-			//	mark response end with responses with no body and no body indications
-			if (!this->m_state.response_headers.has("content-type") && !this->m_state.response_headers.has("content-length")) {
-				this->m_state.response_headers.set("content-length", std::to_string(0));
+			auto content_length = this->m_headers.get("content-length");
+
+			//	defer response if no content length is provided
+			if (content_length.empty()) {
+
+				this->m_deferred = DeferredResponse {
+					.headers = std::move(this->m_headers),
+					.status = status,
+				};
+
+				this->m_headers = {};
+
+				return 0;
 			}
 
-			return Impl::write_head(this->m_conn, status, this->m_state.response_headers);
+			this->m_announced = std::stoul(content_length);
+
+			return Impl::write_head(this->m_conn, status, this->m_headers);
 		}
 
 		size_t write(const HTTP::Buffer& data) {
 
-			//	todo: handle over-content-length writes
-
-			size_t bytes_written = 0;
-
-			if (!this->m_state.header_written) {
-
-				//	force content type on untyped data
-				if (!this->m_state.response_headers.has("content-type")) {
-					this->m_state.response_headers.set("content-type", "application/octet-stream");
-				}
-
-				bytes_written = this->write_header(Status::OK);
-				this->m_state.header_written = true;
+			if (!this->m_header_written) {
+				this->write_header(Status::OK);
 			}
 
-			bytes_written += this->m_conn.write(data);
+			if (this->m_deferred.has_value()) {
+				auto& deferred = this->m_deferred.value();
+				deferred.body.insert(deferred.body.end(), data.begin(), data.end());
+				return data.size();
+			}
 
-			return bytes_written;
+			auto next_body_written = this->m_body_written + data.size();
+			if (this->m_announced.has_value() && next_body_written > this->m_announced.value()) {
+				return 0;
+			}
+
+			this->m_body_written = next_body_written;
+			return this->m_conn.write(data);
 		}
 
 		size_t write(const std::string& text) {
@@ -96,7 +132,7 @@ class ResponseWriterImpl : public ResponseWriter {
 		}
 
 		void set_cookie(const Cookie& cookie) {
-			this->m_state.response_headers.append("Set-Cookie", cookie.to_string());
+			this->header().append("Set-Cookie", cookie.to_string());
 		}
 };
 
@@ -205,50 +241,39 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 		return Impl::terminate_with_error(conn, error.status, error.message);
 	}
 
-	RequestState state {
-		.req = std::move(expected_req.value()),
-		.can_have_body = HTTP::method_can_have_body(state.req.method),
-		.has_content_type = state.req.headers.has("content-type"),
-		.header_written = false,
-		.content_length = state.can_have_body ? Impl::content_length(state.req.headers) : std::nullopt,
-	};
+	auto req = std::move(expected_req.value());
+	auto can_have_body = HTTP::method_can_have_body(req.method);
+	auto has_content_type = req.headers.has("content-type");
+	auto content_length = can_have_body ? Impl::content_length(req.headers) : std::nullopt;
 
-	stream.http_body_pending = state.content_length.has_value() ? state.content_length.value() : 0;
+	stream.http_body_pending = content_length.has_value() ? content_length.value() : 0;
 
 	//	drop mutation requests with no content body
-	if (state.can_have_body && state.has_content_type && !state.content_length.has_value()) {
+	if (can_have_body && has_content_type && !content_length.has_value()) {
 		return Impl::terminate_with_error(conn, Status::LengthRequired, "Content-Length header required for methods POST, PUT, PATCH...");
 	}
 
 	//	get keepalive from client
-	auto client_connection_header = state.req.headers.get("connection");
+	auto client_connection_header = req.headers.get("connection");
 	if (client_connection_header.contains("close")) {
 		stream.http_keep_alive = false;
 	}
 
-	state.response_headers.set("connection", stream.http_keep_alive ? "keep-alive" : "close");
-
-	//	prepare handler arguments
 	auto request_body_reader = RequestBodyImpl(conn, stream);
-	auto response_writer = ResponseWriterImpl(conn, stream, state);
+	auto response_writer = ResponseWriterImpl(conn, stream);
+
+	response_writer.header().set("connection", stream.http_keep_alive ? "keep-alive" : "close");
 
 	auto request = Request {
 		.remote_addr = conn.remote_addr(),
-		.method = state.req.method,
-		.url = state.req.url,
-		.headers = state.req.headers,
-		.cookies = HTTP::parse_cookie(state.req.headers.get("cookie")),
+		.method = req.method,
+		.url = std::move(req.url),
+		.headers = std::move(req.headers),
+		.cookies = HTTP::parse_cookie(req.headers.get("cookie")),
 		.body = request_body_reader,
 	};
 
-	//	invoke provided handler fn
 	handler(request, response_writer);
-
-	//	terminate empty responses
-	if (!state.header_written && conn.is_open()) {
-		state.response_headers.set("content-length", std::to_string(0));
-		Impl::write_head(conn, Status::OK, state.response_headers);
-	}
 }
 
 bool is_connection_upgrade(const Headers& headers) {

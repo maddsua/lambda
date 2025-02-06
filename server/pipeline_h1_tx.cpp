@@ -123,6 +123,10 @@ size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& 
 		bytes_written += write_header("server", LAMBDA_SERVER_HEADER);
 	}
 
+	if (!headers.has("cache-control")) {
+		bytes_written += write_header("cache-control", "no-cache");
+	}
+
 	bytes_written += conn.write(HTTP::Buffer(line_break, static_end(line_break)));
 
 	return bytes_written;
