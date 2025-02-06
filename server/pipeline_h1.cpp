@@ -63,6 +63,9 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 		response_writer.write_header(error.status);
 		response_writer.write(error.message);
 
+		response_writer.flush();
+		conn.close();
+
 		return;
 	}
 
@@ -76,7 +79,6 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 	//	drop mutation requests with no content body
 	if (can_have_body && has_content_type && !content_length.has_value()) {
 
-		response_writer.header().set("connection", "close");
 		response_writer.header().set("content-type", "text/plain");
 		response_writer.write_header(Status::LengthRequired);
 		response_writer.write("Content-Length header required for methods POST, PUT, PATCH...");

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <map>
+#include <expected>
 
 using namespace Lambda;
 using namespace Lambda::Pipelines::H1;
@@ -39,7 +40,9 @@ size_t next_line(HTTP::Buffer& data, size_t begin, size_t end) {
 	return Impl::nullidx;
 }
 
-void parse_request_url(URL& url, HTTP::Buffer& data, size_t begin, size_t end) {
+URL parse_request_url(HTTP::Buffer& data, size_t begin, size_t end) {
+
+	URL url;
 
 	//	find page anchor, if exists (it really should not)
 	for (size_t idx = begin; idx < end; idx++) {
@@ -61,6 +64,8 @@ void parse_request_url(URL& url, HTTP::Buffer& data, size_t begin, size_t end) {
 
 	//	lastly, get the path
 	url.path = std::string(data.begin() + begin, data.begin() + end);
+
+	return url;
 }
 
 bool is_valid_http_version(HTTP::Buffer& data, size_t begin, size_t end) {
@@ -68,40 +73,43 @@ bool is_valid_http_version(HTTP::Buffer& data, size_t begin, size_t end) {
 	return true;
 }
 
-std::optional<std::runtime_error> parse_request_line(Impl::RequestHead& req, HTTP::Buffer& data, size_t begin, size_t end) {
+std::expected<Impl::RequestHead, std::string> parse_request_line(Impl::RequestHead& req, HTTP::Buffer& data, size_t begin, size_t end) {
 
 	// skip possible whitespaces
 	begin = next_token(data, begin, end);
 	if (begin == Impl::nullidx) {
-		return std::runtime_error("Request line invalid: invalid spacing");
+		return std::unexpected("Request line invalid: invalid spacing");
 	}
 
 	//	get request method
 	auto tokenEnd = next_space(data, begin, end);
 	if (tokenEnd == Impl::nullidx) {
-		return std::runtime_error("Request line invalid: no defined method");
+		return std::unexpected("Request line invalid: no defined method");
 	}
 
-	req.method = HTTP::string_to_method(std::string(data.begin() + begin, data.begin() + tokenEnd));
+	auto method_opt = HTTP::string_to_method(std::string(data.begin() + begin, data.begin() + tokenEnd));
+	if (!method_opt.has_value()) {
+		return std::unexpected("Invlid http method");
+	}
 
 	//	skip to url
 	begin = next_token(data, tokenEnd, end);
 	if (begin == Impl::nullidx) {
-		return std::runtime_error("Request line invalid: invalid spacing");
+		return std::unexpected("Request line invalid: invalid spacing");
 	}
 
 	//	get request url
 	tokenEnd = next_space(data, begin, end);
 	if (tokenEnd == Impl::nullidx) {
-		return std::runtime_error("Request line invalid: no defined url");
+		return std::unexpected("Request line invalid: no defined url");
 	}
 
-	parse_request_url(req.url, data, begin, tokenEnd);
+	auto url = parse_request_url(data, begin, tokenEnd);
 
 	//	skip to version
 	begin = next_token(data, tokenEnd, end);
 	if (begin == Impl::nullidx) {
-		return std::runtime_error("Request line invalid: invalid spacing");
+		return std::unexpected("Request line invalid: invalid spacing");
 	}
 
 	//	get http version
@@ -111,10 +119,13 @@ std::optional<std::runtime_error> parse_request_line(Impl::RequestHead& req, HTT
 	}
 
 	if (!is_valid_http_version(data, begin, tokenEnd)) {
-		return std::runtime_error("Unsupported/invalid http version");
+		return std::unexpected("Unsupported/invalid http version");
 	}
 
-	return std::nullopt;
+	return Impl::RequestHead {
+		.method = method_opt.value(),
+		.url = url
+	};
 }
 
 void parse_header(Headers& headers, HTTP::Buffer& data, size_t begin, size_t end) {
@@ -168,9 +179,8 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net
 	size_t chunker_seek = nullidx;
 	size_t total_read = 0;
 
-	bool request_line_parsed = false;
-
 	RequestHead next;
+	bool request_line_parsed = false;
 
 	while (!ctx.done()) {
 
@@ -215,14 +225,15 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net
 
 		if (!request_line_parsed) {
 
-			auto parse_error = parse_request_line(next, read_buff, line_begin, line_end);
-			if (parse_error.has_value()) {
+			auto req_line = parse_request_line(next, read_buff, line_begin, line_end);
+			if (!req_line.has_value()) {
 				return std::unexpected<Impl::RequestError>({
-					parse_error.value().what(),
+					req_line.error(),
 					Status::BadRequest,
 				});
 			}
 
+			next = req_line.value();
 			request_line_parsed = true;
 		}
 

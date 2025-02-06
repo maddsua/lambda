@@ -41,11 +41,11 @@ const std::string& HTTP::method_to_string(Method method) {
 	}
 }
 
-Method HTTP::string_to_method(const std::string& method) {
+std::optional<Method> HTTP::string_to_method(const std::string& method) {
 
 	auto entry = table_method.find(method);
 	if (entry == table_method.end()) {
-		throw std::runtime_error("Invalid http method name");
+		return std::nullopt;
 	}
 
 	return entry->second;

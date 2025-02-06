@@ -120,15 +120,18 @@ size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& 
 }
 
 Impl::ResponseWriter::~ResponseWriter() {
+	this->flush();
+}
+
+size_t Impl::ResponseWriter::flush() {
 
 	if (!this->m_conn.is_open()) {
-		return;
+		return 0;
 	}
 
 	if (!this->m_header_written) {
 		this->m_headers.set("content-length", std::to_string(0));
-		Impl::write_head(this->m_conn, Status::OK, this->m_headers);
-		return;
+		return Impl::write_head(this->m_conn, Status::OK, this->m_headers);
 	}
 
 	if (this->m_deferred.has_value()) {
@@ -138,9 +141,13 @@ Impl::ResponseWriter::~ResponseWriter() {
 		//	set content length to terminate response
 		deferred.headers.set("content-length", std::to_string(deferred.body.size()));
 
-		Impl::write_head(this->m_conn, deferred.status, deferred.headers);			
-		this->m_conn.write(deferred.body);
+		auto bytes_written = Impl::write_head(this->m_conn, deferred.status, deferred.headers);			
+		bytes_written += this->m_conn.write(deferred.body);
+
+		return bytes_written;
 	}
+
+	return 0;
 }
 
 bool Impl::ResponseWriter::writable() const noexcept {

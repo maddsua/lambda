@@ -81,6 +81,7 @@ namespace Lambda::Pipelines {
 
 					size_t write(const HTTP::Buffer& data);
 					size_t write(const std::string& text);
+					size_t flush();
 					void set_cookie(const Cookie& cookie);
 					bool is_deferred() const noexcept;
 			};

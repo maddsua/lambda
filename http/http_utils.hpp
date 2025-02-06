@@ -12,7 +12,7 @@ namespace Lambda::HTTP {
 	std::optional<BasicAuth> parse_basic_auth(const std::string& header);
 
 	const std::string& method_to_string(Method method);
-	Method string_to_method(const std::string& method);
+	std::optional<Method> string_to_method(const std::string& method);
 	bool method_can_have_body(Method method);
 
 	std::string reset_case(std::string value);
