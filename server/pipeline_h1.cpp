@@ -83,6 +83,8 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 		response_writer.write_header(Status::LengthRequired);
 		response_writer.write("Content-Length header required for methods POST, PUT, PATCH...");
 
+		response_writer.flush();
+
 		return;
 	}
 
@@ -102,4 +104,6 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 	};
 
 	handler(request, response_writer);
+
+	response_writer.flush();
 }

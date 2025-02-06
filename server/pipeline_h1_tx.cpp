@@ -119,10 +119,6 @@ size_t Impl::write_head(Net::TcpConnection& conn, Status status, const Headers& 
 	return bytes_written;
 }
 
-Impl::ResponseWriter::~ResponseWriter() {
-	this->flush();
-}
-
 size_t Impl::ResponseWriter::flush() {
 
 	if (!this->m_conn.is_open()) {

@@ -70,8 +70,6 @@ namespace Lambda::Pipelines {
 					ResponseWriter(Net::TcpConnection& conn, StreamState& stream)
 						: m_conn(conn), m_stream(stream) {}
 
-					~ResponseWriter();
-
 					bool writable() const noexcept;
 
 					Headers& header() noexcept;
