@@ -11,7 +11,6 @@ bool is_streaming_response(const Headers& headers);
 struct DeferredResponse {
 	Headers headers;
 	Status status;
-	//	todo: limit max deferred size
 	HTTP::Buffer body;
 };
 
@@ -75,15 +74,20 @@ class ResponseWriterImpl : public ResponseWriter {
 
 			//	enable raw io for connections that were upgraded (eg to websockets)
 			if (is_connection_upgrade(this->m_headers)) {
+				
+				this->m_headers.del("content-length");
+
 				this->m_stream.http_keep_alive = false;
 				this->m_stream.http_body_pending = 0;
 				this->m_stream.raw_io = true;
+
 				//	set raw read timeout to a small value
 				this->m_conn.set_timeouts({ .read = Impl::raw_io_read_timeout, .write = this->m_conn.timeouts().write });
 			}
 
 			//	override keep-alive for streaming connections such as sse
 			if (is_streaming_response(this->m_headers)) {
+				this->m_headers.del("content-length");
 				this->m_stream.http_keep_alive = false;
 			}
 
@@ -119,14 +123,29 @@ class ResponseWriterImpl : public ResponseWriter {
 				return data.size();
 			}
 
-			auto next_body_written = this->m_body_written + data.size();
-			if (this->m_announced.has_value() && next_body_written > this->m_announced.value()) {
-				//	todo: truncate instead of discarding
-				return 0;
+			if (this->m_announced) {
+
+				//	ensure we aren't writing over the specificed content-length
+				auto announced = this->m_announced.value();
+				if (this->m_body_written >= announced) {
+					return 0;
+				}
+
+				//	todo: write to debug when response is truncated
+
+				//	write truncated response
+				auto can_write = announced - this->m_body_written;
+				if (data.size() > can_write) {
+					auto chunk = HTTP::Buffer(data.begin(), data.begin() + can_write);
+					auto bytes_written = this->m_conn.write(chunk);
+					this->m_body_written += bytes_written;
+					return bytes_written;
+				}
 			}
 
-			this->m_body_written = next_body_written;
-			return this->m_conn.write(data);
+			auto bytes_written = this->m_conn.write(data);
+			this->m_body_written += bytes_written;
+			return bytes_written;
 		}
 
 		size_t write(const std::string& text) {
@@ -135,6 +154,10 @@ class ResponseWriterImpl : public ResponseWriter {
 
 		void set_cookie(const Cookie& cookie) {
 			this->header().append("Set-Cookie", cookie.to_string());
+		}
+
+		bool is_deferred() const noexcept {
+			return this->m_deferred.has_value();
 		}
 };
 
