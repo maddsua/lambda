@@ -25,7 +25,7 @@ Values& Values::operator=(Values&& other) noexcept {
 bool Values::has(const std::string& key) const noexcept {
 
 	auto normalized_key = HTTP::reset_case(key);
-	if (normalized_key == "") {
+	if (normalized_key.empty()) {
 		return false;
 	}
 
@@ -35,7 +35,7 @@ bool Values::has(const std::string& key) const noexcept {
 std::string Values::get(const std::string& key) const noexcept {
 
 	auto normalized_key = HTTP::reset_case(key);
-	if (normalized_key == "") {
+	if (normalized_key.empty()) {
 		return "";
 	}
 
@@ -55,7 +55,7 @@ std::string Values::get(const std::string& key) const noexcept {
 MultiValue Values::get_all(const std::string& key) const noexcept {
 
 	auto normalized_key = HTTP::reset_case(key);
-	if (normalized_key == "") {
+	if (normalized_key.empty()) {
 		return {};
 	}
 
@@ -74,7 +74,7 @@ MultiValue Values::get_all(const std::string& key) const noexcept {
 void Values::set(const std::string& key, const std::string& value) noexcept {
 
 	auto normalized_key = HTTP::reset_case(key);
-	if (normalized_key == "") {
+	if (normalized_key.empty()) {
 		return;
 	}
 
@@ -84,7 +84,7 @@ void Values::set(const std::string& key, const std::string& value) noexcept {
 void Values::append(const std::string& key, const std::string& value) noexcept {
 
 	auto normalized_key = HTTP::reset_case(key);
-	if (normalized_key == "") {
+	if (normalized_key.empty()) {
 		return;
 	}
 
@@ -100,7 +100,7 @@ void Values::append(const std::string& key, const std::string& value) noexcept {
 void Values::del(const std::string& key) noexcept {
 
 	auto normalized_key = HTTP::reset_case(key);
-	if (normalized_key == "") {
+	if (normalized_key.empty()) {
 		return;
 	}
 

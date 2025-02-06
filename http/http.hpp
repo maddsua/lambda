@@ -244,8 +244,8 @@ namespace Lambda {
 	struct Request {
 		Net::RemoteAddress remote_addr;
 		Method method;
-		URL url;
-		Headers headers;
+		URL& url;
+		Headers& headers;
 		CookieValues cookies;
 		BodyReader& body;
 	};

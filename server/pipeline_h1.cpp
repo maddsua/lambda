@@ -97,9 +97,8 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 	auto request = Request {
 		.remote_addr = conn.remote_addr(),
 		.method = req.method,
-		.url = std::move(req.url),
-		.headers = std::move(req.headers),
-		//	todo: fix cookies missing
+		.url = req.url,
+		.headers = req.headers,
 		.cookies = HTTP::parse_cookie(req.headers.get("cookie")),
 		.body = request_body_reader,
 	};
