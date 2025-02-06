@@ -1,4 +1,4 @@
-//	Reply with client's user agent
+//	A sample REST API server
 
 #include <cstdio>
 

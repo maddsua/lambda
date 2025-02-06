@@ -1,4 +1,4 @@
-//	Reply with client's user agent
+//	Stream some SSE events
 
 #include <cstdio>
 
