@@ -9,8 +9,6 @@ using namespace Lambda::Pipelines::H1;
 bool is_connection_upgrade(const Headers& headers);
 bool is_streaming_response(const Headers& headers);
 
-void terminate_with_error(Net::TcpConnection& conn, Status status, std::string message);
-
 struct DeferredResponse {
 	Headers headers;
 	Status status;
@@ -270,6 +268,9 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 
 void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServeContext ctx) {
 
+	auto request_body_reader = RequestBodyImpl(conn, stream);
+	auto response_writer = ResponseWriterImpl(conn, stream);
+
 	auto expected_req = Impl::read_request_head(conn, stream.read_buff, ctx);
 	if (!expected_req.has_value()) {
 
@@ -282,7 +283,12 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 			return;
 		}
 
-		return terminate_with_error(conn, error.status, error.message);
+		response_writer.header().set("connection", "close");
+		response_writer.header().set("content-type", "text/plain");
+		response_writer.write_header(error.status);
+		response_writer.write(error.message);
+
+		return;
 	}
 
 	auto req = std::move(expected_req.value());
@@ -294,7 +300,13 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 
 	//	drop mutation requests with no content body
 	if (can_have_body && has_content_type && !content_length.has_value()) {
-		return terminate_with_error(conn, Status::LengthRequired, "Content-Length header required for methods POST, PUT, PATCH...");
+
+		response_writer.header().set("connection", "close");
+		response_writer.header().set("content-type", "text/plain");
+		response_writer.write_header(Status::LengthRequired);
+		response_writer.write("Content-Length header required for methods POST, PUT, PATCH...");
+
+		return;
 	}
 
 	//	get keepalive from client
@@ -302,9 +314,6 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 	if (client_connection_header.contains("close")) {
 		stream.http_keep_alive = false;
 	}
-
-	auto request_body_reader = RequestBodyImpl(conn, stream);
-	auto response_writer = ResponseWriterImpl(conn, stream);
 
 	auto request = Request {
 		.remote_addr = conn.remote_addr(),
@@ -324,18 +333,4 @@ bool is_connection_upgrade(const Headers& headers) {
 
 bool is_streaming_response(const Headers& headers) {
 	return HTTP::reset_case(headers.get("content-type")).contains("event-stream");
-}
-
-void terminate_with_error(Net::TcpConnection& conn, Status status, std::string message) {
-
-	Headers response_headers;
-	
-	response_headers.set("connection", "close");
-	response_headers.set("content-type", "text/plain");
-	response_headers.set("content-length", std::to_string(message.size()));
-
-	Impl::write_head(conn, status, response_headers);
-	conn.write(HTTP::Buffer(message.begin(), message.end()));
-
-	conn.close();
 }
