@@ -1,43 +1,43 @@
 #include "./http.hpp"
+#include "./http_utils.hpp"
 
 #include <stdexcept>
 
 using namespace Lambda;
 
-//	todo: do component validation
 URL::URL(const std::string& url) {
 
 	//	get url schema and shift first pointer
-	auto scheme_token = url.find("://");
-	if (scheme_token != std::string::npos) {
-		this->scheme = url.substr(0, scheme_token);
-		scheme_token += 3;
+	auto scheme_end = url.find("://");
+	if (scheme_end != std::string::npos) {
+		this->scheme = HTTP::reset_case(url.substr(0, scheme_end));
+		scheme_end += 3;
 	} else {
-		scheme_token = 0;
+		scheme_end = 0;
 	}
 
 	//	get the start of a url path
-	auto path_token = std::string::npos;
-	for (size_t idx = scheme_token; idx < url.size(); idx++) {
+	auto path_begin = std::string::npos;
+	for (size_t idx = scheme_end; idx < url.size(); idx++) {
 		if (url[idx] == '/') {
-			path_token = idx;
+			path_begin = idx;
 			break;
 		}
 	}
 
 	//	path is always required
-	if (path_token == std::string::npos) {
+	if (path_begin == std::string::npos) {
 		throw std::runtime_error("URL: Parsing error: Path is not defined");
 	}
 
-	auto parse_credentials = [&](size_t token_start, size_t token_end) -> std::optional<BasicAuth> {
+	auto parse_credentials = [&](size_t token_begin, size_t token_end) -> std::optional<BasicAuth> {
 
-		if (token_end - token_start < 2) {
+		if (token_end - token_begin < 2) {
 			return std::nullopt;
 		}
 
 		auto auth_split = std::string::npos;
-		for (size_t idx = token_start; idx < token_end; idx++) {
+		for (size_t idx = token_begin; idx < token_end; idx++) {
 			if (url[idx] == ':') {
 				auth_split = idx;
 				break;
@@ -45,16 +45,16 @@ URL::URL(const std::string& url) {
 		}
 
 		if (auth_split == std::string::npos) {
-			return BasicAuth { .user = url.substr(token_start, token_end - token_start) };
+			return BasicAuth { .user = url.substr(token_begin, token_end - token_begin) };
 		}
 
-		if (auth_split - token_start < 1) {
+		if (auth_split - token_begin < 1) {
 			return std::nullopt;
 		}
 
 		auto password_start = auth_split + 1;
 
-		BasicAuth auth { .user = url.substr(token_start, auth_split - token_start) };
+		BasicAuth auth { .user = url.substr(token_begin, auth_split - token_begin) };
 
 		if (token_end - password_start > 0) {
 			auth.password = url.substr(password_start, token_end - password_start);
@@ -64,45 +64,45 @@ URL::URL(const std::string& url) {
 	};
 
 	//	get user auth string
-	auto auth_token = std::string::npos;
-	for (size_t idx = scheme_token; idx < path_token; idx++) {
+	auto auth_end = std::string::npos;
+	for (size_t idx = scheme_end; idx < path_begin; idx++) {
 		if (url[idx] == '@') {
-			auth_token = idx;
+			auth_end = idx;
 			break;
 		}
 	}
 
 	//	get basic auth and host name
-	if (auth_token != std::string::npos) {
-		auto path_start = auth_token + 1;
-		this->host = url.substr(path_start, path_token - path_start);
-		this->user = parse_credentials(scheme_token, auth_token);
+	if (auth_end != std::string::npos) {
+		auto path_begin = auth_end + 1;
+		this->host = HTTP::reset_case(url.substr(path_begin, path_begin - path_begin));
+		this->user = parse_credentials(scheme_end, auth_end);
 	} else {
-		this->host = url.substr(scheme_token, path_token - scheme_token);
+		this->host = HTTP::reset_case(url.substr(scheme_end, path_begin - scheme_end));
 	}
 
 	//	mark fragment
-	auto fragment_token = url.size();
-	for (size_t idx = path_token; idx < url.size(); idx++) {
+	auto fragment_begin = url.size();
+	for (size_t idx = path_begin; idx < url.size(); idx++) {
 		if (url[idx] == '#') {
 			this->fragment = url.substr(idx, url.size() - idx);
-			fragment_token = idx;
+			fragment_begin = idx;
 			break;
 		}
 	}
 
 	//	get query
-	auto query_token = fragment_token;
-	for (size_t idx = path_token; idx < fragment_token; idx++) {
+	auto query_begin = fragment_begin;
+	for (size_t idx = path_begin; idx < fragment_begin; idx++) {
 		if (url[idx] == '?') {
 			auto search_start = idx + 1;
-			this->search = URLSearchParams(url.substr(search_start, fragment_token - search_start));
-			query_token = idx;
+			this->search = URLSearchParams(url.substr(search_start, fragment_begin - search_start));
+			query_begin = idx;
 			break;
 		}
 	}
 
-	this->path = url.substr(path_token, query_token - path_token);
+	this->path = HTTP::reset_case(url.substr(path_begin, query_begin - path_begin));
 }
 
 std::string URL::to_string() const noexcept {
@@ -155,26 +155,26 @@ std::string URL::href() const {
 
 	std::string url;
 
-	if (!this->scheme.size()) {
+	if (this->scheme.empty()) {
 		throw std::runtime_error("URL: Cannot create href: Scheme missing");
 	}
 
 	url.append(this->scheme);
 
-	if (!this->host.size()) {
+	if (this->host.empty()) {
 		throw std::runtime_error("URL: Cannot create href from a relative URL");
 	}
 
 	url.append("://");
 	url.append(this->host);
 
-	if (!this->path.size()) {
+	if (this->path.empty()) {
 		throw std::runtime_error("URL: Cannot create href: Path missing");
 	}
 
 	url.append(this->path);
 
-	if (this->search.size()) {
+	if (!this->search.empty()) {
 		url.push_back('?');
 		url.append(this->search.to_string());
 	}

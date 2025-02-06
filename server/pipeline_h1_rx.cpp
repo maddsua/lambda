@@ -63,7 +63,7 @@ URL parse_request_url(HTTP::Buffer& data, size_t begin, size_t end) {
 	}
 
 	//	lastly, get the path
-	url.path = std::string(data.begin() + begin, data.begin() + end);
+	url.path = HTTP::reset_case(std::string(data.begin() + begin, data.begin() + end));
 
 	return url;
 }

@@ -38,6 +38,7 @@ namespace Lambda {
 				void del(const std::string& key) noexcept;
 				Entries entries() const noexcept;
 				size_t size() const noexcept;
+				bool empty() const noexcept;
 		};
 
 		typedef std::vector<uint8_t> Buffer;

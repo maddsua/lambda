@@ -124,6 +124,10 @@ size_t Values::size() const noexcept {
 	return this->m_entries.size();
 }
 
+bool Values::empty() const noexcept {
+	return this->m_entries.empty();
+}
+
 std::string HTTP::reset_case(std::string token) {
 
 	//	find token beginning
