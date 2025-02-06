@@ -70,7 +70,7 @@
 		}
 
 		inline bool lambda_is_error_disconnect(int code) noexcept {
-			return code == ECONNRESET;
+			return code == ECONNRESET || code == EPIPE;
 		}
 
 		inline bool lambda_is_error_timeout(int code) noexcept {

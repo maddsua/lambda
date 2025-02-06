@@ -32,7 +32,7 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 
 		auto sse = SSEWriter(wrt);
 
-		for (size_t idx = 0; idx < 4; idx++) {
+		for (size_t idx = 0; idx < 4 && sse.is_writable(); idx++) {
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 			sse.write({ .event = "update", .data = "idx=" + std::to_string(idx), });
 		}

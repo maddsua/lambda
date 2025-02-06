@@ -14,8 +14,6 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 		.write = Server::DefaultIoTimeout
 	});
 
-	//	todo: fix broken pipe exit on client disconnect during write
-
 	Impl::StreamState stream;
 
 	if (ctx.opts.debug) {

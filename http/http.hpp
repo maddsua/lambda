@@ -279,7 +279,7 @@ namespace Lambda {
 	class SSEWriter {
 		private:
 			ResponseWriter& m_writer;
-			bool m_ok;
+			bool m_ok = true;
 		public:
 			SSEWriter(ResponseWriter& writer);
 			~SSEWriter();
