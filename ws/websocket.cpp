@@ -106,8 +106,6 @@ std::optional<size_t> unpack_paylen(const std::vector<uint8_t>& read_buff, size_
 
 	} else if (payload_len_bit == 127) {
 
-		//	todo: test
-
 		uint64_t payload_len = 0;
 		if (read_buff.size() < seek + sizeof(payload_len)) {
 			return std::nullopt;
