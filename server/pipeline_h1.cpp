@@ -99,6 +99,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 		.method = req.method,
 		.url = std::move(req.url),
 		.headers = std::move(req.headers),
+		//	todo: fix cookies missing
 		.cookies = HTTP::parse_cookie(req.headers.get("cookie")),
 		.body = request_body_reader,
 	};

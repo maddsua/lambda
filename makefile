@@ -211,3 +211,24 @@ example-kvserver: .artifacts/example-kvserver
 	g++ $(CFLAGS) .artifacts/example-kvserver.o $(LIB_FULL_OBJS) -o .artifacts/example-kvserver
 .artifacts/example-kvserver.o: examples/kvserver.cpp
 	g++ -c $(CFLAGS) examples/kvserver.cpp -o .artifacts/example-kvserver.o
+
+example-reply: .artifacts/example-reply
+	.artifacts/example-reply
+.artifacts/example-reply: .artifacts/example-reply.o $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) .artifacts/example-reply.o $(LIB_FULL_OBJS) -o .artifacts/example-reply
+.artifacts/example-reply.o: examples/reply.cpp
+	g++ -c $(CFLAGS) examples/reply.cpp -o .artifacts/example-reply.o
+
+example-sse: .artifacts/example-sse
+	.artifacts/example-sse
+.artifacts/example-sse: .artifacts/example-sse.o $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) .artifacts/example-sse.o $(LIB_FULL_OBJS) -o .artifacts/example-sse
+.artifacts/example-sse.o: examples/sse.cpp
+	g++ -c $(CFLAGS) examples/sse.cpp -o .artifacts/example-sse.o
+
+example-api: .artifacts/example-api
+	.artifacts/example-api
+.artifacts/example-api: .artifacts/example-api.o $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) .artifacts/example-api.o $(LIB_FULL_OBJS) -o .artifacts/example-api
+.artifacts/example-api.o: examples/api.cpp
+	g++ -c $(CFLAGS) examples/api.cpp -o .artifacts/example-api.o

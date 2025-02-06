@@ -11,5 +11,6 @@
 	#include "./server/server.hpp"
 	#include "./ws/websocket.hpp"
 	#include "./fs/fs.hpp"
+	#include "./json/json.hpp"
 
 #endif

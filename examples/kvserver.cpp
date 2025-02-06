@@ -1,4 +1,6 @@
-#include <iostream>
+//	An example KV-cache server (redis on a budget)
+
+#include <cstdio>
 
 #include "../lambda.hpp"
 
