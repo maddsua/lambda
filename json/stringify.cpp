@@ -70,7 +70,7 @@ std::string JSON::stringify(const Property& value) {
 			for (auto rune : content) {
 
 				auto escaped = rune_replace(rune);
-				if (escaped.size()) {
+				if (!escaped.empty()) {
 					value.append(escaped);
 					continue;
 				}
@@ -87,7 +87,7 @@ std::string JSON::stringify(const Property& value) {
 
 			for (const auto& entry : value.as_array()) {
 				
-				if (buff.size()) {
+				if (!buff.empty()) {
 					buff.push_back(',');
 				}
 
@@ -103,7 +103,7 @@ std::string JSON::stringify(const Property& value) {
 
 			for (const auto& entry : value.as_map()) {
 				
-				if (buff.size()) {
+				if (!buff.empty()) {
 					buff.push_back(',');
 				}
 

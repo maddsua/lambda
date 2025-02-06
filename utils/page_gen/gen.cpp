@@ -171,7 +171,7 @@ std::string generate_source(const PageTemplte& page_tempate) {
 	std::string function_args;
 	for (const auto item : page_tempate.names) {
 		
-		if (function_args.size()) {
+		if (!function_args.empty()) {
 			function_args.append(", ");	
 		}
 

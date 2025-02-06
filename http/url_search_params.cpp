@@ -49,7 +49,7 @@ std::string URLSearchParams::to_string() const noexcept {
 	for (const auto& entry : this->m_entries) {
 		for (const auto& value : entry.second) {
 
-			if (search.size()) {
+			if (!search.empty()) {
 				search.push_back('&');
 			}
 

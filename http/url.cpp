@@ -109,9 +109,9 @@ std::string URL::to_string() const noexcept {
 
 	std::string url;
 
-	if (this->host.size()) {
+	if (!this->host.empty()) {
 
-		if (this->scheme.size()) {
+		if (!this->scheme.empty()) {
 			url.append(this->scheme);
 		}
 
@@ -130,16 +130,16 @@ std::string URL::to_string() const noexcept {
 		url.append(this->host);
 	}
 
-	if (this->path.size()) {
+	if (!this->path.empty()) {
 		url.append(this->path);
 	}
 
-	if (this->search.size()) {
+	if (!this->search.empty()) {
 		url.push_back('?');
 		url.append(this->search.to_string());
 	}
 
-	if (this->fragment.size()) {
+	if (!this->fragment.empty()) {
 
 		if (!this->fragment.starts_with('#')) {
 			url.push_back('#');

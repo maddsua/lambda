@@ -64,7 +64,7 @@ MultiValue Values::get_all(const std::string& key) const noexcept {
 		return {};
 	}
 
-	if (!entry->second.size()) {
+	if (entry->second.empty()) {
 		return {};
 	}
 

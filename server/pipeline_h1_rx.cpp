@@ -184,11 +184,11 @@ void merge_url_components(URL& url, const Headers& headers) {
 	url.user = HTTP::parse_basic_auth(headers.get("authorization"));
 
 	url.host = headers.get("host");
-	if (!url.host.size()) {
+	if (url.host.empty()) {
 		url.host = "localhost";
 	}
 
-	if (!url.path.size()) {
+	if (url.path.empty()) {
 		url.path = "/";
 	}
 }
@@ -288,7 +288,7 @@ HTTP::Buffer Impl::read_request_body(Net::TcpConnection& conn, HTTP::Buffer& rea
 	}
 
 	//	exhaust the read buffer first
-	if (read_buff.size()) {
+	if (!read_buff.empty()) {
 
 		if (can_read >= read_buff.size()) {
 			HTTP::Buffer chunk;
@@ -308,7 +308,7 @@ HTTP::Buffer Impl::read_request_body(Net::TcpConnection& conn, HTTP::Buffer& rea
 
 HTTP::Buffer Impl::read_raw_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size) {
 
-	if (read_buff.size()) {
+	if (!read_buff.empty()) {
 		HTTP::Buffer chunk;
 		chunk.swap(read_buff);
 		read_buff.clear();
@@ -324,7 +324,7 @@ void Impl::discard_unread_body(Net::TcpConnection& conn, StreamState& stream) {
 		return;
 	}
 
-	if (stream.read_buff.size()) {
+	if (!stream.read_buff.empty()) {
 		auto discard_buff_size = stream.http_body_pending <= stream.read_buff.size() ? stream.http_body_pending : stream.read_buff.size();
 		stream.read_buff.erase(stream.read_buff.begin(), stream.read_buff.begin() + discard_buff_size);
 		stream.http_body_pending -= discard_buff_size;
@@ -334,8 +334,6 @@ void Impl::discard_unread_body(Net::TcpConnection& conn, StreamState& stream) {
 		stream.http_body_pending -= conn.read(stream.http_body_pending).size();
 	}
 }
-
-
 
 bool Impl::RequestBodyReader::is_readable() const noexcept {
 	return this->m_conn.is_open();

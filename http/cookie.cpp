@@ -77,11 +77,11 @@ std::string Cookie::to_string() const {
 		set_cookie.append(value);
 	};
 
-	if (this->domain.size()) {
+	if (!this->domain.empty()) {
 		write_prop("Domain", this->domain);
 	}
 
-	if (this->path.size()) {
+	if (!this->path.empty()) {
 		write_prop("Path", this->path);
 	}
 
