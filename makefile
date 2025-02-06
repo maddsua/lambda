@@ -204,3 +204,10 @@ example-helloworld: .artifacts/example-helloworld
 	g++ $(CFLAGS) .artifacts/example-helloworld.o $(LIB_FULL_OBJS) -o .artifacts/example-helloworld
 .artifacts/example-helloworld.o: examples/helloworld.cpp
 	g++ -c $(CFLAGS) examples/helloworld.cpp -o .artifacts/example-helloworld.o
+
+example-kvserver: .artifacts/example-kvserver
+	.artifacts/example-kvserver
+.artifacts/example-kvserver: .artifacts/example-kvserver.o $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) .artifacts/example-kvserver.o $(LIB_FULL_OBJS) -o .artifacts/example-kvserver
+.artifacts/example-kvserver.o: examples/kvserver.cpp
+	g++ -c $(CFLAGS) examples/kvserver.cpp -o .artifacts/example-kvserver.o
