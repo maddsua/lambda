@@ -11,6 +11,7 @@ bool is_streaming_response(const Headers& headers);
 struct DeferredResponse {
 	Headers headers;
 	Status status;
+	//	todo: limit max deferred size
 	HTTP::Buffer body;
 };
 
@@ -120,6 +121,7 @@ class ResponseWriterImpl : public ResponseWriter {
 
 			auto next_body_written = this->m_body_written + data.size();
 			if (this->m_announced.has_value() && next_body_written > this->m_announced.value()) {
+				//	todo: truncate instead of discarding
 				return 0;
 			}
 
