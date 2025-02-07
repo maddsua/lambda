@@ -1,64 +1,47 @@
 # lambda
 
-(also maddsua/lambda, lambda++)
+**A zero dependency C++ application server library**
 
-## A definitely not a NodeJS-based API server framework
+So this is my fun-project. It started as a really basic REST API server that had to talk to the cloud on one side and some embedded hardware on the other.
 
-Lambda provides a platform to create API servers in C++ fast.
-A basic "hello world" is just as small and simple as if you were using expressJS or any other JS library:
+Over time it became a self skill measurement contest for me. The goals are pretty simple - make it as good as possible.
+
+## The design
+
+The initial design was trying to follow AWS Lambda (yeah fr), hence the name. The problem with it was that it's not really extendable. As the result, V3 had it's design done from scratch (for the fourth time in total, not even kidding).
+
+Anyway, have a look at the standard measure of web framework badassness - the "hello world" sample app:
 
 ```c++
-#include <maddsua/lambda.hpp>
-using namespace Lambda;
+#include "../lambda.hpp"
 
-const auto requestHandler = [](const Request& req, const Context& context) {
-   return Response("<h1>Hello World!<h1>");
+void handler_fn(Lambda::Request& req, Lambda::ResponseWriter& wrt) {
+	wrt.write("yo, mr white");
 };
 
-int main(int argc, char const *argv[]) {
-   auto server = LambdaInstance(requestHandler, {});
-   server.awaitFinished();
-   return 0;
+int main() {
+	Lambda::Server(handler_fn, { .port = 8100 }).serve();
+	return 0;
 }
 ```
 
-### So what lambda is:
-- Internal API server
-- Client facing API server (if you feel lucky)
-- App server
-- Dev server of any kind
-- Web server (with some quirks, some say it's cute)
-
-### What lambda is not:
-- Nginx killer
-- Reverse proxy
-- Load balancer (please don't use it for that)
-- Email server (God forbid)
-
-<br />
+Doesn't look too bad for a C++ app, eh?
 
 <img src="docs/what-have-i-done.webp" style="max-width: 720px" />
 
 **Here, a Vue project is being served by lambda for no reason at all**
 
-
 ## Features
 
-- Full http/1.1 support
-- Request/Response based API (just like in Cloudflare Workers)
-- Server Side Events support
-- Websocket server built in
-- Fully asynchronous connection handling
-- Thread-safe logging
-- Fast port reuse support (like if it's a big thing lol)
-- HTTP response compression (Brotli, Gzip, Deflate)
-- Configurable error pages
-- Request ID tracking
-- Custom JSON server/parsed implementation (it's pretty good actually)
-- Polyfills for strings and Date object (more to be added)
+- Mostly memory safe design
+- HTTP/1.1 implementation with keep-alive and deferred responses
+- ServerSideEvents
+- WebSocket
+- Fileserver extension
+- Custom JSON parser/serializer implementation
+- [in progress] Request router
 
-
-## Performace 
+## Performace (v2, outdated)
 
 <img src="docs/bench-v1-vs-v2.webp" style="max-width: 720px" />
 
@@ -76,28 +59,13 @@ Now let's get a bit crazy and crank it up to 5000 rps. At this point v1 just die
 
 ## Error handling/exceptions
 
-lambda uses std::exception-derived objects to handle errors so get ready to catch some.
-But even if you don't, it's unlikely that a program would just be terminated as any handler
-errors will be caught automatically and a default error page would be returned to the client.
+By default all exceptions should be caught by the `serve` handler. However, if you linkt the c++ standard library statically the exception handling may not work, which will break the app. So don't do that.
 
 
 ## Building a server app with lambda
 
 I'm using GCC 12 here, you should be fine with any other version that supports C++ 20
 but don't expect it to work with MSVC without doing a shaman dance first.
-
-### Dependencies
-
-#### Compression
-
-Libraries:
-
-- brotli (v1.1.0)
-- zlib (v1.2.13)
-
-If you don't need or can't link them, both can be disabled by commenting out the  
-`#define LAMBDA_BUILDOPTS_ENABLE_COMPRESSION` in [buildopts.hpp](buildopts.hpp),  
-and adding the `compression=disabled` make argument.
 
 ### Linking
 
@@ -112,10 +80,7 @@ Link `lambda.dll` and you're good to go. Oh, don't forget to include some header
 
 Go see [some examples or smthng](/examples)
 
-
-## A few quick notes before you start blasting
-
-### Compiler version
+### A quick note before you start blasting
 
 Use GCC 10 or never. The project uses a few of the c++20 features, and it might not compile with older versions.
 
