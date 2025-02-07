@@ -40,10 +40,10 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 	}
 }
 
-void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServeContext ctx) {
+void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, const ServeContext& ctx) {
 
 	auto request_body_reader = Impl::RequestBodyReader(conn, stream);
-	auto response_writer = Impl::ResponseWriter(conn, stream);
+	auto response_writer = Impl::ResponseWriter(conn, stream, ctx);
 
 	auto expected_req = Impl::read_request_head(conn, stream.read_buff, ctx);
 	if (!expected_req.has_value()) {

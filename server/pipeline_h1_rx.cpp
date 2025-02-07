@@ -93,7 +93,12 @@ bool is_valid_http_version(HTTP::Buffer& data, size_t begin, size_t end) {
 	return prefix == "http" && (version == "1.0" || version == "1.1");
 }
 
-std::expected<Impl::RequestHead, std::string> parse_request_line(Impl::RequestHead& req, HTTP::Buffer& data, size_t begin, size_t end) {
+std::expected<Impl::RequestHead, std::string> parse_request_line(
+	Impl::RequestHead& req,
+	HTTP::Buffer& data,
+	size_t begin,
+	size_t end
+) {
 
 	// skip possible whitespaces
 	begin = next_token(data, begin, end);
@@ -193,7 +198,11 @@ void merge_url_components(URL& url, const Headers& headers) {
 	}
 }
 
-std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServeContext ctx) {
+std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(
+	Net::TcpConnection& conn,
+	HTTP::Buffer& read_buff,
+	const ServeContext& ctx
+) {
 
 	size_t reader_seek = 0;
 	size_t chunker_seek = nullidx;
@@ -280,7 +289,12 @@ std::optional<size_t> Impl::content_length(const Headers& headers) {
 	return std::strtoul(content_length.c_str(), nullptr, 10);
 }
 
-HTTP::Buffer Impl::read_request_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size, size_t bytes_remain) {
+HTTP::Buffer Impl::read_request_body(
+	Net::TcpConnection& conn,
+	HTTP::Buffer& read_buff,
+	size_t chunk_size,
+	size_t bytes_remain
+) {
 
 	auto can_read = bytes_remain > chunk_size ? chunk_size : bytes_remain;
 	if (can_read <= 0) {
@@ -325,7 +339,8 @@ void Impl::discard_unread_body(Net::TcpConnection& conn, StreamState& stream) {
 	}
 
 	if (!stream.read_buff.empty()) {
-		auto discard_buff_size = stream.http_body_pending <= stream.read_buff.size() ? stream.http_body_pending : stream.read_buff.size();
+		auto discard_buff_size = stream.http_body_pending <= stream.read_buff.size()
+			? stream.http_body_pending : stream.read_buff.size();
 		stream.read_buff.erase(stream.read_buff.begin(), stream.read_buff.begin() + discard_buff_size);
 		stream.http_body_pending -= discard_buff_size;
 	}

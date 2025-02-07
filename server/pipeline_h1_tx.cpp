@@ -244,7 +244,15 @@ size_t Impl::ResponseWriter::write(const HTTP::Buffer& data) {
 			return 0;
 		}
 
-		//	todo: write to debug when response is truncated
+		if (this->m_ctx.opts.debug) {
+			fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Response truncated (%lu/%lu)\n",
+				Date().to_log_string().c_str(),
+				this->m_conn.remote_addr().hostname.c_str(),
+				this->m_conn.id(),
+				announced,
+				this->m_body_written + data.size()
+			);
+		}
 
 		//	write truncated response
 		auto can_write = announced - this->m_body_written;
