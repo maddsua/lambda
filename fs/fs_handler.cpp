@@ -7,9 +7,18 @@
 
 using namespace Lambda;
 
+const size_t max_oneshot_response_size = 1024 * 1024;
+
 std::string flatten_path(const std::string& path);
 std::string hash_content(const HTTP::Buffer& data);
 void log_access(const Request& req, Status status);
+
+struct Range {
+	size_t begin;
+	size_t end;
+};
+
+std::optional<Range> get_range(const Headers& headers, size_t file_size);
 
 //	generated fn
 std::string render_404_page(const std::string& requeted_url);
@@ -103,6 +112,8 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 	}
 
 	wrt.header().set("cache-control", "max-age=604800, must-revalidate");
+	wrt.header().set("accept-ranges", "bytes");
+	wrt.header().set("vary", "range");
 
 	auto last_modified = Date(file_hit->modified()).to_utc_string();
 	if (req.headers.get("if-modified-since") == last_modified) {
@@ -112,16 +123,49 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 
 	wrt.header().set("last-modified", last_modified);
 
-	auto content = file_hit->content();
-	auto etag = hash_content(content);
+	auto range_opt = get_range(req.headers, file_hit->size());
+	if (range_opt.has_value()) {
 
+		auto range = range_opt.value();
 
-	if (req.headers.get("if-none-match") == etag) {
-		wrt.write_header(Status::NotModified);
+		if (range.end > file_hit->size() || range.begin >= range.end) {
+			wrt.write_header(Status::RequestedRangeNotSatisfiable);
+			return;
+		}
+
+		auto partial_content = file_hit->content(range.begin, range.end);
+		auto etag = hash_content(partial_content);
+	
+		if (req.headers.get("if-none-match") == etag) {
+			wrt.write_header(Status::NotModified);
+			return;
+		}
+	
+		wrt.header().set("etag", etag);
+		wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name()));
+		wrt.header().set("content-length", std::to_string(partial_content.size()));
+		wrt.write_header(Status::PartialContent);
+		wrt.write(partial_content);
+
 		return;
 	}
 
-	wrt.header().set("etag", etag);
+	HTTP::Buffer complete_content;
+	auto stream_response = file_hit->size() >= max_oneshot_response_size;
+
+	if (!stream_response) {
+
+		complete_content = file_hit->content();
+		auto etag = hash_content(complete_content);
+	
+		if (req.headers.get("if-none-match") == etag) {
+			wrt.write_header(Status::NotModified);
+			return;
+		}
+	
+		wrt.header().set("etag", etag);
+	}
+
 	wrt.header().set("content-type", Fs::infer_mimetype(file_hit->name()));
 	wrt.header().set("content-length", std::to_string(file_hit->size()));
 
@@ -135,11 +179,24 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 		return;
 	}
 
-	//	todo: support chunked reads
-	//	https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
-	//	todo: return large files in chunks by default
+	//	if file size is a bit too large, read and write it in chunks
+	if (stream_response) {
 
-	wrt.write(content);
+		for (size_t written = 0; written < file_hit->size(); ) {
+
+			auto chunk = file_hit->content();
+			if (chunk.empty()) {
+				break;
+			}
+
+			written += chunk.size();
+			wrt.write(chunk);		
+		}
+
+		return;
+	}
+
+	wrt.write(complete_content);
 }
 
 HandlerFn FileServer::handler_fn() {
@@ -184,6 +241,44 @@ void log_access(const Request& req, Status status) {
 		req.url.path.c_str(),
 		static_cast<std::underlying_type_t<Status>>(status)
 	);
+}
+
+std::optional<Range> get_range(const Headers& headers, size_t file_size) {
+
+	auto range_header = headers.get("range");
+	if (range_header.empty()) {
+		return std::nullopt;
+	}
+
+	static const std::string prefix = "bytes=";
+
+	if (!range_header.starts_with(prefix)) {
+		return std::nullopt;
+	}
+
+	auto range_begin = prefix.size();
+	auto range_end = range_header.size();
+
+	auto range_token = std::string::npos;
+	for (size_t idx = range_begin; idx < range_end; idx++) {
+		if (range_header[idx] == '-') {
+			range_token = idx;
+			break;
+		}
+	}
+	
+	if (range_token == std::string::npos) {
+		return std::nullopt;
+	}
+
+	try {
+		return Range {
+			.begin = range_token - range_begin > 0 ? std::stoul(range_header.substr(range_begin, range_token - range_begin)) : 0,
+			.end = range_end - range_token > 1 ? std::stoul(range_header.substr(range_token + 1)) : file_size
+		};
+	} catch(...) {
+		return std::nullopt;
+	}
 }
 
 //	generated fn
