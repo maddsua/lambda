@@ -232,3 +232,11 @@ example-api: .artifacts/example-api
 	g++ $(CFLAGS) .artifacts/example-api.o $(LIB_FULL_OBJS) -o .artifacts/example-api
 .artifacts/example-api.o: examples/api.cpp
 	g++ -c $(CFLAGS) examples/api.cpp -o .artifacts/example-api.o
+
+example-ws: .artifacts/example-ws
+	.artifacts/example-ws
+.artifacts/example-ws: .artifacts/example-ws.o $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) .artifacts/example-ws.o $(LIB_FULL_OBJS) -o .artifacts/example-ws
+.artifacts/example-ws.o: examples/ws.cpp
+	g++ -c $(CFLAGS) examples/ws.cpp -o .artifacts/example-ws.o
+
