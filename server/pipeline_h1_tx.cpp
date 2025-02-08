@@ -241,25 +241,38 @@ size_t Impl::ResponseWriter::write(const HTTP::Buffer& data) {
 		//	ensure we aren't writing over the specificed content-length
 		auto announced = this->m_announced.value();
 		if (this->m_body_written >= announced) {
-			return 0;
-		}
 
-		if (this->m_ctx.opts.debug) {
-			fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Response truncated (%lu/%lu)\n",
-				Date().to_log_string().c_str(),
-				this->m_conn.remote_addr().hostname.c_str(),
-				this->m_conn.id(),
-				announced,
-				this->m_body_written + data.size()
-			);
+			if (this->m_ctx.opts.debug) {
+				fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Extra body chunk discarded (%lu/%lu)\n",
+					Date().to_log_string().c_str(),
+					this->m_conn.remote_addr().hostname.c_str(),
+					this->m_conn.id(),
+					announced,
+					data.size()
+				);
+			}			
+
+			return 0;
 		}
 
 		//	write truncated response
 		auto can_write = announced - this->m_body_written;
 		if (data.size() > can_write) {
+			
 			auto chunk = HTTP::Buffer(data.begin(), data.begin() + can_write);
 			auto bytes_written = this->m_conn.write(chunk);
 			this->m_body_written += bytes_written;
+
+			if (this->m_ctx.opts.debug) {
+				fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Response body truncated (%lu/%lu)\n",
+					Date().to_log_string().c_str(),
+					this->m_conn.remote_addr().hostname.c_str(),
+					this->m_conn.id(),
+					announced,
+					data.size() - can_write
+				);
+			}
+
 			return bytes_written;
 		}
 	}
