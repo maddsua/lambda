@@ -12,10 +12,10 @@ namespace Lambda {
 
 	struct ServeOptions {
 		int16_t port = 8000;
+		std::string host_addr;
+		bool debug = false;
 		size_t max_header_size = 1024 * 1024;
 		size_t max_body_size = 10 * 1024 * 1024;
-		bool debug = false;
-		//	todo: add binding opts and stuff
 	};
 
 	class ServeContext;

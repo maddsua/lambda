@@ -3,7 +3,6 @@
 
 using namespace Lambda::Net;
 
-//	todo: add listen address setting support
 //	todo: support ipv6
 
 void TcpListener::bind_and_listen() {
@@ -18,7 +17,6 @@ void TcpListener::bind_and_listen() {
 		throw Net::Error("TcpListener: Unable to create socket", lambda_os_errno());
 	}
 
-	//	allow fast port reuse
 	if (this->options.fast_port_reuse) {
 		const uint32_t opt_reuse = 1;
 		if (setsockopt(this->m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&(opt_reuse), sizeof(opt_reuse))) {
@@ -28,12 +26,15 @@ void TcpListener::bind_and_listen() {
 		}
 	}
 
-	//	bind socket
+	if (this->options.bind_addr.empty()) {
+		throw Net::Error("TcpListener: bind_addr is undefined");
+	}
+
 	sockaddr_in listen_addr {
 		.sin_family = AF_INET,
 		.sin_port = htons(this->options.port),
 		.sin_addr = {
-			.s_addr = inet_addr("127.0.0.1"),
+			.s_addr = inet_addr(this->options.bind_addr.c_str()),
 		},
 	};
 
@@ -43,7 +44,6 @@ void TcpListener::bind_and_listen() {
 		throw error;
 	}
 
-	//	listen for incoming connections
 	if (listen(this->m_sock, SOMAXCONN)) {
 		const auto error = Net::Error("TcpListener: Failed to start listening", lambda_os_errno());
 		lambda_close_sock(this->m_sock);

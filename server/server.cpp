@@ -6,6 +6,8 @@
 
 using namespace Lambda;
 
+std::string parse_bind_addr(const std::string& input);
+
 void Server::serve() {
 
 	if (this->m_active) {
@@ -21,6 +23,7 @@ void Server::serve() {
 
 	//	create tcp listener
 	this->m_tcp.options.port = this->options.port;
+	this->m_tcp.options.bind_addr = parse_bind_addr(this->options.host_addr);
 	this->m_tcp.bind_and_listen();
 
 	//	start connection loop
@@ -70,4 +73,47 @@ void Server::shutdown() {
 Server::~Server() {
 	this->shutdown();
 	*this->m_exit = true;
+}
+
+std::string parse_bind_addr(const std::string& addr) {
+
+	if (addr.empty()) {
+		return "0.0.0.0";
+	}
+
+	for (auto rune : addr) {
+		if (!((rune >= '0' && rune <= '9') || rune == '.')) {
+			throw std::runtime_error("Bind address '" + addr + "' is not valid");
+		}
+	}
+
+	auto assert_segment = [&](const std::string& token) {
+
+		int64_t value = -1;
+
+		try { value = std::stoll(token); }
+			catch(...) { }
+
+		if (value < 0 || value > 255) {
+			throw std::runtime_error("Bind address '" + addr + "' is not valid");
+		}
+	};
+
+	size_t segment_begin = 0;
+	size_t segments_count = 0;
+	for (size_t idx = 0; idx < addr.size(); idx++) {
+		if (addr[idx] == '.') {
+			assert_segment(addr.substr(segment_begin, idx - segment_begin));
+			segment_begin = idx + 1;
+			segments_count++;
+		}
+	}
+
+	assert_segment(addr.substr(segment_begin));
+
+	if (segments_count != 3) {
+		throw std::runtime_error("Bind address '" + addr + "' is not valid");
+	}
+
+	return addr;
 }

@@ -53,6 +53,7 @@ namespace Lambda::Net {
 
 	struct ListenOptions {
 		uint16_t port = 80;
+		std::string bind_addr;
 		bool fast_port_reuse = true;
 	};
 
