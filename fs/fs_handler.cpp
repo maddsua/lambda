@@ -1,5 +1,5 @@
 #include "./fs.hpp"
-#include "../http/http_utils.hpp"
+#include "../http/http_private.hpp"
 #include "../base64/base64.hpp"
 
 #include <filesystem>

@@ -3,7 +3,7 @@
 #include <cstdio>
 
 #include "../lambda.hpp"
-#include "../http/http_utils.hpp"
+#include "../http/http_private.hpp"
 
 using namespace Lambda;
 

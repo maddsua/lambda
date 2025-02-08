@@ -1,5 +1,8 @@
-#ifndef __LIB_MADDSUA_LAMBDA_http_utils__
-#define __LIB_MADDSUA_LAMBDA_http_utils__
+//	maddsua/lambda application server library
+//	2023 - present
+
+#ifndef __LIB_MADDSUA_LAMBDA_HTTP_PRIVATE__
+#define __LIB_MADDSUA_LAMBDA_HTTP_PRIVATE__
 
 #include <string>
 

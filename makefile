@@ -14,7 +14,10 @@ clean: action-custom
 install: $(LAMBDA_LIBSHARED) $(LAMBDA_LIBSTATIC)
 	cp .artifacts/dist/lambda.so /usr/local/lib/
 	cp .artifacts/dist/lambda.a /usr/local/lib/
-
+	grep -lr '#ifndef __LIB_MADDSUA_LAMBDA_' | sed -r 's/\/[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+//' | xargs -I {} mkdir -p .artifacts/dist/include/{}
+	grep -lr '#ifndef __LIB_MADDSUA_LAMBDA_' | xargs -I {} cp {} .artifacts/dist/include/{}
+	mkdir /usr/local/include/maddsua
+	mv .artifacts/dist/include /usr/local/include/maddsua/lambda
 
 #############################################
 #			SECTION: Base64 encode			#

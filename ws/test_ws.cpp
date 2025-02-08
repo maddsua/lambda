@@ -3,7 +3,7 @@
 
 #include "./websocket.hpp"
 #include "../server/server.hpp"
-#include "../http/http_utils.hpp"
+#include "../http/http_private.hpp"
 
 using namespace Lambda;
 

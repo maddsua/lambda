@@ -1,10 +1,13 @@
+//	maddsua/lambda application server library
+//	2023 - present
+
 #ifndef __LIB_MADDSUA_LAMBDA_SERVER_HANDLERS__
 #define __LIB_MADDSUA_LAMBDA_SERVER_HANDLERS__
 
 #include <expected>
 
 #include "./server.hpp"
-#include "../http/http_utils.hpp"
+#include "../http/http_private.hpp"
 
 namespace Lambda::Pipelines {
 

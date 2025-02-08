@@ -1,5 +1,5 @@
 #include "./net.hpp"
-#include "./net_os.hpp"
+#include "./net_private.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>

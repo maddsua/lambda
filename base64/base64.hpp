@@ -1,3 +1,6 @@
+//	maddsua/lambda application server library
+//	2023 - present
+
 #ifndef __LIB_MADDSUA_LAMBDA_ENCODING_BASE64__
 #define __LIB_MADDSUA_LAMBDA_ENCODING_BASE64__
 

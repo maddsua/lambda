@@ -1,5 +1,5 @@
 #include "./http.hpp"
-#include "./http_utils.hpp"
+#include "./http_private.hpp"
 
 using namespace Lambda;
 using namespace Lambda::HTTP;

@@ -1,3 +1,6 @@
+//	maddsua/lambda application server library
+//	2023 - present
+
 #ifndef __LIB_MADDSUA_LAMBDA_NET_UTILS__
 #define __LIB_MADDSUA_LAMBDA_NET_UTILS__
 
