@@ -4,7 +4,7 @@ workdir /build
 
 copy . .
 
-run make clean && make all -j4
+run make clean && make all -j4 target=prod
 
 run cp .artifacts/dist/lambda.so /usr/local/lib/
 run cp .artifacts/dist/lambda.a /usr/local/lib/
