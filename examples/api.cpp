@@ -3,10 +3,17 @@
 #include <cstdio>
 
 #include "../lambda.hpp"
+#include "../http/http_utils.hpp"
 
 using namespace Lambda;
 
 void handler_fn(Request& req, ResponseWriter& wrt) {
+
+	printf("--> [%s] %s %s (%s)\n",
+		req.url.host.c_str(),
+		HTTP::method_to_string(req.method).c_str(),
+		req.url.to_string().c_str(),
+		req.body.text().c_str());
 	
 	if (req.url.path != "/api") {
 		wrt.write_header(Status::NotFound);
