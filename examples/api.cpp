@@ -1,9 +1,11 @@
 //	A sample REST API server
 
+//	Note: gotta run `sudo make install` in the repo root OR install the headers and objects manually
+
 #include <cstdio>
 
-#include "../lambda.hpp"
-#include "../http/http_private.hpp"
+#include <maddsua/lambda/lambda.hpp>
+#include <maddsua/lambda/http/http_private.hpp>
 
 using namespace Lambda;
 
