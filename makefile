@@ -11,6 +11,8 @@ clean: action-custom
 	rm -fr .artifacts/*
 	mkdir -p .artifacts/dist
 
+##	todo: generate an sfi for this shyt
+
 install: $(LAMBDA_LIBSHARED) $(LAMBDA_LIBSTATIC)
 	cp .artifacts/dist/lambda.so /usr/local/lib/
 	cp .artifacts/dist/lambda.a /usr/local/lib/
