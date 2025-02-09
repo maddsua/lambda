@@ -82,6 +82,6 @@ Go see [some examples or smthng](/examples)
 
 ### A quick note before you start blasting
 
-Use GCC 10 or never. The project uses a few of the c++20 features, and it might not compile with older versions.
+Use GCC 12 or never. The project uses a few of the c++23 features, and it might not compile with older versions.
 
 Other compilers are not \*officially\* supported, but there aren't any super-GCC-specific tricks employed in this project, so theoretically with some tweaking it should compile anywhere.
