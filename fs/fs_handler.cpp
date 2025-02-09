@@ -1,6 +1,7 @@
 #include "./fs.hpp"
 #include "../http/http_utils.hpp"
 #include "../base64/base64.hpp"
+#include "../log/log.hpp"
 
 #include <filesystem>
 #include <cstring>
@@ -234,13 +235,13 @@ std::string hash_content(const HTTP::Buffer& data) {
 }
 
 void log_access(const Request& req, Status status) {
-	fprintf(stdout, "%s DEBUG Lambda::Fileserver %s %s %s -> %i\n",
-		Date().to_log_string().c_str(),
-		req.remote_addr.hostname.c_str(),
-		HTTP::method_to_string(req.method).c_str(),
-		req.url.path.c_str(),
+	Log::err("{} DEBUG Lambda::Fileserver {} {} {} -> {}", {
+		Date().to_log_string(),
+		req.remote_addr.hostname,
+		HTTP::method_to_string(req.method),
+		req.url.path,
 		static_cast<std::underlying_type_t<Status>>(status)
-	);
+	});
 }
 
 std::optional<Range> get_range(const Headers& headers, size_t file_size) {

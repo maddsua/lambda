@@ -8,7 +8,7 @@ void simple_handler(Lambda::Net::TcpConnection&& conn) {
 
 	auto request = conn.read(16384);
 
-	printf("Request from %s: \n%s----\n", conn.remote_addr().hostname.c_str(), request.data());
+	fprintf(stderr, "Request from %s: \n%s----\n", conn.remote_addr().hostname.c_str(), request.data());
 
 	std::string response = "http/1.1 200 OK\r\n\r\n";
 
@@ -23,7 +23,7 @@ int main() {
 
 	listener.bind_and_listen();
 
-	printf("Listening at: http://localhost:%i/\n", listener.options.port);
+	fprintf(stderr, "Listening at: http://localhost:%i/\n", static_cast<int>(listener.options.port));
 
 	while (listener.is_listening()) {
 

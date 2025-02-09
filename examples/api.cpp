@@ -9,12 +9,13 @@ using namespace Lambda;
 
 void handler_fn(Request& req, ResponseWriter& wrt) {
 
-	printf("--> [%s] %s %s (%s)\n",
-		req.url.host.c_str(),
-		HTTP::method_to_string(req.method).c_str(),
-		req.url.to_string().c_str(),
-		req.body.text().c_str());
-	
+	Log::log("--> [{}] {} {} {{}}", {
+		req.url.host,
+		HTTP::method_to_string(req.method),
+		req.url.to_string(),
+		req.body.text()
+	});
+
 	if (req.url.path != "/api") {
 		wrt.write_header(Status::NotFound);
 		return;
@@ -49,7 +50,6 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 
 int main() {
 	auto server = Lambda::Server(handler_fn, { .debug = true });
-	printf("Listening at: http://localhost:%i/\n", server.options.port);
 	server.serve();
 	return 0;
 }

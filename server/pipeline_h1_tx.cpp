@@ -1,5 +1,6 @@
 #include "./pipelines.hpp"
 #include "../version.hpp"
+#include "../log/log.hpp"
 
 #include <cstdint>
 #include <map>
@@ -243,13 +244,13 @@ size_t Impl::ResponseWriter::write(const HTTP::Buffer& data) {
 		if (this->m_body_written >= announced) {
 
 			if (this->m_ctx.opts.debug) {
-				fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Extra body chunk discarded (%lu/%lu)\n",
-					Date().to_log_string().c_str(),
-					this->m_conn.remote_addr().hostname.c_str(),
+				Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Extra body chunk discarded ({}/{})", {
+					Date().to_log_string(),
+					this->m_conn.remote_addr().hostname,
 					this->m_conn.id(),
 					announced,
 					data.size()
-				);
+				});
 			}			
 
 			return 0;
@@ -264,13 +265,13 @@ size_t Impl::ResponseWriter::write(const HTTP::Buffer& data) {
 			this->m_body_written += bytes_written;
 
 			if (this->m_ctx.opts.debug) {
-				fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Response body truncated (%lu/%lu)\n",
-					Date().to_log_string().c_str(),
-					this->m_conn.remote_addr().hostname.c_str(),
+				Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Response body truncated ({}/{})", {
+					Date().to_log_string(),
+					this->m_conn.remote_addr().hostname,
 					this->m_conn.id(),
 					announced,
 					data.size() - can_write
-				);
+				});
 			}
 
 			return bytes_written;

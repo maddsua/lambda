@@ -60,7 +60,6 @@ int main() {
 	};
 
 	auto server = Server(handler, { .debug = true });
-	printf("Listening at: http://localhost:%i/\n", server.options.port);
 	server.serve();
 
 	return 0;

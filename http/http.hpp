@@ -203,6 +203,7 @@ namespace Lambda {
 		public:
 			BodyReader() = default;
 			BodyReader(const BodyReader& other) = delete;
+			virtual ~BodyReader() = default;
 
 			virtual bool is_readable() const noexcept = 0;
 
@@ -256,6 +257,7 @@ namespace Lambda {
 		public:
 			ResponseWriter() = default;
 			ResponseWriter(const ResponseWriter& other) = delete;
+			virtual ~ResponseWriter() = default;
 
 			virtual bool writable() const noexcept = 0;
 			virtual Headers& header() noexcept = 0;

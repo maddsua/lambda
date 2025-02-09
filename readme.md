@@ -39,6 +39,7 @@ Doesn't look too bad for a C++ app, eh?
 - WebSocket
 - Fileserver extension
 - Custom JSON parser/serializer implementation
+- Custom logger and formatter
 - [in progress] Request router
 
 ## Performace (v2, outdated)

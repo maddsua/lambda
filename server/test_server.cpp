@@ -3,21 +3,24 @@
 
 #include "./server.hpp"
 #include "../http/http_utils.hpp"
+#include "../log/log.hpp"
 
 using namespace Lambda;
 
 void handler_fn(Request& req, ResponseWriter& wrt) {
 
-	printf("--> [%s] %s %s (%s)\n",
-		req.url.host.c_str(),
-		HTTP::method_to_string(req.method).c_str(),
-		req.url.to_string().c_str(),
-		req.body.text().c_str());
+	Log::log("--> [{}] {} {} {{}}", {
+		req.url.host,
+		HTTP::method_to_string(req.method),
+		req.url.to_string(),
+		req.body.text()
+	});
 
 	if (req.url.user.has_value()) {
-		printf("[Authorized as %s (%s)]\n",
-			req.url.user.value().user.c_str(),
-			req.url.user.value().password.c_str());
+		Log::log("User authorized as '{}' ({})", {
+			req.url.user.value().user,
+			req.url.user.value().password
+		});
 	}
 
 	if (req.url.path == "/") {
@@ -46,9 +49,6 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 int main() {
 
 	auto server = Lambda::Server(handler_fn, { .debug = true });
-	
-	printf("Listening at: http://localhost:%i/\n", server.options.port);
-
 	server.serve();
 
 	return 0;

@@ -1,5 +1,6 @@
 #include "./pipelines.hpp"
 #include "../version.hpp"
+#include "../log/log.hpp"
 
 #include <cstdint>
 
@@ -16,8 +17,11 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 	Impl::StreamState stream;
 
 	if (ctx.opts.debug) {
-		fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Create stream\n",
-			Date().to_log_string().c_str(), conn.remote_addr().hostname.c_str(), conn.id());
+		Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Create stream", {
+			Date().to_log_string(),
+			conn.remote_addr().hostname,
+			conn.id()
+		});
 	}
 
 	try {
@@ -29,14 +33,21 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 
 	} catch(const std::exception& e) {
 		if (ctx.opts.debug) {
-			fprintf(stderr, "%s ERROR Lambda::Serve::H1 { remote_addr='%s', conn=%i }: H1 transport exception: %s\n",
-				Date().to_log_string().c_str(), conn.remote_addr().hostname.c_str(), conn.id(), e.what());
+			Log::err("{} ERROR Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: H1 transport exception: {}", {
+				Date().to_log_string(),
+				conn.remote_addr().hostname,
+				conn.id(),
+				e.what()
+			});
 		}
 	}
 
 	if (ctx.opts.debug) {
-		fprintf(stderr, "%s DEBUG Lambda::Serve::H1 { remote_addr='%s', conn=%i }: Stream done\n",
-			Date().to_log_string().c_str(), conn.remote_addr().hostname.c_str(), conn.id());
+		Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Stream done", {
+			Date().to_log_string(),
+			conn.remote_addr().hostname,
+			conn.id()
+		});
 	}
 }
 

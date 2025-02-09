@@ -4,6 +4,7 @@
 #include "./websocket.hpp"
 #include "../server/server.hpp"
 #include "../http/http_utils.hpp"
+#include "../log/log.hpp"
 
 using namespace Lambda;
 
@@ -31,7 +32,7 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 	
 			case Ws::Opcode::Ping: {
 
-				printf("--> Responding to ping\n");
+				Log::log("--> Responding to ping");
 
 				ws.write(Frame {
 					.code = Ws::Opcode::Pong,
@@ -41,16 +42,21 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 			} break;
 
 			case Ws::Opcode::Text: {
-				printf("--> Received message: [%s]\n", std::string(msg.data.begin(), msg.data.end()).c_str());
+				Log::log("--> Received message: [{}]", {
+					std::string(msg.data.begin(), msg.data.end())
+				});
 			} break;
 
 			case Ws::Opcode::Close: {
-				printf("--> Received a close signal. Bye-bye!\n");
+				Log::log("--> Received a close signal. Bye-bye!");
 				return;
 			} break;
 		
 			default: {
-				printf("--> Received a frame (%i) length: %i\n", static_cast<int>(msg.code), static_cast<int>(msg.data.size()));
+				Log::log("--> Received a frame ({}) length: {}", {
+					static_cast<int>(msg.code),
+					msg.data.size()
+				});
 			} break;
 		}
 	}
@@ -59,9 +65,6 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 int main() {
 
 	auto server = Lambda::Server(handler_fn, { .debug = true });
-	
-	printf("Listening at: http://localhost:%i/\n", server.options.port);
-
 	server.serve();
 
 	return 0;

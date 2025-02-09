@@ -1,5 +1,6 @@
 #include "./server.hpp"
 #include "./pipelines.hpp"
+#include "../log/log.hpp"
 
 #include <stdexcept>
 #include <thread>
@@ -44,9 +45,18 @@ void Server::serve() {
 					break;
 				}
 
-				fprintf(stderr, "Lambda::Serve: Listnener exception: %s\n", e.what());
+				Log::err("{} Lambda::Serve: Listnener exception: {}", {
+					Date().to_log_string(),
+					e.what()
+				});
 			}
 		}
+	});
+
+	Log::err("{} Lambda::Serve: Listening at http://{}:{}/", {
+		Date().to_log_string(),
+		this->options.host_addr.empty() ? "localhost" : this->options.host_addr,
+		this->options.port
 	});
 
 	this->m_loop.get();

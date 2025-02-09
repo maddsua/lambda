@@ -27,6 +27,8 @@ namespace Lambda {
 
 			virtual std::vector<uint8_t> content() = 0;
 			virtual std::vector<uint8_t> content(size_t begin, size_t end) = 0;
+
+			virtual ~ServedFile() = default;
 	};
 
 	class FileServerReader {

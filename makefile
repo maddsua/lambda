@@ -1,5 +1,5 @@
 LIBNAME						=	lambda
-PROD_FLAGS					=	$(if $(filter $(target),prod),-s,-g)
+PROD_FLAGS					=	$(if $(filter $(target),prod),-s,-g -fsanitize=address -static-libasan)
 CFLAGS						=	-Wall -Werror -std=c++23 -fPIC $(PROD_FLAGS)
 LAMBDA_LIBSTATIC			=	.artifacts/dist/$(LIBNAME).a
 LAMBDA_LIBSHARED			=	.artifacts/dist/$(LIBNAME).so
@@ -13,7 +13,7 @@ clean: action-custom
 
 
 #############################################
-#			SECTION: Base64 encode			#
+#			PKG: Base64 encode				#
 #############################################
 
 LIB_OBJS_BASE64_OBJS = .artifacts/base64.o
@@ -29,7 +29,7 @@ test-base64: .artifacts/test-base64
 
 
 #############################################
-#			SECTION: sha1 hash				#
+#				PKG: sha1 hash				#
 #############################################
 
 LIB_OBJS_HASH_OBJS = .artifacts/hash_sha1.o
@@ -45,7 +45,7 @@ test-hash: .artifacts/test-hash
 
 
 #############################################
-#			SECTION: Network stuff			#
+#				PKG: Network stuff			#
 #############################################
 
 LIB_OBJS_NET_OBJS = .artifacts/net_tcp_listen.o .artifacts/net_tcp_conn.o
@@ -63,7 +63,7 @@ test-net_tcp: .artifacts/test-net_tcp
 
 
 #############################################
-#			SECTION: http interface			#
+#				PKG: http interface			#
 #############################################
 
 LIB_OBJS_HTTP_OBJS = .artifacts/http_values.o .artifacts/http_method.o .artifacts/http_url_encode.o .artifacts/http_url_search_params.o .artifacts/http_url.o .artifacts/http_cookie.o .artifacts/http_date.o .artifacts/http_basic_auth.o .artifacts/http_sse.o
@@ -95,15 +95,31 @@ test-http_url: .artifacts/test-http_url
 
 
 #############################################
-#				SECTION: server				#
+#				SECTION: Logger				#
+#############################################
+
+LIB_OBJS_LOG_OBJS = .artifacts/log_fmt.o
+.lib-objs-log: $(LIB_OBJS_LOG_OBJS)
+test-log: .artifacts/test-log
+	.artifacts/test-log
+.artifacts/test-log: .artifacts/test-log.o $(LIB_OBJS_LOG_OBJS)
+	g++ $(CFLAGS) .artifacts/test-log.o $(LIB_OBJS_LOG_OBJS) -o .artifacts/test-log
+.artifacts/test-log.o: log/test_log.cpp
+	g++ -c $(CFLAGS) log/test_log.cpp -o .artifacts/test-log.o
+.artifacts/log_fmt.o: log/fmt.cpp
+	g++ -c $(CFLAGS) log/fmt.cpp -o .artifacts/log_fmt.o
+
+
+#############################################
+#				PKG: server					#
 #############################################
 
 LIB_OBJS_SRV_OBJS = .artifacts/server.o .artifacts/server_pipeline_h1.o .artifacts/server_pipeline_h1_rx.o .artifacts/server_pipeline_h1_tx.o
 .lib-objs-srv: $(LIB_OBJS_SRV_OBJS)
 test-server: .artifacts/test-server
 	.artifacts/test-server
-.artifacts/test-server: .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS)
-	g++ $(CFLAGS) .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) -o .artifacts/test-server
+.artifacts/test-server: .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_LOG_OBJS)
+	g++ $(CFLAGS) .artifacts/test-server.o $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_LOG_OBJS) -o .artifacts/test-server
 .artifacts/test-server.o: server/test_server.cpp
 	g++ -c $(CFLAGS) server/test_server.cpp -o .artifacts/test-server.o
 .artifacts/server.o: server/server.cpp
@@ -117,15 +133,15 @@ test-server: .artifacts/test-server
 
 
 #############################################
-#			SECTION: File server			#
+#				PKG: File server			#
 #############################################
 
 LIB_OBJS_FS_OBJS = .artifacts/fs_handler.o .artifacts/fs_static.o .artifacts/fs_mimetypes.o
 .lib-objs-fs: $(LIB_OBJS_FS_OBJS)
 test-fs: .artifacts/test-fs
 	.artifacts/test-fs
-.artifacts/test-fs: .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS)
-	g++ $(CFLAGS) .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) -o .artifacts/test-fs
+.artifacts/test-fs: .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_LOG_OBJS)
+	g++ $(CFLAGS) .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_LOG_OBJS) -o .artifacts/test-fs
 .artifacts/test-fs.o: fs/test_fs.cpp
 	g++ -c $(CFLAGS) fs/test_fs.cpp -o .artifacts/test-fs.o
 .artifacts/fs_handler.o: fs/fs_handler.cpp
@@ -137,7 +153,7 @@ test-fs: .artifacts/test-fs
 
 
 #############################################
-#				SECTION: JSON				#
+#				PKG: JSON					#
 #############################################
 
 LIB_OBJS_JSON_OBJS = .artifacts/json_stringify.o .artifacts/json_parse.o
@@ -155,15 +171,15 @@ test-json: .artifacts/test-json
 
 
 #############################################
-#			SECTION: Websocket				#
+#				PKG: Websocket				#
 #############################################
 
 LIB_OBJS_WS_OBJS = .artifacts/websocket.o
 .lib-objs-ws: $(LIB_OBJS_WS_OBJS)
 test-ws: .artifacts/test-ws
 	.artifacts/test-ws
-.artifacts/test-ws: .artifacts/test-ws.o $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_HASH_OBJS) $(LIB_OBJS_WS_OBJS)
-	g++ $(CFLAGS) .artifacts/test-ws.o $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_HASH_OBJS) $(LIB_OBJS_WS_OBJS) -o .artifacts/test-ws
+.artifacts/test-ws: .artifacts/test-ws.o $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_HASH_OBJS) $(LIB_OBJS_WS_OBJS) $(LIB_OBJS_LOG_OBJS)
+	g++ $(CFLAGS) .artifacts/test-ws.o $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_HASH_OBJS) $(LIB_OBJS_WS_OBJS) $(LIB_OBJS_LOG_OBJS) -o .artifacts/test-ws
 .artifacts/test-ws.o: ws/test_ws.cpp
 	g++ -c $(CFLAGS) ws/test_ws.cpp -o .artifacts/test-ws.o
 .artifacts/websocket.o: ws/websocket.cpp
@@ -174,7 +190,7 @@ test-ws: .artifacts/test-ws
 #				LIBRARY BUILD				#
 #############################################
 
-LIB_FULL_OBJS = $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_JSON_OBJS) $(LIB_OBJS_WS_OBJS) $(LIB_OBJS_HASH_OBJS)
+LIB_FULL_OBJS = $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_JSON_OBJS) $(LIB_OBJS_WS_OBJS) $(LIB_OBJS_HASH_OBJS) $(LIB_OBJS_LOG_OBJS)
 libshared: $(LAMBDA_LIBSHARED)
 $(LAMBDA_LIBSHARED): $(LIB_FULL_OBJS)
 	g++ $(CFLAGS) $(LIB_FULL_OBJS) -shared -o $(LAMBDA_LIBSHARED)
