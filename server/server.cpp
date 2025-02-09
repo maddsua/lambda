@@ -45,7 +45,7 @@ void Server::serve() {
 					break;
 				}
 
-				Log::err("{} Lambda::Serve: Listnener exception: {}", {
+				Log::err("{} ERROR Lambda::Serve Listnener exception: {}", {
 					Date().to_log_string(),
 					e.what()
 				});
@@ -53,7 +53,7 @@ void Server::serve() {
 		}
 	});
 
-	Log::err("{} Lambda::Serve: Listening at http://{}:{}/", {
+	Log::err("{} DEBUG Lambda::Serve Listening at http://{}:{}/", {
 		Date().to_log_string(),
 		this->options.host_addr.empty() ? "localhost" : this->options.host_addr,
 		this->options.port
