@@ -256,3 +256,9 @@ example-ws: .artifacts/example-ws
 .artifacts/example-ws.o: examples/ws.cpp
 	g++ -c $(CFLAGS) examples/ws.cpp -o .artifacts/example-ws.o
 
+example-static: .artifacts/example-static
+	.artifacts/example-static
+.artifacts/example-static: .artifacts/example-static.o $(LIB_FULL_OBJS)
+	g++ $(CFLAGS) .artifacts/example-static.o $(LIB_FULL_OBJS) -o .artifacts/example-static
+.artifacts/example-static.o: examples/static.cpp
+	g++ -c $(CFLAGS) examples/static.cpp -o .artifacts/example-static.o

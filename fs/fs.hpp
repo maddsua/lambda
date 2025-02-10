@@ -45,15 +45,23 @@ namespace Lambda {
 			std::unique_ptr<ServedFile> open(const std::string& filename);
 	};
 
+	struct FileServerOptions {
+		bool html_error_pages = true;
+		bool debug = false;
+	};
+
+	//	todo: fix handler method abstraction
+
 	class FileServer {
 		private:
+			//	todo: replace with unique_ptr
 			FileServerReader& m_reader;
 
 		public:
-			bool html_error_pages = true;
-			bool debug = false;
-
 			FileServer(FileServerReader& reader) : m_reader(reader) {}
+			FileServer(FileServerReader& reader, FileServerOptions options) : m_reader(reader), opts(options) {}
+
+			FileServerOptions opts;
 
 			void handle(Request& req, ResponseWriter& wrt);
 			HandlerFn handler_fn();

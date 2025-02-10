@@ -36,7 +36,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 			wrt.header().set("allow", "OPTIONS, GET, HEAD");
 			wrt.write_header(Status::NoContent);
 
-			if (this->debug) {
+			if (this->opts.debug) {
 				log_access(req, Status::NoContent);
 			}
 
@@ -46,7 +46,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 	
 			wrt.write_header(Status::MethodNotAllowed);
 
-			if (this->debug) {
+			if (this->opts.debug) {
 				log_access(req, Status::MethodNotAllowed);
 			}
 
@@ -60,7 +60,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 		wrt.header().set("location", flattened);	
 		wrt.write_header(Status::PermanentRedirect);
 
-		if (this->debug) {
+		if (this->opts.debug) {
 			log_access(req, Status::PermanentRedirect);
 		}
 		
@@ -76,19 +76,17 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 	auto file_hit = this->m_reader.open(fs_file_path);
 	if (!file_hit) {
 
-		auto response_body = this->html_error_pages ? render_404_page(req.url.path) : ("path '" + req.url.path + "' not found");
-
 		if (req.method != Method::HEAD) {
-			wrt.header().set("content-type", this->html_error_pages ? "text/html" : "text/plain");
+			wrt.header().set("content-type", this->opts.html_error_pages ? "text/html" : "text/plain");
 		}
 
 		wrt.write_header(Status::NotFound);
 
 		if (req.method != Method::HEAD) {
-			wrt.write(response_body);
+			wrt.write(this->opts.html_error_pages ? render_404_page(req.url.path) : ("path '" + req.url.path + "' not found"));
 		}
 
-		if (this->debug) {
+		if (this->opts.debug) {
 			log_access(req, Status::NotFound);
 		}
 		
@@ -105,7 +103,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 		wrt.header().set("location", req.url.href());
 		wrt.write_header(Status::Found);
 
-		if (this->debug) {
+		if (this->opts.debug) {
 			log_access(req, Status::Found);
 		}
 
@@ -118,7 +116,13 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 
 	auto last_modified = Date(file_hit->modified()).to_utc_string();
 	if (req.headers.get("if-modified-since") == last_modified) {
+
 		wrt.write_header(Status::NotModified);
+
+		if (this->opts.debug) {
+			log_access(req, Status::NotModified);
+		}
+
 		return;
 	}
 
@@ -138,7 +142,13 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 		auto etag = hash_content(partial_content);
 	
 		if (req.headers.get("if-none-match") == etag) {
+
 			wrt.write_header(Status::NotModified);
+
+			if (this->opts.debug) {
+				log_access(req, Status::NotModified);
+			}
+
 			return;
 		}
 	
@@ -160,7 +170,13 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 		auto etag = hash_content(complete_content);
 	
 		if (req.headers.get("if-none-match") == etag) {
+
 			wrt.write_header(Status::NotModified);
+
+			if (this->opts.debug) {
+				log_access(req, Status::NotModified);
+			}
+
 			return;
 		}
 	
@@ -172,7 +188,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 
 	wrt.write_header(Status::OK);
 
-	if (this->debug) {
+	if (this->opts.debug) {
 		log_access(req, Status::OK);
 	}
 
@@ -201,7 +217,6 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 }
 
 HandlerFn FileServer::handler_fn() {
-	//	todo: fix lifetime
 	return [&](Request& req, ResponseWriter& wrt) -> void {
 		this->handle(req, wrt);
 	};
@@ -235,7 +250,7 @@ std::string hash_content(const HTTP::Buffer& data) {
 }
 
 void log_access(const Request& req, Status status) {
-	Log::err("{} DEBUG Lambda::Fileserver {} {} {} -> {}", {
+	Log::err("{} DEBUG Lambda::Fs {} {} {} -> {}", {
 		Date().to_log_string(),
 		req.remote_addr.hostname,
 		HTTP::method_to_string(req.method),

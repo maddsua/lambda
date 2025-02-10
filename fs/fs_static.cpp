@@ -118,7 +118,9 @@ FsDirectoryServe::FsDirectoryServe(const std::string& root_dir) {
 
 std::unique_ptr<ServedFile> FsDirectoryServe::open(const std::string& filename) {
 
-	auto resolved = this->m_root / std::filesystem::path(filename.starts_with('/') ? filename.substr(1) : filename);
+	auto file_path = std::filesystem::path(filename).lexically_normal().string();
+	auto path_absolute = file_path.starts_with('/') || file_path.starts_with('\\');
+	auto resolved = this->m_root / std::filesystem::path(path_absolute ? file_path.substr(1) : file_path);
 
 	if (std::filesystem::is_regular_file(resolved)) {
 		return std::unique_ptr<ServedFile>(new FsDirectoryFile(

@@ -3,7 +3,6 @@
 
 #include <future>
 #include <functional>
-#include <memory>
 
 #include "../net/net.hpp"
 #include "../http/http.hpp"

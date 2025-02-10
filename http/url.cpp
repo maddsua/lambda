@@ -102,7 +102,7 @@ URL::URL(const std::string& url) {
 		}
 	}
 
-	this->path = HTTP::reset_case(url.substr(path_begin, query_begin - path_begin));
+	this->path = url.substr(path_begin, query_begin - path_begin);
 }
 
 std::string URL::to_string() const noexcept {
