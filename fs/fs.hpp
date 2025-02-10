@@ -12,7 +12,7 @@
 
 namespace Lambda {
 
-	class ServedFile {
+	class StaticFile {
 		public:
 
 			enum struct Type {
@@ -28,40 +28,41 @@ namespace Lambda {
 			virtual std::vector<uint8_t> content() = 0;
 			virtual std::vector<uint8_t> content(size_t begin, size_t end) = 0;
 
-			virtual ~ServedFile() = default;
+			virtual ~StaticFile() = default;
 	};
 
-	class FileServerReader {
+	class StaticReader {
 		public:
-			virtual std::unique_ptr<ServedFile> open(const std::string& filename) = 0;	
+			virtual std::unique_ptr<StaticFile> open(const std::string& filename) = 0;	
 	};
 
-	class FsDirectoryServe : public FileServerReader {
+	class DirReader : public StaticReader {
 		private:
 			std::filesystem::path m_root;
 
 		public:
-			FsDirectoryServe(const std::string& root_dir);
-			std::unique_ptr<ServedFile> open(const std::string& filename);
+			DirReader(const std::string& root_dir);
+			std::unique_ptr<StaticFile> open(const std::string& filename);
 	};
 
-	struct FileServerOptions {
+	struct StaticServerOptions {
 		bool html_error_pages = true;
 		bool debug = false;
 	};
 
 	//	todo: fix handler method abstraction
 
-	class FileServer {
+	class StaticServer {
 		private:
-			//	todo: replace with unique_ptr
-			FileServerReader& m_reader;
+			std::shared_ptr<StaticReader> m_reader;
 
 		public:
-			FileServer(FileServerReader& reader) : m_reader(reader) {}
-			FileServer(FileServerReader& reader, FileServerOptions options) : m_reader(reader), opts(options) {}
+			StaticServer(std::shared_ptr<StaticReader> reader)
+				: m_reader(reader) {}
+			StaticServer(std::shared_ptr<StaticReader> reader, StaticServerOptions options)
+				: m_reader(reader), opts(options) {}
 
-			FileServerOptions opts;
+			StaticServerOptions opts;
 
 			void handle(Request& req, ResponseWriter& wrt);
 			HandlerFn handler_fn();

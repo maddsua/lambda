@@ -136,7 +136,7 @@ test-server: .artifacts/test-server
 #				PKG: File server			#
 #############################################
 
-LIB_OBJS_FS_OBJS = .artifacts/fs_handler.o .artifacts/fs_static.o .artifacts/fs_mimetypes.o
+LIB_OBJS_FS_OBJS = .artifacts/fs_static_serve.o .artifacts/fs_dir_reader.o .artifacts/fs_mimetypes.o
 .lib-objs-fs: $(LIB_OBJS_FS_OBJS)
 test-fs: .artifacts/test-fs
 	.artifacts/test-fs
@@ -144,10 +144,10 @@ test-fs: .artifacts/test-fs
 	g++ $(CFLAGS) .artifacts/test-fs.o $(LIB_OBJS_FS_OBJS) $(LIB_OBJS_SRV_OBJS) $(LIB_OBJS_HTTP_OBJS) $(LIB_OBJS_NET_OBJS) $(LIB_OBJS_BASE64_OBJS) $(LIB_OBJS_LOG_OBJS) -o .artifacts/test-fs
 .artifacts/test-fs.o: fs/test_fs.cpp
 	g++ -c $(CFLAGS) fs/test_fs.cpp -o .artifacts/test-fs.o
-.artifacts/fs_handler.o: fs/fs_handler.cpp
-	g++ -c $(CFLAGS) fs/fs_handler.cpp -o .artifacts/fs_handler.o
-.artifacts/fs_static.o: fs/fs_static.cpp
-	g++ -c $(CFLAGS) fs/fs_static.cpp -o .artifacts/fs_static.o
+.artifacts/fs_static_serve.o: fs/static_serve.cpp
+	g++ -c $(CFLAGS) fs/static_serve.cpp -o .artifacts/fs_static_serve.o
+.artifacts/fs_dir_reader.o: fs/dir_reader.cpp
+	g++ -c $(CFLAGS) fs/dir_reader.cpp -o .artifacts/fs_dir_reader.o
 .artifacts/fs_mimetypes.o: fs/mimetypes.cpp
 	g++ -c $(CFLAGS) fs/mimetypes.cpp -o .artifacts/fs_mimetypes.o
 

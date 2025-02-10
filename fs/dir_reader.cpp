@@ -6,7 +6,7 @@
 
 using namespace Lambda;
 
-struct FsDirectoryFile : public ServedFile {
+struct FsDirectoryFile : public StaticFile {
 	private:
 		std::unique_ptr<std::fstream> m_stream;
 		std::string m_resolved_Path;
@@ -56,7 +56,7 @@ struct FsDirectoryFile : public ServedFile {
 		}
 
 		Type type() const noexcept {
-			return this->m_stream ? ServedFile::Type::File : ServedFile::Type::Directory;
+			return this->m_stream ? StaticFile::Type::File : StaticFile::Type::Directory;
 		}
 
 		std::vector<uint8_t> content() {
@@ -98,7 +98,7 @@ struct FsDirectoryFile : public ServedFile {
 		}
 };
 
-FsDirectoryServe::FsDirectoryServe(const std::string& root_dir) {
+DirReader::DirReader(const std::string& root_dir) {
 
 	this->m_root = std::filesystem::path(root_dir);
 	if (this->m_root.empty()) {
@@ -116,21 +116,21 @@ FsDirectoryServe::FsDirectoryServe(const std::string& root_dir) {
 	}
 }
 
-std::unique_ptr<ServedFile> FsDirectoryServe::open(const std::string& filename) {
+std::unique_ptr<StaticFile> DirReader::open(const std::string& filename) {
 
 	auto file_path = std::filesystem::path(filename).lexically_normal().string();
 	auto path_absolute = file_path.starts_with('/') || file_path.starts_with('\\');
 	auto resolved = this->m_root / std::filesystem::path(path_absolute ? file_path.substr(1) : file_path);
 
 	if (std::filesystem::is_regular_file(resolved)) {
-		return std::unique_ptr<ServedFile>(new FsDirectoryFile(
+		return std::unique_ptr<StaticFile>(new FsDirectoryFile(
 			new std::fstream(resolved, std::ios::in | std::ios::binary),
 			resolved
 		));
 	}
 
 	if (std::filesystem::is_directory(resolved)) {
-		return std::unique_ptr<ServedFile>(new FsDirectoryFile(nullptr, resolved));
+		return std::unique_ptr<StaticFile>(new FsDirectoryFile(nullptr, resolved));
 	}
 
 	return nullptr;

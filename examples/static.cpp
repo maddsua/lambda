@@ -14,8 +14,7 @@ const std::string www_dist = "../lambda-next-app/out";
 
 int main() {
 
-	auto fs_reader = FsDirectoryServe(www_dist);
-	auto fss = FileServer(fs_reader, { .debug = true });
+	auto fss = StaticServer(std::make_shared<DirReader>(DirReader(www_dist)), { .debug = true });
 
 	auto server = Lambda::Server(fss.handler_fn(), { .debug = true });
 	server.serve();

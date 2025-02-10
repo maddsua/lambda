@@ -24,7 +24,7 @@ std::optional<Range> get_range(const Headers& headers, size_t file_size);
 //	generated fn
 std::string render_404_page(const std::string& requeted_url);
 
-void FileServer::handle(Request& req, ResponseWriter& wrt) {
+void StaticServer::handle(Request& req, ResponseWriter& wrt) {
 
 	switch (req.method) {
 
@@ -73,7 +73,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 		fs_file_path.append("index.html");
 	}
 
-	auto file_hit = this->m_reader.open(fs_file_path);
+	auto file_hit = this->m_reader->open(fs_file_path);
 	if (!file_hit) {
 
 		if (req.method != Method::HEAD) {
@@ -94,7 +94,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 	}
 
 	//	return redirect for directories
-	if (file_hit->type() == ServedFile::Type::Directory) {
+	if (file_hit->type() == StaticFile::Type::Directory) {
 
 		if (!req.url.path.ends_with('/')) {
 			req.url.path.push_back('/');
@@ -216,7 +216,7 @@ void FileServer::handle(Request& req, ResponseWriter& wrt) {
 	wrt.write(complete_content);
 }
 
-HandlerFn FileServer::handler_fn() {
+HandlerFn StaticServer::handler_fn() {
 	return [&](Request& req, ResponseWriter& wrt) -> void {
 		this->handle(req, wrt);
 	};
