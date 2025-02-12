@@ -241,7 +241,6 @@ namespace Lambda {
 		std::string to_string() const;
 	};
 
-	//	todo: add serve context to request
 	struct Request {
 		Net::RemoteAddress remote_addr;
 		Method method;

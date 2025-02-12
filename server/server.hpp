@@ -18,8 +18,6 @@ namespace Lambda {
 		size_t max_body_size = 10 * 1024 * 1024;
 	};
 
-	class ServeContext;
-
 	class Server {
 		protected:
 			HandlerFn m_handler_fn;
