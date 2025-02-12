@@ -24,7 +24,7 @@ std::optional<Range> get_range(const Headers& headers, size_t file_size);
 //	generated fn
 std::string render_404_page(const std::string& requeted_url);
 
-void StaticServer::handle(Request& req, ResponseWriter& wrt) {
+void StaticServer::handler_fn(Request& req, ResponseWriter& wrt) {
 
 	switch (req.method) {
 
@@ -214,12 +214,6 @@ void StaticServer::handle(Request& req, ResponseWriter& wrt) {
 	}
 
 	wrt.write(complete_content);
-}
-
-HandlerFn StaticServer::handler_fn() {
-	return [&](Request& req, ResponseWriter& wrt) -> void {
-		this->handle(req, wrt);
-	};
 }
 
 std::string flatten_path(const std::string& path) {

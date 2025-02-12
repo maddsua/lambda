@@ -270,7 +270,11 @@ namespace Lambda {
 
 	typedef std::function<void(Request& req, ResponseWriter& wrt)> HandlerFn;
 
-	class SSEWriter;
+	class Handler {
+		public:
+			virtual void handler_fn(Request& req, ResponseWriter& wrt) = 0;
+			virtual ~Handler() = default;
+	};
 
 	struct SSEevent {
 		std::optional<std::string> event;

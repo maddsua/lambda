@@ -9,14 +9,40 @@ using namespace Lambda;
 
 std::string parse_bind_addr(const std::string& input);
 
+Server::Server(HandlerFn handler_fn) : m_handler_fn(handler_fn) {
+	if (!this->m_handler_fn) {
+		throw std::runtime_error("Lambda::Serve: Root handler is not defined");
+	}
+}
+
+Server::Server(HandlerFn handler_fn, ServeOptions options) : m_handler_fn(handler_fn), options(options) {
+	if (!this->m_handler_fn) {
+		throw std::runtime_error("Lambda::Serve: Root handler is not defined");
+	}
+}
+
+Server::Server(std::shared_ptr<Handler> handler) : m_handler(handler) {
+
+	if (!this->m_handler) {
+		throw std::runtime_error("Lambda::Serve: Root handler is not defined");
+	}
+
+	this->m_handler_fn = std::bind(&Handler::handler_fn, this->m_handler.get(), std::placeholders::_1, std::placeholders::_2);
+}
+
+Server::Server(std::shared_ptr<Handler> handler, ServeOptions options) : m_handler(handler), options(options) {
+
+	if (!this->m_handler) {
+		throw std::runtime_error("Lambda::Serve: Root handler is not defined");
+	}
+
+	this->m_handler_fn = std::bind(&Handler::handler_fn, this->m_handler.get(), std::placeholders::_1, std::placeholders::_2);
+}
+
 void Server::serve() {
 
 	if (this->m_active) {
 		throw std::runtime_error("Lambda::Serve: Already running");
-	}
-
-	if (!this->m_handler) {
-		throw std::runtime_error("Lambda::Serve: Handler is not defined");
 	}
 
 	this->m_active = true;
@@ -37,7 +63,7 @@ void Server::serve() {
 				auto next = this->m_tcp.next();
 				auto ctx = ServeContext(this->options, this->m_exit);
 
-				std::thread(Pipelines::H1::serve_conn, std::move(next), this->m_handler, ctx).detach();
+				std::thread(Pipelines::H1::serve_conn, std::move(next), this->m_handler_fn, ctx).detach();
 
 			} catch(const std::exception& e) {
 

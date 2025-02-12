@@ -50,9 +50,7 @@ namespace Lambda {
 		bool debug = false;
 	};
 
-	//	todo: fix handler method abstraction
-
-	class StaticServer {
+	class StaticServer : public Handler {
 		private:
 			std::shared_ptr<StaticReader> m_reader;
 
@@ -64,8 +62,7 @@ namespace Lambda {
 
 			StaticServerOptions opts;
 
-			void handle(Request& req, ResponseWriter& wrt);
-			HandlerFn handler_fn();
+			void handler_fn(Request& req, ResponseWriter& wrt);
 	};
 
 	namespace Fs {

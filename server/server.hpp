@@ -3,6 +3,7 @@
 
 #include <future>
 #include <functional>
+#include <memory>
 
 #include "../net/net.hpp"
 #include "../http/http.hpp"
@@ -21,7 +22,8 @@ namespace Lambda {
 
 	class Server {
 		protected:
-			HandlerFn m_handler;
+			HandlerFn m_handler_fn;
+			std::shared_ptr<Handler> m_handler;
 			Net::TcpListener m_tcp;
 			std::future<void> m_loop;
 			bool m_active = false;
@@ -31,8 +33,11 @@ namespace Lambda {
 
 			static const uint32_t DefaultIoTimeout = 15000;
 
-			Server(HandlerFn handler) : m_handler(handler) {}
-			Server(HandlerFn handler, ServeOptions options) : m_handler(handler), options(options) {}
+			Server(HandlerFn handler_fn);
+			Server(std::shared_ptr<Handler> handler);
+			Server(HandlerFn handler_fn, ServeOptions options);
+			Server(std::shared_ptr<Handler> handler, ServeOptions options);
+
 			Server(const Server& other) = delete;
 			~Server();
 
