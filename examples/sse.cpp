@@ -13,11 +13,11 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 		return;
 	}
 
-	auto sse = SSEWriter(wrt);
+	auto sse = SSEWriter(req, wrt);
 
-	for (size_t idx = 0; idx < 5 && sse.is_writable(); idx++) {
+	for (size_t idx = 0; idx < 5 && sse.is_open(); idx++) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		sse.write(SSEevent { .data = "test message " + std::to_string(idx) });
+		sse.push(SSEevent { .data = "test message " + std::to_string(idx) });
 	}
 };
 

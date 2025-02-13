@@ -13,7 +13,7 @@ using namespace Lambda::Ws;
 const size_t read_chunk_size = 32;
 const size_t max_header_size = 16;
 
-Websocket::Websocket(Request& req, ResponseWriter& wrt) : m_reader(req.body), m_writer(wrt) {
+Websocket::Websocket(Request& req, ResponseWriter& wrt) : m_reader(req.body), m_writer(wrt), m_ctx(req.ctx) {
 
 	auto terminate_with_error = [&](Status status, const std::string& message) {
 		try { 
@@ -48,7 +48,7 @@ Websocket::Websocket(Request& req, ResponseWriter& wrt) : m_reader(req.body), m_
 
 Websocket::~Websocket() {
 
-	if (!this->m_writer.writable()) {
+	if (this->m_ctx.done()) {
 		return;
 	}
 
@@ -223,6 +223,11 @@ size_t Websocket::write(const Frame& frame) {
 		throw std::runtime_error("Websocket: Cannot write to a closed socket");
 	}
 
+	if (this->m_ctx.done()) {
+		this->m_closed = true;
+		return 0;
+	}
+
 	uint8_t frame_bit = static_cast<uint8_t>(frame.frame);
 	uint8_t op_code = static_cast<uint8_t>(frame.code);
 
@@ -242,6 +247,11 @@ std::optional<Frame> Websocket::next() {
 
 	if (this->m_closed) {
 		throw std::runtime_error("Websocket: Cannot read messages from a closed socket");
+	}
+
+	if (this->m_ctx.done()) {
+		this->m_closed = true;
+		return std::nullopt;
 	}
 
 	auto frame_opt = parse_frame(this->m_read_buff);
@@ -330,31 +340,34 @@ std::optional<Frame> Websocket::next() {
 
 size_t Websocket::close(Ws::CloseReason reason) {
 
-	auto reason_code = static_cast<std::underlying_type_t<CloseReason>>(reason);
+	size_t bytes_written = 0;
 
-	std::vector<uint8_t> buff ({
-		#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-			static_cast<uint8_t>((reason_code >> 8) & 0xff),
-			static_cast<uint8_t>(reason_code & 0xff),
-		#else
-			static_cast<uint8_t>(reason_code & 0xff),
-			static_cast<uint8_t>((reason_code >> 8) & 0xff),
-		#endif
-	});
+	if (this->is_open()) {
 
-	Frame frame {
-		.code = Opcode::Close,
-		.data = buff
-	};
+		auto close_code_u16 = static_cast<std::underlying_type_t<CloseReason>>(reason);
 
-	size_t written =  this->write(frame);
-	if (written > 0) {
-		this->m_closed = true;
+		std::vector<uint8_t> frame_data ({
+			#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+				static_cast<uint8_t>((close_code_u16 >> 8) & 0xff),
+				static_cast<uint8_t>(close_code_u16 & 0xff),
+			#else
+				static_cast<uint8_t>(reason_code & 0xff),
+				static_cast<uint8_t>((reason_code >> 8) & 0xff),
+			#endif
+		});
+
+		bytes_written = this->write(Frame {
+			.code = Opcode::Close,
+			.data = frame_data
+		});
 	}
 
-	return written;
+	this->m_ctx.cancel();
+	this->m_closed = true;
+
+	return bytes_written;
 }
 
 bool Websocket::is_open() const noexcept {
-	return this->m_reader.is_readable() || this->m_writer.writable();
+	return !this->m_ctx.done() && !this->m_closed;
 }

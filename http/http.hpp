@@ -199,22 +199,6 @@ namespace Lambda {
 			}
 	};
 
-	class BodyReader {
-		public:
-			BodyReader() = default;
-			BodyReader(const BodyReader& other) = delete;
-			virtual ~BodyReader() = default;
-
-			virtual bool is_readable() const noexcept = 0;
-
-			virtual HTTP::Buffer read(size_t chunk_size) = 0;
-			virtual HTTP::Buffer read_all() = 0;
-			virtual std::string text() = 0;
-
-		//	todo: add form data
-		//	todo: add json
-	};
-
 	typedef HTTP::Values Headers;
 	typedef HTTP::Values CookieValues;
 
@@ -241,6 +225,27 @@ namespace Lambda {
 		std::string to_string() const;
 	};
 
+	class Context {
+		public:
+			virtual ~Context() = default;
+			virtual bool done() const noexcept = 0;
+			virtual void cancel() noexcept = 0;
+	};
+
+	class BodyReader {
+		public:
+			BodyReader() = default;
+			BodyReader(const BodyReader& other) = delete;
+			virtual ~BodyReader() = default;
+
+			virtual HTTP::Buffer read(size_t chunk_size) = 0;
+			virtual HTTP::Buffer read_all() = 0;
+			virtual std::string text() = 0;
+
+		//	todo: add form data
+		//	todo: add json
+	};
+
 	struct Request {
 		Net::RemoteAddress remote_addr;
 		Method method;
@@ -248,6 +253,7 @@ namespace Lambda {
 		Headers& headers;
 		CookieValues cookies;
 		BodyReader& body;
+		Context& ctx;
 	};
 
 	//	todo: add json and html writers (simply complete response objects)
@@ -258,7 +264,6 @@ namespace Lambda {
 			ResponseWriter(const ResponseWriter& other) = delete;
 			virtual ~ResponseWriter() = default;
 
-			virtual bool writable() const noexcept = 0;
 			virtual Headers& header() noexcept = 0;
 			virtual size_t write_header() = 0;
 			virtual size_t write_header(Status status) = 0;
@@ -285,14 +290,16 @@ namespace Lambda {
 	class SSEWriter {
 		private:
 			ResponseWriter& m_writer;
-			bool m_ok = true;
+			Context& m_ctx;
+			bool m_closed = false;
+
 		public:
-			SSEWriter(ResponseWriter& writer);
+			SSEWriter(Request& req, ResponseWriter& writer);
 			~SSEWriter();
 
-			size_t write(const SSEevent& msg);
-			bool is_writable() const noexcept;
+			size_t push(const SSEevent& msg);
 			size_t close();
+			bool is_open() const noexcept;
 	};
 };
 

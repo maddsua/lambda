@@ -3,7 +3,6 @@
 
 #include <future>
 #include <functional>
-#include <memory>
 
 #include "../net/net.hpp"
 #include "../http/http.hpp"
@@ -24,8 +23,7 @@ namespace Lambda {
 			std::shared_ptr<Handler> m_handler;
 			Net::TcpListener m_tcp;
 			std::future<void> m_loop;
-			bool m_active = false;
-			std::shared_ptr<bool> m_exit = std::make_shared<bool>(false);
+			std::shared_ptr<bool> m_done = std::make_shared<bool>(true);
 
 		public:
 
@@ -45,19 +43,6 @@ namespace Lambda {
 			void shutdown();
 	};
 
-	class ServeContext {
-		private:
-			std::shared_ptr<bool> m_done;
-		public:
-			ServeContext(const ServeOptions& opts, std::shared_ptr<bool> done)
-				: m_done(done), opts(opts) {}
-
-			const ServeOptions opts;
-
-			bool done() const noexcept {
-				return *this->m_done;
-			}
-	};
 };
 
 #endif

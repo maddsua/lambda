@@ -2,7 +2,7 @@
 
 using namespace Lambda;
 
-SSEWriter::SSEWriter(ResponseWriter& writer) : m_writer(writer) {
+SSEWriter::SSEWriter(Request& req, ResponseWriter& writer) : m_writer(writer), m_ctx(req.ctx) {
 
 	writer.header().set("connection", "keep-alive");
 	writer.header().set("cache-control", "no-cache");
@@ -16,10 +16,15 @@ SSEWriter::~SSEWriter() {
 		catch(...) { }
 }
 
-size_t SSEWriter::write(const SSEevent& msg) {
+size_t SSEWriter::push(const SSEevent& msg) {
 
-	if (!this->is_writable()) {
+	if (this->m_closed) {
 		throw std::runtime_error("SSE writer closed");
+	}
+
+	if (this->m_ctx.done()) {
+		this->m_closed = true;
+		return 0;
 	}
 
 	HTTP::Buffer buffer;
@@ -53,15 +58,20 @@ size_t SSEWriter::write(const SSEevent& msg) {
 	return this->m_writer.write(buffer);
 }
 
-bool SSEWriter::is_writable() const noexcept {
-	return this->m_ok && this->m_writer.writable();
-}
-
 size_t SSEWriter::close() {
 
-	if (!this->is_writable()) {
-		return 0;
+	size_t bytes_written = 0;
+
+	if (this->is_open()) {
+		bytes_written = this->push({ .event = "close" });
 	}
 
-	return this->write({ .event = "close" });
+	this->m_ctx.cancel();
+	this->m_closed = true;
+
+	return bytes_written;
+}
+
+bool SSEWriter::is_open() const noexcept {
+	return !this->m_ctx.done() && !this->m_closed;
 }

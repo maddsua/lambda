@@ -33,11 +33,11 @@ void handler_fn(Request& req, ResponseWriter& wrt) {
 
 	if (req.url.path == "/events") {
 
-		auto sse = SSEWriter(wrt);
+		auto sse = SSEWriter(req, wrt);
 
-		for (size_t idx = 0; idx < 4 && sse.is_writable(); idx++) {
+		for (size_t idx = 0; idx < 4 && sse.is_open(); idx++) {
 			std::this_thread::sleep_for(std::chrono::seconds(1));
-			sse.write({ .event = "update", .data = "idx=" + std::to_string(idx), });
+			sse.push({ .event = "update", .data = "idx=" + std::to_string(idx), });
 		}
 
 		return;

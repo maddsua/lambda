@@ -147,10 +147,6 @@ size_t Impl::ResponseWriter::flush() {
 	return 0;
 }
 
-bool Impl::ResponseWriter::writable() const noexcept {
-	return this->m_conn.is_open();
-}
-
 Headers& Impl::ResponseWriter::header() noexcept {
 	return this->m_headers;
 }
@@ -163,6 +159,15 @@ size_t Impl::ResponseWriter::write_header(Status status) {
 
 	if (this->m_header_written) {
 		throw std::runtime_error("Response header has been already written");
+	}
+
+	if (this->m_ctx.done()) {
+		return 0;
+	}
+
+	if (!this->m_conn.is_open()) {
+		this->m_ctx.cancel();
+		return 0;
 	}
 
 	this->m_header_written = true;
@@ -227,6 +232,15 @@ size_t Impl::ResponseWriter::write_header(Status status) {
 
 size_t Impl::ResponseWriter::write(const HTTP::Buffer& data) {
 
+	if (this->m_ctx.done()) {
+		return 0;
+	}
+
+	if (!this->m_conn.is_open()) {
+		this->m_ctx.cancel();
+		return 0;
+	}
+
 	if (!this->m_header_written) {
 		this->write_header(Status::OK);
 	}
@@ -243,7 +257,7 @@ size_t Impl::ResponseWriter::write(const HTTP::Buffer& data) {
 		auto announced = this->m_announced.value();
 		if (this->m_body_written >= announced) {
 
-			if (this->m_ctx.opts.debug) {
+			if (this->m_ctx.debug) {
 				Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Extra body chunk discarded ({}/{})", {
 					Date().to_log_string(),
 					this->m_conn.remote_addr().hostname,

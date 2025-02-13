@@ -201,7 +201,7 @@ void merge_url_components(URL& url, const Headers& headers) {
 std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(
 	Net::TcpConnection& conn,
 	HTTP::Buffer& read_buff,
-	const ServeContext& ctx
+	ServeContext& srvctx
 ) {
 
 	size_t reader_seek = 0;
@@ -211,7 +211,7 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(
 	RequestHead next;
 	bool request_line_parsed = false;
 
-	while (!ctx.done()) {
+	while (!srvctx.done()) {
 
 		auto seek_begin = chunker_seek != nullidx ? chunker_seek : reader_seek;
 
@@ -225,7 +225,7 @@ std::expected<Impl::RequestHead, Impl::RequestError> Impl::read_request_head(
 				});
 			}
 
-			if (total_read > ctx.opts.max_header_size) {
+			if (total_read > srvctx.opts.max_header_size) {
 				return std::unexpected<Impl::RequestError>({
 					"request header section is too big",
 					Status::RequestHeaderFieldsTooLarge,
@@ -350,13 +350,14 @@ void Impl::discard_unread_body(Net::TcpConnection& conn, StreamState& stream) {
 	}
 }
 
-bool Impl::RequestBodyReader::is_readable() const noexcept {
-	return this->m_conn.is_open();
-}
-
 HTTP::Buffer Impl::RequestBodyReader::read(size_t chunk_size) {
 
-	if (!this->is_readable()) {
+	if (this->m_ctx.done()) {
+		return {};
+	}
+
+	if (!this->m_conn.is_open()) {
+		this->m_ctx.cancel();
 		return {};
 	}
 

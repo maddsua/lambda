@@ -2,15 +2,45 @@
 #define __LIB_MADDSUA_LAMBDA_SERVER_HANDLERS__
 
 #include <expected>
+#include <memory>
 
 #include "./server.hpp"
 #include "../http/http_utils.hpp"
 
 namespace Lambda::Pipelines {
 
+	struct ServeContext {
+		std::shared_ptr<bool> done_ptr;
+		const ServeOptions opts;
+
+		bool done() const noexcept {
+			return *this->done_ptr;
+		}
+	};
+
+	class RequestContext : public Context {
+		private:
+			std::shared_ptr<bool> m_srv_done;
+			bool m_done = false;
+
+		public:
+			RequestContext(std::shared_ptr<bool> server_done, bool debug)
+				: m_srv_done(server_done), debug(debug) {}
+
+			const bool debug = false;
+
+			bool done() const noexcept {
+				return this->m_done || *this->m_srv_done;
+			}
+
+			void cancel() noexcept {
+				this->m_done = true;
+			}
+	};
+
 	namespace H1 {
 
-		void serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServeContext ctx);
+		void serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServeContext srvctx);
 
 		namespace Impl {
 
@@ -46,9 +76,9 @@ namespace Lambda::Pipelines {
 				HTTP::Buffer body;
 			};
 
-			void serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, const ServeContext& ctx);
+			void serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServeContext& srvctx);
 
-			std::expected<RequestHead, RequestError> read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, const ServeContext& ctx);
+			std::expected<RequestHead, RequestError> read_request_head(Net::TcpConnection& conn, HTTP::Buffer& read_buff, ServeContext& srvctx);
 			HTTP::Buffer read_request_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size, size_t bytes_remain);
 			HTTP::Buffer read_raw_body(Net::TcpConnection& conn, HTTP::Buffer& read_buff, size_t chunk_size);
 			std::optional<size_t> content_length(const Headers& headers);
@@ -60,7 +90,7 @@ namespace Lambda::Pipelines {
 				private:
 					Net::TcpConnection& m_conn;
 					Impl::StreamState& m_stream;
-					const ServeContext& m_ctx;
+					Context& m_ctx;
 
 					Headers m_headers;
 					bool m_header_written = false;
@@ -69,10 +99,8 @@ namespace Lambda::Pipelines {
 					std::optional<size_t> m_announced;
 
 				public:
-					ResponseWriter(Net::TcpConnection& conn, StreamState& stream, const ServeContext& ctx)
+					ResponseWriter(Net::TcpConnection& conn, StreamState& stream, Context& ctx)
 						: m_conn(conn), m_stream(stream), m_ctx(ctx) {}
-
-					bool writable() const noexcept;
 
 					Headers& header() noexcept;
 
@@ -90,12 +118,11 @@ namespace Lambda::Pipelines {
 				private:
 					Net::TcpConnection& m_conn;
 					Impl::StreamState& m_stream;
+					Context& m_ctx;
 
 				public:
-					RequestBodyReader(Net::TcpConnection& conn, StreamState& stream)
-						: m_conn(conn), m_stream(stream) {}
-
-					bool is_readable() const noexcept;
+					RequestBodyReader(Net::TcpConnection& conn, StreamState& stream, Context& ctx)
+						: m_conn(conn), m_stream(stream), m_ctx(ctx) {}
 
 					HTTP::Buffer read(size_t chunk_size);
 					HTTP::Buffer read_all();

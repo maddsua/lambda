@@ -7,7 +7,7 @@
 using namespace Lambda;
 using namespace Lambda::Pipelines::H1;
 
-void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServeContext ctx) {
+void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, ServeContext srvctx) {
 
 	conn.set_timeouts({
 		.read = Server::DefaultIoTimeout,
@@ -16,7 +16,7 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 
 	Impl::StreamState stream;
 
-	if (ctx.opts.debug) {
+	if (srvctx.opts.debug) {
 		Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Create stream", {
 			Date().to_log_string(),
 			conn.remote_addr().hostname,
@@ -26,13 +26,13 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 
 	try {
 
-		while (conn.is_open() && !ctx.done() && stream.http_keep_alive) {
+		while (conn.is_open() && !srvctx.done() && stream.http_keep_alive) {
 			Impl::discard_unread_body(conn, stream);
-			serve_request(conn, handler, stream, ctx);
+			serve_request(conn, handler, stream, srvctx);
 		}
 
 	} catch(const std::exception& e) {
-		if (ctx.opts.debug) {
+		if (srvctx.opts.debug) {
 			Log::err("{} ERROR Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: H1 transport exception: {}", {
 				Date().to_log_string(),
 				conn.remote_addr().hostname,
@@ -42,8 +42,8 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 		}
 	}
 
-	if (ctx.opts.debug) {
-		Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Stream done", {
+	if (srvctx.opts.debug) {
+		Log::err("{} DEBUG Lambda::Serve::H1 [ remote_addr='{}', conn={} ]: Stream closed", {
 			Date().to_log_string(),
 			conn.remote_addr().hostname,
 			conn.id()
@@ -51,12 +51,13 @@ void Pipelines::H1::serve_conn(Net::TcpConnection&& conn, HandlerFn handler, Ser
 	}
 }
 
-void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, const ServeContext& ctx) {
+void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamState& stream, ServeContext& srvctx) {
 
-	auto request_body_reader = Impl::RequestBodyReader(conn, stream);
+	auto ctx = RequestContext(srvctx.done_ptr, srvctx.opts.debug);
+	auto request_body_reader = Impl::RequestBodyReader(conn, stream, ctx);
 	auto response_writer = Impl::ResponseWriter(conn, stream, ctx);
 
-	auto expected_req = Impl::read_request_head(conn, stream.read_buff, ctx);
+	auto expected_req = Impl::read_request_head(conn, stream.read_buff, srvctx);
 	if (!expected_req.has_value()) {
 
 		if (!conn.is_open()) {
@@ -112,6 +113,7 @@ void Impl::serve_request(Net::TcpConnection& conn, HandlerFn handler, StreamStat
 		.headers = req.headers,
 		.cookies = HTTP::parse_cookie(req.headers.get("cookie")),
 		.body = request_body_reader,
+		.ctx = ctx,
 	};
 
 	handler(request, response_writer);

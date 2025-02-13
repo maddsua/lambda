@@ -41,12 +41,11 @@ Server::Server(std::shared_ptr<Handler> handler, ServeOptions options) : m_handl
 
 void Server::serve() {
 
-	if (this->m_active) {
+	if (!*this->m_done) {
 		throw std::runtime_error("Lambda::Serve: Already running");
 	}
 
-	this->m_active = true;
-	*this->m_exit = false;
+	*this->m_done = false;
 
 	//	create tcp listener
 	this->m_tcp.options.port = this->options.port;
@@ -61,13 +60,13 @@ void Server::serve() {
 			try {
 
 				auto next = this->m_tcp.next();
-				auto ctx = ServeContext(this->options, this->m_exit);
+				auto ctx = Pipelines::ServeContext(this->options, this->m_done);
 
-				std::thread(Pipelines::H1::serve_conn, std::move(next), this->m_handler_fn, ctx).detach();
+				std::thread( Pipelines::H1::serve_conn, std::move(next), this->m_handler_fn, ctx).detach();
 
 			} catch(const std::exception& e) {
 
-				if (this->m_exit) {
+				if (this->m_done) {
 					break;
 				}
 
@@ -90,25 +89,22 @@ void Server::serve() {
 
 void Server::shutdown() {
 
-	if (!this->m_active) {
+	if (*this->m_done) {
 		return;
 	}
 
-	*this->m_exit = true;
+	*this->m_done = true;
 
 	this->m_tcp.shutdown();
-	
+
 	if (this->m_loop.valid()) {
 		this->m_loop.get();
 	}
-
-	this->m_active = false;
 }
-
 
 Server::~Server() {
 	this->shutdown();
-	*this->m_exit = true;
+	*this->m_done = true;
 }
 
 std::string parse_bind_addr(const std::string& addr) {

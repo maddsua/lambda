@@ -61,6 +61,7 @@ namespace Lambda {
 			std::vector<uint8_t> m_read_buff;
 			BodyReader& m_reader;
 			ResponseWriter& m_writer;
+			Context& m_ctx;
 			bool m_closed = false;
 
 		public:
