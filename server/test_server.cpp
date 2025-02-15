@@ -10,7 +10,7 @@ using namespace Lambda;
 void handler_fn(Request& req, ResponseWriter& wrt) {
 
 	Log::log("--> [{}] {} {} {{}}", {
-		req.url.host,
+		req.remote_addr.hostname,
 		HTTP::method_to_string(req.method),
 		req.url.to_string(),
 		req.body.text()
