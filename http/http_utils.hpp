@@ -15,7 +15,11 @@ namespace Lambda::HTTP {
 	std::optional<Method> string_to_method(const std::string& method);
 	bool method_can_have_body(Method method);
 
+	//	Normalize http header case
 	std::string reset_case(std::string value);
+
+	//	Get rid of leading and trailing whitespace characters
+	std::string trim_space(const std::string& token);
 };
 
 #endif

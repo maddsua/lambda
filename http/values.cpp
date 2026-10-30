@@ -1,5 +1,7 @@
 #include "./http.hpp"
 #include "./http_utils.hpp"
+#include <cstddef>
+#include <string>
 
 using namespace Lambda;
 using namespace Lambda::HTTP;
@@ -128,7 +130,11 @@ bool Values::empty() const noexcept {
 	return this->m_entries.empty();
 }
 
-std::string HTTP::reset_case(std::string token) {
+std::string HTTP::trim_space(const std::string& token) {
+
+	if (!token.size()) {
+		return "";
+	}
 
 	//	find token beginning
 	size_t trim_begin = 0;
@@ -136,17 +142,34 @@ std::string HTTP::reset_case(std::string token) {
 		trim_begin++;
 	}
 
+	//	ensure we don't have a token full of whitespaces
+	size_t token_end = token.size() - 1;
+	if (trim_begin >= token_end) {
+		return "";
+	}
+
 	//	find token end
-	size_t value_end = token.size() - 1;
-	size_t trim_end = value_end;
+	size_t trim_end = token.size() - 1;
 	while (trim_end > 0 && std::isspace(token[trim_end])) {
 		trim_end--;
 	}
 
-	//	trim spaces
-	if (trim_begin > 0 || trim_begin < value_end) {
-		token = token.substr(trim_begin, trim_end - (trim_begin - 1));
+	//	check that we didn't trick ourselves
+	if (trim_end <= trim_begin) {
+		return "";
 	}
+
+	//	cut a portion of a string that's clean of trailing whitespaces if any detected
+	if (trim_begin > 0 || trim_begin < token_end) {
+		return token.substr(trim_begin, trim_end - (trim_begin - 1));
+	}
+
+	return token;
+}
+
+std::string HTTP::reset_case(std::string token) {
+
+	token = HTTP::trim_space(token);
 
 	//	reset to lowercase
 	for (auto& rune : token) {
@@ -154,6 +177,6 @@ std::string HTTP::reset_case(std::string token) {
 			rune += 0x20;
 		}
 	}
-	
+
 	return token;
 }
